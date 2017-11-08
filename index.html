@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Hello, world!</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+
+    <!-- Tangle -->
+    <script type="text/javascript" src="Tangle.js"></script>
+
+    <!-- TangleKit -->
+    <link rel="stylesheet" href="TangleKit/TangleKit.css" type="text/css">
+    <script type="text/javascript" src="TangleKit/mootools.js"></script>
+    <script type="text/javascript" src="TangleKit/sprintf.js"></script>
+    <script type="text/javascript" src="TangleKit/BVTouchable.js"></script>
+    <script type="text/javascript" src="TangleKit/TangleKit.js"></script>
+
+
+    <!-- Isotope (licensed under GPLv3) -->
+    <script src="https://npmcdn.com/isotope-layout@3/dist/isotope.pkgd.js"></script>
+    <script src="https://npmcdn.com/isotope-horizontal@2/horizontal.js"></script>
+
+    <script type="text/javascript" src="my.js"></script>
+    <link rel="stylesheet" href="my.css" type="text/css">
+  </head>
+  <body>
+    <div class="container">
+      <h4> A trip inside python dictionary internals. Part 1: hash tables </h4>
+      <h6> What's so great about lists and arrays? </h6>
+      <br>
+      <div id="exampleArrayTangle">
+        <p>
+          Picture a typical python list. For example <code>[<span data-var="exampleArray"></span>]</code>.
+          <br>
+          Python lists are actually arrays: continigous chunks of memory. Which means that it's easy to find
+          <code><span data-var="exampleArrayIdx" class="TKAdjustableNumber" data-min="0" data-max="20"></span></code>-th element.
+          In this case it is <code><span data-var="exampleArrayIdxVal"></span></code>
+        </p>
+        <div class="TKArrayVis clearfix" data-var="exampleArrayVis"> </div>
+      </div>
+      <p>
+        Getting element by index is very fast. However, searching for a specific value can be slow. 
+        For example, to find [mid element] we would sometimes need to scan 50% of elements. 
+        And to check that [missing element] is missing, we would need to scan the whole list.
+      </p>
+      <p>
+        What if instead of using a plain list we could organize our data in a different way? 
+        The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
+        Then we could simple check a[idx] to find if idx is present.
+      </p>
+      <p>
+        Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
+      </p>
+      TODO: hash tables have params, like fill rate. Use slider to show how much operations are made
+    </div>
+  </body>
+</html>
