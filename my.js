@@ -171,6 +171,39 @@ var pyHashString = function(s) {
     return res.toString();
 }
 
+var pyHashInt = function(n) {
+    /* TODO: actually implement something... Though it works for most ints now */
+    return n;
+}
+
+class MyHash {
+    constructor() {
+        this.size = 0;
+        this.capacity = 16;
+        this.data = [];
+        for (var i = 0; i < this.capacity; ++i) {
+            this.data.push(null);
+        }
+    }
+
+    addArray(array) {
+        for (var o of array) {
+            console.log("Add " + o);
+            this.add(o);
+        }
+    }
+
+    add(o) {
+        console.log(o);
+        var idx = pyHashInt(o) % this.capacity;
+        while (this.data[idx] !== null) {
+            console.log(idx);
+            idx = (idx + 1) % this.capacity;
+        }
+        this.data[idx] = o;
+    }
+}
+
 console.log(pyHashString("a"))
 console.log(pyHashString("aa"))
 console.log(pyHashString("aaa"))
@@ -193,7 +226,10 @@ Tangle.classes.TKArrayVis = {
         this.array = arrayValues;
 
         for (var [i, cellVal] of this.array.entries()) {
-            var $new_cell = $('<div class="array-cell-vis">' + cellVal + '</div>');
+            var $new_cell = $('<div class="array-cell-vis"></div>');
+            if (cellVal !== null) {
+                $new_cell.html(cellVal);
+            }
             if (i == this.idx) {
                 $new_cell.addClass('array-cell-vis-active');
             }
@@ -235,13 +271,20 @@ $(document).ready(function() {
     var model = {
         initialize: function () {
             this.exampleArrayIdx = 0;
-            this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 40, 50, 60, 70, 80, 90, 100, 150, 200, 300, 400, 500, 600, 700, 800];
+            this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
         },
         update: function () {
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
                 idx: this.exampleArrayIdx,
+            }
+
+            myhash = new MyHash();
+            myhash.addArray(this.exampleArray);
+            this.exampleArrayVisHash = {
+                array: myhash.data,
+                idx: 0
             }
         }
     };

@@ -51,21 +51,24 @@
           In this case it is <code><span data-var="exampleArrayIdxVal"></span></code>
         </p>
         <div class="TKArrayVis clearfix" data-var="exampleArrayVis"> </div>
+        <p>
+          Getting element by index is very fast. However, searching for a specific value can be slow. 
+          For example, to find [mid element] we would sometimes need to scan 50% of elements. 
+          And to check that [missing element] is missing, we would need to scan the whole list.
+        </p>
+        <p>
+          What if instead of using a plain list we could organize our data in a different way? 
+          The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
+          Then we could simple check a[idx] to find if idx is present.
+        </p>
+        <p>
+          Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
+        </p>
+        <p>
+          What we could do instead...
+        </p>
+        <div class="TKArrayVis clearfix" data-var="exampleArrayVisHash"></div>
       </div>
-      <p>
-        Getting element by index is very fast. However, searching for a specific value can be slow. 
-        For example, to find [mid element] we would sometimes need to scan 50% of elements. 
-        And to check that [missing element] is missing, we would need to scan the whole list.
-      </p>
-      <p>
-        What if instead of using a plain list we could organize our data in a different way? 
-        The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
-        Then we could simple check a[idx] to find if idx is present.
-      </p>
-      <p>
-        Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
-      </p>
-      TODO: hash tables have params, like fill rate. Use slider to show how much operations are made
     </div>
   </body>
 </html>
