@@ -33,6 +33,15 @@ class Int64 {
         this._carryOverAll();
     }
 
+    eq(other) {
+        for (var i = 0; i < this.size; ++i) {
+            if (this.data[i] != other.data[i]) {
+                return false
+            }
+        }
+        return true
+    }
+
     add(other) {
         var carry = 0;
         for (var i = 0; i < this.size; ++i) {
@@ -53,13 +62,8 @@ class Int64 {
     }
 
     mulBy(other) {
-        // console.log("!");
         var originalData = _.clone(this.data);
         var otherData = _.clone(other.data);
-        // console.log("originalData =");
-        // console.log(originalData);
-        // console.log("otherData =");
-        // console.log(otherData);
 
         for (var i = 0; i < this.size; ++i) {
             this.data[i] = 0;
@@ -75,13 +79,9 @@ class Int64 {
                     this.data[i + j] += originalData[i] * otherData[j];
                 }
             }
-
-            // console.log(this.data);
         }
 
         this._carryOverAll();
-        // console.log("CO =");
-        // console.log(this.data);
 
         return this;
     }
@@ -132,9 +132,6 @@ class Int64 {
             if (carry) {
                 decPower.push(carry);
             }
-
-            /*console.log(decRes);
-            console.log(decPower);*/
         }
 
         var res = "";
@@ -157,7 +154,7 @@ class Int64 {
     }
 }
 
-var py_hash_string = function(s) {
+var pyHashString = function(s) {
     var res = new Int64(s.charCodeAt(0) << 7);
     var magic = new Int64(1000003);
 
@@ -167,17 +164,19 @@ var py_hash_string = function(s) {
 
     res.xorBy(new Int64(s.length));
 
-    /* TODO XXX: compare to -1 */
+    if (res.eq(new Int64(-1))) {
+        res = new Int64(-2);
+    }
 
     return res.toString();
 }
 
-console.log(py_hash_string("a"))
-console.log(py_hash_string("aa"))
-console.log(py_hash_string("aaa"))
-console.log(py_hash_string("aaaa"))
-console.log(py_hash_string("abba"))
-console.log(py_hash_string("ilovepython"))
+console.log(pyHashString("a"))
+console.log(pyHashString("aa"))
+console.log(pyHashString("aaa"))
+console.log(pyHashString("aaaa"))
+console.log(pyHashString("abba"))
+console.log(pyHashString("ilovepython"))
 
 Tangle.classes.TKArrayVis = {
     activeCellClass: 'array-cell-vis-active',
