@@ -188,28 +188,46 @@ class MyHash {
 
     addArray(array) {
         for (var o of array) {
-            console.log("Add " + o);
             this.add(o);
         }
     }
 
     add(o) {
-        console.log(o);
         var idx = pyHashInt(o) % this.capacity;
         while (this.data[idx] !== null) {
-            console.log(idx);
+            // console.log(idx);
             idx = (idx + 1) % this.capacity;
         }
         this.data[idx] = o;
     }
 }
 
-console.log(pyHashString("a"))
-console.log(pyHashString("aa"))
-console.log(pyHashString("aaa"))
-console.log(pyHashString("aaaa"))
-console.log(pyHashString("abba"))
-console.log(pyHashString("ilovepython"))
+
+Tangle.classes.TKArrayInput = {
+    initialize: function (element, options, tangle, variable) {
+        this.$element = $(element);
+        this.$input = $('<input type="text" class="form-control TKStringInput">');
+        this.$element.append(this.$input);
+
+        var inputChanged = (function () {
+            var value = this.$input.val();
+            try {
+                var arr = JSON.parse(value);
+                // TODO: check if it is flat array
+                tangle.setValue(variable, arr);
+            } catch (e) {
+            }
+        }).bind(this);
+
+        this.$input.on("change",  inputChanged);
+    },
+
+	update: function (element, value) {
+        console.log("TKArrayInput.update");
+        console.log(value);
+	    this.$input.val(JSON.stringify(value));
+	}
+};
 
 Tangle.classes.TKArrayVis = {
     activeCellClass: 'array-cell-vis-active',
@@ -219,6 +237,18 @@ Tangle.classes.TKArrayVis = {
         this.initialized = false;
     },
 
+    createNewCell: function(cellVal, isActive) {
+        var $newCell = $('<div class="array-cell-vis"></div>');
+        if (cellVal !== null) {
+            $newCell.html(cellVal);
+        }
+        if (isActive) {
+            $newCell.addClass('array-cell-vis-active');
+        }
+
+        return $newCell;
+    },
+
     realInitialize: function(element, arrayValues, arrayIdx) {
         this.initialized = true;
         this.$element = $(element);
@@ -226,14 +256,7 @@ Tangle.classes.TKArrayVis = {
         this.array = arrayValues;
 
         for (var [i, cellVal] of this.array.entries()) {
-            var $new_cell = $('<div class="array-cell-vis"></div>');
-            if (cellVal !== null) {
-                $new_cell.html(cellVal);
-            }
-            if (i == this.idx) {
-                $new_cell.addClass('array-cell-vis-active');
-            }
-            this.$element.append($new_cell);
+            this.$element.append(this.createNewCell(cellVal, i == this.idx));
         }
         this.$element.isotope({
             layoutMode: 'horiz',
@@ -242,17 +265,27 @@ Tangle.classes.TKArrayVis = {
     },
   
     update: function (element, value) {
+        console.log("TKArrayVis.update()" + value.array);
         if (this.initialized) {
-            var idx = value.idx;
-            if (idx != this.idx) {
+            var arrayIdx = value.idx;
+            var arrayValues = value.array;
+
+            this.$element.isotope('remove', this.$element.children()).isotope('layout');
+            this.array = arrayValues;
+            this.idx = arrayIdx;
+            for (var [i, cellVall] of this.array.entries()) {
+                var $newCell = this.createNewCell(cellVall, i == this.idx);
+                this.$element.append($newCell).isotope( 'appended', $newCell)
+            }
+            this.$element.isotope(layout);
+            /*if (idx != this.idx) {
                 this.$element.children('.' + this.activeCellClass).removeClass(this.activeCellClass);
                 this.$element.children()[idx].addClass(this.activeCellClass);
                 this.idx = idx;
-            }
+            }*/
         } else {
             this.realInitialize(element, value.array, value.idx);
         }
-        console.log("TKArrayVis.update()");
     }
 };
 
@@ -262,11 +295,6 @@ $(document).ready(function() {
     x = new Int64(x0);
     y = new Int64(y0);
     x.mulBy(y);
-    console.log("PLS");
-    console.log(x0 * y0);
-    console.log(x.toNumber());
-    console.log(x.toString());
-    console.log("UWOTM8");
     var rootElement = document.getElementById('exampleArrayTangle');
     var model = {
         initialize: function () {
@@ -281,6 +309,7 @@ $(document).ready(function() {
             }
 
             myhash = new MyHash();
+            console.log("myhash: " + this.exampleArray);
             myhash.addArray(this.exampleArray);
             this.exampleArrayVisHash = {
                 array: myhash.data,
