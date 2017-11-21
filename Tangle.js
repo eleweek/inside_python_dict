@@ -271,10 +271,15 @@ var Tangle = this.Tangle = function (rootElement, modelClass) {
     }
 
     function applySettersForVariables(varNames) {
+        console.log('applySettersForVariables');
+        console.log(varNames);
         var appliedSetterIDs = {};  // remember setterIDs that we've applied, so we don't call setters twice
     
         for (var i = 0, ilength = varNames.length; i < ilength; i++) {
+            console.log(i);
+            console.log(ilength);
             var varName = varNames[i];
+            console.log('varName = ' + varName);
             var setterInfos = _setterInfosByVariableName[varName];
             if (!setterInfos) { continue; }
             
@@ -287,6 +292,9 @@ var Tangle = this.Tangle = function (rootElement, modelClass) {
                 
                 setterInfo.setter(value);
             }
+            console.log("Woot");
+            console.log(i);
+            console.log(ilength);
         }
     }
     
@@ -310,15 +318,22 @@ var Tangle = this.Tangle = function (rootElement, modelClass) {
     function setValues(obj) {
         var changedVarNames = [];
 
+        console.log("TANGLE");
         for (var varName in obj) {
+            console.log("Checking " + varName);
             var value = obj[varName];
             var oldValue = _model[varName];
+            console.log(varName);
+            console.log(value);
+            console.log(oldValue);
             if (oldValue === undefined) { log("Tangle: setting unknown variable: " + varName);  continue; }
             if (oldValue === value) { continue; }  // don't update if new value is the same
 
             _model[varName] = value;
             changedVarNames.push(varName);
         }
+
+        console.log(changedVarNames);
         
         if (changedVarNames.length) {
             applySettersForVariables(changedVarNames);
@@ -348,23 +363,32 @@ var Tangle = this.Tangle = function (rootElement, modelClass) {
     }
     
     function updateModel(shouldInitialize) {
-        var ShadowModel = function () {};  // make a shadow object, so we can see exactly which properties changed
-        ShadowModel.prototype = _model;
-        var shadowModel = new ShadowModel;
-        
-        if (shouldInitialize) { shadowModel.initialize(); }
-        shadowModel.update();
-        
-        var changedVarNames = [];
-        for (var varName in shadowModel) {
-            if (!shadowModel.hasOwnProperty(varName)) { continue; }
-            if (_model[varName] === shadowModel[varName]) { continue; }
+        try {
+            var ShadowModel = function () {};  // make a shadow object, so we can see exactly which properties changed
+            ShadowModel.prototype = _model;
+            var shadowModel = new ShadowModel;
             
-            _model[varName] = shadowModel[varName];
-            changedVarNames.push(varName);
+            if (shouldInitialize) { shadowModel.initialize(); }
+            shadowModel.update();
+            
+            var changedVarNames = [];
+            console.log("updateModel checks")
+            for (var varName in shadowModel) {
+                console.log("CHECKING " + varName);
+                if (!shadowModel.hasOwnProperty(varName)) { continue; }
+                if (_model[varName] === shadowModel[varName]) { continue; }
+                
+                _model[varName] = shadowModel[varName];
+                changedVarNames.push(varName);
+            }
+            console.log("changedVarNames");
+            console.log(changedVarNames);
+            
+            applySettersForVariables(changedVarNames);
+        } catch (e) {
+            console.error(e);
+            throw e;
         }
-        
-        applySettersForVariables(changedVarNames);
     }
 
 
