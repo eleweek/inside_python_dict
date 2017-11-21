@@ -277,7 +277,7 @@ Tangle.classes.TKArrayVis = {
                 var $newCell = this.createNewCell(cellVall, i == this.idx);
                 this.$element.append($newCell).isotope( 'appended', $newCell)
             }
-            this.$element.isotope(layout);
+            this.$element.isotope('layout');
             /*if (idx != this.idx) {
                 this.$element.children('.' + this.activeCellClass).removeClass(this.activeCellClass);
                 this.$element.children()[idx].addClass(this.activeCellClass);
