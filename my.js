@@ -229,16 +229,48 @@ Tangle.classes.TKArrayInput = {
 	}
 };
 
+function arraysDiff(array_from, array_to)
+{
+    // TODO: O(n + m) algo instead of O(nm)
+    var remaining = [];
+    var removed = [];
+    var added = [];
+
+    for (var af of array_from) {
+        if (array_to.includes(af)) {
+            remaining.push(af);
+        } else {
+            removed.push(af);
+        }
+    }
+
+    for (var at of array_to) {
+        if (array_to.includes(at) && !remaining.includes(at)) {
+            added.push(at);
+        }
+    }
+
+    return {
+        remaining: remaining,
+        removed: removed,
+        added: added,
+    }
+}
+
 Tangle.classes.TKArrayVis = {
     activeCellClass: 'array-cell-vis-active',
     cellClass: 'array-cell-vis',
+    cellClassRemoved: 'array-cell-vis-removed',
+    cellClassAdded: 'array-cell-vis-added',
 
     initialize: function (element, options, tangle, variable) {
         this.initialized = false;
     },
 
-    createNewCell: function(cellVal, isActive) {
-        var $newCell = $('<div class="array-cell-vis"></div>');
+    createNewCell: function(cellVal, isActive, extraClass) {
+        // TODO: unhardcode class names
+        extraClass = extraClass || "";
+        var $newCell = $('<div class="array-cell-vis ' + extraClass + '"></div>');
         if (cellVal !== null) {
             $newCell.html(cellVal);
         }
@@ -248,36 +280,76 @@ Tangle.classes.TKArrayVis = {
 
         return $newCell;
     },
+    getCellSize: function() {
+        // TODO: more efficient way of doing this?
+        // return this.createNewCell(0, false).width();
+        // TODO: unhardcode
+        return 40
+    },
 
     realInitialize: function(element, arrayValues, arrayIdx) {
         this.initialized = true;
         this.$element = $(element);
         this.idx = arrayIdx;
         this.array = arrayValues;
+        this.valToDiv = {};
+
+        var cellSize = this.getCellSize();
 
         for (var [i, cellVal] of this.array.entries()) {
-            this.$element.append(this.createNewCell(cellVal, i == this.idx));
+            var $newCell = this.createNewCell(cellVal, i == this.idx);
+            $newCell.removeClass(this.cellClassAdded);
+            $newCell.css({top: 0, left: i * cellSize});
+            $newCell.data('index', i);
+            this.$element.append($newCell);
+            this.valToDiv[cellVal] = $newCell;
         }
-        this.$element.isotope({
-            layoutMode: 'horiz',
-            itemSelector: '.' + this.cellClass
-        });
     },
   
     update: function (element, value) {
         console.log("TKArrayVis.update()" + value.array);
         if (this.initialized) {
+            var cellSize = this.getCellSize();
+            console.log('cellSize = ' + cellSize);
+
             var arrayIdx = value.idx;
             var arrayValues = value.array;
 
-            this.$element.isotope('remove', this.$element.children()).isotope('layout');
+            var diff = arraysDiff(this.array, arrayValues);
+            console.log(diff);
+
             this.array = arrayValues;
             this.idx = arrayIdx;
-            for (var [i, cellVall] of this.array.entries()) {
-                var $newCell = this.createNewCell(cellVall, i == this.idx);
-                this.$element.append($newCell).isotope( 'appended', $newCell)
+
+            /* TODO: garbage collect old removed and faded out divs */
+            for (var val of diff.removed) {
+                this.valToDiv[val].addClass(this.cellClassRemoved);
             }
-            this.$element.isotope('layout');
+
+            this.$element.find('div').each(function(index, cell) {
+                $(cell).css({"z-index": "0"});
+            });
+
+            for (var [i, val] of this.array.entries()) {
+                if (!(val in this.valToDiv)) {
+                    let $newCell = this.createNewCell(val, i == this.idx, this.cellClassAdded);
+                    this.$element.append($newCell);
+                    // window.requestAnimationFrame() -- might be better
+                    let that = this;
+                    $newCell.css({top: 0, left: i * cellSize});
+                    $newCell.data('index', i);
+                    this.valToDiv[val] = $newCell;
+                    setTimeout(function() {
+                        $newCell.removeClass(that.cellClassAdded);
+                    }, 100);
+                } else {
+                    $cell = this.valToDiv[val];
+                    if ($cell.data('index') != i) {
+                        $cell.css({top: 0, left: i * cellSize, "z-index": "1"});
+                        $cell.data('index', i);
+                    }
+                }
+            }
             /*if (idx != this.idx) {
                 this.$element.children('.' + this.activeCellClass).removeClass(this.activeCellClass);
                 this.$element.children()[idx].addClass(this.activeCellClass);
