@@ -5,7 +5,7 @@
     position: relative;
 }
 
-.array-cell-vis {
+.box {
     position: absolute;
     width: 40px;
     height: 40px;
@@ -17,19 +17,22 @@
     float:left;
     text-align: center;
     opacity: 1;
+}
+
+.box-animated {
     transition-property: left,top,opacity;
     transition-duration: 1s;
     transition-timing-function: ease;
 }
 
-.array-cell-vis-active {
+.box-active {
     border: solid 1px red;
     width: 40px;
     height: 40px;
     line-height: 40px;
 }
 
-.array-cell-vis.array-cell-vis-added,
-.array-cell-vis.array-cell-vis-removed {
+.box.box-just-added,
+.box.box-removed {
     opacity: 0;
 }

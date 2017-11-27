@@ -202,6 +202,84 @@ class MyHash {
     }
 }
 
+class LineOfBoxes {
+
+    constructor(element, boxSize) {
+        // TODO: compute box size?
+        this.$element = $(element);
+        this.boxSize = boxSize;
+        this.JUST_ADDED_CLASS = 'box-just-added';
+        this.REMOVED_CLASS = 'box-removed';
+    }
+
+    init(values) {
+        for (var [i, value] of values.entries()) {
+            var $box = this.makeNewBox(value);
+            $box.removeClass(this.JUST_ADDED_CLASS);
+            this._setBoxIdxAndPos($box, i);
+            this.$element.append($box);
+        }
+    }
+
+    makeNewBox(value) {
+        // TODO: unhardcode class names?
+        var $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
+        if (value !== null) {
+            $box.html(value);
+            $box.attr('data-value', value);
+        }
+
+        return $box;
+    }
+
+    findBox(val) {
+        // TODO: store a map from value to box
+        var filtered = this.$element.find('.box').filter((index, box) => $(box).data('value') === val);
+        if (filtered.length == 0) {
+            return null;
+        } else if (filtered.length > 1) {
+            throw "Multiple boxes found for " + val;
+        }
+        return filtered.first();
+    }
+
+    _getBoxByIdx(idx) {
+        return this.$element.find('[data-index="' + idx + '"]');
+    }
+
+    _setBoxIdxAndPos($box, idx) {
+        $box.css({top: 0, left: idx * this.boxSize});
+        $box.attr('data-index', idx);
+    }
+
+    addBox(idx, value) {
+        let $box = this.makeNewBox(value);
+        this.$element.append($box);
+        let that = this;
+        this._setBoxIdxAndPos($box, idx)
+        // XXX: window.requestAnimationFrame() -- might be better
+        setTimeout(function() {
+            $box.removeClass(that.JUST_ADDED_CLASS);
+        }, 100);
+    }
+
+    removeBox($box) {
+        // TODO: garbage collect
+        $box.addClass(this.REMOVED_CLASS);
+    }
+
+    moveBox($box, toIdx) {
+        if ($box.attr('index') != toIdx) {
+            this._setBoxIdxAndPos($box, toIdx);
+        }
+    }
+
+    resetZIndex() {
+        this.$element.find('.box').each(function(index, box) {
+            $(box).css({"z-index": "0"});
+        });
+    }
+}
 
 Tangle.classes.TKArrayInput = {
     initialize: function (element, options, tangle, variable) {
@@ -229,23 +307,23 @@ Tangle.classes.TKArrayInput = {
 	}
 };
 
-function arraysDiff(array_from, array_to)
+function arraysDiff(arrayFrom, arrayTo)
 {
     // TODO: O(n + m) algo instead of O(nm)
     var remaining = [];
     var removed = [];
     var added = [];
 
-    for (var af of array_from) {
-        if (array_to.includes(af)) {
+    for (var af of arrayFrom) {
+        if (arrayTo.includes(af)) {
             remaining.push(af);
         } else {
             removed.push(af);
         }
     }
 
-    for (var at of array_to) {
-        if (array_to.includes(at) && !remaining.includes(at)) {
+    for (var at of arrayTo) {
+        if (arrayTo.includes(at) && !remaining.includes(at)) {
             added.push(at);
         }
     }
@@ -257,6 +335,7 @@ function arraysDiff(array_from, array_to)
     }
 }
 
+
 Tangle.classes.TKArrayVis = {
     activeCellClass: 'array-cell-vis-active',
     cellClass: 'array-cell-vis',
@@ -267,51 +346,22 @@ Tangle.classes.TKArrayVis = {
         this.initialized = false;
     },
 
-    createNewCell: function(cellVal, isActive, extraClass) {
-        // TODO: unhardcode class names
-        extraClass = extraClass || "";
-        var $newCell = $('<div class="array-cell-vis ' + extraClass + '"></div>');
-        if (cellVal !== null) {
-            $newCell.html(cellVal);
-        }
-        if (isActive) {
-            $newCell.addClass('array-cell-vis-active');
-        }
-
-        return $newCell;
-    },
-    getCellSize: function() {
-        // TODO: more efficient way of doing this?
-        // return this.createNewCell(0, false).width();
-        // TODO: unhardcode
-        return 40
-    },
-
     realInitialize: function(element, arrayValues, arrayIdx) {
         this.initialized = true;
         this.$element = $(element);
-        this.idx = arrayIdx;
+
         this.array = arrayValues;
-        this.valToDiv = {};
+        this.idx = arrayIdx;
 
-        var cellSize = this.getCellSize();
-
-        for (var [i, cellVal] of this.array.entries()) {
-            var $newCell = this.createNewCell(cellVal, i == this.idx);
-            $newCell.removeClass(this.cellClassAdded);
-            $newCell.css({top: 0, left: i * cellSize});
-            $newCell.data('index', i);
-            this.$element.append($newCell);
-            this.valToDiv[cellVal] = $newCell;
-        }
+        // TODO: unhardcode
+        var boxSize = 40;
+        this.lineOfBoxes = new LineOfBoxes(this.$element, boxSize);
+        this.lineOfBoxes.init(arrayValues);
     },
   
     update: function (element, value) {
         console.log("TKArrayVis.update()" + value.array);
         if (this.initialized) {
-            var cellSize = this.getCellSize();
-            console.log('cellSize = ' + cellSize);
-
             var arrayIdx = value.idx;
             var arrayValues = value.array;
 
@@ -321,33 +371,18 @@ Tangle.classes.TKArrayVis = {
             this.array = arrayValues;
             this.idx = arrayIdx;
 
+            this.lineOfBoxes.resetZIndex()
             /* TODO: garbage collect old removed and faded out divs */
             for (var val of diff.removed) {
-                this.valToDiv[val].addClass(this.cellClassRemoved);
+                this.lineOfBoxes.removeBox(this.lineOfBoxes.findBox(val));
             }
 
-            this.$element.find('div').each(function(index, cell) {
-                $(cell).css({"z-index": "0"});
-            });
-
             for (var [i, val] of this.array.entries()) {
-                if (!(val in this.valToDiv)) {
-                    let $newCell = this.createNewCell(val, i == this.idx, this.cellClassAdded);
-                    this.$element.append($newCell);
-                    // window.requestAnimationFrame() -- might be better
-                    let that = this;
-                    $newCell.css({top: 0, left: i * cellSize});
-                    $newCell.data('index', i);
-                    this.valToDiv[val] = $newCell;
-                    setTimeout(function() {
-                        $newCell.removeClass(that.cellClassAdded);
-                    }, 100);
+                var existingBox = this.lineOfBoxes.findBox(val);
+                if (existingBox === null) {
+                    this.lineOfBoxes.addBox(i, val);
                 } else {
-                    $cell = this.valToDiv[val];
-                    if ($cell.data('index') != i) {
-                        $cell.css({top: 0, left: i * cellSize, "z-index": "1"});
-                        $cell.data('index', i);
-                    }
+                    this.lineOfBoxes.moveBox(existingBox, i);
                 }
             }
             /*if (idx != this.idx) {
