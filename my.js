@@ -210,6 +210,8 @@ class LineOfBoxes {
         this.boxSize = boxSize;
         this.JUST_ADDED_CLASS = 'box-just-added';
         this.REMOVED_CLASS = 'box-removed';
+        this.EMPTY = 'box-empty';
+        this.FULL = 'box-full';
     }
 
     init(values) {
@@ -227,6 +229,9 @@ class LineOfBoxes {
         if (value !== null) {
             $box.html(value);
             $box.attr('data-value', value);
+            $box.addClass(this.FULL);
+        } else {
+            $box.addClass(this.EMPTY);
         }
 
         return $box;
