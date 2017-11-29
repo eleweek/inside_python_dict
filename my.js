@@ -202,12 +202,18 @@ class MyHash {
     }
 }
 
-class LineOfBoxes {
 
+class BoxesBase {
     constructor(element, boxSize) {
-        // TODO: compute box size?
         this.$element = $(element);
+        // TODO: compute box size?
         this.boxSize = boxSize;
+        this.boxValues = [];
+        this.$boxDivs = [];
+
+        this.updatedBoxValues = [];
+        this.$updatedBoxDivs = [];
+
         this.JUST_ADDED_CLASS = 'box-just-added';
         this.REMOVED_CLASS = 'box-removed';
         this.EMPTY = 'box-empty';
@@ -215,12 +221,42 @@ class LineOfBoxes {
     }
 
     init(values) {
+        console.log("init");
+        console.log(values);
+        this.boxValues = [];
+
         for (var [i, value] of values.entries()) {
             var $box = this.makeNewBox(value);
             $box.removeClass(this.JUST_ADDED_CLASS);
             this._setBoxIdxAndPos($box, i);
             this.$element.append($box);
+
+            this.boxValues.push(value);
+            this.$boxDivs.push($box);
         }
+    }
+
+    findBoxIndex(val) {
+        if (val === null)
+            return null
+
+        // TODO: store a map from value to box
+        for (var [i, boxVal] of this.boxValues.entries()) {
+            if (boxVal === val) {
+                return i;
+            }
+        }
+
+        return null;
+    }
+
+    _getBoxByIdx(idx) {
+        return this.$element.find('[data-index="' + idx + '"]');
+    }
+
+    _setBoxIdxAndPos($box, idx) {
+        $box.css({top: 0, left: idx * this.boxSize});
+        $box.attr('data-index', idx);
     }
 
     makeNewBox(value) {
@@ -237,28 +273,18 @@ class LineOfBoxes {
         return $box;
     }
 
-    findBox(val) {
-        // TODO: store a map from value to box
-        var filtered = this.$element.find('.box').filter((index, box) => $(box).data('value') === val);
-        if (filtered.length == 0) {
-            return null;
-        } else if (filtered.length > 1) {
-            throw "Multiple boxes found for " + val;
-        }
-        return filtered.first();
-    }
-
-    _getBoxByIdx(idx) {
-        return this.$element.find('[data-index="' + idx + '"]');
-    }
-
-    _setBoxIdxAndPos($box, idx) {
-        $box.css({top: 0, left: idx * this.boxSize});
-        $box.attr('data-index', idx);
+    resetZIndex() {
+        this.$element.find('.box').each(function(index, box) {
+            $(box).css({"z-index": "0"});
+        });
     }
 
     addBox(idx, value) {
         let $box = this.makeNewBox(value);
+
+        this.$updatedBoxDivs[idx] = $box;
+        this.updatedBoxValues[idx] = value;
+
         this.$element.append($box);
         let that = this;
         this._setBoxIdxAndPos($box, idx)
@@ -268,21 +294,108 @@ class LineOfBoxes {
         }, 100);
     }
 
-    removeBox($box) {
+    removeBox(idx) {
         // TODO: garbage collect
-        $box.addClass(this.REMOVED_CLASS);
+        this.$boxDivs[idx].addClass(this.REMOVED_CLASS);
+        console.log(this.$boxDivs[idx]);
+        console.log(this.$boxDivs[idx].attr('class'));
     }
 
-    moveBox($box, toIdx) {
-        if ($box.attr('index') != toIdx) {
+    moveBox(fromIdx, toIdx) {
+        var $box = this.$boxDivs[fromIdx];
+        if (fromIdx != toIdx) {
             this._setBoxIdxAndPos($box, toIdx);
+        }
+        this.$updatedBoxDivs[toIdx] = $box;
+        this.updatedBoxValues[toIdx] = this.boxValues[fromIdx];
+    }
+
+    startModifications(numBoxes) {
+        /* TODO: garbage collect old removed and faded out divs */
+        this.resetZIndex();
+        this.updatedBoxValues = [];
+        this.$updatedBoxDivs = [];
+
+        for (var i = 0; i < numBoxes; ++i) {
+            this.updatedBoxValues.push(null);
+            this.$updatedBoxDivs.push(null);
         }
     }
 
-    resetZIndex() {
-        this.$element.find('.box').each(function(index, box) {
-            $(box).css({"z-index": "0"});
-        });
+    doneModifications() {
+        this.boxValues = this.updatedBoxValues;
+        this.$boxDivs = this.$updatedBoxDivs;
+    }
+}
+
+
+class HashBoxes extends BoxesBase {
+    constructor(element, boxSize) {
+        super(element, boxSize);
+    }
+
+    changeTo(newValues) {
+        this.startModifications(newValues.length)
+        var diff = arraysDiff(this.boxValues, newValues);
+        for (var val of diff.removed) {
+            this.removeBox(this.findBoxIndex(val));
+        }
+
+        for (var [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
+            console.log(i, oldVal, newVal);
+            if (oldVal === null && newVal !== null) {
+                console.log('removeBox');
+                this.removeBox(i);
+            }
+            if (oldVal !== null && newVal === null) {
+                console.log('addBox');
+                this.addBox(i, null);
+            }
+            if (oldVal === null && newVal === null) {
+                console.log('moveBox');
+                this.moveBox(i, i);
+            }
+        }
+
+        for (var [i, val] of newValues.entries()) {
+            var existingBoxIdx = this.findBoxIndex(val);
+            if (val != null) {
+                if (existingBoxIdx === null) {
+                    this.addBox(i, val);
+                } else {
+                    this.moveBox(existingBoxIdx, i);
+                }
+            }
+        }
+
+        this.doneModifications();
+    }
+}
+
+
+class LineOfBoxes extends BoxesBase {
+    constructor(element, boxSize) {
+        super(element, boxSize);
+    }
+
+
+    changeTo(newValues) {
+        var diff = arraysDiff(this.boxValues, newValues);
+
+        this.startModifications(newValues.length);
+        for (var val of diff.removed) {
+            this.removeBox(this.findBoxIndex(val));
+        }
+
+        for (var [i, val] of newValues.entries()) {
+            var existingBoxIdx = this.findBoxIndex(val);
+            if (existingBoxIdx === null) {
+                this.addBox(i, val);
+            } else {
+                this.moveBox(existingBoxIdx, i);
+            }
+        }
+        this.doneModifications();
     }
 }
 
@@ -320,6 +433,10 @@ function arraysDiff(arrayFrom, arrayTo)
     var added = [];
 
     for (var af of arrayFrom) {
+        if (af === null) {
+            continue;
+        }
+
         if (arrayTo.includes(af)) {
             remaining.push(af);
         } else {
@@ -328,6 +445,10 @@ function arraysDiff(arrayFrom, arrayTo)
     }
 
     for (var at of arrayTo) {
+        if (at === null) {
+            continue;
+        }
+
         if (arrayTo.includes(at) && !remaining.includes(at)) {
             added.push(at);
         }
@@ -342,61 +463,40 @@ function arraysDiff(arrayFrom, arrayTo)
 
 
 Tangle.classes.TKArrayVis = {
-    activeCellClass: 'array-cell-vis-active',
-    cellClass: 'array-cell-vis',
-    cellClassRemoved: 'array-cell-vis-removed',
-    cellClassAdded: 'array-cell-vis-added',
-
     initialize: function (element, options, tangle, variable) {
-        this.initialized = false;
-    },
-
-    realInitialize: function(element, arrayValues, arrayIdx) {
-        this.initialized = true;
-        this.$element = $(element);
-
-        this.array = arrayValues;
-        this.idx = arrayIdx;
-
         // TODO: unhardcode
         var boxSize = 40;
-        this.lineOfBoxes = new LineOfBoxes(this.$element, boxSize);
-        this.lineOfBoxes.init(arrayValues);
+        this.lineOfBoxes = new LineOfBoxes(element, 40);
+        this.initialized = false;
     },
   
     update: function (element, value) {
         console.log("TKArrayVis.update()" + value.array);
         if (this.initialized) {
-            var arrayIdx = value.idx;
-            var arrayValues = value.array;
-
-            var diff = arraysDiff(this.array, arrayValues);
-            console.log(diff);
-
-            this.array = arrayValues;
-            this.idx = arrayIdx;
-
-            this.lineOfBoxes.resetZIndex()
-            /* TODO: garbage collect old removed and faded out divs */
-            for (var val of diff.removed) {
-                this.lineOfBoxes.removeBox(this.lineOfBoxes.findBox(val));
-            }
-
-            for (var [i, val] of this.array.entries()) {
-                var existingBox = this.lineOfBoxes.findBox(val);
-                if (existingBox === null) {
-                    this.lineOfBoxes.addBox(i, val);
-                } else {
-                    this.lineOfBoxes.moveBox(existingBox, i);
-                }
-            }
-            /*if (idx != this.idx) {
-                this.$element.children('.' + this.activeCellClass).removeClass(this.activeCellClass);
-                this.$element.children()[idx].addClass(this.activeCellClass);
-                this.idx = idx;
-            }*/
+            this.lineOfBoxes.changeTo(value.array);
         } else {
-            this.realInitialize(element, value.array, value.idx);
+            this.initialized = true;
+            this.lineOfBoxes.init(value.array);
+        }
+    }
+};
+
+Tangle.classes.TKHashVis = {
+    initialize: function (element, options, tangle, variable) {
+        console.log("TKHashVis.initialize");
+        // TODO: unhardcode
+        var boxSize = 40;
+        this.hashBoxes = new HashBoxes(element, 40);
+        this.initialized = false;
+    },
+  
+    update: function (element, value) {
+        console.log("TKHashVis.update()" + value.array);
+        if (this.initialized) {
+            this.hashBoxes.changeTo(value.array);
+        } else {
+            this.initialized = true;
+            this.hashBoxes.init(value.array);
         }
     }
 };
@@ -421,9 +521,9 @@ $(document).ready(function() {
             }
 
             myhash = new MyHash();
-            console.log("myhash: " + this.exampleArray);
             myhash.addArray(this.exampleArray);
-            this.exampleArrayVisHash = {
+            console.log("myhash: " + myhash.data);
+            this.exampleArrayHashVis = {
                 array: myhash.data,
                 idx: 0
             }
