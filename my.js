@@ -538,7 +538,7 @@ $(document).ready(function() {
     var model = {
         initialize: function () {
             this.exampleArrayIdx = 0;
-            this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+            this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
         },
         update: function () {
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
