@@ -176,6 +176,16 @@ var pyHashInt = function(n) {
     return n;
 }
 
+var pyHash = function(o) {
+    if (typeof o === 'string') {
+        return pyHashString(o);
+    } else if (typeof o == 'number') {
+        return pyHashInt(o);
+    } else {
+        throw "pyHash called with an object of unknown type";
+    }
+}
+
 class MyHash {
     constructor() {
         var startCapacity = 16;
@@ -212,7 +222,7 @@ class MyHash {
     }
 
     _doInsert(dataArray, o) {
-        var idx = pyHashInt(o) % dataArray.length;
+        var idx = pyHash(o) % dataArray.length;
         while (dataArray[idx] !== null) {
             // console.log(idx);
             idx = (idx + 1) % dataArray.length;
@@ -222,7 +232,7 @@ class MyHash {
 
     add(o) {
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
-            this.rehash(+(this.data.length * 1.5));
+            this.rehash(+(this.data.length * 2));
         }
         this._doInsert(this.data, o);
         this.size += 1;
@@ -369,17 +379,17 @@ class HashBoxes extends BoxesBase {
         }
 
         for (var [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
-            console.log(i, oldVal, newVal);
+            // console.log(i, oldVal, newVal);
             if (oldVal === null && newVal !== null) {
-                console.log('removeBox');
+                // console.log('removeBox');
                 this.removeBox(i);
             }
             if (oldVal !== null && newVal === null) {
-                console.log('addBox');
+                // console.log('addBox');
                 this.addBox(i, null);
             }
             if (oldVal === null && newVal === null) {
-                console.log('moveBox');
+                // console.log('moveBox');
                 this.moveBox(i, i);
             }
         }
