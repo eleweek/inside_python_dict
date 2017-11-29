@@ -178,12 +178,31 @@ var pyHashInt = function(n) {
 
 class MyHash {
     constructor() {
+        var startCapacity = 16;
+
+        this.MAX_LOAD_FACTOR = 0.66;
+
         this.size = 0;
-        this.capacity = 16;
         this.data = [];
-        for (var i = 0; i < this.capacity; ++i) {
+        for (var i = 0; i < startCapacity; ++i) {
             this.data.push(null);
         }
+    }
+
+    rehash(newCapacity) {
+        var newData = [];
+
+        for (var i = 0; i < newCapacity; ++i) {
+            newData.push(null);
+        }
+
+        for (var i = 0; i < this.data.length; ++i) {
+            if (this.data[i] !== null) {
+                this._doInsert(newData, this.data[i]);
+            }
+        }
+
+        this.data = newData;
     }
 
     addArray(array) {
@@ -192,13 +211,21 @@ class MyHash {
         }
     }
 
-    add(o) {
-        var idx = pyHashInt(o) % this.capacity;
-        while (this.data[idx] !== null) {
+    _doInsert(dataArray, o) {
+        var idx = pyHashInt(o) % dataArray.length;
+        while (dataArray[idx] !== null) {
             // console.log(idx);
-            idx = (idx + 1) % this.capacity;
+            idx = (idx + 1) % dataArray.length;
         }
-        this.data[idx] = o;
+        dataArray[idx] = o;
+    }
+
+    add(o) {
+        if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
+            this.rehash(+(this.data.length * 1.5));
+        }
+        this._doInsert(this.data, o);
+        this.size += 1;
     }
 }
 
