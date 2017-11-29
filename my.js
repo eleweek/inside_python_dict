@@ -549,8 +549,11 @@ $(document).ready(function() {
         initialize: function () {
             this.exampleArrayIdx = 0;
             this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
+            this.howToAddObjSerialized = '"py"';
         },
         update: function () {
+            console.log("howToAddObjSerialized = ");
+            console.log(this.howToAddObjSerialized);
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
@@ -564,6 +567,9 @@ $(document).ready(function() {
                 array: myhash.data,
                 idx: 0
             }
+
+            this.howToAddObj = JSON.parse(this.howToAddObjSerialized);
+            this.howToAddObjHash = pyHash(this.howToAddObj);
         }
     };
     var tangle = new Tangle(rootElement, model);
