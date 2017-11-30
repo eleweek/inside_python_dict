@@ -604,6 +604,11 @@ $(document).ready(function() {
             }
 
             this.howToAddObjHash = pyHash(this.howToAddObj);
+            this.howToAddObjHashCapacity = myhash.data.length;
+            this.howToAddObjHashIndex = this.howToAddObjHash % this.howToAddObjHashCapacity;
+            this.howToAddObjHashCollisionVal = myhash.data[this.howToAddObjHashIndex]
+            this.howToAddNoCollisions = (this.howToAddObjHashCollisionVal === null);
+            this.howToAddObjHashIndexNext = this.howToAddObjHashIndex + 1;
         }
     };
     var tangle = new Tangle(rootElement, model);
