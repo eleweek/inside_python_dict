@@ -448,7 +448,7 @@ Tangle.classes.TKArrayInput = {
                 var arr = JSON.parse(value);
                 // TODO: check if it is flat array
                 tangle.setValue(variable, arr);
-            } catch (e) {
+            } catch(e) {
             }
         }).bind(this);
 
@@ -538,6 +538,41 @@ Tangle.classes.TKHashVis = {
     }
 };
 
+/* copied from TangleKit TKNumberField */
+Tangle.classes.TKJsonField = {
+    initialize: function (element, options, tangle, variable) {
+        this.input = new Element("input", {
+    		type: "text",
+    		"class":"TKJsonFieldInput",
+    		size: options.size || 10
+        }).inject(element, "top");
+        
+        var inputChanged = (function () {
+            console.log("inputChanged()");
+            var value = this.getValue();
+            tangle.setValue(variable, value);
+        }).bind(this);
+        
+        this.input.addEvent("keyup",  inputChanged);
+        this.input.addEvent("blur",   inputChanged);
+        this.input.addEvent("change", inputChanged);
+	},
+	
+	getValue: function () {
+        try {
+            var value = JSON.parse(this.input.get("value"));
+        } catch (e) {
+            return undefined;
+        }
+        return value;
+	},
+	
+	update: function (element, value) {
+	    var currentValue = this.getValue();
+	    if (value !== currentValue) { this.input.set("value", JSON.stringify(value)); }
+	}
+};
+
 $(document).ready(function() {
     var x0 = 339;
     var y0 = -922;
@@ -549,7 +584,7 @@ $(document).ready(function() {
         initialize: function () {
             this.exampleArrayIdx = 0;
             this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
-            this.howToAddObjSerialized = '"py"';
+            this.howToAddObj = 'py';
         },
         update: function () {
             console.log("howToAddObjSerialized = ");
@@ -568,7 +603,6 @@ $(document).ready(function() {
                 idx: 0
             }
 
-            this.howToAddObj = JSON.parse(this.howToAddObjSerialized);
             this.howToAddObjHash = pyHash(this.howToAddObj);
         }
     };
