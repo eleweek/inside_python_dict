@@ -222,20 +222,36 @@ class MyHash {
     }
 
     _doInsert(dataArray, o) {
+        var collisions = [];
+        var hash = pyHash(o);
         var idx = pyHash(o) % dataArray.length;
+        var originalIdx = idx;
         while (dataArray[idx] !== null) {
-            // console.log(idx);
+            collisions.push({
+                'idx': idx,
+                'object': dataArray[idx],
+                'hash': pyHash(dataArray[idx]), // TODO: cache hashes?
+            });
             idx = (idx + 1) % dataArray.length;
         }
         dataArray[idx] = o;
+        return {
+            'originalIdx': originalIdx,
+            'hash': hash,
+            'capacity': dataArray.length,
+            'finalIdx': idx,
+            'collisions': collisions,
+        }
     }
 
     add(o) {
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
             this.rehash(+(this.data.length * 2));
         }
-        this._doInsert(this.data, o);
+        var insertionHistory = this._doInsert(this.data, o);
         this.size += 1;
+
+        return insertionHistory;
     }
 }
 
@@ -518,6 +534,38 @@ Tangle.classes.TKArrayVis = {
     }
 };
 
+
+Tangle.classes.TKInsertionHistory = {
+    initialize: function (element, options, tangle, variable) {
+        this.$element = $(element);
+    },
+  
+    update: function (element, value) {
+        this.insertionHistory = value;
+
+        var ih = this.insertionHistory;
+
+        this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
+
+        if (ih.collisions.length == 0) {
+            this.$element.append(`<p> The slot at the index <code>${ih.originalIdx}</code> is empty, so we can put the element there right away</p>`)
+        } else if (ih.collisions.length == 1) {
+            this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.findBoxIndex}</code> is empty </p>`)
+        } else {
+            content = `<p> While inserting the element multiple collisions happen. <ol>`;
+            for (var i = 0; i < ih.collisions.length; ++i) {
+                var c = ih.collisions[i];
+                var nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
+                content += `<li> Slot <code>${c.idx}</code> is occupied by <code>${c.object}</code>. So we check <code>${nextIdx}</code> next </li>`;
+            }
+            content += `</ol></p>`;
+            console.log("Content: " + content);
+            this.$element.append(content);
+        }
+    }
+};
+
+
 Tangle.classes.TKHashVis = {
     initialize: function (element, options, tangle, variable) {
         console.log("TKHashVis.initialize");
@@ -574,11 +622,6 @@ Tangle.classes.TKJsonField = {
 };
 
 $(document).ready(function() {
-    var x0 = 339;
-    var y0 = -922;
-    x = new Int64(x0);
-    y = new Int64(y0);
-    x.mulBy(y);
     var rootElement = document.getElementById('exampleArrayTangle');
     var model = {
         initialize: function () {
@@ -599,16 +642,14 @@ $(document).ready(function() {
             myhash.addArray(this.exampleArray);
             console.log("myhash: " + myhash.data);
             this.exampleArrayHashVis = {
-                array: myhash.data,
-                idx: 0
+                array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
             }
 
-            this.howToAddObjHash = pyHash(this.howToAddObj);
-            this.howToAddObjHashCapacity = myhash.data.length;
-            this.howToAddObjHashIndex = this.howToAddObjHash % this.howToAddObjHashCapacity;
-            this.howToAddObjHashCollisionVal = myhash.data[this.howToAddObjHashIndex]
-            this.howToAddNoCollisions = (this.howToAddObjHashCollisionVal === null);
-            this.howToAddObjHashIndexNext = this.howToAddObjHashIndex + 1;
+            this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
+
+            this.exampleArrayHashAfterInsertionVis = {
+                array: _.cloneDeep(myhash.data),
+            }
         }
     };
     var tangle = new Tangle(rootElement, model);
