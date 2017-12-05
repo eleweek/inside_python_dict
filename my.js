@@ -178,7 +178,7 @@ var pyHashInt = function(n) {
 
 var pyHash = function(o) {
     if (typeof o === 'string') {
-        return pyHashString(o);
+        return +pyHashString(o);
     } else if (typeof o == 'number') {
         return pyHashInt(o);
     } else {
@@ -194,22 +194,22 @@ class MyHash {
 
         this.size = 0;
         this.data = [];
+        this.originalOrder = [];
         for (var i = 0; i < startCapacity; ++i) {
             this.data.push(null);
         }
     }
 
     rehash(newCapacity) {
+        console.log(this.originalOrder);
         var newData = [];
 
         for (var i = 0; i < newCapacity; ++i) {
             newData.push(null);
         }
 
-        for (var i = 0; i < this.data.length; ++i) {
-            if (this.data[i] !== null) {
-                this._doInsert(newData, this.data[i]);
-            }
+        for (var o of this.originalOrder) {
+            this._doInsert(newData, o);
         }
 
         this.data = newData;
@@ -218,13 +218,16 @@ class MyHash {
     addArray(array) {
         for (var o of array) {
             this.add(o);
+            this.originalOrder.push(o);
         }
     }
 
     _doInsert(dataArray, o) {
         var collisions = [];
         var hash = pyHash(o);
-        var idx = pyHash(o) % dataArray.length;
+        var idx = ((hash % dataArray.length) + dataArray.length) % dataArray.length;
+        console.log(hash);
+        console.log(idx);
         var originalIdx = idx;
         while (dataArray[idx] !== null) {
             collisions.push({
