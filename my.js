@@ -62,8 +62,8 @@ class Int64 {
     }
 
     mulBy(other) {
-        var originalData = _.clone(this.data);
-        var otherData = _.clone(other.data);
+        var originalData = _.cloneDeep(this.data);
+        var otherData = _.cloneDeep(other.data);
 
         for (var i = 0; i < this.size; ++i) {
             this.data[i] = 0;
@@ -228,8 +228,10 @@ class MyHash {
         var originalIdx = idx;
         while (dataArray[idx] !== null) {
             collisions.push({
+                'type': 'collision',
                 'idx': idx,
-                'object': dataArray[idx],
+                'data': _.cloneDeep(dataArray),
+                'object': _.cloneDeep(dataArray[idx]),
                 'hash': pyHash(dataArray[idx]), // TODO: cache hashes?
             });
             idx = (idx + 1) % dataArray.length;
@@ -245,10 +247,19 @@ class MyHash {
     }
 
     add(o) {
+        var rehashEvent = null;
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
+            rehashEvent = {
+                'type': 'rehash',
+                'dataBefore': _.cloneDeep(this.data),
+            }
             this.rehash(+(this.data.length * 2));
+            rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
         var insertionHistory = this._doInsert(this.data, o);
+        if (rehashEvent) {
+            insertionHistory.rehash = rehashEvent;
+        }
         this.size += 1;
 
         return insertionHistory;
@@ -410,17 +421,13 @@ class HashBoxes extends BoxesBase {
         }
 
         for (var [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
-            // console.log(i, oldVal, newVal);
             if (oldVal === null && newVal !== null) {
-                // console.log('removeBox');
                 this.removeBox(i);
             }
             if (oldVal !== null && newVal === null) {
-                // console.log('addBox');
                 this.addBox(i, null);
             }
             if (oldVal === null && newVal === null) {
-                // console.log('moveBox');
                 this.moveBox(i, i);
             }
         }
@@ -553,14 +560,27 @@ Tangle.classes.TKArrayVis = {
 Tangle.classes.TKInsertionHistory = {
     initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
+        this.tangle = tangle;
     },
   
     update: function (element, value) {
         this.insertionHistory = value;
 
-        var ih = this.insertionHistory;
+        let ih = this.insertionHistory;
 
         this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
+        
+        if (ih.rehash) {
+            var $rehashDescription = $(`<p> The hash reaches target fill ratio of 0.66 after this insert. So resize the table and rehash everything</p>`);
+            this.$element.append($rehashDescription);
+            console.log('ih.rehash');
+            console.log(ih.rehash.dataBefore);
+            console.log(ih.rehash.dataAfter);
+            $rehashDescription.hover(
+                () => this.tangle.setValue("howToAddEventPtr", "rehash"),
+                () => this.tangle.setValue("howToAddEventPtr", null)
+            )
+        }
 
         if (ih.collisions.length == 0) {
             this.$element.append(`<p> The slot at the index <code>${ih.originalIdx}</code> is empty, so we can put the element there right away</p>`)
@@ -643,10 +663,9 @@ $(document).ready(function() {
             this.exampleArrayIdx = 0;
             this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
             this.howToAddObj = 'py';
+            this.howToAddEventPtr = null;
         },
         update: function () {
-            console.log("howToAddObjSerialized = ");
-            console.log(this.howToAddObjSerialized);
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
@@ -662,8 +681,14 @@ $(document).ready(function() {
 
             this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
 
-            this.exampleArrayHashAfterInsertionVis = {
-                array: _.cloneDeep(myhash.data),
+            if (this.howToAddEventPtr !== "rehash") {
+                this.exampleArrayHashAfterInsertionVis = {
+                    array: _.cloneDeep(myhash.data),
+                }
+            } else {
+                this.exampleArrayHashAfterInsertionVis = {
+                    array: this.howToAddInsertionHistory.rehash.dataBefore
+                }
             }
         }
     };
