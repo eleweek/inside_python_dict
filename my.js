@@ -307,8 +307,23 @@ class BoxesBase {
         return this.$element.find('[data-index="' + idx + '"]');
     }
 
-    _setBoxIdxAndPos($box, idx) {
-        $box.css({top: 0, left: idx * this.boxSize});
+    _setBoxIdxAndPos($box, idx, type) {
+        // Kind of shitty way of launching animations...
+        // This function was a simple setter originally
+        // TODO: Refactor?
+        var startY = 0;
+        var endY = 0;
+        if (type == "added") {
+            startY = -this.boxSize;
+        } else if (type == "removed") {
+            endY = this.boxSize;
+        }
+        $box.css({top: startY, left: idx * this.boxSize});
+        if (startY != endY) {
+            setTimeout(function() {
+                $box.css({top: endY});
+            }, 100);
+        }
         $box.attr('data-index', idx);
     }
 
@@ -340,7 +355,7 @@ class BoxesBase {
 
         this.$element.append($box);
         let that = this;
-        this._setBoxIdxAndPos($box, idx)
+        this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"))
         // XXX: window.requestAnimationFrame() -- might be better
         setTimeout(function() {
             $box.removeClass(that.JUST_ADDED_CLASS);
@@ -349,9 +364,9 @@ class BoxesBase {
 
     removeBox(idx) {
         // TODO: garbage collect
-        this.$boxDivs[idx].addClass(this.REMOVED_CLASS);
-        console.log(this.$boxDivs[idx]);
-        console.log(this.$boxDivs[idx].attr('class'));
+        var $box = this.$boxDivs[idx];
+        $box.addClass(this.REMOVED_CLASS);
+        this._setBoxIdxAndPos($box, idx, (this.boxValues[idx] !== null ? "removed" : "empty-removed"));
     }
 
     moveBox(fromIdx, toIdx) {
