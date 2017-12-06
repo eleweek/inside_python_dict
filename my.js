@@ -672,7 +672,8 @@ $(document).ready(function() {
         initialize: function () {
             this.exampleArrayIdx = 0;
             // this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
-            this.exampleArray = ["ab","cd","de","hm","hn","fb","ya","xx","xy","me"];
+            // this.exampleArray = ["ab","cd","de","hm","hn","fb","ya","xx","xy","me"];
+            this.exampleArray = ["abde","cdef","world","hmmm","hello","xxx","ya","tic","well","meh"];
             this.howToAddObj = 'py';
             this.howToAddEventPtr = null;
         },
