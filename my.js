@@ -178,9 +178,9 @@ var pyHashInt = function(n) {
 
 var pyHash = function(o) {
     if (typeof o === 'string') {
-        return +pyHashString(o);
+        return Big(pyHashString(o));
     } else if (typeof o == 'number') {
-        return pyHashInt(o);
+        return Big(pyHashInt(o));
     } else {
         throw "pyHash called with an object of unknown type";
     }
@@ -225,10 +225,10 @@ class MyHash {
     _doInsert(dataArray, o) {
         var collisions = [];
         var hash = pyHash(o);
-        var idx = Number(Big(hash).mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
+        var idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
         console.log('_doInsert');
         console.log(o);
-        console.log(hash);
+        console.log(hash.toString());
         console.log(idx);
         var originalIdx = idx;
         while (dataArray[idx] !== null) {
@@ -237,7 +237,7 @@ class MyHash {
                 'idx': idx,
                 'data': _.cloneDeep(dataArray),
                 'object': _.cloneDeep(dataArray[idx]),
-                'hash': pyHash(dataArray[idx]), // TODO: cache hashes?
+                'hash': pyHash(dataArray[idx]).toString(), // TODO: cache hashes?
             });
             idx = (idx + 1) % dataArray.length;
         }
@@ -662,6 +662,11 @@ Tangle.classes.TKJsonField = {
 };
 
 $(document).ready(function() {
+    console.log(pyHashString("abc"));
+    console.log(pyHashString("abcd"));
+    console.log(pyHashString("yac"));
+    console.log(pyHashString("me"));
+    console.log(pyHashString("meh"));
     var rootElement = document.getElementById('exampleArrayTangle');
     var model = {
         initialize: function () {
