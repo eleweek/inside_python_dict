@@ -332,7 +332,7 @@ class BoxesBase {
         if (type == "added") {
             startY = -this.boxSize;
         } else if (type == "removed") {
-            endY = this.boxSize;
+            endY = -this.boxSize;
         }
         $box.css({top: startY, left: idx * this.boxSize});
         if (startY != endY) {
