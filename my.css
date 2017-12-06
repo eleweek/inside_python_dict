@@ -44,3 +44,7 @@
 .box.box-removed {
     opacity: 0;
 }
+
+.highlight {
+    background-color: #fcf8e3;
+}

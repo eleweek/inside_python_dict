@@ -576,14 +576,20 @@ Tangle.classes.TKInsertionHistory = {
         this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
         
         if (ih.rehash) {
-            var $rehashDescription = $(`<p> The hash reaches target fill ratio of 0.66 after this insert. So resize the table and rehash everything</p>`);
+            var $rehashDescription = $(`<p><span>The hash reaches target fill ratio of 0.66 after this insert. So resize the table and rehash everything</span></p>`);
             this.$element.append($rehashDescription);
             console.log('ih.rehash');
             console.log(ih.rehash.dataBefore);
             console.log(ih.rehash.dataAfter);
             $rehashDescription.hover(
-                () => this.tangle.setValue("howToAddEventPtr", "rehash"),
-                () => this.tangle.setValue("howToAddEventPtr", null)
+                () => {
+                    $rehashDescription.find('span').addClass("highlight");
+                    this.tangle.setValue("howToAddEventPtr", "rehash");
+                },
+                () => {
+                    $rehashDescription.find('span').removeClass("highlight");
+                    this.tangle.setValue("howToAddEventPtr", null);
+                }
             )
         }
 
