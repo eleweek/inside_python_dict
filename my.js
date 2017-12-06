@@ -225,7 +225,9 @@ class MyHash {
     _doInsert(dataArray, o) {
         var collisions = [];
         var hash = pyHash(o);
-        var idx = ((hash % dataArray.length) + dataArray.length) % dataArray.length;
+        var idx = Number(Big(hash).mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
+        console.log('_doInsert');
+        console.log(o);
         console.log(hash);
         console.log(idx);
         var originalIdx = idx;
