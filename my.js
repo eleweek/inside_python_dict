@@ -590,7 +590,7 @@ Tangle.classes.TKInsertionHistory = {
         if (ih.collisions.length == 0) {
             this.$element.append(`<p> The slot at the index <code>${ih.originalIdx}</code> is empty, so we can put the element there right away</p>`)
         } else if (ih.collisions.length == 1) {
-            this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.findBoxIndex}</code> is empty </p>`)
+            this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.finalIdx}</code> is empty </p>`)
         } else {
             content = `<p> While inserting the element multiple collisions happen. <ol>`;
             for (var i = 0; i < ih.collisions.length; ++i) {
