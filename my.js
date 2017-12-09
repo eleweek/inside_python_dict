@@ -182,7 +182,7 @@ var pyHash = function(o) {
     } else if (typeof o == 'number') {
         return Big(pyHashInt(o));
     } else {
-        throw "pyHash called with an object of unknown type";
+        throw "pyHash called with an object of unknown type: " + o;
     }
 }
 
@@ -198,6 +198,18 @@ class MyHash {
         for (var i = 0; i < startCapacity; ++i) {
             this.data.push(null);
         }
+
+        this.bpTime = 0;
+        this.breakpoints = [];
+        this.bpDisabled = false;
+    }
+
+    addBP(bp) {
+        if (this.bpDisabled)
+            return;
+        this.bpTime += 1;
+        bp.time = this.bpTime;
+        this.breakpoints.push(bp);
     }
 
     rehash(newCapacity) {
@@ -224,41 +236,84 @@ class MyHash {
 
     _doInsert(dataArray, o) {
         var collisions = [];
+
         var hash = pyHash(o);
         var idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
-        console.log('_doInsert');
-        console.log(o);
-        console.log(hash.toString());
-        console.log(idx);
         var originalIdx = idx;
-        while (dataArray[idx] !== null) {
+        this.addBP({
+            'point': 'compute-idx',
+            'hash': hash.toString(),
+            'capacity': dataArray.length,
+            'idx': idx,
+        });
+        while (true) {
+            if (dataArray[idx] === null) // code
+                break;
+
+            this.addBP({
+                'point': 'check-collision',
+                'tableAtIdx': dataArray[idx],
+                'idx': idx,
+            });
+
             collisions.push({
                 'type': 'collision',
+                'bpTime': this.bpTime,
                 'idx': idx,
                 'data': _.cloneDeep(dataArray),
                 'object': _.cloneDeep(dataArray[idx]),
                 'hash': pyHash(dataArray[idx]).toString(), // TODO: cache hashes?
             });
-            idx = (idx + 1) % dataArray.length;
+
+            // TODO: actually add capacity and shit to the breakpoint
+            idx = (idx + 1) % dataArray.length; // code
+
+            this.addBP({
+                'point': 'next-idx',
+                'idx': idx,
+            });
         }
-        dataArray[idx] = o;
+        dataArray[idx] = o; // code
+        this.addBP({
+            'point': 'assign-elem',
+            'idx': 'idx',
+            'elem': o,
+        });
         return {
             'originalIdx': originalIdx,
             'hash': hash,
             'capacity': dataArray.length,
             'finalIdx': idx,
+            'breakpoints': this.breakpoints,
             'collisions': collisions,
         }
     }
 
     add(o) {
         var rehashEvent = null;
+        this.addBP({
+            'point': 'check-load-factor',
+            'size': this.size,
+            'capacity': this.data.length,
+            'maxLoadFactor': this.MAX_LOAD_FACTOR,
+        });
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
+            this.addBP({
+                'point': 'rehash',
+            });
             rehashEvent = {
                 'type': 'rehash',
+                'bpTime': this.bpTime,
                 'dataBefore': _.cloneDeep(this.data),
             }
+            if (!this.bpDisabled) {
+                this.bpDisabled = true;
+                var dontForgetToEnableBps = true;
+            }
             this.rehash(+(this.data.length * 2));
+            if (dontForgetToEnableBps) {
+                this.bpDisabled = false;
+            }
             rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
         var insertionHistory = this._doInsert(this.data, o);
@@ -482,7 +537,7 @@ class LineOfBoxes extends BoxesBase {
 Tangle.classes.TKArrayInput = {
     initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
-        this.$input = $('<input type="text" class="form-control TKStringInput">');
+        this.$input = $('<input type="text" class="form-control TKArrayInput">');
         this.$element.append(this.$input);
 
         var inputChanged = (function () {
@@ -561,6 +616,51 @@ Tangle.classes.TKArrayVis = {
     }
 };
 
+Tangle.classes.TKBreakpoints = {
+    initialize: function (element, options, tangle, variable) {
+        this.$element = $(element);
+        this.tangle = tangle;
+    },
+
+    formatBpDesc: function(bp) {
+        if (bp.point == 'compute-idx') {
+            return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
+        } else if (bp.point == 'check-collision') {
+            return `Check collision at <code>${bp.idx}</code>`;
+        } else if (bp.point == 'assign-elem') {
+            return `Set element at ${bp.idx} to <code>${bp.elem}</code>`;
+        } else if (bp.point == 'rehash') {
+            return `Rehash`;
+        } else if (bp.point == 'check-load-factor') {
+            return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
+        } else if (bp.point == 'next-idx') {
+            return `Compute next idx: <code>${bp.idx}</code>`;
+        } else {
+            throw "Unknown bp type: " + bp.point;
+        }
+    },
+  
+    update: function (element, value) {
+        var breakpoints = value;
+        this.$element.html('');
+        console.log('TKBreakpoints');
+        console.log(breakpoints);
+        for (let bp of breakpoints) {
+            let $bpDesc = $(`<p><span> ${this.formatBpDesc(bp)} </span></p>`);
+            $bpDesc.hover(
+                () => {
+                    $bpDesc.addClass("highlight");
+                    this.tangle.setValue("bpPoint", bp.point);
+                },
+                () => {
+                    $bpDesc.removeClass("highlight");
+                    this.tangle.setValue("bpPoint", null);
+                }
+            );
+            this.$element.append($bpDesc);
+        }
+    }
+};
 
 Tangle.classes.TKInsertionHistory = {
     initialize: function (element, options, tangle, variable) {
@@ -667,7 +767,26 @@ Tangle.classes.TKJsonField = {
 	}
 };
 
+
+Tangle.classes.TKHighlightCodeLines = {
+    initialize: function (element, options, tangle, variable) {
+        this.$element = $(element);
+        this.tangle = tangle;
+    },
+  
+    update: function (element, value) {
+        this.$element.find('.code-highlight').removeClass('code-highlight');
+        if (value) {
+            this.$element.find('.' + value).addClass('code-highlight');
+        }
+    }
+}
+
+
 $(document).ready(function() {
+    var elements = $('.sticky-top');
+    Stickyfill.add(elements);
+
     console.log(pyHashString("abc"));
     console.log(pyHashString("abcd"));
     console.log(pyHashString("yac"));
@@ -682,6 +801,7 @@ $(document).ready(function() {
             this.exampleArray = ["abde","cdef","world","hmmm","hello","xxx","ya","tic","well","meh"];
             this.howToAddObj = 'py';
             this.howToAddEventPtr = null;
+            this.bpPoint = '';
         },
         update: function () {
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
@@ -691,13 +811,16 @@ $(document).ready(function() {
             }
 
             myhash = new MyHash();
+            myhash.bpDisabled = true;
             myhash.addArray(this.exampleArray);
             console.log("myhash: " + myhash.data);
             this.exampleArrayHashVis = {
                 array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
             }
 
+            myhash.bpDisabled = false;
             this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
+            this.breakpoints = myhash.breakpoints;
 
             if (this.howToAddEventPtr !== "rehash") {
                 this.exampleArrayHashAfterInsertionVis = {

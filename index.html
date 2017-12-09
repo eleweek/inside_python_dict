@@ -30,6 +30,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/big.js/5.0.3/big.min.js"></script>
 
+    <script type="text/javascript" src="stickyfill.min.js"></script>
+
     <!-- my stuff -->
     <script type="text/javascript" src="my.js"></script>
     <link rel="stylesheet" href="my.css" type="text/css">
@@ -40,9 +42,9 @@
       <h6> What's so great about lists and arrays? </h6>
       <br>
       <div id="exampleArrayTangle">
-        <p>
+        <div class="sticky-top">
           <span class="exampleArrayInput TKArrayInput" data-var="exampleArray"></span>
-        </p>
+        </div>
         <p>
           Picture a typical python list. For example <code>[<span data-var="exampleArray"></span>]</code>.
           <br>
@@ -76,7 +78,25 @@
         <p> Let's say we want to add <span class="TKJsonField" data-var="howToAddObj"></span>
         to the hashtable. 
         </p>
+
         <div class="TKInsertionHistory" data-var="howToAddInsertionHistory">
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <pre><code class="TKHighlightCodeLines" data-var="bpPoint">
+def insert(elem):  
+<span class="check-load-factor    ">    if self.size + 1 &gt; self.capacity * self.MAX_LOAD_FACTOR: </span>
+<span class="rehash               ">        self.rehash()                                           </span>
+
+<span class="compute-idx          ">    idx = hash(elem) % self.capacity                            </span>
+<span class="check-collision      ">    while self.table[idx] is not None:                          </span>
+<span class="next-idx             ">        idx = (idx + 1) % self.capacity                         </span>
+
+<span class="assign-elem          ">    self.table[idx] = elem                                      </span>
+            </code></pre>
+          </div>
+          <div class="col-md-6 TKBreakpoints" data-var="breakpoints">
+          </div>
         </div>
         <div class="TKHashVis clearfix" data-var="exampleArrayHashAfterInsertionVis"></div>
       </div>
