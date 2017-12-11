@@ -276,7 +276,7 @@ class MyHash {
         dataArray[idx] = o; // code
         this.addBP({
             'point': 'assign-elem',
-            'idx': 'idx',
+            'idx': idx,
             'elem': o,
         });
         return {
@@ -340,6 +340,7 @@ class BoxesBase {
 
         this.JUST_ADDED_CLASS = 'box-just-added';
         this.REMOVED_CLASS = 'box-removed';
+        this.ACTIVE_CLASS = 'box-active';
         this.EMPTY = 'box-empty';
         this.FULL = 'box-full';
     }
@@ -372,10 +373,6 @@ class BoxesBase {
         }
 
         return null;
-    }
-
-    _getBoxByIdx(idx) {
-        return this.$element.find('[data-index="' + idx + '"]');
     }
 
     _setBoxIdxAndPos($box, idx, type) {
@@ -464,6 +461,14 @@ class BoxesBase {
     doneModifications() {
         this.boxValues = this.updatedBoxValues;
         this.$boxDivs = this.$updatedBoxDivs;
+    }
+
+    removeAllActive() {
+        this.$element.find('.' + this.ACTIVE_CLASS).removeClass(this.ACTIVE_CLASS);
+    }
+
+    makeActive(idx) {
+        this.$boxDivs[idx].addClass(this.ACTIVE_CLASS);
     }
 }
 
@@ -651,10 +656,14 @@ Tangle.classes.TKBreakpoints = {
                 () => {
                     $bpDesc.addClass("highlight");
                     this.tangle.setValue("bpPoint", bp.point);
+                    if (bp.idx !== undefined) {
+                        this.tangle.setValue("exampleArrayHashAfterInsertionIdx", bp.idx);
+                    }
                 },
                 () => {
                     $bpDesc.removeClass("highlight");
                     this.tangle.setValue("bpPoint", null);
+                    this.tangle.setValue("exampleArrayHashAfterInsertionIdx", null);
                 }
             );
             this.$element.append($bpDesc);
@@ -704,8 +713,6 @@ Tangle.classes.TKInsertionHistory = {
                 var nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
                 content += `<li> Slot <code>${c.idx}</code> is occupied by <code>${c.object}</code>. So we check <code>${nextIdx}</code> next </li>`;
             }
-            content += `</ol></p>`;
-            console.log("Content: " + content);
             this.$element.append(content);
         }
     }
@@ -722,12 +729,19 @@ Tangle.classes.TKHashVis = {
     },
   
     update: function (element, value) {
-        console.log("TKHashVis.update()" + value.array);
+        var array = value.array;
+        var idx = value.idx;
+        console.log("TKHashVis.update()" + array);
         if (this.initialized) {
             this.hashBoxes.changeTo(value.array);
         } else {
             this.initialized = true;
             this.hashBoxes.init(value.array);
+        }
+        if (idx !== null && idx !== undefined) {
+            this.hashBoxes.makeActive(idx);
+        } else {
+            this.hashBoxes.removeAllActive(idx);
         }
     }
 };
@@ -802,12 +816,13 @@ $(document).ready(function() {
             this.howToAddObj = 'py';
             this.howToAddEventPtr = null;
             this.bpPoint = '';
+            this.exampleArrayHashAfterInsertionIdx = null;
         },
         update: function () {
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
-                idx: this.exampleArrayIdx,
+                idx: null,
             }
 
             myhash = new MyHash();
@@ -825,10 +840,12 @@ $(document).ready(function() {
             if (this.howToAddEventPtr !== "rehash") {
                 this.exampleArrayHashAfterInsertionVis = {
                     array: _.cloneDeep(myhash.data),
+                    idx: this.exampleArrayHashAfterInsertionIdx,
                 }
             } else {
                 this.exampleArrayHashAfterInsertionVis = {
-                    array: this.howToAddInsertionHistory.rehash.dataBefore
+                    array: this.howToAddInsertionHistory.rehash.dataBefore,
+                    idx: this.exampleArrayHashAfterInsertionIdx
                 }
             }
         }
