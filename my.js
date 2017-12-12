@@ -663,8 +663,8 @@ Tangle.classes.TKBreakpoints = {
             for (let [bpTime, bp] of this.breakpoints.entries()) {
                 let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
                 $bpDesc.hover(
-                    () => this.tangle.setValue("bpTime", bpTime),
-                    () => this.tangle.setValue("bpTime", null)
+                    () => this.tangle.setValue("bpTime", bpTime)//,
+                    //() => this.tangle.setValue("bpTime", null)
                 );
                 this.$element.append($bpDesc);
                 this.$bpDescs.push($bpDesc);
@@ -750,12 +750,10 @@ Tangle.classes.TKHashVis = {
             this.initialized = true;
             this.hashBoxes.init(value.array);
         }
+        this.hashBoxes.removeAllActive(idx);
         if (idx !== null && idx !== undefined) {
             this.hashBoxes.makeActive(idx);
-        } else {
-            this.hashBoxes.removeAllActive(idx);
         }
-
         this.array = array;
         this.idx = idx;
     }
