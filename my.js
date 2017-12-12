@@ -653,7 +653,7 @@ Tangle.classes.TKBreakpoints = {
         this.breakpoints = value;
         this.$element.html('');
         for (let bp of this.breakpoints) {
-            let $bpDesc = $(`<span> ${this.formatBpDesc(bp)} </span><br>`);
+            let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
             $bpDesc.hover(
                 () => {
                     $bpDesc.addClass("highlight");
