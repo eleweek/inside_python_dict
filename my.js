@@ -207,8 +207,8 @@ class MyHash {
     addBP(bp) {
         if (this.bpDisabled)
             return;
-        this.bpTime += 1;
         bp.time = this.bpTime;
+        this.bpTime += 1;
         this.breakpoints.push(bp);
     }
 
@@ -243,18 +243,19 @@ class MyHash {
         this.addBP({
             'point': 'compute-idx',
             'hash': hash.toString(),
+            'data': _.cloneDeep(dataArray),
             'capacity': dataArray.length,
             'idx': idx,
         });
         while (true) {
-            if (dataArray[idx] === null) // code
-                break;
-
             this.addBP({
                 'point': 'check-collision',
                 'tableAtIdx': dataArray[idx],
                 'idx': idx,
+                'data': _.cloneDeep(dataArray),
             });
+            if (dataArray[idx] === null) // code
+                break;
 
             collisions.push({
                 'type': 'collision',
@@ -270,12 +271,14 @@ class MyHash {
 
             this.addBP({
                 'point': 'next-idx',
+                'data': _.cloneDeep(dataArray),
                 'idx': idx,
             });
         }
         dataArray[idx] = o; // code
         this.addBP({
             'point': 'assign-elem',
+            'data': _.cloneDeep(dataArray),
             'idx': idx,
             'elem': o,
         });
@@ -294,13 +297,11 @@ class MyHash {
         this.addBP({
             'point': 'check-load-factor',
             'size': this.size,
+            'data': this.data,
             'capacity': this.data.length,
             'maxLoadFactor': this.MAX_LOAD_FACTOR,
         });
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
-            this.addBP({
-                'point': 'rehash',
-            });
             rehashEvent = {
                 'type': 'rehash',
                 'bpTime': this.bpTime,
@@ -314,6 +315,10 @@ class MyHash {
             if (dontForgetToEnableBps) {
                 this.bpDisabled = false;
             }
+            this.addBP({
+                'point': 'rehash',
+                'data': _.cloneDeep(this.data),
+            });
             rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
         var insertionHistory = this._doInsert(this.data, o);
@@ -499,7 +504,7 @@ class HashBoxes extends BoxesBase {
 
         for (var [i, val] of newValues.entries()) {
             var existingBoxIdx = this.findBoxIndex(val);
-            if (val != null) {
+            if (val !== null) {
                 if (existingBoxIdx === null) {
                     this.addBox(i, val);
                 } else {
@@ -517,7 +522,6 @@ class LineOfBoxes extends BoxesBase {
     constructor(element, boxSize) {
         super(element, boxSize);
     }
-
 
     changeTo(newValues) {
         var diff = arraysDiff(this.boxValues, newValues);
@@ -626,6 +630,9 @@ Tangle.classes.TKBreakpoints = {
         this.$element = $(element);
         this.tangle = tangle;
         this.breakpoints = [];
+        this.$bpDescs = [];
+
+        this.HIGHLIGHT_CLASS = 'highlight';
     },
 
     formatBpDesc: function(bp) {
@@ -647,29 +654,32 @@ Tangle.classes.TKBreakpoints = {
     },
   
     update: function (element, value) {
-        if (_.isEqual(this.breakpoints, value)) {
-            return;
+        var breakpoints = value.breakpoints;
+        var bpTime = value.bpTime;
+
+        if (!_.isEqual(this.breakpoints, breakpoints)) {
+            this.breakpoints = breakpoints;
+            this.$element.html('');
+            for (let [bpTime, bp] of this.breakpoints.entries()) {
+                let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
+                $bpDesc.hover(
+                    () => this.tangle.setValue("bpTime", bpTime),
+                    () => this.tangle.setValue("bpTime", null)
+                );
+                this.$element.append($bpDesc);
+                this.$bpDescs.push($bpDesc);
+            }
         }
-        this.breakpoints = value;
-        this.$element.html('');
-        for (let bp of this.breakpoints) {
-            let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
-            $bpDesc.hover(
-                () => {
-                    $bpDesc.addClass("highlight");
-                    this.tangle.setValue("bpPoint", bp.point);
-                    if (bp.idx !== undefined) {
-                        this.tangle.setValue("exampleArrayHashAfterInsertionIdx", bp.idx);
-                    }
-                },
-                () => {
-                    $bpDesc.removeClass("highlight");
-                    this.tangle.setValue("bpPoint", null);
-                    this.tangle.setValue("exampleArrayHashAfterInsertionIdx", null);
-                }
-            );
-            this.$element.append($bpDesc);
+
+        if (this.bpTime !== null && this.bpTime !== undefined && this.bpTime != bpTime) {
+            this.$bpDescs[this.bpTime].removeClass(this.HIGHLIGHT_CLASS);
         }
+
+        if (bpTime !== null && bpTime !== undefined) {
+            this.$bpDescs[bpTime].addClass(this.HIGHLIGHT_CLASS);
+        }
+
+        this.bpTime = bpTime;
     }
 };
 
@@ -695,11 +705,11 @@ Tangle.classes.TKInsertionHistory = {
             $rehashDescription.hover(
                 () => {
                     $rehashDescription.find('span').addClass("highlight");
-                    this.tangle.setValue("howToAddEventPtr", "rehash");
+                    // this.tangle.setValue("howToAddEventPtr", "rehash");
                 },
                 () => {
                     $rehashDescription.find('span').removeClass("highlight");
-                    this.tangle.setValue("howToAddEventPtr", null);
+                    // this.tangle.setValue("howToAddEventPtr", null);
                 }
             )
         }
@@ -745,6 +755,9 @@ Tangle.classes.TKHashVis = {
         } else {
             this.hashBoxes.removeAllActive(idx);
         }
+
+        this.array = array;
+        this.idx = idx;
     }
 };
 
@@ -816,8 +829,7 @@ $(document).ready(function() {
             // this.exampleArray = ["ab","cd","de","hm","hn","fb","ya","xx","xy","me"];
             this.exampleArray = ["abde","cdef","world","hmmm","hello","xxx","ya","tic","well","meh"];
             this.howToAddObj = 'py';
-            this.howToAddEventPtr = null;
-            this.bpPoint = '';
+            this.bpTime = null;
             this.exampleArrayHashAfterInsertionIdx = null;
         },
         update: function () {
@@ -838,17 +850,24 @@ $(document).ready(function() {
             myhash.bpDisabled = false;
             this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
             this.breakpoints = myhash.breakpoints;
+            this.breakpointsVis = {
+                breakpoints: this.breakpoints,
+                bpTime: this.bpTime,
+            }
 
-            if (this.howToAddEventPtr !== "rehash") {
+            console.log('this.bpTime = ' + this.bpTime);
+            if (this.bpTime !== null) {
                 this.exampleArrayHashAfterInsertionVis = {
-                    array: _.cloneDeep(myhash.data),
-                    idx: this.exampleArrayHashAfterInsertionIdx,
+                    array: this.breakpoints[this.bpTime].data,
+                    idx: this.breakpoints[this.bpTime].idx,
                 }
+                this.bpPoint = this.breakpoints[this.bpTime].point;
             } else {
                 this.exampleArrayHashAfterInsertionVis = {
-                    array: this.howToAddInsertionHistory.rehash.dataBefore,
-                    idx: this.exampleArrayHashAfterInsertionIdx
+                    array: myhash.data,
+                    idx: null,
                 }
+                this.bpPoint = null;
             }
         }
     };
