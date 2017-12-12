@@ -625,6 +625,7 @@ Tangle.classes.TKBreakpoints = {
     initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
         this.tangle = tangle;
+        this.breakpoints = [];
     },
 
     formatBpDesc: function(bp) {
@@ -646,11 +647,12 @@ Tangle.classes.TKBreakpoints = {
     },
   
     update: function (element, value) {
-        var breakpoints = value;
+        if (_.isEqual(this.breakpoints, value)) {
+            return;
+        }
+        this.breakpoints = value;
         this.$element.html('');
-        console.log('TKBreakpoints');
-        console.log(breakpoints);
-        for (let bp of breakpoints) {
+        for (let bp of this.breakpoints) {
             let $bpDesc = $(`<span> ${this.formatBpDesc(bp)} </span><br>`);
             $bpDesc.hover(
                 () => {
