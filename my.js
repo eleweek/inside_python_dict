@@ -297,7 +297,7 @@ class MyHash {
         this.addBP({
             'point': 'check-load-factor',
             'size': this.size,
-            'data': this.data,
+            'data': _.cloneDeep(this.data),
             'capacity': this.data.length,
             'maxLoadFactor': this.MAX_LOAD_FACTOR,
         });
@@ -404,7 +404,7 @@ class BoxesBase {
         // TODO: unhardcode class names?
         var $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
-            $box.html(value);
+            $box.html("<span>" + value + "</span>");
             $box.attr('data-value', value);
             $box.addClass(this.FULL);
         } else {
@@ -639,9 +639,9 @@ Tangle.classes.TKBreakpoints = {
         if (bp.point == 'compute-idx') {
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
         } else if (bp.point == 'check-collision') {
-            return `Check collision at <code>${bp.idx}</code>`;
+            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
         } else if (bp.point == 'assign-elem') {
-            return `Set element at ${bp.idx} to <code>${bp.elem}</code>`;
+            return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
         } else if (bp.point == 'rehash') {
             return `Rehash`;
         } else if (bp.point == 'check-load-factor') {
@@ -660,6 +660,7 @@ Tangle.classes.TKBreakpoints = {
         if (!_.isEqual(this.breakpoints, breakpoints)) {
             this.breakpoints = breakpoints;
             this.$element.html('');
+            $bpDescs = [];
             for (let [bpTime, bp] of this.breakpoints.entries()) {
                 let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
                 $bpDesc.hover(
@@ -697,7 +698,7 @@ Tangle.classes.TKInsertionHistory = {
         this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
         
         if (ih.rehash) {
-            var $rehashDescription = $(`<p><span>The hash reaches target fill ratio of 0.66 after this insert. So resize the table and rehash everything</span></p>`);
+            var $rehashDescription = $(`<p><span>The hash table reaches target fill ratio of 0.66 after this insert. So we will have to rehash everything. </span></p>`);
             this.$element.append($rehashDescription);
             console.log('ih.rehash');
             console.log(ih.rehash.dataBefore);
@@ -719,13 +720,17 @@ Tangle.classes.TKInsertionHistory = {
         } else if (ih.collisions.length == 1) {
             this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.finalIdx}</code> is empty </p>`)
         } else {
-            content = `<p> While inserting the element multiple collisions happen. <ol>`;
+            this.$element.append(`While inserting the element multiple collisions happen: with `)
+            var $collisionDescs = [];
             for (var i = 0; i < ih.collisions.length; ++i) {
                 var c = ih.collisions[i];
                 var nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
-                content += `<li> Slot <code>${c.idx}</code> is occupied by <code>${c.object}</code>. So we check <code>${nextIdx}</code> next </li>`;
+                $desc = $(`<code>${c.object}</code>`)
+                if (i != 0) {
+                    this.$element.append(", ");
+                }
+                this.$element.append($desc);
             }
-            this.$element.append(content);
         }
     }
 };
@@ -754,6 +759,7 @@ Tangle.classes.TKHashVis = {
         if (idx !== null && idx !== undefined) {
             this.hashBoxes.makeActive(idx);
         }
+
         this.array = array;
         this.idx = idx;
     }
