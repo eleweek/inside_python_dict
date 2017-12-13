@@ -404,7 +404,7 @@ class BoxesBase {
         // TODO: unhardcode class names?
         var $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
-            $box.html("<span>" + value + "</span>");
+            $box.html('<span class="box-content">' + value + '</span>');
             $box.attr('data-value', value);
             $box.addClass(this.FULL);
         } else {
@@ -831,7 +831,7 @@ $(document).ready(function() {
             this.exampleArrayIdx = 0;
             // this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
             // this.exampleArray = ["ab","cd","de","hm","hn","fb","ya","xx","xy","me"];
-            this.exampleArray = ["abde","cdef","world","hmmm","hello","xxx","ya","tic","well","meh"];
+            this.exampleArray = ["abde","cdef","world","hmmm","helloworld","xxx","ya","tic","well","meh"];
             this.howToAddObj = 'py';
             this.bpTime = null;
             this.exampleArrayHashAfterInsertionIdx = null;

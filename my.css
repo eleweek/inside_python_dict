@@ -7,16 +7,24 @@
 }
 
 .box {
+    display: flex;
     position: absolute;
     width: 40px;
     height: 40px;
-    line-height: 40px;
     border: solid 1px white;
     border-radius: 4px;
     font-size: 12px;
     float:left;
-    text-align: center;
     opacity: 1;
+
+    justify-content: center;
+    align-items: center;
+}
+
+.box-content {
+    padding: 2px;
+    word-wrap: break-word;
+    min-width: 0;
 }
 
 .box-empty {
@@ -37,7 +45,6 @@
     border: solid 1px red;
     width: 40px;
     height: 40px;
-    line-height: 40px;
 }
 
 .box.box-just-added,
