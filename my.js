@@ -4,20 +4,20 @@ class Int64 {
         this.jsNumMaxSize = 32;
 
         this.data = [];
-        var signBit = jsNumInt32 >= 0 ? 0 : 1;
+        let signBit = jsNumInt32 >= 0 ? 0 : 1;
 
-        for (var i = 0; i < this.jsNumMaxSize; ++i) {
-            var bit = (jsNumInt32 & (1 << i)) ? 1 : 0;
+        for (let i = 0; i < this.jsNumMaxSize; ++i) {
+            let bit = (jsNumInt32 & (1 << i)) ? 1 : 0;
             this.data.push(bit);
         }
         
-        for (var i = this.jsNumMaxSize; i < this.size; ++i) {
+        for (let i = this.jsNumMaxSize; i < this.size; ++i) {
             this.data.push(signBit);
         }
     }
     
     xorBy(other) {
-        for (var i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.size; ++i) {
             this.data[i] ^= other.data[i];
         }
 
@@ -34,7 +34,7 @@ class Int64 {
     }
 
     eq(other) {
-        for (var i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.size; ++i) {
             if (this.data[i] != other.data[i]) {
                 return false
             }
@@ -43,8 +43,8 @@ class Int64 {
     }
 
     add(other) {
-        var carry = 0;
-        for (var i = 0; i < this.size; ++i) {
+        let carry = 0;
+        for (let i = 0; i < this.size; ++i) {
             this.data[i] += other.data[i] + carry;
             carry = (this.data[i] / 2) | 0;
             this.data[i] %= 2;
@@ -54,7 +54,7 @@ class Int64 {
     }
 
     complement() {
-        for (var i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.size; ++i) {
             this.data[i] = (this.data[i] == 0 ? 1 : 0);
         }
 
@@ -62,19 +62,19 @@ class Int64 {
     }
 
     mulBy(other) {
-        var originalData = _.cloneDeep(this.data);
-        var otherData = _.cloneDeep(other.data);
+        let originalData = _.cloneDeep(this.data);
+        let otherData = _.cloneDeep(other.data);
 
-        for (var i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.size; ++i) {
             this.data[i] = 0;
         }
 
-        for (var i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.size; ++i) {
             if (originalData[i] == 0) {
                 continue;
             }
 
-            for (var j = 0; j < this.size; ++j) {
+            for (let j = 0; j < this.size; ++j) {
                 if (i + j < this.size) {
                     this.data[i + j] += originalData[i] * otherData[j];
                 }
@@ -87,8 +87,8 @@ class Int64 {
     }
 
     toNumber() {
-        var res = 0;
-        for (var i = 0; i < 32; ++i) {
+        let res = 0;
+        for (let i = 0; i < 32; ++i) {
             if (this.data[i]) {
                 res |= (1 << i);
             }
@@ -98,19 +98,19 @@ class Int64 {
     }
 
     toString() {
-        var copyOfThis = _.cloneDeep(this);
+        let copyOfThis = _.cloneDeep(this);
 
-        var sign = copyOfThis.sign();
+        let sign = copyOfThis.sign();
         if (copyOfThis.sign() < 0) {
             copyOfThis.complement().inc();
         }
 
-        var decPower = [1];
-        var decRes = [0];
-        for (var i = 0; i < this.size; ++i) {
-            var carry = 0;
+        let decPower = [1];
+        let decRes = [0];
+        for (let i = 0; i < this.size; ++i) {
+            let carry = 0;
             if (copyOfThis.data[i]) {
-                for (var j = 0; j < decPower.length; ++j) {
+                for (let j = 0; j < decPower.length; ++j) {
                     if (j >= decRes.length)
                         decRes.push(0);
 
@@ -124,7 +124,7 @@ class Int64 {
             }
 
             carry = 0;
-            for (var j = 0; j < decPower.length; ++j) {
+            for (let j = 0; j < decPower.length; ++j) {
                 decPower[j] = decPower[j] * 2 + carry;
                 carry = (decPower[j] / 10) | 0;
                 decPower[j] %= 10;
@@ -134,10 +134,10 @@ class Int64 {
             }
         }
 
-        var res = "";
+        let res = "";
         if (sign < 0)
             res += "-";
-        for (var j = decRes.length - 1; j >= 0; j--) {
+        for (let j = decRes.length - 1; j >= 0; j--) {
             res += String.fromCharCode("0".charCodeAt(0) + decRes[j]);
         }
 
@@ -145,8 +145,8 @@ class Int64 {
     }
 
     _carryOverAll() {
-        var carry = 0;
-        for (var i = 0; i < this.size; ++i) {
+        let carry = 0;
+        for (let i = 0; i < this.size; ++i) {
             this.data[i] += carry;
             carry = (this.data[i] / 2) | 0;
             this.data[i] %= 2;
@@ -154,11 +154,11 @@ class Int64 {
     }
 }
 
-var pyHashString = function(s) {
-    var res = new Int64(s.charCodeAt(0) << 7);
-    var magic = new Int64(1000003);
+let pyHashString = function(s) {
+    let res = new Int64(s.charCodeAt(0) << 7);
+    let magic = new Int64(1000003);
 
-    for (var i = 0; i < s.length; ++i) {
+    for (let i = 0; i < s.length; ++i) {
         res = res.mulBy(magic).xorBy(new Int64(s.charCodeAt(i)));
     }
 
@@ -171,12 +171,12 @@ var pyHashString = function(s) {
     return res.toString();
 }
 
-var pyHashInt = function(n) {
+let pyHashInt = function(n) {
     /* TODO: actually implement something... Though it works for most ints now */
     return n;
 }
 
-var pyHash = function(o) {
+let pyHash = function(o) {
     if (typeof o === 'string') {
         return Big(pyHashString(o));
     } else if (typeof o == 'number') {
@@ -188,14 +188,14 @@ var pyHash = function(o) {
 
 class MyHash {
     constructor() {
-        var startCapacity = 16;
+        let startCapacity = 16;
 
         this.MAX_LOAD_FACTOR = 0.66;
 
         this.size = 0;
         this.data = [];
         this.originalOrder = [];
-        for (var i = 0; i < startCapacity; ++i) {
+        for (let i = 0; i < startCapacity; ++i) {
             this.data.push(null);
         }
 
@@ -214,13 +214,13 @@ class MyHash {
 
     rehash(newCapacity) {
         console.log(this.originalOrder);
-        var newData = [];
+        let newData = [];
 
-        for (var i = 0; i < newCapacity; ++i) {
+        for (let i = 0; i < newCapacity; ++i) {
             newData.push(null);
         }
 
-        for (var o of this.originalOrder) {
+        for (let o of this.originalOrder) {
             this._doInsert(newData, o);
         }
 
@@ -228,18 +228,18 @@ class MyHash {
     }
 
     addArray(array) {
-        for (var o of array) {
+        for (let o of array) {
             this.add(o);
             this.originalOrder.push(o);
         }
     }
 
     _doInsert(dataArray, o) {
-        var collisions = [];
+        let collisions = [];
 
-        var hash = pyHash(o);
-        var idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
-        var originalIdx = idx;
+        let hash = pyHash(o);
+        let idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
+        let originalIdx = idx;
         this.addBP({
             'point': 'compute-idx',
             'hash': hash.toString(),
@@ -293,7 +293,7 @@ class MyHash {
     }
 
     add(o) {
-        var rehashEvent = null;
+        let rehashEvent = null;
         this.addBP({
             'point': 'check-load-factor',
             'size': this.size,
@@ -307,9 +307,10 @@ class MyHash {
                 'bpTime': this.bpTime,
                 'dataBefore': _.cloneDeep(this.data),
             }
+            let dontForgetToEnableBps = false;
             if (!this.bpDisabled) {
                 this.bpDisabled = true;
-                var dontForgetToEnableBps = true;
+                dontForgetToEnableBps = true;
             }
             this.rehash(+(this.data.length * 2));
             if (dontForgetToEnableBps) {
@@ -321,7 +322,7 @@ class MyHash {
             });
             rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
-        var insertionHistory = this._doInsert(this.data, o);
+        let insertionHistory = this._doInsert(this.data, o);
         if (rehashEvent) {
             insertionHistory.rehash = rehashEvent;
         }
@@ -355,8 +356,8 @@ class BoxesBase {
         console.log(values);
         this.boxValues = [];
 
-        for (var [i, value] of values.entries()) {
-            var $box = this.makeNewBox(value);
+        for (let [i, value] of values.entries()) {
+            let $box = this.makeNewBox(value);
             $box.removeClass(this.JUST_ADDED_CLASS);
             this._setBoxIdxAndPos($box, i);
             this.$element.append($box);
@@ -371,7 +372,7 @@ class BoxesBase {
             return null
 
         // TODO: store a map from value to box
-        for (var [i, boxVal] of this.boxValues.entries()) {
+        for (let [i, boxVal] of this.boxValues.entries()) {
             if (boxVal === val) {
                 return i;
             }
@@ -384,8 +385,8 @@ class BoxesBase {
         // Kind of shitty way of launching animations...
         // This function was a simple setter originally
         // TODO: Refactor?
-        var startY = 0;
-        var endY = 0;
+        let startY = 0;
+        let endY = 0;
         if (type == "added") {
             startY = -this.boxSize;
         } else if (type == "removed") {
@@ -402,7 +403,7 @@ class BoxesBase {
 
     makeNewBox(value) {
         // TODO: unhardcode class names?
-        var $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
+        let $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
             $box.html('<span class="box-content">' + value + '</span>');
             $box.attr('data-value', value);
@@ -437,13 +438,13 @@ class BoxesBase {
 
     removeBox(idx) {
         // TODO: garbage collect
-        var $box = this.$boxDivs[idx];
+        let $box = this.$boxDivs[idx];
         $box.addClass(this.REMOVED_CLASS);
         this._setBoxIdxAndPos($box, idx, (this.boxValues[idx] !== null ? "removed" : "empty-removed"));
     }
 
     moveBox(fromIdx, toIdx) {
-        var $box = this.$boxDivs[fromIdx];
+        let $box = this.$boxDivs[fromIdx];
         if (fromIdx != toIdx) {
             this._setBoxIdxAndPos($box, toIdx);
         }
@@ -457,7 +458,7 @@ class BoxesBase {
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
 
-        for (var i = 0; i < numBoxes; ++i) {
+        for (let i = 0; i < numBoxes; ++i) {
             this.updatedBoxValues.push(null);
             this.$updatedBoxDivs.push(null);
         }
@@ -485,12 +486,12 @@ class HashBoxes extends BoxesBase {
 
     changeTo(newValues) {
         this.startModifications(newValues.length)
-        var diff = arraysDiff(this.boxValues, newValues);
-        for (var val of diff.removed) {
+        let diff = arraysDiff(this.boxValues, newValues);
+        for (let val of diff.removed) {
             this.removeBox(this.findBoxIndex(val));
         }
 
-        for (var [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
+        for (let [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
             if (oldVal === null && newVal !== null) {
                 this.removeBox(i);
             }
@@ -502,8 +503,8 @@ class HashBoxes extends BoxesBase {
             }
         }
 
-        for (var [i, val] of newValues.entries()) {
-            var existingBoxIdx = this.findBoxIndex(val);
+        for (let [i, val] of newValues.entries()) {
+            let existingBoxIdx = this.findBoxIndex(val);
             if (val !== null) {
                 if (existingBoxIdx === null) {
                     this.addBox(i, val);
@@ -524,15 +525,15 @@ class LineOfBoxes extends BoxesBase {
     }
 
     changeTo(newValues) {
-        var diff = arraysDiff(this.boxValues, newValues);
+        let diff = arraysDiff(this.boxValues, newValues);
 
         this.startModifications(newValues.length);
-        for (var val of diff.removed) {
+        for (let val of diff.removed) {
             this.removeBox(this.findBoxIndex(val));
         }
 
-        for (var [i, val] of newValues.entries()) {
-            var existingBoxIdx = this.findBoxIndex(val);
+        for (let [i, val] of newValues.entries()) {
+            let existingBoxIdx = this.findBoxIndex(val);
             if (existingBoxIdx === null) {
                 this.addBox(i, val);
             } else {
@@ -544,17 +545,17 @@ class LineOfBoxes extends BoxesBase {
 }
 
 Tangle.classes.TKArrayInput = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         this.$element = $(element);
         this.$input = $('<input type="text" class="form-control TKArrayInput">');
         this.$element.append(this.$input);
 
-        var inputChanged = (function () {
-            var value = this.$input.val();
+        let inputChanged = (function () {
+            let value = this.$input.val();
             try {
-                var arr = JSON.parse(value);
+                let arr = JSON.parse(value);
                 // TODO: check if it is flat array
-                tangle.setValue(variable, arr);
+                tangle.setValue(letiable, arr);
             } catch(e) {
             }
         }).bind(this);
@@ -572,11 +573,11 @@ Tangle.classes.TKArrayInput = {
 function arraysDiff(arrayFrom, arrayTo)
 {
     // TODO: O(n + m) algo instead of O(nm)
-    var remaining = [];
-    var removed = [];
-    var added = [];
+    let remaining = [];
+    let removed = [];
+    let added = [];
 
-    for (var af of arrayFrom) {
+    for (let af of arrayFrom) {
         if (af === null) {
             continue;
         }
@@ -588,7 +589,7 @@ function arraysDiff(arrayFrom, arrayTo)
         }
     }
 
-    for (var at of arrayTo) {
+    for (let at of arrayTo) {
         if (at === null) {
             continue;
         }
@@ -607,9 +608,9 @@ function arraysDiff(arrayFrom, arrayTo)
 
 
 Tangle.classes.TKArrayVis = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         // TODO: unhardcode
-        var boxSize = 40;
+        let boxSize = 40;
         this.lineOfBoxes = new LineOfBoxes(element, 40);
         this.initialized = false;
     },
@@ -626,7 +627,7 @@ Tangle.classes.TKArrayVis = {
 };
 
 Tangle.classes.TKBreakpoints = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         this.$element = $(element);
         this.tangle = tangle;
         this.breakpoints = [];
@@ -654,8 +655,8 @@ Tangle.classes.TKBreakpoints = {
     },
   
     update: function (element, value) {
-        var breakpoints = value.breakpoints;
-        var bpTime = value.bpTime;
+        let breakpoints = value.breakpoints;
+        let bpTime = value.bpTime;
 
         if (!_.isEqual(this.breakpoints, breakpoints)) {
             this.breakpoints = breakpoints;
@@ -685,7 +686,7 @@ Tangle.classes.TKBreakpoints = {
 };
 
 Tangle.classes.TKInsertionHistory = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         this.$element = $(element);
         this.tangle = tangle;
     },
@@ -698,7 +699,7 @@ Tangle.classes.TKInsertionHistory = {
         this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
         
         if (ih.rehash) {
-            var $rehashDescription = $(`<p><span>The hash table reaches target fill ratio of 0.66 after this insert. So we will have to rehash everything. </span></p>`);
+            let $rehashDescription = $(`<p><span>The hash table reaches target fill ratio of 0.66 after this insert. So we will have to rehash everything. </span></p>`);
             this.$element.append($rehashDescription);
             console.log('ih.rehash');
             console.log(ih.rehash.dataBefore);
@@ -721,10 +722,10 @@ Tangle.classes.TKInsertionHistory = {
             this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.finalIdx}</code> is empty </p>`)
         } else {
             this.$element.append(`While inserting the element multiple collisions happen: with `)
-            var $collisionDescs = [];
-            for (var i = 0; i < ih.collisions.length; ++i) {
-                var c = ih.collisions[i];
-                var nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
+            let $collisionDescs = [];
+            for (let i = 0; i < ih.collisions.length; ++i) {
+                let c = ih.collisions[i];
+                let nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
                 $desc = $(`<code>${c.object}</code>`)
                 if (i != 0) {
                     this.$element.append(", ");
@@ -737,17 +738,17 @@ Tangle.classes.TKInsertionHistory = {
 
 
 Tangle.classes.TKHashVis = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         console.log("TKHashVis.initialize");
         // TODO: unhardcode
-        var boxSize = 40;
+        let boxSize = 40;
         this.hashBoxes = new HashBoxes(element, 40);
         this.initialized = false;
     },
   
     update: function (element, value) {
-        var array = value.array;
-        var idx = value.idx;
+        let array = value.array;
+        let idx = value.idx;
         console.log("TKHashVis.update()" + array);
         if (this.initialized) {
             this.hashBoxes.changeTo(value.array);
@@ -767,17 +768,17 @@ Tangle.classes.TKHashVis = {
 
 /* copied from TangleKit TKNumberField */
 Tangle.classes.TKJsonField = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         this.input = new Element("input", {
     		type: "text",
     		"class":"TKJsonFieldInput",
     		size: options.size || 10
         }).inject(element, "top");
         
-        var inputChanged = (function () {
+        let inputChanged = (function () {
             console.log("inputChanged()");
-            var value = this.getValue();
-            tangle.setValue(variable, value);
+            let value = this.getValue();
+            tangle.setValue(letiable, value);
         }).bind(this);
         
         this.input.addEvent("keyup",  inputChanged);
@@ -787,7 +788,7 @@ Tangle.classes.TKJsonField = {
 	
 	getValue: function () {
         try {
-            var value = JSON.parse(this.input.get("value"));
+            let value = JSON.parse(this.input.get("value"));
         } catch (e) {
             return undefined;
         }
@@ -795,14 +796,14 @@ Tangle.classes.TKJsonField = {
 	},
 	
 	update: function (element, value) {
-	    var currentValue = this.getValue();
+	    let currentValue = this.getValue();
 	    if (value !== currentValue) { this.input.set("value", JSON.stringify(value)); }
 	}
 };
 
 
 Tangle.classes.TKHighlightCodeLines = {
-    initialize: function (element, options, tangle, variable) {
+    initialize: function (element, options, tangle, letiable) {
         this.$element = $(element);
         this.tangle = tangle;
     },
@@ -817,7 +818,7 @@ Tangle.classes.TKHighlightCodeLines = {
 
 
 $(document).ready(function() {
-    var elements = $('.sticky-top');
+    let elements = $('.sticky-top');
     Stickyfill.add(elements);
 
     console.log(pyHashString("abc"));
@@ -825,8 +826,8 @@ $(document).ready(function() {
     console.log(pyHashString("yac"));
     console.log(pyHashString("me"));
     console.log(pyHashString("meh"));
-    var rootElement = document.getElementById('exampleArrayTangle');
-    var model = {
+    let rootElement = document.getElementById('exampleArrayTangle');
+    let model = {
         initialize: function () {
             this.exampleArrayIdx = 0;
             // this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
@@ -875,5 +876,5 @@ $(document).ready(function() {
             }
         }
     };
-    var tangle = new Tangle(rootElement, model);
+    let tangle = new Tangle(rootElement, model);
 });
