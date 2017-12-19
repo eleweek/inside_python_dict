@@ -545,7 +545,7 @@ class LineOfBoxes extends BoxesBase {
 }
 
 Tangle.classes.TKArrayInput = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
         this.$input = $('<input type="text" class="form-control TKArrayInput">');
         this.$element.append(this.$input);
@@ -555,7 +555,7 @@ Tangle.classes.TKArrayInput = {
             try {
                 let arr = JSON.parse(value);
                 // TODO: check if it is flat array
-                tangle.setValue(letiable, arr);
+                tangle.setValue(variable, arr);
             } catch(e) {
             }
         }).bind(this);
@@ -608,7 +608,7 @@ function arraysDiff(arrayFrom, arrayTo)
 
 
 Tangle.classes.TKArrayVis = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         // TODO: unhardcode
         let boxSize = 40;
         this.lineOfBoxes = new LineOfBoxes(element, 40);
@@ -627,7 +627,7 @@ Tangle.classes.TKArrayVis = {
 };
 
 Tangle.classes.TKBreakpoints = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
         this.tangle = tangle;
         this.breakpoints = [];
@@ -686,7 +686,7 @@ Tangle.classes.TKBreakpoints = {
 };
 
 Tangle.classes.TKInsertionHistory = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
         this.tangle = tangle;
     },
@@ -738,7 +738,7 @@ Tangle.classes.TKInsertionHistory = {
 
 
 Tangle.classes.TKHashVis = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         console.log("TKHashVis.initialize");
         // TODO: unhardcode
         let boxSize = 40;
@@ -768,7 +768,7 @@ Tangle.classes.TKHashVis = {
 
 /* copied from TangleKit TKNumberField */
 Tangle.classes.TKJsonField = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         this.input = new Element("input", {
     		type: "text",
     		"class":"TKJsonFieldInput",
@@ -778,7 +778,7 @@ Tangle.classes.TKJsonField = {
         let inputChanged = (function () {
             console.log("inputChanged()");
             let value = this.getValue();
-            tangle.setValue(letiable, value);
+            tangle.setValue(variable, value);
         }).bind(this);
         
         this.input.addEvent("keyup",  inputChanged);
@@ -803,7 +803,7 @@ Tangle.classes.TKJsonField = {
 
 
 Tangle.classes.TKHighlightCodeLines = {
-    initialize: function (element, options, tangle, letiable) {
+    initialize: function (element, options, tangle, variable) {
         this.$element = $(element);
         this.tangle = tangle;
     },
