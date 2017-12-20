@@ -808,18 +808,37 @@ Tangle.classes.TKJsonField = {
 	}
 };
 
+const ADD_CODE = [
+    ["def insert(self, elem):", ""],
+    ["    if self.size + 1 > len(self.table) * self.MAX_LOAD_FACTOR:", "check-load-factor"],
+    ["        self.rehash()", "rehash"],
+    ["", ""],
+    ["    idx = hash(elem) % len(self.table)", "compute-idx"],
+    ["    while self.table[idx] is not None:", "check-collision"],
+    ["        idx = (idx + 1) % len(self.table)", "next-idx"],
+    ["    self.table[idx] = elem", "assign-elem"]
+];
+
+function CodeBlock(props) {
+    let lines = [];
+
+    for (let [line, bpPoint] of props.code) {
+        let className = bpPoint;
+        if (bpPoint == props.bpPoint) {
+            className += " code-highlight";
+        }
+
+        lines.push(`<span class="${className}">${line}</span>`);
+    }
+    return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
+}
 
 Tangle.classes.TKHighlightCodeLines = {
-    initialize: function (element, options, tangle, variable) {
-        this.$element = $(element);
-        this.tangle = tangle;
-    },
-  
     update: function (element, value) {
-        this.$element.find('.code-highlight').removeClass('code-highlight');
-        if (value) {
-            this.$element.find('.' + value).addClass('code-highlight');
-        }
+        ReactDOM.render(
+            <CodeBlock code={ADD_CODE} bpPoint={value} />,
+            element
+        );
     }
 }
 

@@ -94,17 +94,7 @@
         </div>
         <div class="row">
           <div class="col-md-6">
-            <pre><code class="TKHighlightCodeLines" data-var="bpPoint">
-def insert(self, elem):  
-<span class="check-load-factor    ">    if self.size + 1 &gt; len(self.table) * self.MAX_LOAD_FACTOR: </span>
-<span class="rehash               ">        self.rehash()                                             </span>
-
-<span class="compute-idx          ">    idx = hash(elem) % len(self.table)                            </span>
-<span class="check-collision      ">    while self.table[idx] is not None:                            </span>
-<span class="next-idx             ">        idx = (idx + 1) % len(self.table)                         </span>
-
-<span class="assign-elem          ">    self.table[idx] = elem                                        </span>
-            </code></pre>
+            <div class="TKHighlightCodeLines" data-var="bpPoint"></div>
           </div>
           <div class="col-md-6 TKBreakpoints" data-var="breakpointsVis">
           </div>
