@@ -626,64 +626,71 @@ Tangle.classes.TKArrayVis = {
     }
 };
 
+class AddOpBreakpoint extends React.Component {
+    render() {
+        return <div
+                className={this.props.active ? "highlight" : ""}
+                onMouseEnter={this.props.onMouseEnter}
+                dangerouslySetInnerHTML={{__html: this.formatBpDesc(this.props.bpDesc)}} 
+               />
+    }
+
+    formatBpDesc(bp) {
+        switch (bp.point) {
+            case 'compute-idx':
+                return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
+            case 'check-collision':
+                return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
+            case 'assign-elem':
+                return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
+            case 'rehash':
+                return `Rehash`;
+            case 'check-load-factor':
+                return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
+            case 'next-idx':
+                return `Compute next idx: <code>${bp.idx}</code>`;
+            default:
+                throw "Unknown bp type: " + bp.point;
+        }
+    }
+}
+
 Tangle.classes.TKBreakpoints = {
     initialize: function (element, options, tangle, variable) {
-        this.$element = $(element);
         this.tangle = tangle;
-        this.breakpoints = [];
-        this.$bpDescs = [];
-
-        this.HIGHLIGHT_CLASS = 'highlight';
     },
 
-    formatBpDesc: function(bp) {
-        if (bp.point == 'compute-idx') {
-            return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
-        } else if (bp.point == 'check-collision') {
-            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
-        } else if (bp.point == 'assign-elem') {
-            return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
-        } else if (bp.point == 'rehash') {
-            return `Rehash`;
-        } else if (bp.point == 'check-load-factor') {
-            return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
-        } else if (bp.point == 'next-idx') {
-            return `Compute next idx: <code>${bp.idx}</code>`;
-        } else {
-            throw "Unknown bp type: " + bp.point;
-        }
-    },
-  
     update: function (element, value) {
         let breakpoints = value.breakpoints;
         let bpTime = value.bpTime;
 
-        if (!_.isEqual(this.breakpoints, breakpoints)) {
-            this.breakpoints = breakpoints;
-            this.$element.html('');
-            $bpDescs = [];
-            for (let [bpTime, bp] of this.breakpoints.entries()) {
-                let $bpDesc = $(`<div> ${this.formatBpDesc(bp)} </div>`);
-                $bpDesc.hover(
-                    () => this.tangle.setValue("bpTime", bpTime)//,
-                    //() => this.tangle.setValue("bpTime", null)
-                );
-                this.$element.append($bpDesc);
-                this.$bpDescs.push($bpDesc);
-            }
-        }
-
-        if (this.bpTime !== null && this.bpTime !== undefined && this.bpTime != bpTime) {
-            this.$bpDescs[this.bpTime].removeClass(this.HIGHLIGHT_CLASS);
-        }
-
-        if (bpTime !== null && bpTime !== undefined) {
-            this.$bpDescs[bpTime].addClass(this.HIGHLIGHT_CLASS);
-        }
-
-        this.bpTime = bpTime;
+        ReactDOM.render(
+            <AddOpBreakpointsList tangle={this.tangle} breakpoints={breakpoints} time={bpTime} />,
+            element
+        );
     }
-};
+}
+
+class AddOpBreakpointsList extends React.Component {
+    render() {
+        let elems = [];
+        for (let [bpTime, bpDesc] of this.props.breakpoints.entries()) {
+            elems.push(
+                <AddOpBreakpoint
+                 bpDesc={bpDesc}
+                 active={this.props.time == bpDesc.time}
+                 onMouseEnter={this.handleBreakpointHover.bind(this, bpDesc.time)}
+                />
+            );
+        }
+        return <div> {elems} </div>
+    }
+
+    handleBreakpointHover(bpTime) {
+        console.log("handleBreakpointHover() " + bpTime);
+        this.props.tangle.setValue("bpTime", bpTime);
+    }
+}
 
 Tangle.classes.TKInsertionHistory = {
     initialize: function (element, options, tangle, variable) {
@@ -726,7 +733,7 @@ Tangle.classes.TKInsertionHistory = {
             for (let i = 0; i < ih.collisions.length; ++i) {
                 let c = ih.collisions[i];
                 let nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
-                $desc = $(`<code>${c.object}</code>`)
+                let $desc = $(`<code>${c.object}</code>`)
                 if (i != 0) {
                     this.$element.append(", ");
                 }
@@ -844,7 +851,7 @@ $(document).ready(function() {
                 idx: null,
             }
 
-            myhash = new MyHash();
+            let myhash = new MyHash();
             myhash.bpDisabled = true;
             myhash.addArray(this.exampleArray);
             console.log("myhash: " + myhash.data);
