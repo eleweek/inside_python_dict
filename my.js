@@ -645,8 +645,7 @@ class AddOpBreakpointsList extends React.Component {
     }
 
     handleBreakpointHover(bpTime) {
-        console.log("handleBreakpointHover() " + bpTime);
-        this.props.tangle.setValue("bpTime", bpTime);
+        this.props.onTimeChange(bpTime);
     }
 }
 
@@ -772,16 +771,6 @@ function CodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
 
-Tangle.classes.TKHighlightCodeLines = {
-    update: function (element, value) {
-        ReactDOM.render(
-            <CodeBlock code={ADD_CODE} bpPoint={value} />,
-            element
-        );
-    }
-}
-
-
 $(document).ready(function() {
     let elements = $('.sticky-top');
     Stickyfill.add(elements);
@@ -804,14 +793,13 @@ $(document).ready(function() {
         },
         update: function () {
             ReactDOM.render(
-                <JsonInput value={this.howToAddObj} onChange={(value) => tangle.setValue("howToAddObj", value)} />,
+                <JsonInput value={this.howToAddObj} onChange={(value) => this._tangle.setValue("howToAddObj", value)} />,
                 document.getElementById("howToAddObjInput")
             );
             ReactDOM.render(
-                <JsonInput value={this.exampleArray} onChange={(value) => tangle.setValue("exampleArray", value)} />,
+                <JsonInput value={this.exampleArray} onChange={(value) => this._tangle.setValue("exampleArray", value)} />,
                 document.getElementById("exampleArrayInput")
             );
-
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
@@ -831,9 +819,19 @@ $(document).ready(function() {
             this.breakpoints = myhash.breakpoints;
 
             ReactDOM.render(
-                <AddOpBreakpointsList tangle={this._tangle} breakpoints={this.breakpoints} time={this.bpTime} />,
+                <AddOpBreakpointsList
+                 breakpoints={this.breakpoints}
+                 time={this.bpTime}
+                 onTimeChange={(bpTime) => this._tangle.setValue("bpTime", bpTime)}
+                 />,
                 document.getElementById("breakpointsVis")
             );
+
+            ReactDOM.render(
+                <CodeBlock code={ADD_CODE} bpPoint={this.bpTime === null ? null : this.breakpoints[this.bpTime].point} />,
+                document.getElementById("addCode")
+            );
+
 
             ReactDOM.render(
                 <InsertionHistory insertionHistory={this.howToAddInsertionHistory} />,
