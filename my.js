@@ -544,32 +544,6 @@ class LineOfBoxes extends BoxesBase {
     }
 }
 
-Tangle.classes.TKArrayInput = {
-    initialize: function (element, options, tangle, variable) {
-        this.$element = $(element);
-        this.$input = $('<input type="text" class="form-control TKArrayInput">');
-        this.$element.append(this.$input);
-
-        let inputChanged = (function () {
-            let value = this.$input.val();
-            try {
-                let arr = JSON.parse(value);
-                // TODO: check if it is flat array
-                tangle.setValue(variable, arr);
-            } catch(e) {
-            }
-        }).bind(this);
-
-        this.$input.on("change",  inputChanged);
-    },
-
-	update: function (element, value) {
-        console.log("TKArrayInput.update");
-        console.log(value);
-	    this.$input.val(JSON.stringify(value));
-	}
-};
-
 function arraysDiff(arrayFrom, arrayTo)
 {
     // TODO: O(n + m) algo instead of O(nm)
@@ -757,13 +731,21 @@ Tangle.classes.TKHashVis = {
 };
 
 class JsonInput extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.handleChange = this.handleChange.bind(this);
+        // TODO: this is a hack
+        // there should probably be a single source of truth
+        this.state = {
+            value: JSON.stringify(this.props.value)
+        }
     }
 
     handleChange(event) {
         try {
+            this.setState({
+                value: event.target.value
+            })
             let value = JSON.parse(event.target.value);
             console.log("Change " + value);
             this.props.onChange(value);
@@ -775,7 +757,7 @@ class JsonInput extends React.Component {
 
     render() {
         console.log("render()");
-        return <input type="text" value={JSON.stringify(this.props.value)} onChange={this.handleChange} />;
+        return <input type="text" class="form-control" value={this.state.value} onChange={this.handleChange} />;
     }
 }
 
@@ -839,6 +821,10 @@ $(document).ready(function() {
             ReactDOM.render(
                 <JsonInput value={this.howToAddObj} onChange={(value) => tangle.setValue("howToAddObj", value)} />,
                 document.getElementById("howToAddObjInput")
+            );
+            ReactDOM.render(
+                <JsonInput value={this.exampleArray} onChange={(value) => tangle.setValue("exampleArray", value)} />,
+                document.getElementById("exampleArrayInput")
             );
 
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
