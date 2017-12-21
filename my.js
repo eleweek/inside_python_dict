@@ -718,7 +718,6 @@ Tangle.classes.TKInsertionHistory = {
                 },
                 () => {
                     $rehashDescription.find('span').removeClass("highlight");
-                    // this.tangle.setValue("howToAddEventPtr", null);
                 }
             )
         }
@@ -773,40 +772,29 @@ Tangle.classes.TKHashVis = {
     }
 };
 
-/* copied from TangleKit TKNumberField */
-Tangle.classes.TKJsonField = {
-    initialize: function (element, options, tangle, variable) {
-        this.input = new Element("input", {
-    		type: "text",
-    		"class":"TKJsonFieldInput",
-    		size: options.size || 10
-        }).inject(element, "top");
-        
-        let inputChanged = (function () {
-            console.log("inputChanged()");
-            let value = this.getValue();
-            tangle.setValue(variable, value);
-        }).bind(this);
-        
-        this.input.addEvent("keyup",  inputChanged);
-        this.input.addEvent("blur",   inputChanged);
-        this.input.addEvent("change", inputChanged);
-	},
-	
-	getValue: function () {
+class JsonInput extends React.Component {
+    constructor() {
+        super();
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
         try {
-            let value = JSON.parse(this.input.get("value"));
+            let value = JSON.parse(event.target.value);
+            console.log("Change " + value);
+            this.props.onChange(value);
         } catch (e) {
-            return undefined;
+            // TODO: add error?
+            return;
         }
-        return value;
-	},
-	
-	update: function (element, value) {
-	    let currentValue = this.getValue();
-	    if (value !== currentValue) { this.input.set("value", JSON.stringify(value)); }
-	}
-};
+    }
+
+    render() {
+        console.log("render()");
+        return <input type="text" value={JSON.stringify(this.props.value)} onChange={this.handleChange} />;
+    }
+}
+
 
 const ADD_CODE = [
     ["def insert(self, elem):", ""],
@@ -864,6 +852,11 @@ $(document).ready(function() {
             this.exampleArrayHashAfterInsertionIdx = null;
         },
         update: function () {
+            ReactDOM.render(
+                <JsonInput value={this.howToAddObj} onChange={(value) => tangle.setValue("howToAddObj", value)} />,
+                document.getElementById("howToAddObjInput")
+            );
+
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
                 array: this.exampleArray,
