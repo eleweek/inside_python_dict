@@ -344,6 +344,7 @@ var Tangle = this.Tangle = function (rootElement, modelClass) {
         var ModelClass = function () { };
         ModelClass.prototype = modelClass;
         _model = new ModelClass;
+        _model._tangle = tangle;
 
         updateModel(true);  // initialize and update
     }

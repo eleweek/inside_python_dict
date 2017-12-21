@@ -655,22 +655,6 @@ class AddOpBreakpoint extends React.Component {
     }
 }
 
-Tangle.classes.TKBreakpoints = {
-    initialize: function (element, options, tangle, variable) {
-        this.tangle = tangle;
-    },
-
-    update: function (element, value) {
-        let breakpoints = value.breakpoints;
-        let bpTime = value.bpTime;
-
-        ReactDOM.render(
-            <AddOpBreakpointsList tangle={this.tangle} breakpoints={breakpoints} time={bpTime} />,
-            element
-        );
-    }
-}
-
 class AddOpBreakpointsList extends React.Component {
     render() {
         let elems = [];
@@ -874,10 +858,11 @@ $(document).ready(function() {
             myhash.bpDisabled = false;
             this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
             this.breakpoints = myhash.breakpoints;
-            this.breakpointsVis = {
-                breakpoints: this.breakpoints,
-                bpTime: this.bpTime,
-            }
+
+            ReactDOM.render(
+                <AddOpBreakpointsList tangle={this._tangle} breakpoints={this.breakpoints} time={this.bpTime} />,
+                document.getElementById("breakpointsVis")
+            );
 
             console.log('this.bpTime = ' + this.bpTime);
             if (this.bpTime !== null) {
@@ -895,5 +880,5 @@ $(document).ready(function() {
             }
         }
     };
-    let tangle = new Tangle(rootElement, model);
+    tangle = new Tangle(rootElement, model);
 });
