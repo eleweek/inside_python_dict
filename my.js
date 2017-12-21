@@ -650,55 +650,40 @@ class AddOpBreakpointsList extends React.Component {
     }
 }
 
-Tangle.classes.TKInsertionHistory = {
-    initialize: function (element, options, tangle, variable) {
-        this.$element = $(element);
-        this.tangle = tangle;
-    },
-  
-    update: function (element, value) {
-        this.insertionHistory = value;
+function InsertionHistory(props) {
+    let ih = props.insertionHistory;
 
-        let ih = this.insertionHistory;
+    if (ih.rehash) {
+        let rehashDescription = <p><span>The hash table reaches target fill ratio of 0.66 after this insert. So we will have to rehash everything. </span></p>;
+    }
 
-        this.$element.html(`<p>Its hash is <code>${ih.hash}</code>, getting it modulo hash capacity <code>${ih.capacity}</code> results <code>${ih.originalIdx}</code></p>`);
-        
-        if (ih.rehash) {
-            let $rehashDescription = $(`<p><span>The hash table reaches target fill ratio of 0.66 after this insert. So we will have to rehash everything. </span></p>`);
-            this.$element.append($rehashDescription);
-            console.log('ih.rehash');
-            console.log(ih.rehash.dataBefore);
-            console.log(ih.rehash.dataAfter);
-            $rehashDescription.hover(
-                () => {
-                    $rehashDescription.find('span').addClass("highlight");
-                    // this.tangle.setValue("howToAddEventPtr", "rehash");
-                },
-                () => {
-                    $rehashDescription.find('span').removeClass("highlight");
-                }
-            )
-        }
+    let collisionsDescription = null;
 
-        if (ih.collisions.length == 0) {
-            this.$element.append(`<p> The slot at the index <code>${ih.originalIdx}</code> is empty, so we can put the element there right away</p>`)
-        } else if (ih.collisions.length == 1) {
-            this.$element.append(`<p> The slot at the index <code>${ih.collisions[0].idx}</code> is occupied by ${ih.collisions[0].object}, but the next slot at <code>${ih.finalIdx}</code> is empty </p>`)
-        } else {
-            this.$element.append(`While inserting the element multiple collisions happen: with `)
-            let $collisionDescs = [];
-            for (let i = 0; i < ih.collisions.length; ++i) {
-                let c = ih.collisions[i];
-                let nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
-                let $desc = $(`<code>${c.object}</code>`)
-                if (i != 0) {
-                    this.$element.append(", ");
-                }
-                this.$element.append($desc);
+    if (ih.collisions.length == 0) {
+        collisionsDescription = (<p> The slot at the index <code>{ih.originalIdx}</code> is empty, so we can put the element there right away</p>);
+    } else if (ih.collisions.length == 1) {
+        collisionsDescription = (<p> The slot at the index <code>{ih.collisions[0].idx}</code> is occupied by {ih.collisions[0].object}, but the next slot at <code>{ih.finalIdx}</code> is empty </p>);
+    } else {
+        let baseDesc = "While inserting the element multiple collisions happen: with ";
+        let colDescs = [];
+        for (let i = 0; i < ih.collisions.length; ++i) {
+            let c = ih.collisions[i];
+            let nextIdx = i < ih.collisions.length - 1 ? ih.collisions[i + 1].idx : ih.finalIdx;
+            colDescs.push(<code>{c.object}</code>);
+            if (i != ih.collisions.length - 1) {
+                colDescs.push(",");
             }
         }
+        collisionsDescription = <p> {baseDesc} {colDescs} </p>;
     }
-};
+
+    return (<div>
+        <p>
+            Its hash is <code>{ih.hash.toString()}</code>, getting it modulo hash capacity <code>{ih.capacity}</code> results in <code>{ih.originalIdx}</code>
+        </p>
+        {collisionsDescription}
+    </div>);
+}
 
 
 Tangle.classes.TKHashVis = {
@@ -757,7 +742,7 @@ class JsonInput extends React.Component {
 
     render() {
         console.log("render()");
-        return <input type="text" class="form-control" value={this.state.value} onChange={this.handleChange} />;
+        return <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange} />;
     }
 }
 
@@ -848,6 +833,11 @@ $(document).ready(function() {
             ReactDOM.render(
                 <AddOpBreakpointsList tangle={this._tangle} breakpoints={this.breakpoints} time={this.bpTime} />,
                 document.getElementById("breakpointsVis")
+            );
+
+            ReactDOM.render(
+                <InsertionHistory insertionHistory={this.howToAddInsertionHistory} />,
+                document.getElementById("insertionHistory")
             );
 
             console.log('this.bpTime = ' + this.bpTime);
