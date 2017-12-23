@@ -580,25 +580,25 @@ function arraysDiff(arrayFrom, arrayTo)
     }
 }
 
-
-Tangle.classes.TKArrayVis = {
-    initialize: function (element, options, tangle, variable) {
-        // TODO: unhardcode
-        let boxSize = 40;
-        this.lineOfBoxes = new LineOfBoxes(element, 40);
-        this.initialized = false;
-    },
-  
-    update: function (element, value) {
-        console.log("TKArrayVis.update()" + value.array);
-        if (this.initialized) {
-            this.lineOfBoxes.changeTo(value.array);
-        } else {
-            this.initialized = true;
-            this.lineOfBoxes.init(value.array);
-        }
+class LineOfBoxesComponent extends React.Component {
+    componentDidMount() {
+        this.$el = $(this.el);
+        this.lineOfBoxes = new LineOfBoxes(this.$el, 40);
+        this.lineOfBoxes.init(this.props.array);
     }
-};
+
+    componentWillUnmount() {
+        this.$el.html('');
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        this.lineOfBoxes.changeTo(nextProps.array);
+    }
+
+    render() {
+        return <div className="clearfix array-vis" ref={el => this.el = el} />;
+    }
+}
 
 class AddOpBreakpoint extends React.Component {
     render() {
@@ -799,6 +799,10 @@ $(document).ready(function() {
             ReactDOM.render(
                 <JsonInput value={this.exampleArray} onChange={(value) => this._tangle.setValue("exampleArray", value)} />,
                 document.getElementById("exampleArrayInput")
+            );
+            ReactDOM.render(
+                <LineOfBoxesComponent array={this.exampleArray} />,
+                document.getElementById("exampleArrayVis")
             );
             this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
             this.exampleArrayVis = {
