@@ -20,17 +20,9 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+
+    <!-- d3 v4 js -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
-
-    <!-- Tangle -->
-    <script type="text/javascript" src="Tangle.js"></script>
-
-    <!-- TangleKit -->
-    <link rel="stylesheet" href="TangleKit/TangleKit.css" type="text/css">
-    <script type="text/javascript" src="TangleKit/mootools.js"></script>
-    <script type="text/javascript" src="TangleKit/sprintf.js"></script>
-    <script type="text/javascript" src="TangleKit/BVTouchable.js"></script>
-    <script type="text/javascript" src="TangleKit/TangleKit.js"></script>
 
     <!-- Lodash -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
@@ -47,56 +39,7 @@
   </head>
   <body>
     <div class="container-fluid">
-      <h4> A trip inside python dictionary internals. Part 1: hash tables </h4>
-      <h6> What's so great about lists and arrays? </h6>
-      <br>
-      <div id="exampleArrayTangle">
-        <div class="sticky-top">
-          <span id="exampleArrayInput"></span>
-        </div>
-        <p>
-          Picture a typical python list. For example <code>[<span data-var="exampleArray"></span>]</code>.
-          <br>
-          Python lists are actually arrays: continigous chunks of memory. Which means that it's easy to find
-          <code><span data-var="exampleArrayIdx" class="TKAdjustableNumber" data-min="0" data-max="20"></span></code>-th element.
-          In this case it is <code><span data-var="exampleArrayIdxVal"></span></code>
-        </p>
-        <div class="clearfix" id="exampleArrayVis"> </div>
-        <p>
-          Getting element by index is very fast. However, searching for a specific value can be slow. 
-          For example, to find [mid element] we would sometimes need to scan 50% of elements. 
-          And to check that [missing element] is missing, we would need to scan the whole list.
-        </p>
-        <p>
-          What if instead of using a plain list we could organize our data in a different way? 
-          The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
-          Then we could simple check a[idx] to find if idx is present.
-        </p>
-        <p>
-          Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
-        </p>
-        <p> TODO: Explain using modulo operation to shrink everything</p>
-        <p> How would it work for strings? TODO: explain what is a hash function, why python hash(x) = x for most ints.</p>
-        <p>
-          What we could do instead is organize everything in a hashtable!
-        </p>
-        <div id="exampleArrayHashVis"></div>
-        <h6>
-          How does adding to a hash table work? 
-        </h6>
-        <p> Let's say we want to add <span id="howToAddObjInput"></span> to the hashtable. 
-        </p>
-
-        <div id="insertionHistory">
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div id="addCode"></div>
-          </div>
-          <div class="col-md-6" id="breakpointsVis">
-          </div>
-        </div>
-        <div id="exampleArrayHashAfterInsertionVis"></div>
+      <div id="root">
       </div>
     </div>
   </body>

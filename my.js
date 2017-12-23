@@ -606,10 +606,11 @@ class HashBoxesComponent extends React.Component {
 
         this.hashBoxes = new HashBoxes(this.$el, 40);
         this.hashBoxes.init(this.props.array);
-        this.callMakeActiveIfNeeded(this.props.idx);
+        this.changeActiveBox(this.props.idx);
     }
 
-    callMakeActiveIfNeeded(idx) {
+    changeActiveBox(idx) {
+        this.hashBoxes.removeAllActive();
         if (idx !== null && idx !== undefined) {
             this.hashBoxes.makeActive(idx);
         }
@@ -620,8 +621,8 @@ class HashBoxesComponent extends React.Component {
     }
 
     componentWillUpdate(nextProps, nextState) {
-        this.lineOfBoxes.changeTo(nextProps.array);
-        this.callMakeActiveIfNeeded();
+        this.hashBoxes.changeTo(nextProps.array);
+        this.changeActiveBox(nextProps.idx);
     }
 
     render() {
@@ -770,97 +771,115 @@ function CodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
 
+class App extends React.Component {
+    constructor() {
+        super();
+
+        this.state = {
+            exampleArrayIdx: 0,
+            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
+            howToAddObj: 'py',
+            bpTime: null,
+            exampleArrayHashAfterInsertionIdx: null,
+        }
+    }
+
+    render() {
+        let myhash = new MyHash();
+
+        myhash.bpDisabled = true;
+        myhash.addArray(this.state.exampleArray);
+        console.log("myhash: " + myhash.data);
+        let exampleArrayHashVis = {
+            array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
+        }
+
+        myhash.bpDisabled = false;
+        let howToAddInsertionHistory = myhash.add(this.state.howToAddObj);
+        let breakpoints = myhash.breakpoints;
+
+        console.log('this.bpTime = ' + this.state.bpTime);
+        let exampleArrayHashAfterInsertionVis = null;
+        let bpPoint = null;
+
+        if (this.state.bpTime !== null) {
+            exampleArrayHashAfterInsertionVis = {
+                array: breakpoints[this.state.bpTime].data,
+                idx: breakpoints[this.state.bpTime].idx,
+            }
+            bpPoint = breakpoints[this.state.bpTime].point;
+        } else {
+            exampleArrayHashAfterInsertionVis = {
+                array: myhash.data,
+                idx: null,
+            }
+        }
+
+        return(
+            <div>
+              <h4> A trip inside python dictionary internals. Part 1: hash tables </h4>
+              <h6> What's so great about lists and arrays? </h6>
+              <br/>
+              <div className="sticky-top">
+                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />,
+              </div>
+              <p>
+                Picture a typical python list.
+                <br/>
+                Python lists are actually arrays: continigous chunks of memory. Which means that it's easy to find elements by index.
+              </p>
+              <LineOfBoxesComponent array={this.state.exampleArray} />
+              <p>
+                Getting element by index is very fast. However, searching for a specific value can be slow. 
+                For example, to find [mid element] we would sometimes need to scan 50% of elements. 
+                And to check that [missing element] is missing, we would need to scan the whole list.
+              </p>
+              <p>
+                What if instead of using a plain list we could organize our data in a different way? 
+                The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
+                Then we could simple check a[idx] to find if idx is present.
+              </p>
+              <p>
+                Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
+              </p>
+              <p> TODO: Explain using modulo operation to shrink everything</p>
+              <p> How would it work for strings? TODO: explain what is a hash function, why python hash(x) = x for most ints.</p>
+              <p>
+                What we could do instead is organize everything in a hashtable!
+              </p>
+              <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />,
+              <h6>
+                How does adding to a hash table work? 
+              </h6>
+              <p>
+                Let's say we want to add
+                <JsonInput value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />,
+                to the hashtable. 
+              </p>
+
+              <InsertionHistory insertionHistory={howToAddInsertionHistory} />,
+              <div className="row">
+                <div className="col-md-6">
+                  <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />,
+                </div>
+                <AddOpBreakpointsList
+                  breakpoints={breakpoints}
+                  time={this.state.bpTime}
+                  onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
+                />
+              </div>
+              <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />,
+          </div>)
+    }
+}
+
 $(document).ready(function() {
+    /* TODO: properly apply stickyfill */
     let elements = $('.sticky-top');
     Stickyfill.add(elements);
 
-    console.log(pyHashString("abc"));
-    console.log(pyHashString("abcd"));
-    console.log(pyHashString("yac"));
-    console.log(pyHashString("me"));
-    console.log(pyHashString("meh"));
-    let rootElement = document.getElementById('exampleArrayTangle');
-    let model = {
-        initialize: function () {
-            this.exampleArrayIdx = 0;
-            // this.exampleArray = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
-            // this.exampleArray = ["ab","cd","de","hm","hn","fb","ya","xx","xy","me"];
-            this.exampleArray = ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"]
-            this.howToAddObj = 'py';
-            this.bpTime = null;
-            this.exampleArrayHashAfterInsertionIdx = null;
-        },
-        update: function () {
-            ReactDOM.render(
-                <JsonInput value={this.howToAddObj} onChange={(value) => this._tangle.setValue("howToAddObj", value)} />,
-                document.getElementById("howToAddObjInput")
-            );
-            ReactDOM.render(
-                <JsonInput value={this.exampleArray} onChange={(value) => this._tangle.setValue("exampleArray", value)} />,
-                document.getElementById("exampleArrayInput")
-            );
-            ReactDOM.render(
-                <LineOfBoxesComponent array={this.exampleArray} />,
-                document.getElementById("exampleArrayVis")
-            );
-
-            let myhash = new MyHash();
-            myhash.bpDisabled = true;
-            myhash.addArray(this.exampleArray);
-            console.log("myhash: " + myhash.data);
-            this.exampleArrayHashVis = {
-                array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
-            }
-            ReactDOM.render(
-                <HashBoxesComponent array={this.exampleArrayHashVis.array} idx={null} />,
-                document.getElementById("exampleArrayHashVis")
-            );
-
-            myhash.bpDisabled = false;
-            this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
-            this.breakpoints = myhash.breakpoints;
-
-            ReactDOM.render(
-                <AddOpBreakpointsList
-                 breakpoints={this.breakpoints}
-                 time={this.bpTime}
-                 onTimeChange={(bpTime) => this._tangle.setValue("bpTime", bpTime)}
-                 />,
-                document.getElementById("breakpointsVis")
-            );
-
-            console.log('this.bpTime = ' + this.bpTime);
-            if (this.bpTime !== null) {
-                this.exampleArrayHashAfterInsertionVis = {
-                    array: this.breakpoints[this.bpTime].data,
-                    idx: this.breakpoints[this.bpTime].idx,
-                }
-                this.bpPoint = this.breakpoints[this.bpTime].point;
-            } else {
-                this.exampleArrayHashAfterInsertionVis = {
-                    array: myhash.data,
-                    idx: null,
-                }
-                this.bpPoint = null;
-            }
-
-            ReactDOM.render(
-                <HashBoxesComponent array={this.exampleArrayHashAfterInsertionVis.array} idx={this.exampleArrayHashAfterInsertionVis.idx} />,
-                document.getElementById("exampleArrayHashAfterInsertionVis")
-            );
-
-            ReactDOM.render(
-                <CodeBlock code={ADD_CODE} bpPoint={this.bpTime === null ? null : this.breakpoints[this.bpTime].point} />,
-                document.getElementById("addCode")
-            );
-
-
-            ReactDOM.render(
-                <InsertionHistory insertionHistory={this.howToAddInsertionHistory} />,
-                document.getElementById("insertionHistory")
-            );
-
-        }
-    };
-    tangle = new Tangle(rootElement, model);
+    ReactDOM.render(
+      <App />,
+      document.getElementById('root')
+    );
 });
