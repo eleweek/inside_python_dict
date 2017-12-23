@@ -600,6 +600,35 @@ class LineOfBoxesComponent extends React.Component {
     }
 }
 
+class HashBoxesComponent extends React.Component {
+    componentDidMount() {
+        this.$el = $(this.el);
+
+        this.hashBoxes = new HashBoxes(this.$el, 40);
+        this.hashBoxes.init(this.props.array);
+        this.callMakeActiveIfNeeded(this.props.idx);
+    }
+
+    callMakeActiveIfNeeded(idx) {
+        if (idx !== null && idx !== undefined) {
+            this.hashBoxes.makeActive(idx);
+        }
+    }
+
+    componentWillUnmount() {
+        this.$el.html('');
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        this.lineOfBoxes.changeTo(nextProps.array);
+        this.callMakeActiveIfNeeded();
+    }
+
+    render() {
+        return <div className="clearfix hash-vis" ref={el => this.el = el} />;
+    }
+}
+
 class AddOpBreakpoint extends React.Component {
     render() {
         return <div
@@ -683,36 +712,6 @@ function InsertionHistory(props) {
         {collisionsDescription}
     </div>);
 }
-
-
-Tangle.classes.TKHashVis = {
-    initialize: function (element, options, tangle, variable) {
-        console.log("TKHashVis.initialize");
-        // TODO: unhardcode
-        let boxSize = 40;
-        this.hashBoxes = new HashBoxes(element, 40);
-        this.initialized = false;
-    },
-  
-    update: function (element, value) {
-        let array = value.array;
-        let idx = value.idx;
-        console.log("TKHashVis.update()" + array);
-        if (this.initialized) {
-            this.hashBoxes.changeTo(value.array);
-        } else {
-            this.initialized = true;
-            this.hashBoxes.init(value.array);
-        }
-        this.hashBoxes.removeAllActive(idx);
-        if (idx !== null && idx !== undefined) {
-            this.hashBoxes.makeActive(idx);
-        }
-
-        this.array = array;
-        this.idx = idx;
-    }
-};
 
 class JsonInput extends React.Component {
     constructor(props) {
@@ -804,11 +803,6 @@ $(document).ready(function() {
                 <LineOfBoxesComponent array={this.exampleArray} />,
                 document.getElementById("exampleArrayVis")
             );
-            this.exampleArrayIdxVal = this.exampleArray[this.exampleArrayIdx];
-            this.exampleArrayVis = {
-                array: this.exampleArray,
-                idx: null,
-            }
 
             let myhash = new MyHash();
             myhash.bpDisabled = true;
@@ -817,6 +811,10 @@ $(document).ready(function() {
             this.exampleArrayHashVis = {
                 array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
             }
+            ReactDOM.render(
+                <HashBoxesComponent array={this.exampleArrayHashVis.array} idx={null} />,
+                document.getElementById("exampleArrayHashVis")
+            );
 
             myhash.bpDisabled = false;
             this.howToAddInsertionHistory = myhash.add(this.howToAddObj);
@@ -829,17 +827,6 @@ $(document).ready(function() {
                  onTimeChange={(bpTime) => this._tangle.setValue("bpTime", bpTime)}
                  />,
                 document.getElementById("breakpointsVis")
-            );
-
-            ReactDOM.render(
-                <CodeBlock code={ADD_CODE} bpPoint={this.bpTime === null ? null : this.breakpoints[this.bpTime].point} />,
-                document.getElementById("addCode")
-            );
-
-
-            ReactDOM.render(
-                <InsertionHistory insertionHistory={this.howToAddInsertionHistory} />,
-                document.getElementById("insertionHistory")
             );
 
             console.log('this.bpTime = ' + this.bpTime);
@@ -856,6 +843,23 @@ $(document).ready(function() {
                 }
                 this.bpPoint = null;
             }
+
+            ReactDOM.render(
+                <HashBoxesComponent array={this.exampleArrayHashAfterInsertionVis.array} idx={this.exampleArrayHashAfterInsertionVis.idx} />,
+                document.getElementById("exampleArrayHashAfterInsertionVis")
+            );
+
+            ReactDOM.render(
+                <CodeBlock code={ADD_CODE} bpPoint={this.bpTime === null ? null : this.breakpoints[this.bpTime].point} />,
+                document.getElementById("addCode")
+            );
+
+
+            ReactDOM.render(
+                <InsertionHistory insertionHistory={this.howToAddInsertionHistory} />,
+                document.getElementById("insertionHistory")
+            );
+
         }
     };
     tangle = new Tangle(rootElement, model);
