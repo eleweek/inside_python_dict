@@ -875,8 +875,8 @@ class App extends React.Component {
 
 $(document).ready(function() {
     /* TODO: properly apply stickyfill */
-    let elements = $('.sticky-top');
-    Stickyfill.add(elements);
+    /*let elements = $('.sticky-top');
+    Stickyfill.add(elements);*/
 
     ReactDOM.render(
       <App />,
