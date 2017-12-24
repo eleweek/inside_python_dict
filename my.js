@@ -396,7 +396,7 @@ class BoxesBase {
         if (startY != endY) {
             setTimeout(function() {
                 $box.css({top: endY});
-            }, 100);
+            }, 0);
         }
         $box.attr('data-index', idx);
     }
@@ -433,7 +433,7 @@ class BoxesBase {
         // XXX: window.requestAnimationFrame() -- might be better
         setTimeout(function() {
             $box.removeClass(that.JUST_ADDED_CLASS);
-        }, 100);
+        }, 0);
     }
 
     removeBox(idx) {
