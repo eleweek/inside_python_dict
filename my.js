@@ -764,6 +764,7 @@ const ADD_CODE = [
 
 function CodeBlock(props) {
     let lines = [];
+    let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
 
     for (let [line, bpPoint] of props.code) {
         let className = bpPoint;
@@ -771,7 +772,9 @@ function CodeBlock(props) {
             className += " code-highlight";
         }
 
-        lines.push(`<span class="${className}">${line}</span>`);
+        let paddedLine = _.padEnd(line, maxLen);
+
+        lines.push(`<span class="${className}">${paddedLine}</span>`);
     }
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
