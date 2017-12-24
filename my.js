@@ -392,10 +392,15 @@ class BoxesBase {
         } else if (type == "removed") {
             endY = -this.boxSize;
         }
-        $box.css({top: startY, left: idx * this.boxSize});
+        $box.css({top: 0, left: 0});
+        // $box.css({top: startY, left: idx * this.boxSize});
+        let endX = idx * this.boxSize;
+        $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
+            console.log("Scheduling translate");
             setTimeout(function() {
-                $box.css({top: endY});
+                //$box.css({top: endY});
+                $box.css("transform", `translate(${endX}px, ${endY}px)`);
             }, 0);
         }
         $box.attr('data-index', idx);
