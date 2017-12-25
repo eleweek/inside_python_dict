@@ -398,10 +398,10 @@ class BoxesBase {
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
             console.log("Scheduling translate");
-            setTimeout(function() {
+            window.requestAnimationFrame(function() {
                 //$box.css({top: endY});
                 $box.css("transform", `translate(${endX}px, ${endY}px)`);
-            }, 0);
+            });
         }
         $box.attr('data-index', idx);
     }
@@ -435,10 +435,11 @@ class BoxesBase {
         this.$element.append($box);
         let that = this;
         this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"))
-        // XXX: window.requestAnimationFrame() -- might be better
-        setTimeout(function() {
+        $box.offsetHeight;
+        window.requestAnimationFrame(function() {
+            //$box.css({top: endY});
             $box.removeClass(that.JUST_ADDED_CLASS);
-        }, 0);
+        });
     }
 
     removeBox(idx) {
