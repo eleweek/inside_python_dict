@@ -829,7 +829,7 @@ class App extends React.Component {
               <h6> What's so great about lists and arrays? </h6>
               <br/>
               <div className="sticky-top">
-                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />,
+                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
               <p>
                 Picture a typical python list.
@@ -855,20 +855,20 @@ class App extends React.Component {
               <p>
                 What we could do instead is organize everything in a hashtable!
               </p>
-              <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />,
+              <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />
               <h6>
                 How does adding to a hash table work? 
               </h6>
               <p>
                 Let's say we want to add
-                <JsonInput value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />,
+                <JsonInput value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
                 to the hashtable. 
               </p>
 
-              <InsertionHistory insertionHistory={howToAddInsertionHistory} />,
+              <InsertionHistory insertionHistory={howToAddInsertionHistory} />
               <div className="row">
                 <div className="col-md-6">
-                  <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />,
+                  <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />
                 </div>
                 <AddOpBreakpointsList
                   breakpoints={breakpoints}
@@ -876,7 +876,7 @@ class App extends React.Component {
                   onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
                 />
               </div>
-              <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />,
+              <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
           </div>)
     }
 }
