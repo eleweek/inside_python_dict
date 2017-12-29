@@ -63,23 +63,22 @@
     background-color: #C2DFFF;
 }
 
-.fade-wait-leave {
+.cross-fade-leave {
   opacity: 1;
 }
-.fade-wait-leave.fade-wait-leave-active {
+.cross-fade-leave.cross-fade-leave-active {
   opacity: 0;
-  transition: opacity .4s ease-in;
+  transition: opacity .5s ease-in;
 }
 
-.fade-wait-enter {
+.cross-fade-enter {
   opacity: 0;
 }
-.fade-wait-enter.fade-wait-enter-active {
+.cross-fade-enter.cross-fade-enter-active {
   opacity: 1;
-  /* Delay the enter animation until the leave completes */
-  transition: opacity .4s ease-in .6s;
+  transition: opacity .5s ease-in;
 }
 
-.fade-wait-height {
-  transition: height .6s ease-in-out;
+.cross-fade-height {
+  transition: height .5s ease-in-out;
 }

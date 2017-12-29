@@ -880,17 +880,18 @@ class App extends React.Component {
                 <div className="col-md-6">
                   <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />
                 </div>
-                <ReactCSSTransitionReplace
-                  transitionName="fade-wait" 
-                  transitionEnterTimeout={1000}
-                  transitionLeaveTimeout={400}>
-                    <AddOpBreakpointsList
-                      key={JSON.stringify(breakpoints)}
-                      breakpoints={breakpoints}
-                      time={this.state.bpTime}
-                      onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
-                    />
-                </ReactCSSTransitionReplace>
+                <div className="col-md-6">
+                  <ReactCSSTransitionReplace
+                    transitionName="cross-fade"
+                    transitionEnterTimeout={500} transitionLeaveTimeout={500}>
+                      <AddOpBreakpointsList
+                        key={JSON.stringify(breakpoints)}
+                        breakpoints={breakpoints}
+                        time={this.state.bpTime}
+                        onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
+                      />
+                  </ReactCSSTransitionReplace>
+                </div>
               </div>
               <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
           </div>)
