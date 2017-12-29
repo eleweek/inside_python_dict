@@ -402,8 +402,7 @@ class BoxesBase {
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
             console.log("Scheduling translate");
-            window.requestAnimationFrame(function() {
-                //$box.css({top: endY});
+            window.requestAnimationFrame(() => {
                 $box.css("transform", `translate(${endX}px, ${endY}px)`);
             });
         }
@@ -425,9 +424,7 @@ class BoxesBase {
     }
 
     resetZIndex() {
-        this.$element.find('.box').each(function(index, box) {
-            $(box).css({"z-index": "0"});
-        });
+        this.$element.find('.box').each((index, box) => $(box).css({"z-index": "0"}));
     }
 
     addBox(idx, value) {
@@ -437,12 +434,9 @@ class BoxesBase {
         this.updatedBoxValues[idx] = value;
 
         this.$element.append($box);
-        let that = this;
-        this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"))
-        $box.offsetHeight;
-        window.requestAnimationFrame(function() {
-            //$box.css({top: endY});
-            $box.removeClass(that.JUST_ADDED_CLASS);
+        this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"));
+        window.requestAnimationFrame(() => {
+            $box.removeClass(this.JUST_ADDED_CLASS);
         });
     }
 
