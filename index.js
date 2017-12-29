@@ -1,5 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
 class Int64 {
     constructor(jsNumInt32 = 0) {
@@ -642,7 +643,7 @@ class HashBoxesComponent extends React.Component {
 class AddOpBreakpoint extends React.Component {
     render() {
         return <div
-                className={this.props.active ? "highlight" : ""}
+                className={this.props.active ? "highlight" : null}
                 onMouseEnter={this.props.onMouseEnter}
                 dangerouslySetInnerHTML={{__html: this.formatBpDesc(this.props.bpDesc)}} 
                />
@@ -814,6 +815,11 @@ class App extends React.Component {
         let exampleArrayHashAfterInsertionVis = null;
         let bpPoint = null;
 
+        if (this.state.bpTime >= breakpoints.length) {
+            // TODO: reset bpTime when hash is changed
+            this.state.bpTime = null;
+        }
+
         if (this.state.bpTime !== null) {
             exampleArrayHashAfterInsertionVis = {
                 array: breakpoints[this.state.bpTime].data,
@@ -874,11 +880,17 @@ class App extends React.Component {
                 <div className="col-md-6">
                   <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />
                 </div>
-                <AddOpBreakpointsList
-                  breakpoints={breakpoints}
-                  time={this.state.bpTime}
-                  onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
-                />
+                <ReactCSSTransitionReplace
+                  transitionName="fade-wait" 
+                  transitionEnterTimeout={1000}
+                  transitionLeaveTimeout={400}>
+                    <AddOpBreakpointsList
+                      key={JSON.stringify(breakpoints)}
+                      breakpoints={breakpoints}
+                      time={this.state.bpTime}
+                      onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
+                    />
+                </ReactCSSTransitionReplace>
               </div>
               <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
           </div>)
