@@ -424,7 +424,7 @@ class BoxesBase {
     }
 
     resetZIndex() {
-        this.$element.find('.box').each((index, box) => $(box).css({"z-index": "0"}));
+        this.$element.find('.box').each((index, box) => $(box).css({"z-index": 0}));
     }
 
     addBox(idx, value) {
@@ -435,6 +435,9 @@ class BoxesBase {
 
         this.$element.append($box);
         this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"));
+        if (value === null) {
+            $box.css({"z-index": -1});
+        }
         window.requestAnimationFrame(() => {
             $box.removeClass(this.JUST_ADDED_CLASS);
         });
