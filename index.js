@@ -780,6 +780,16 @@ function CodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
 
+class CrossFade extends React.Component {
+    render() {
+      return <ReactCSSTransitionReplace
+        transitionName="cross-fade"
+        transitionEnterTimeout={500} transitionLeaveTimeout={500}>
+          {this.props.children}
+      </ReactCSSTransitionReplace>
+    }
+}
+
 class App extends React.Component {
     constructor() {
         super();
@@ -871,22 +881,22 @@ class App extends React.Component {
                 to the hashtable. 
               </p>
 
-              <InsertionHistory insertionHistory={howToAddInsertionHistory} />
+              <CrossFade>
+                  <InsertionHistory insertionHistory={howToAddInsertionHistory} key={JSON.stringify(howToAddInsertionHistory)}/>
+              </CrossFade>
               <div className="row">
                 <div className="col-md-6">
                   <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />
                 </div>
                 <div className="col-md-6">
-                  <ReactCSSTransitionReplace
-                    transitionName="cross-fade"
-                    transitionEnterTimeout={500} transitionLeaveTimeout={500}>
+                  <CrossFade>
                       <AddOpBreakpointsList
                         key={JSON.stringify(breakpoints)}
                         breakpoints={breakpoints}
                         time={this.state.bpTime}
                         onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
                       />
-                  </ReactCSSTransitionReplace>
+                  </CrossFade>
                 </div>
               </div>
               <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
