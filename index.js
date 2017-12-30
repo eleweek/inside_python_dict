@@ -423,10 +423,6 @@ class BoxesBase {
         return $box;
     }
 
-    resetZIndex() {
-        this.$element.find('.box').each((index, box) => $(box).css({"z-index": 0}));
-    }
-
     addBox(idx, value) {
         let $box = this.makeNewBox(value);
 
@@ -435,9 +431,6 @@ class BoxesBase {
 
         this.$element.append($box);
         this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"));
-        if (value === null) {
-            $box.css({"z-index": -1});
-        }
         window.requestAnimationFrame(() => {
             $box.removeClass(this.JUST_ADDED_CLASS);
         });
@@ -461,7 +454,7 @@ class BoxesBase {
 
     startModifications(numBoxes) {
         /* TODO: garbage collect old removed and faded out divs */
-        this.resetZIndex();
+        // this.resetZIndex();
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
 
