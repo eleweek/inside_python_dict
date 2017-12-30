@@ -2,6 +2,12 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
+function doubleRAF(callback) {
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(callback);
+    });
+}
+
 class Int64 {
     constructor(jsNumInt32 = 0) {
         this.size = 64;
@@ -402,7 +408,7 @@ class BoxesBase {
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
             console.log("Scheduling translate");
-            window.requestAnimationFrame(() => {
+            doubleRAF(() => {
                 $box.css("transform", `translate(${endX}px, ${endY}px)`);
             });
         }
@@ -431,7 +437,7 @@ class BoxesBase {
 
         this.$element.append($box);
         this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"));
-        window.requestAnimationFrame(() => {
+        doubleRAF(() => {
             $box.removeClass(this.JUST_ADDED_CLASS);
         });
     }
