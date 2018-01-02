@@ -721,12 +721,16 @@ function InsertionHistory(props) {
         collisionsDescription = <p> {baseDesc} {colDescs} </p>;
     }
 
-    return (<div>
-        <p>
-            Its hash is <code>{ih.hash.toString()}</code>, getting it modulo hash capacity <code>{ih.capacity}</code> results in <code>{ih.originalIdx}</code>
-        </p>
-        {collisionsDescription}
-    </div>);
+    return (
+        <div className="row">
+            <div className="col">
+                <p>
+                    Its hash is <code>{ih.hash.toString()}</code>, getting it modulo hash capacity <code>{ih.capacity}</code> results in <code>{ih.originalIdx}</code>
+                </p>
+                {collisionsDescription}
+            </div>
+        </div>
+    )
 }
 
 class JsonInput extends React.Component {
