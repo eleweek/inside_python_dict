@@ -9,7 +9,6 @@ function doubleRAF(callback) {
     });
 }
 
-
 class BoxesBase {
     constructor(element, boxSize) {
         this.$element = $(element);
@@ -303,52 +302,27 @@ class HashBoxesComponent extends React.Component {
     }
 }
 
-class AddOpBreakpoint extends React.Component {
-    render() {
-        return <div
-                className={this.props.active ? "highlight" : null}
-                onMouseEnter={this.props.onMouseEnter}
-                dangerouslySetInnerHTML={{__html: this.formatBpDesc(this.props.bpDesc)}} 
-               />
-    }
 
-    formatBpDesc(bp) {
-        switch (bp.point) {
-            case 'compute-idx':
-                return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
-            case 'check-collision':
-                return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
-            case 'assign-elem':
-                return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
-            case 'rehash':
-                return `Rehash`;
-            case 'check-load-factor':
-                return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
-            case 'next-idx':
-                return `Compute next idx: <code>${bp.idx}</code>`;
-            default:
-                throw "Unknown bp type: " + bp.point;
-        }
-    }
-}
 
-class AddOpBreakpointsList extends React.Component {
+class BreakpointsList extends React.Component {
     render() {
         let elems = [];
-        for (let [bpTime, bpDesc] of this.props.breakpoints.entries()) {
+        for (let [time, desc] of this.props.breakpoints.entries()) {
+            let active = (this.props.time == desc.time);
+
             elems.push(
-                <AddOpBreakpoint
-                 bpDesc={bpDesc}
-                 active={this.props.time == bpDesc.time}
-                 onMouseEnter={this.handleBreakpointHover.bind(this, bpDesc.time)}
+                <div
+                    className={active ? "highlight" : null}
+                    onMouseEnter={this.handleBreakpointHover.bind(this, time)}
+                    dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(desc)}}
                 />
             );
         }
         return <div> {elems} </div>
     }
 
-    handleBreakpointHover(bpTime) {
-        this.props.onTimeChange(bpTime);
+    handleBreakpointHover(time) {
+        this.props.onTimeChange(time);
     }
 }
 
@@ -434,6 +408,27 @@ const ADD_CODE = [
     ["    self.table[idx] = elem", "assign-elem"]
 ];
 
+
+let formatAddCodeBreakpointDescription = function(bp) {
+    switch (bp.point) {
+        case 'compute-idx':
+            return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
+        case 'check-collision':
+            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
+        case 'assign-elem':
+            return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
+        case 'rehash':
+            return `Rehash`;
+        case 'check-load-factor':
+            return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
+        case 'next-idx':
+            return `Compute next idx: <code>${bp.idx}</code>`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+
 function CodeBlock(props) {
     let lines = [];
     let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
@@ -450,6 +445,28 @@ function CodeBlock(props) {
     }
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
+
+function CodeWithBreakpoints(props) {
+    return (
+        <div className="row">
+          <div className="col-md-6">
+            <CodeBlock code={props.code} bpPoint={props.bpPointHighlight} />
+          </div>
+          <div className="col-md-6">
+            <CrossFade>
+                <BreakpointsList
+                  key={JSON.stringify(props.breakpoints)}
+                  breakpoints={props.breakpoints}
+                  time={props.time}
+                  onTimeChange={props.onTimeChange}
+                  formatBpDesc={props.formatBpDesc}
+                />
+            </CrossFade>
+          </div>
+        </div>
+    )
+}
+
 
 class CrossFade extends React.Component {
     render() {
@@ -555,21 +572,14 @@ class App extends React.Component {
               <CrossFade>
                   <InsertionHistory insertionHistory={howToAddInsertionHistory} key={JSON.stringify(howToAddInsertionHistory)}/>
               </CrossFade>
-              <div className="row">
-                <div className="col-md-6">
-                  <CodeBlock code={ADD_CODE} bpPoint={bpPoint} />
-                </div>
-                <div className="col-md-6">
-                  <CrossFade>
-                      <AddOpBreakpointsList
-                        key={JSON.stringify(breakpoints)}
-                        breakpoints={breakpoints}
-                        time={this.state.bpTime}
-                        onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
-                      />
-                  </CrossFade>
-                </div>
-              </div>
+              <CodeWithBreakpoints
+                code={ADD_CODE}
+                bpPointHighlight={bpPoint}
+                breakpoints={breakpoints}
+                time={this.state.bpTime}
+                onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
+                formatBpDesc={formatAddCodeBreakpointDescription} />
+
               <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
           </div>)
     }
