@@ -83,3 +83,11 @@
 .cross-fade-height {
   transition: height .5s ease-in-out;
 }
+
+.fc-inline {
+  display: inline-block !important;
+  width: 120px !important;
+  line-height: 1.0 !important;
+  margin-left: 5px;
+  margin-right: 5px;
+}

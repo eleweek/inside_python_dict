@@ -755,8 +755,8 @@ class JsonInput extends React.Component {
     }
 
     render() {
-        console.log("render()");
-        return <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange} />;
+        let className = this.props.inline ? "form-control fc-inline" : "form-control";
+        return <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />;
     }
 }
 
@@ -886,7 +886,7 @@ class App extends React.Component {
               </h6>
               <p>
                 Let's say we want to add
-                <JsonInput value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
+                <JsonInput inline={true} value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
                 to the hashtable. 
               </p>
 
