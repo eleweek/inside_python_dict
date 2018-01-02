@@ -164,7 +164,7 @@ class Int64 {
     }
 }
 
-let pyHashString = function(s) {
+let pyHashStringAndUnicode = function(s) {
     let res = new Int64(s.charCodeAt(0) << 7);
     let magic = new Int64(1000003);
 
@@ -179,6 +179,15 @@ let pyHashString = function(s) {
     }
 
     return res.toString();
+}
+
+let pyHashString = function(s) {
+    let sUtf8 = unescape(encodeURIComponent(s));
+    return pyHashStringAndUnicode(sUtf8);
+}
+
+let pyHashUnicode = function(s) {
+    return pyHashStringAndUnicode(s);
 }
 
 let pyHashInt = function(n) {
