@@ -19,6 +19,7 @@ class BoxesBase {
 
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
+        this.activeBox = null;
 
         this.JUST_ADDED_CLASS = 'box-just-added';
         this.REMOVED_CLASS = 'box-removed';
@@ -41,6 +42,10 @@ class BoxesBase {
             this.boxValues.push(value);
             this.$boxDivs.push($box);
         }
+
+        this.$activeBoxSelection = $('<div class="active-box-selection"></div>');
+        this.$activeBoxSelection.css({top: 0, left: 0, visibility: 'hidden'});
+        this.$element.append(this.$activeBoxSelection);
     }
 
     findBoxIndex(val) {
@@ -73,7 +78,6 @@ class BoxesBase {
         let endX = idx * this.boxSize;
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
-            console.log("Scheduling translate");
             doubleRAF(() => {
                 $box.css("transform", `translate(${endX}px, ${endY}px)`);
             });
@@ -142,11 +146,15 @@ class BoxesBase {
     }
 
     removeAllActive() {
-        this.$element.find('.' + this.ACTIVE_CLASS).removeClass(this.ACTIVE_CLASS);
+        this.$activeBoxSelection.css({visibility: 'hidden'});
+        this.$activeBoxSelection.removeClass('active-box-selection-animated');
     }
 
     makeActive(idx) {
-        this.$boxDivs[idx].addClass(this.ACTIVE_CLASS);
+        this.$activeBoxSelection.css({visibility: 'visible'});
+        this.$activeBoxSelection.css({transform: `translate(${idx * this.boxSize}px, 0px)`});
+        // enable animations in the future
+        this.$activeBoxSelection.addClass('active-box-selection-animated');
     }
 }
 

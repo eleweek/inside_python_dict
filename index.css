@@ -45,10 +45,20 @@
     transition-timing-function: ease;
 }
 
-.box-active {
+.active-box-selection {
     border: solid 1px red;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0);
     width: 40px;
     height: 40px;
+    z-index: 100;
+    position: absolute;
+}
+
+.active-box-selection-animated {
+    transition-property: opacity,transform;
+    transition-duration: .3s;
+    transition-timing-function: ease;
 }
 
 .box.box-just-added,
