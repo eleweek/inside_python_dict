@@ -252,39 +252,19 @@ function arraysDiff(arrayFrom, arrayTo)
     }
 }
 
-class LineOfBoxesComponent extends React.Component {
-    componentDidMount() {
-        this.$el = $(this.el);
-        this.lineOfBoxes = new LineOfBoxes(this.$el, 40);
-        this.lineOfBoxes.init(this.props.array);
-    }
-
-    componentWillUnmount() {
-        this.$el.html('');
-    }
-
-    componentWillUpdate(nextProps, nextState) {
-        this.lineOfBoxes.changeTo(nextProps.array);
-    }
-
-    render() {
-        return <div className="clearfix array-vis" ref={el => this.el = el} />;
-    }
-}
-
-class HashBoxesComponent extends React.Component {
+class BoxesWrapperComponent extends React.Component {
     componentDidMount() {
         this.$el = $(this.el);
 
-        this.hashBoxes = new HashBoxes(this.$el, 40);
-        this.hashBoxes.init(this.props.array);
+        this.boxes = new this.props.boxesClass(this.$el, 40);
+        this.boxes.init(this.props.array);
         this.changeActiveBox(this.props.idx);
     }
 
     changeActiveBox(idx) {
-        this.hashBoxes.removeAllActive();
+        this.boxes.removeAllActive();
         if (idx !== null && idx !== undefined) {
-            this.hashBoxes.makeActive(idx);
+            this.boxes.makeActive(idx);
         }
     }
 
@@ -293,7 +273,7 @@ class HashBoxesComponent extends React.Component {
     }
 
     componentWillUpdate(nextProps, nextState) {
-        this.hashBoxes.changeTo(nextProps.array);
+        this.boxes.changeTo(nextProps.array);
         this.changeActiveBox(nextProps.idx);
     }
 
@@ -302,7 +282,13 @@ class HashBoxesComponent extends React.Component {
     }
 }
 
+function HashBoxesComponent(props) {
+    return <BoxesWrapperComponent boxesClass={HashBoxes} {...props} />
+}
 
+function LineOfBoxesComponent(props) {
+    return <BoxesWrapperComponent boxesClass={LineOfBoxes} {...props} />
+}
 
 class BreakpointsList extends React.Component {
     render() {
