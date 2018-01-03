@@ -448,14 +448,22 @@ class VisualizedCode extends React.Component {
         });
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) {
+            this.setState({
+                time: nextProps.breakpoints.length - 1
+            });
+        }
+    }
+
     render() {
-        let {data, idx, bpPoint} = this.props.breakpoints[this.state.time];
+        let {data, idx, point} = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
             <div className="row">
               <div className="col-md-6">
-                <CodeBlock code={this.props.code} bpPoint={bpPoint} />
+                <CodeBlock code={this.props.code} bpPoint={point} />
               </div>
               <div className="col-md-6">
                 <CrossFade>
