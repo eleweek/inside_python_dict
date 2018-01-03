@@ -197,7 +197,7 @@ let pyHash = function(o) {
 
 class MyHash {
     constructor() {
-        let startCapacity = 16;
+        let startCapacity = 8;
 
         this.MAX_LOAD_FACTOR = 0.66;
 
