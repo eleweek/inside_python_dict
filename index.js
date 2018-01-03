@@ -62,6 +62,10 @@ class BoxesBase {
         return null;
     }
 
+    _computeBoxXpos(idx) {
+        return idx * (2 + this.boxSize)
+    }
+
     _setBoxIdxAndPos($box, idx, type) {
         // Kind of shitty way of launching animations...
         // This function was a simple setter originally
@@ -75,7 +79,7 @@ class BoxesBase {
         }
         $box.css({top: 0, left: 0});
         // $box.css({top: startY, left: idx * this.boxSize});
-        let endX = idx * this.boxSize;
+        let endX = this._computeBoxXpos(idx);
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
             doubleRAF(() => {
@@ -152,7 +156,7 @@ class BoxesBase {
 
     makeActive(idx) {
         this.$activeBoxSelection.css({visibility: 'visible'});
-        this.$activeBoxSelection.css({transform: `translate(${idx * this.boxSize}px, 0px)`});
+        this.$activeBoxSelection.css({transform: `translate(${this._computeBoxXpos(idx)}px, 0px)`});
         // enable animations in the future
         this.$activeBoxSelection.addClass('active-box-selection-animated');
     }
