@@ -306,7 +306,7 @@ class BreakpointsList extends React.Component {
     render() {
         let elems = [];
         for (let [time, desc] of this.props.breakpoints.entries()) {
-            let active = (this.props.time == desc.time);
+            let active = (this.props.time == time);
 
             elems.push(
                 <div
@@ -521,16 +521,14 @@ class App extends React.Component {
     render() {
         let myhash = new MyHash();
 
-        myhash.bpDisabled = true;
         myhash.addArray(this.state.exampleArray);
         console.log("myhash: " + myhash.data);
         let exampleArrayHashVis = {
             array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
         }
 
-        myhash.bpDisabled = false;
         let howToAddInsertionHistory = myhash.add(this.state.howToAddObj);
-        let breakpoints = myhash.breakpoints;
+        let breakpoints = howToAddInsertionHistory.breakpoints;
 
         return(
             <div>

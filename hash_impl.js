@@ -207,18 +207,6 @@ class MyHash {
         for (let i = 0; i < startCapacity; ++i) {
             this.data.push(null);
         }
-
-        this.bpTime = 0;
-        this.breakpoints = [];
-        this.bpDisabled = false;
-    }
-
-    addBP(bp) {
-        if (this.bpDisabled)
-            return;
-        bp.time = this.bpTime;
-        this.bpTime += 1;
-        this.breakpoints.push(bp);
     }
 
     rehash(newCapacity) {
@@ -245,11 +233,12 @@ class MyHash {
 
     _doInsert(dataArray, o) {
         let collisions = [];
+        let breakpoints = [];
 
         let hash = pyHash(o);
         let idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
         let originalIdx = idx;
-        this.addBP({
+        breakpoints.push({
             'point': 'compute-idx',
             'hash': hash.toString(),
             'data': _.cloneDeep(dataArray),
@@ -257,7 +246,7 @@ class MyHash {
             'idx': idx,
         });
         while (true) {
-            this.addBP({
+            breakpoints.push({
                 'point': 'check-collision',
                 'tableAtIdx': dataArray[idx],
                 'idx': idx,
@@ -278,32 +267,34 @@ class MyHash {
             // TODO: actually add capacity and shit to the breakpoint
             idx = (idx + 1) % dataArray.length; // code
 
-            this.addBP({
+            breakpoints.push({
                 'point': 'next-idx',
                 'data': _.cloneDeep(dataArray),
                 'idx': idx,
             });
         }
         dataArray[idx] = o; // code
-        this.addBP({
+        breakpoints.push({
             'point': 'assign-elem',
             'data': _.cloneDeep(dataArray),
             'idx': idx,
             'elem': o,
         });
+
         return {
             'originalIdx': originalIdx,
             'hash': hash,
             'capacity': dataArray.length,
             'finalIdx': idx,
-            'breakpoints': this.breakpoints,
+            'breakpoints': breakpoints,
             'collisions': collisions,
         }
     }
 
     add(o) {
         let rehashEvent = null;
-        this.addBP({
+        let breakpoints = [];
+        breakpoints.push({
             'point': 'check-load-factor',
             'size': this.size,
             'data': _.cloneDeep(this.data),
@@ -316,16 +307,8 @@ class MyHash {
                 'bpTime': this.bpTime,
                 'dataBefore': _.cloneDeep(this.data),
             }
-            let dontForgetToEnableBps = false;
-            if (!this.bpDisabled) {
-                this.bpDisabled = true;
-                dontForgetToEnableBps = true;
-            }
             this.rehash(+(this.data.length * 2));
-            if (dontForgetToEnableBps) {
-                this.bpDisabled = false;
-            }
-            this.addBP({
+            breakpoints.push({
                 'point': 'rehash',
                 'data': _.cloneDeep(this.data),
             });
@@ -335,6 +318,8 @@ class MyHash {
         if (rehashEvent) {
             insertionHistory.rehash = rehashEvent;
         }
+        insertionHistory.breakpoints = breakpoints.concat(insertionHistory.breakpoints);
+
         this.size += 1;
 
         return insertionHistory;
