@@ -231,13 +231,11 @@ class MyHash {
         }
     }
 
-    _doInsert(dataArray, o) {
-        let collisions = [];
-        let breakpoints = [];
+    _computeIdx(dataArray, o, breakpoints) {
+        breakpoints = breakpoints || [];
 
         let hash = pyHash(o);
         let idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
-        let originalIdx = idx;
         breakpoints.push({
             'point': 'compute-idx',
             'hash': hash.toString(),
@@ -245,6 +243,30 @@ class MyHash {
             'capacity': dataArray.length,
             'idx': idx,
         });
+
+        return idx
+    }
+
+    _nextIdx(dataArray, idx, breakpoints) {
+        // TODO: actually add capacity and shit to the breakpoint
+        idx = (idx + 1) % dataArray.length;
+
+        breakpoints.push({
+            'point': 'next-idx',
+            'data': _.cloneDeep(dataArray),
+            'idx': idx,
+        });
+
+        return idx;
+    }
+
+    _doInsert(dataArray, o) {
+        let breakpoints = [];
+        let collisions = [];
+
+        let idx = this._computeIdx(dataArray, o, breakpoints);
+
+        let originalIdx = idx;
         while (true) {
             breakpoints.push({
                 'point': 'check-collision',
@@ -264,14 +286,7 @@ class MyHash {
                 'hash': pyHash(dataArray[idx]).toString(), // TODO: cache hashes?
             });
 
-            // TODO: actually add capacity and shit to the breakpoint
-            idx = (idx + 1) % dataArray.length; // code
-
-            breakpoints.push({
-                'point': 'next-idx',
-                'data': _.cloneDeep(dataArray),
-                'idx': idx,
-            });
+            idx = this._nextIdx(dataArray, idx, breakpoints);
         }
         dataArray[idx] = o; // code
         breakpoints.push({
@@ -283,7 +298,7 @@ class MyHash {
 
         return {
             'originalIdx': originalIdx,
-            'hash': hash,
+            'hash': pyHash(o),
             'capacity': dataArray.length,
             'finalIdx': idx,
             'breakpoints': breakpoints,
@@ -291,9 +306,55 @@ class MyHash {
         }
     }
 
+    has(o) {
+        let breakpoints = [];
+        let idx = this._computeIdx(this.data, o, breakpoints)
+        while (true) {
+            breakpoints.push({
+                'point': 'check-not-found',
+                'tableAtIdx': this.data[idx],
+                'idx': idx,
+                'data': _.cloneDeep(this.data),
+            });
+
+            if (this.data[idx] === null) // code
+                break;
+
+            breakpoints.push({
+                'point': 'check-found',
+                'tableAtIdx': this.data[idx],
+                'found': this.data[idx] === o,
+                'idx': idx,
+                'data': _.cloneDeep(this.data),
+            });
+
+            if (this.data[idx] === o) {
+                breakpoints.push({
+                    'point': 'found-key',
+                    'tableAtIdx': this.data[idx],
+                    'idx': idx,
+                    'data': _.cloneDeep(this.data),
+                });
+
+                return breakpoints;
+            }
+
+            idx = this._nextIdx(this.data, idx, breakpoints);
+        }
+
+        breakpoints.push({
+            'point': 'found-nothing',
+            'idx': idx,
+            'data': _.cloneDeep(this.data),
+        });
+
+        return breakpoints;
+    }
+
     add(o) {
         let rehashEvent = null;
         let breakpoints = [];
+
         breakpoints.push({
             'point': 'check-load-factor',
             'size': this.size,
@@ -301,6 +362,7 @@ class MyHash {
             'capacity': this.data.length,
             'maxLoadFactor': this.MAX_LOAD_FACTOR,
         });
+
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
             rehashEvent = {
                 'type': 'rehash',

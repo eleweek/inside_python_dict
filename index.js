@@ -396,14 +396,25 @@ class JsonInput extends React.Component {
 
 
 const ADD_CODE = [
-    ["def insert(self, elem):", ""],
+    ["def insert(self, key):", ""],
     ["    if self.size + 1 > len(self.table) * self.MAX_LOAD_FACTOR:", "check-load-factor"],
     ["        self.rehash()", "rehash"],
     ["", ""],
     ["    idx = hash(elem) % len(self.table)", "compute-idx"],
-    ["    while self.table[idx] is not None:", "check-collision"],
+    ["    while self.table[idx].key is not None:", "check-collision"],
     ["        idx = (idx + 1) % len(self.table)", "next-idx"],
-    ["    self.table[idx] = elem", "assign-elem"]
+    ["    self.table[idx].key = key", "assign-elem"],
+];
+
+
+const SEARCH_CODE = [
+    ["def has_key(self, key):", ""],
+    ["    idx = hash(elem) % len(self.table)", "compute-idx"],
+    ["    while self.table[idx].key is not None:", "check-not-found"],
+    ["        if self.table[idx].key == key:", "check-found"],
+    ["            return True", "found-key"],
+    ["        idx = (idx + 1) % len(self.table)", "next-idx"],
+    ["    return False", "found-nothing"],
 ];
 
 
@@ -419,6 +430,25 @@ let formatAddCodeBreakpointDescription = function(bp) {
             return `Rehash`;
         case 'check-load-factor':
             return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
+        case 'next-idx':
+            return `Compute next idx: <code>${bp.idx}</code>`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatSearchCodeBreakpointDescription = function(bp) {
+    switch (bp.point) {
+        case 'compute-idx':
+            return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
+        case 'check-not-found':
+            return `Check if some key at <code>${bp.idx}</code> exists -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
+        case 'check-found':
+            return `The key at <code>${bp.idx}</code> ${bp.found ? "is equal to the searched key" : "is not equal to the searched key"} </code>`;
+        case 'found-key':
+            return `The key was found, return True`;
+        case 'found-nothing':
+            return `Nothing was found, return False`;
         case 'next-idx':
             return `Compute next idx: <code>${bp.idx}</code>`;
         default:
@@ -470,6 +500,9 @@ class VisualizedCode extends React.Component {
 
     render() {
         let {data, idx, point} = this.props.breakpoints[this.state.time];
+        console.log(data);
+        console.log(idx);
+        console.log(point);
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -513,6 +546,7 @@ class App extends React.Component {
             exampleArrayIdx: 0,
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             howToAddObj: 'py',
+            howToSearchObj: 'hmmm',
             bpTime: null,
             exampleArrayHashAfterInsertionIdx: null,
         }
@@ -528,7 +562,8 @@ class App extends React.Component {
         }
 
         let howToAddInsertionHistory = myhash.add(this.state.howToAddObj);
-        let breakpoints = howToAddInsertionHistory.breakpoints;
+        let addBreakpoints = howToAddInsertionHistory.breakpoints;
+        let searchBreakpoints = myhash.has(this.state.howToSearchObj);
 
         return(
             <div>
@@ -563,9 +598,7 @@ class App extends React.Component {
                 What we could do instead is organize everything in a hashtable!
               </p>
               <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />
-              <h6>
-                How does adding to a hash table work? 
-              </h6>
+              <h6> How does adding to a hash table work?  </h6>
               <p>
                 Let's say we want to add
                 <JsonInput inline={true} value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
@@ -577,8 +610,17 @@ class App extends React.Component {
               </CrossFade>
               <VisualizedCode
                 code={ADD_CODE}
-                breakpoints={breakpoints}
+                breakpoints={addBreakpoints}
                 formatBpDesc={formatAddCodeBreakpointDescription}
+                stateVisualization={HashBoxesComponent} />
+
+              <h6> How does searching in a hash table work?  </h6>
+              <p> In a similar fashion, we start at an expected slot and do linear probing until we hit an empty slot. However, while checking an occopied slot, we compare the key in it to the target key. If the key is equal to the target key, this means that we found it. However, if we find an empty slot without finding an occopied slot with our target key, then it means that the key is not in the table. </p>
+              <p> Let's say we want to find <JsonInput inline={true} value={this.state.howToSearchObj} onChange={(value) => this.setState({howToSearchObj: value})} /></p>
+              <VisualizedCode
+                code={SEARCH_CODE}
+                breakpoints={searchBreakpoints}
+                formatBpDesc={formatSearchCodeBreakpointDescription}
                 stateVisualization={HashBoxesComponent} />
           </div>)
     }
