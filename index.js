@@ -446,25 +446,46 @@ function CodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
 
-function CodeWithBreakpoints(props) {
-    return (
-        <div className="row">
-          <div className="col-md-6">
-            <CodeBlock code={props.code} bpPoint={props.bpPointHighlight} />
-          </div>
-          <div className="col-md-6">
-            <CrossFade>
-                <BreakpointsList
-                  key={JSON.stringify(props.breakpoints)}
-                  breakpoints={props.breakpoints}
-                  time={props.time}
-                  onTimeChange={props.onTimeChange}
-                  formatBpDesc={props.formatBpDesc}
-                />
-            </CrossFade>
-          </div>
-        </div>
-    )
+class VisualizedCode extends React.Component {
+    constructor(props) {
+        super(props);
+        // this.props.breakpoints;
+        this.state = {
+            time: this.props.breakpoints.length - 1,
+        }
+        this.handleTimeChange = this.handleTimeChange.bind(this);
+    }
+
+    handleTimeChange(time) {
+        this.setState({
+            time: time
+        });
+    }
+
+    render() {
+        let {data, idx, bpPoint} = this.props.breakpoints[this.state.time];
+        const StateVisualization = this.props.stateVisualization;
+
+        return (<React.Fragment>
+            <div className="row">
+              <div className="col-md-6">
+                <CodeBlock code={this.props.code} bpPoint={bpPoint} />
+              </div>
+              <div className="col-md-6">
+                <CrossFade>
+                    <BreakpointsList
+                      key={JSON.stringify(this.props.breakpoints)}
+                      breakpoints={this.props.breakpoints}
+                      time={this.state.time}
+                      onTimeChange={this.handleTimeChange}
+                      formatBpDesc={this.props.formatBpDesc}
+                    />
+                </CrossFade>
+              </div>
+            </div>
+            <StateVisualization array={data} idx={idx} />
+        </React.Fragment>)
+    }
 }
 
 
@@ -504,28 +525,6 @@ class App extends React.Component {
         myhash.bpDisabled = false;
         let howToAddInsertionHistory = myhash.add(this.state.howToAddObj);
         let breakpoints = myhash.breakpoints;
-
-        console.log('this.bpTime = ' + this.state.bpTime);
-        let exampleArrayHashAfterInsertionVis = null;
-        let bpPoint = null;
-
-        if (this.state.bpTime >= breakpoints.length) {
-            // TODO: reset bpTime when hash is changed
-            this.state.bpTime = null;
-        }
-
-        if (this.state.bpTime !== null) {
-            exampleArrayHashAfterInsertionVis = {
-                array: breakpoints[this.state.bpTime].data,
-                idx: breakpoints[this.state.bpTime].idx,
-            }
-            bpPoint = breakpoints[this.state.bpTime].point;
-        } else {
-            exampleArrayHashAfterInsertionVis = {
-                array: myhash.data,
-                idx: null,
-            }
-        }
 
         return(
             <div>
@@ -572,15 +571,11 @@ class App extends React.Component {
               <CrossFade>
                   <InsertionHistory insertionHistory={howToAddInsertionHistory} key={JSON.stringify(howToAddInsertionHistory)}/>
               </CrossFade>
-              <CodeWithBreakpoints
+              <VisualizedCode
                 code={ADD_CODE}
-                bpPointHighlight={bpPoint}
                 breakpoints={breakpoints}
-                time={this.state.bpTime}
-                onTimeChange={(bpTime) => this.setState({bpTime: bpTime})}
-                formatBpDesc={formatAddCodeBreakpointDescription} />
-
-              <HashBoxesComponent array={exampleArrayHashAfterInsertionVis.array} idx={exampleArrayHashAfterInsertionVis.idx} />
+                formatBpDesc={formatAddCodeBreakpointDescription}
+                stateVisualization={HashBoxesComponent} />
           </div>)
     }
 }
