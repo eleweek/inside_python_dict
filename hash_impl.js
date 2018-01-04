@@ -236,13 +236,11 @@ class MyHash {
 
         let hash = pyHash(o);
         let idx = Number(hash.mod(dataArray.length).plus(dataArray.length).mod(dataArray.length));
-        breakpoints.push({
-            'point': 'compute-idx',
-            'hash': hash.toString(),
-            'data': _.cloneDeep(dataArray),
-            'capacity': dataArray.length,
-            'idx': idx,
-        });
+        breakpoints.push(this._createBP(
+            'compute-idx',
+            { hash: hash.toString(), capacity: dataArray.length },
+            idx
+        ));
 
         return idx
     }
@@ -251,13 +249,23 @@ class MyHash {
         // TODO: actually add capacity and shit to the breakpoint
         idx = (idx + 1) % dataArray.length;
 
-        breakpoints.push({
-            'point': 'next-idx',
-            'data': _.cloneDeep(dataArray),
-            'idx': idx,
-        });
+        breakpoints.push(this._createBP('next-idx', null, idx));
 
         return idx;
+    }
+
+    _createBP(point, extraInfo, arrayIdx, arrayData) {
+        arrayData = arrayData || this.data;
+        let defaultInfo = {
+            point: point,
+            data: _.cloneDeep(arrayData)
+        };
+        if (arrayIdx !== null && arrayIdx !== undefined) {
+            defaultInfo.idx = arrayIdx;
+            defaultInfo.tableAtIdx = arrayData[arrayIdx];
+        }
+
+        return {...defaultInfo, ...extraInfo}
     }
 
     _doInsert(dataArray, o) {
@@ -268,12 +276,7 @@ class MyHash {
 
         let originalIdx = idx;
         while (true) {
-            breakpoints.push({
-                'point': 'check-collision',
-                'tableAtIdx': dataArray[idx],
-                'idx': idx,
-                'data': _.cloneDeep(dataArray),
-            });
+            breakpoints.push(this._createBP('check-collision', {}, idx));
             if (dataArray[idx] === null) // code
                 break;
 
@@ -289,12 +292,7 @@ class MyHash {
             idx = this._nextIdx(dataArray, idx, breakpoints);
         }
         dataArray[idx] = o; // code
-        breakpoints.push({
-            'point': 'assign-elem',
-            'data': _.cloneDeep(dataArray),
-            'idx': idx,
-            'elem': o,
-        });
+        breakpoints.push(this._createBP('assign-elem', {elem: o}, idx));
 
         return {
             'originalIdx': originalIdx,
@@ -310,43 +308,22 @@ class MyHash {
         let breakpoints = [];
         let idx = this._computeIdx(this.data, o, breakpoints)
         while (true) {
-            breakpoints.push({
-                'point': 'check-not-found',
-                'tableAtIdx': this.data[idx],
-                'idx': idx,
-                'data': _.cloneDeep(this.data),
-            });
+            breakpoints.push(this._createBP('check-not-found', {}, idx));
 
             if (this.data[idx] === null) // code
                 break;
 
-            breakpoints.push({
-                'point': 'check-found',
-                'tableAtIdx': this.data[idx],
-                'found': this.data[idx] === o,
-                'idx': idx,
-                'data': _.cloneDeep(this.data),
-            });
+            breakpoints.push(this._createBP('check-found', {found: this.data[idx] === o}, idx));
 
             if (this.data[idx] === o) {
-                breakpoints.push({
-                    'point': 'found-key',
-                    'tableAtIdx': this.data[idx],
-                    'idx': idx,
-                    'data': _.cloneDeep(this.data),
-                });
-
+                breakpoints.push(this._createBP('found-key', {}, idx));
                 return breakpoints;
             }
 
             idx = this._nextIdx(this.data, idx, breakpoints);
         }
 
-        breakpoints.push({
-            'point': 'found-nothing',
-            'idx': idx,
-            'data': _.cloneDeep(this.data),
-        });
+        breakpoints.push(this._createBP('found-nothing', {}, idx));
 
         return breakpoints;
     }
@@ -355,13 +332,10 @@ class MyHash {
         let rehashEvent = null;
         let breakpoints = [];
 
-        breakpoints.push({
-            'point': 'check-load-factor',
-            'size': this.size,
-            'data': _.cloneDeep(this.data),
-            'capacity': this.data.length,
-            'maxLoadFactor': this.MAX_LOAD_FACTOR,
-        });
+        breakpoints.push(this._createBP(
+            'check-load-factor',
+            {capacity: this.data.length, size: this.size, maxLoadFactor: this.MAX_LOAD_FACTOR}
+        ));
 
         if ((this.size + 1) > this.data.length * this.MAX_LOAD_FACTOR) {
             rehashEvent = {
@@ -370,10 +344,9 @@ class MyHash {
                 'dataBefore': _.cloneDeep(this.data),
             }
             this.rehash(+(this.data.length * 2));
-            breakpoints.push({
-                'point': 'rehash',
-                'data': _.cloneDeep(this.data),
-            });
+
+            breakpoints.push(this._createBP('rehash', {}));
+
             rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
         let insertionHistory = this._doInsert(this.data, o);
