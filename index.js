@@ -402,6 +402,9 @@ const ADD_CODE = [
     ["", ""],
     ["    idx = hash(elem) % len(self.table)", "compute-idx"],
     ["    while self.table[idx].key is not None:", "check-collision"],
+    ["        if self.table[idx].key == key:", "check-found"],
+    ["            return", "nothing-to-assign"],
+    ["",""],
     ["        idx = (idx + 1) % len(self.table)", "next-idx"],
     ["    self.table[idx].key = key", "assign-elem"],
 ];
@@ -422,6 +425,10 @@ let formatAddCodeBreakpointDescription = function(bp) {
     switch (bp.point) {
         case 'compute-idx':
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
+        case 'check-found':
+            return `The key at <code>${bp.idx}</code> ${bp.found ? "is equal to the searched key" : "is not equal to the searched key - they key might be missing"} </code>`;
+        case 'nothing-to-assign':
+            return `The key was found, so there is nothing to assign`;
         case 'check-collision':
             return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
         case 'assign-elem':

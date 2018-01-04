@@ -239,7 +239,8 @@ class MyHash {
         breakpoints.push(this._createBP(
             'compute-idx',
             { hash: hash.toString(), capacity: dataArray.length },
-            idx
+            idx,
+            dataArray
         ));
 
         return idx
@@ -249,7 +250,7 @@ class MyHash {
         // TODO: actually add capacity and shit to the breakpoint
         idx = (idx + 1) % dataArray.length;
 
-        breakpoints.push(this._createBP('next-idx', null, idx));
+        breakpoints.push(this._createBP('next-idx', null, idx, dataArray));
 
         return idx;
     }
@@ -275,10 +276,26 @@ class MyHash {
         let idx = this._computeIdx(dataArray, o, breakpoints);
 
         let originalIdx = idx;
+        var makeReturnObject = () => {
+            return {
+                'originalIdx': originalIdx,
+                'hash': pyHash(o),
+                'capacity': dataArray.length,
+                'finalIdx': idx,
+                'breakpoints': breakpoints,
+                'collisions': collisions,
+            }
+        }
         while (true) {
-            breakpoints.push(this._createBP('check-collision', {}, idx));
+            breakpoints.push(this._createBP('check-collision', {}, idx, dataArray));
             if (dataArray[idx] === null) // code
                 break;
+
+            breakpoints.push(this._createBP('check-found', {found: this.data[idx] === o}, idx));
+            if (this.data[idx] === o) {
+                breakpoints.push(this._createBP('nothing-to-assign', {}, idx, dataArray));
+                return makeReturnObject();
+            }
 
             collisions.push({
                 'type': 'collision',
@@ -291,17 +308,10 @@ class MyHash {
 
             idx = this._nextIdx(dataArray, idx, breakpoints);
         }
-        dataArray[idx] = o; // code
+        dataArray[idx] = o;
         breakpoints.push(this._createBP('assign-elem', {elem: o}, idx));
 
-        return {
-            'originalIdx': originalIdx,
-            'hash': pyHash(o),
-            'capacity': dataArray.length,
-            'finalIdx': idx,
-            'breakpoints': breakpoints,
-            'collisions': collisions,
-        }
+        return makeReturnObject();
     }
 
     has(o) {
@@ -344,9 +354,7 @@ class MyHash {
                 'dataBefore': _.cloneDeep(this.data),
             }
             this.rehash(+(this.data.length * 2));
-
             breakpoints.push(this._createBP('rehash', {}));
-
             rehashEvent.dataAfter = _.cloneDeep(this.data);
         }
         let insertionHistory = this._doInsert(this.data, o);
