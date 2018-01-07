@@ -371,36 +371,48 @@ class MyHash {
 
 function simpleListSearch(l, key) {
     let defaultBPInfo = {
+        type: 'breakpoint',
         arg: key,
         data: _.cloneDeep(l),
         size: l.length,
     };
     let breakpoints = [];
-    let createBP = (point, idx, extraInfo) => {
-        breakpoints.push({...defaultBPInfo, ...{point: point, idx: idx, atIdx: l[idx]}, ...extraInfo})
+    let newBP = (point, idx, extraInfo) => {
+        return {...defaultBPInfo, ...{point: point, idx: idx, atIdx: l[idx]}, ...extraInfo};
     };
 
     let idx = 0;
-    createBP('start-from-zero', idx);
+    breakpoints.push(newBP('start-from-zero', idx));
 
     while (true) {
-        createBP('check-boundary', idx);
+        let bpGroup = {
+            type: 'breakpoint-group',
+            point: 'iteration',
+            idx: idx,
+            atIdx: l[idx],
+            arg: key,
+            children: [],
+        }
+        breakpoints.push(bpGroup);
+
+        bpGroup.children.push(newBP('check-boundary', idx));
         if (idx >= l.length) {
             break;
         }
         if (l[idx] == key) {
-            createBP('check-found', idx, {'found': true});
-            createBP('found-key', idx);
+            bpGroup.children.push(newBP('check-found', idx, {'found': true}));
+            bpGroup.children.push(newBP('found-key', idx));
 
             return breakpoints;
         } else {
-            createBP('check-found', idx, {'found': false});
+            bpGroup.children.push(newBP('check-found', idx, {'found': false}));
         }
+
         idx += 1;
-        createBP('next-idx', idx);
+        bpGroup.children.push(newBP('next-idx', idx));
     }
 
-    createBP('found-nothing');
+    breakpoints.push(newBP('found-nothing'));
 
     return breakpoints;
 }

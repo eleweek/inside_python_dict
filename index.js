@@ -302,25 +302,69 @@ function LineOfBoxesComponent(props) {
     return <BoxesWrapperComponent boxesClass={LineOfBoxes} {...props} />
 }
 
+class BreakpointsGroup extends React.Component {
+    render() {
+        if (this.props.desc.type != 'breakpoint-group') {
+            return (
+                <div
+                    className={this.props.active ? "highlight" : null}
+                    onMouseEnter={this.props.onActiveBreakpointChange.bind(this, 0)}
+                    dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(this.props.desc)}}
+                />
+            );
+        } else {
+            let elems = [];
+            const icon = this.props.active ? '<i class="fa fa-chevron-down" aria-hidden="true"></i>' : '<i class="fa fa-chevron-right" aria-hidden="true"></i>'; 
+            elems.push(
+                <div
+                  onMouseEnter={this.props.onActiveBreakpointChange.bind(this, 0)}
+                  dangerouslySetInnerHTML={{__html: icon + this.props.formatBpDesc(this.props.desc)}}
+                 >
+                 </div>
+            );
+
+            if (this.props.active) {
+                let activeIdx = null;
+                if (this.props.activeIdx == -1) {
+                    activeIdx = this.props.desc.children.length - 1; 
+                } else {
+                    activeIdx = this.props.activeIdx;
+                }
+                console.log("activeIdx " + activeIdx);
+
+                for (let [i, childDesc] of this.props.desc.children.entries()) {
+                    elems.push(
+                        <div
+                            className={activeIdx == i ? "highlight" : null}
+                            onMouseEnter={this.props.onActiveBreakpointChange.bind(this, i)}
+                            dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(childDesc)}}
+                        />
+                    );
+                }
+            }
+
+            return <div> {elems} </div>
+        }
+    }
+};
+
 class BreakpointsList extends React.Component {
     render() {
         let elems = [];
-        for (let [time, desc] of this.props.breakpoints.entries()) {
-            let active = (this.props.time == time);
+        for (let [i, desc] of this.props.breakpoints.entries()) {
+            let active = (this.props.groupIdx == i);
 
             elems.push(
-                <div
-                    className={active ? "highlight" : null}
-                    onMouseEnter={this.handleBreakpointHover.bind(this, time)}
-                    dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(desc)}}
+                <BreakpointsGroup
+                    desc={desc}
+                    active={active}
+                    activeIdx={active ? this.props.activeIdx : null}
+                    formatBpDesc={this.props.formatBpDesc}
+                    onActiveBreakpointChange={this.props.onActiveBreakpointChange.bind(this, i)}
                 />
             );
         }
         return <div> {elems} </div>
-    }
-
-    handleBreakpointHover(time) {
-        this.props.onTimeChange(time);
     }
 }
 
@@ -433,6 +477,8 @@ const SIMPLE_LIST_SEARCH = [
 
 let formatSimpleListSearchBreakpointDescription = function(bp) {
     switch (bp.point) {
+        case 'iteration':
+            return `Check element at <code>${bp.idx}</code> (<code> ${bp.atIdx} </code>)`
         case 'start-from-zero':
             return `Start from the beginning of the list`;
         case 'check-boundary':
@@ -517,16 +563,19 @@ function CodeBlock(props) {
 class VisualizedCode extends React.Component {
     constructor(props) {
         super(props);
-        // this.props.breakpoints;
         this.state = {
-            time: this.props.breakpoints.length - 1,
+            bpGroupIdx: this.props.breakpoints.length - 1,
+            bpGroupActiveIdx: -1,
         }
-        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleActiveBreakpointChange = this.handleActiveBreakpointChange.bind(this);
     }
 
-    handleTimeChange(time) {
+    handleActiveBreakpointChange(bpGroupIdx, bpGroupActiveIdx) {
+        console.log('handleActiveBreakpointChange() ' + bpGroupIdx + ' ' + bpGroupActiveIdx);
+        console.trace();
         this.setState({
-            time: time
+            bpGroupIdx: bpGroupIdx,
+            bpGroupActiveIdx: bpGroupActiveIdx,
         });
     }
 
@@ -539,7 +588,21 @@ class VisualizedCode extends React.Component {
     }
 
     render() {
-        let {data, idx, point} = this.props.breakpoints[this.state.time];
+        let bp = null;
+        console.log('render() ' + this.state.bpGroupIdx + ' ' + this.state.bpGroupActiveIdx);
+        if (this.props.breakpoints[this.state.bpGroupIdx].type != 'breakpoint-group') {
+            bp = this.props.breakpoints[this.state.bpGroupIdx];
+        } else {
+            let group = this.props.breakpoints[this.state.bpGroupIdx];
+            if (this.state.bpGroupActiveIdx == -1) {
+                bp = group.children[group.children.length - 1];
+            } else {
+                bp = group.children[this.state.bpGroupActiveIdx];
+            }
+        }
+        console.log(bp);
+
+        let {data, idx, point} = bp;
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -550,10 +613,12 @@ class VisualizedCode extends React.Component {
               <div className="col-md-6">
                 <CrossFade>
                     <BreakpointsList
+                      groupIdx={this.state.bpGroupIdx}
+                      activeIdx={this.state.bpGroupActiveIdx}
                       key={JSON.stringify(this.props.breakpoints)}
                       breakpoints={this.props.breakpoints}
                       time={this.state.time}
-                      onTimeChange={this.handleTimeChange}
+                      onActiveBreakpointChange={this.handleActiveBreakpointChange}
                       formatBpDesc={this.props.formatBpDesc}
                     />
                 </CrossFade>
