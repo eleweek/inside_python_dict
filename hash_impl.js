@@ -263,7 +263,7 @@ class MyHash {
         };
         if (arrayIdx !== null && arrayIdx !== undefined) {
             defaultInfo.idx = arrayIdx;
-            defaultInfo.tableAtIdx = arrayData[arrayIdx];
+            defaultInfo.atIdx = arrayData[arrayIdx];
         }
 
         return {...defaultInfo, ...extraInfo}
@@ -369,6 +369,42 @@ class MyHash {
     }
 }
 
+function simpleListSearch(l, key) {
+    let defaultBPInfo = {
+        arg: key,
+        data: _.cloneDeep(l),
+        size: l.length,
+    };
+    let breakpoints = [];
+    let createBP = (point, idx, extraInfo) => {
+        breakpoints.push({...defaultBPInfo, ...{point: point, idx: idx, atIdx: l[idx]}, ...extraInfo})
+    };
+
+    let idx = 0;
+    createBP('start-from-zero', idx);
+
+    while (true) {
+        createBP('check-boundary', idx);
+        if (idx >= l.length) {
+            break;
+        }
+        if (l[idx] == key) {
+            createBP('check-found', idx, {'found': true});
+            createBP('found-key', idx);
+
+            return breakpoints;
+        } else {
+            createBP('check-found', idx, {'found': false});
+        }
+        idx += 1;
+        createBP('next-idx', idx);
+    }
+
+    createBP('found-nothing');
+
+    return breakpoints;
+}
+
 export {
-    pyHash, MyHash
+    pyHash, MyHash, simpleListSearch
 }

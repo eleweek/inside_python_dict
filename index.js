@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, MyHash} from './hash_impl.js';
+import {pyHash, MyHash, simpleListSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
 function doubleRAF(callback) {
@@ -420,6 +420,39 @@ const SEARCH_CODE = [
     ["    return False", "found-nothing"],
 ];
 
+const SIMPLE_LIST_SEARCH = [
+    ["def has_key(l, key):", ""],
+    ["    idx = 0", "start-from-zero"],
+    ["    while idx < len(l):", "check-boundary"],
+    ["        if l[idx].key == key:", "check-found"],
+    ["            return True", "found-key"],
+    ["        idx += 1", "next-idx"],
+    ["    return False", "found-nothing"]
+];
+
+
+let formatSimpleListSearchBreakpointDescription = function(bp) {
+    switch (bp.point) {
+        case 'start-from-zero':
+            return `Start from the beginning of the list`;
+        case 'check-boundary':
+            return (bp.idx < bp.size
+                    ? `<code>${bp.idx} < ${bp.size}</code>, so some elements are not processed`
+                    : `<code>${bp.idx} == ${bp.size}</code>, so all elements are processed`);
+        case 'check-found':
+            return (bp.found
+                    ? `<code>${bp.atIdx} == ${bp.arg}</code> -- the searched key is found`
+                    : `<code>${bp.atIdx} != ${bp.arg}</code> -- the searched key is not found so far`);
+        case 'found-key':
+            return `The searched key (${bp.arg}) is found, so return True`
+        case 'found-nothing':
+            return `The searched key (${bp.arg}) is not found, so return False`;
+        case 'next-idx':
+            return `Go to next idx: <code>${bp.idx}</code>`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
 
 let formatAddCodeBreakpointDescription = function(bp) {
     switch (bp.point) {
@@ -430,7 +463,7 @@ let formatAddCodeBreakpointDescription = function(bp) {
         case 'nothing-to-assign':
             return `The key was found, so there is nothing to assign`;
         case 'check-collision':
-            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
+            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
         case 'assign-elem':
             return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
         case 'rehash':
@@ -449,7 +482,7 @@ let formatSearchCodeBreakpointDescription = function(bp) {
         case 'compute-idx':
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
         case 'check-not-found':
-            return `Check if some key at <code>${bp.idx}</code> exists -- ` + (bp.tableAtIdx === null ? `empty slot` : `occupied by <code>${bp.tableAtIdx}</code>`);
+            return `Check if some key at <code>${bp.idx}</code> exists -- ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
         case 'check-found':
             return `The key at <code>${bp.idx}</code> ${bp.found ? "is equal to the searched key" : "is not equal to the searched key"} </code>`;
         case 'found-key':
@@ -507,9 +540,6 @@ class VisualizedCode extends React.Component {
 
     render() {
         let {data, idx, point} = this.props.breakpoints[this.state.time];
-        console.log(data);
-        console.log(idx);
-        console.log(point);
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -550,16 +580,18 @@ class App extends React.Component {
         super();
 
         this.state = {
-            exampleArrayIdx: 0,
+            exampleArrayNumbers: [2, 3, 5, 7, 11, 13, 17],
+            simpleSearchObj: 17,
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             howToAddObj: 'py',
             howToSearchObj: 'hmmm',
-            bpTime: null,
-            exampleArrayHashAfterInsertionIdx: null,
         }
     }
 
     render() {
+        let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
+
+
         let myhash = new MyHash();
 
         myhash.addArray(this.state.exampleArray);
@@ -574,36 +606,31 @@ class App extends React.Component {
 
         return(
             <div>
-              <h4> A trip inside python dictionary internals. Part 1: hash tables </h4>
-              <h6> What's so great about lists and arrays? </h6>
+              <h4> Inside python dict - an explorable explanation. Part 1: hash tables </h4>
+              <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. The page is dynamic and interactive -- you can plug your own data and see how the algorithms work on it. </p>
+              <p> Second, this page discusses dict as it is implemented CPython -- the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works may be similar (in case of PyPy) or entirely different (in case of Jython -- TODO check this) </p>
+              <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure </em>.</p>
+              <h6> Let's get started! </h6>
+
+              Let's say we have a simple list of numbers:
               <br/>
+              <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
+              <p> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update. </p>
+              <p> Python lists are actually arrays -- contiguous chunks of memory. The name may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a python object: </p>
+              <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
+              <p> Since the list is contiguous, Getting element by index is really fast. However, searching for a specific value can be slow, because we have to look at the elements one by one. Unless the searched element is located near the beginning of the list, the process is slow. Here is the code. </p>
+              <p> Let's search for
+                <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
+              </p>
+              <VisualizedCode
+                code={SIMPLE_LIST_SEARCH}
+                breakpoints={simpleListSearchBreakpoints}
+                formatBpDesc={formatSimpleListSearchBreakpointDescription}
+                stateVisualization={LineOfBoxesComponent} />
+              <h6> Hash tables </h6>
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
-              <p>
-                Picture a typical python list.
-                <br/>
-                Python lists are actually arrays: continigous chunks of memory. Which means that it's easy to find elements by index.
-              </p>
-              <LineOfBoxesComponent array={this.state.exampleArray} />
-              <p>
-                Getting element by index is very fast. However, searching for a specific value can be slow. 
-                For example, to find [mid element] we would sometimes need to scan 50% of elements. 
-                And to check that [missing element] is missing, we would need to scan the whole list.
-              </p>
-              <p>
-                What if instead of using a plain list we could organize our data in a different way? 
-                The super simple solution is to create a huge list looking like this [None, None, 2, 3, None, 5 ... ]
-                Then we could simple check a[idx] to find if idx is present.
-              </p>
-              <p>
-                Okay, we can search faster. But we waste a lot of memory. If we take, a large number, 100000, we would need at least X MB to store just this integer alone, because we store Nones for all other values.
-              </p>
-              <p> TODO: Explain using modulo operation to shrink everything</p>
-              <p> How would it work for strings? TODO: explain what is a hash function, why python hash(x) = x for most ints.</p>
-              <p>
-                What we could do instead is organize everything in a hashtable!
-              </p>
               <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />
               <h6> How does adding to a hash table work?  </h6>
               <p>
