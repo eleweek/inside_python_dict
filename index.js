@@ -611,17 +611,19 @@ class VisualizedCode extends React.Component {
                 <CodeBlock code={this.props.code} bpPoint={point} />
               </div>
               <div className="col-md-6">
-                <CrossFade>
-                    <BreakpointsList
-                      groupIdx={this.state.bpGroupIdx}
-                      activeIdx={this.state.bpGroupActiveIdx}
-                      key={JSON.stringify(this.props.breakpoints)}
-                      breakpoints={this.props.breakpoints}
-                      time={this.state.time}
-                      onActiveBreakpointChange={this.handleActiveBreakpointChange}
-                      formatBpDesc={this.props.formatBpDesc}
-                    />
-                </CrossFade>
+                <div className="breakpoints">
+                  <CrossFade>
+                      <BreakpointsList
+                        groupIdx={this.state.bpGroupIdx}
+                        activeIdx={this.state.bpGroupActiveIdx}
+                        key={JSON.stringify(this.props.breakpoints)}
+                        breakpoints={this.props.breakpoints}
+                        time={this.state.time}
+                        onActiveBreakpointChange={this.handleActiveBreakpointChange}
+                        formatBpDesc={this.props.formatBpDesc}
+                      />
+                  </CrossFade>
+                </div>
               </div>
             </div>
             <StateVisualization array={data} idx={idx} />
