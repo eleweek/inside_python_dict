@@ -27,6 +27,7 @@
     "jquery": "^3.2.1",
     "react": "^16.2.0",
     "react-css-transition-replace": "^3.0.2",
+    "react-custom-scroll": "^2.0.2",
     "react-dom": "^16.2.0",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.9.7"

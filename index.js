@@ -2,6 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, MyHash, simpleListSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
+import CustomScroll from 'react-custom-scroll';
 
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
@@ -611,19 +612,21 @@ class VisualizedCode extends React.Component {
                 <CodeBlock code={this.props.code} bpPoint={point} />
               </div>
               <div className="col-md-6">
-                <div className="breakpoints">
-                  <CrossFade>
-                      <BreakpointsList
-                        groupIdx={this.state.bpGroupIdx}
-                        activeIdx={this.state.bpGroupActiveIdx}
-                        key={JSON.stringify(this.props.breakpoints)}
-                        breakpoints={this.props.breakpoints}
-                        time={this.state.time}
-                        onActiveBreakpointChange={this.handleActiveBreakpointChange}
-                        formatBpDesc={this.props.formatBpDesc}
-                      />
-                  </CrossFade>
-                </div>
+                <CustomScroll>
+                  <div className="breakpoints">
+                    <CrossFade>
+                        <BreakpointsList
+                          groupIdx={this.state.bpGroupIdx}
+                          activeIdx={this.state.bpGroupActiveIdx}
+                          key={JSON.stringify(this.props.breakpoints)}
+                          breakpoints={this.props.breakpoints}
+                          time={this.state.time}
+                          onActiveBreakpointChange={this.handleActiveBreakpointChange}
+                          formatBpDesc={this.props.formatBpDesc}
+                        />
+                    </CrossFade>
+                  </div>
+                </CustomScroll>
               </div>
             </div>
             <StateVisualization array={data} idx={idx} />

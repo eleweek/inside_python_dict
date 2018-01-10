@@ -102,7 +102,5 @@
 }
 
 div.breakpoints {
-    max-height: 300px !important;
-    overflow-y: scroll !important;
-    background-ivory;
+    height: 250px;
 }
