@@ -682,13 +682,15 @@ class App extends React.Component {
               <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure </em>.</p>
               <h6> Let's get started! </h6>
 
-              Let's say we have a simple list of numbers:
+              <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. Sure, we need to handle values as well. But we can probably stash them somewhere "near" corresponding keys. So, let's start with a simplified problem here. We won't have any values. And the keys will be just integers. Our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
+
+              So, let's say we have a simple list of numbers:
               <br/>
               <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
-              <p> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update. </p>
-              <p> Python lists are actually arrays -- contiguous chunks of memory. The name may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a python object: </p>
+              <p> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
+              <p> Python lists are actually arrays -- contiguous chunks of memory. The name may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
-              <p> Since the list is contiguous, Getting element by index is really fast. However, searching for a specific value can be slow, because we have to look at the elements one by one. Unless the searched element is located near the beginning of the list, the process is slow. Here is the code. </p>
+              <p> Since lists are contiguous, getting element by index is really fast. Appending to a list is also fast. However, searching for a specific value can be slow, because we have to look at the elements one by one. Unless the searched element is located near the beginning of the list, the process is slow. Here is the code. </p>
               <p> Let's search for
                 <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
               </p>
@@ -697,11 +699,13 @@ class App extends React.Component {
                 breakpoints={simpleListSearchBreakpoints}
                 formatBpDesc={formatSimpleListSearchBreakpointDescription}
                 stateVisualization={LineOfBoxesComponent} />
+              
+              <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
+              <p> So we need to organize the data in some other way. But let's n What if we compute the index of a number based on the number itself. The simplest way to do this is just <code> number % len(the_list) </code>
               <h6> Hash tables </h6>
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
-              <HashBoxesComponent array={exampleArrayHashVis.array} idx={null} />
               <h6> How does adding to a hash table work?  </h6>
               <p>
                 Let's say we want to add
