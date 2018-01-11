@@ -701,7 +701,9 @@ class App extends React.Component {
                 stateVisualization={LineOfBoxesComponent} />
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
-              <p> So we need to organize the data in some other way. But let's n What if we compute the index of a number based on the number itself. The simplest way to do this is just <code> number % len(the_list) </code>
+              <p> So we need to organize the data in some other way. But let's n What if we compute the index of a number based on the number itself. The simplest way to do this is just <code> number % len(the_list) </code>. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same index. This is called a collision.</p>
+              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. There are multiple ways we could do this. Let's do the following. If we encounter an occupied slot, we simply going to check the next slot, and if it is empty, put the new element there (and if it is not empty, we are going to repeat the process). This process of continous searching for an empty slot in case of collision  is called <strong> linear probing </strong> </p>
+              TODO: code
               <h6> Hash tables </h6>
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
