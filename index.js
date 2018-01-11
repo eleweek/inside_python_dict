@@ -460,7 +460,7 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
     ["    for i in range(len(original_list) * 3 // 2):", "new-list-for"],
     ["        new_list.append(None)", "append-none"],
     ["", ""],
-    ["    for number in original_list:, "for-loop"].
+    ["    for number in original_list:", "for-loop"],
     ["        idx = number % len(new_list)", "compute-idx"],
     ["        while new_list[idx] is not None:", "check-collision"],
     ["            idx = (idx + 1) % len(new_list)", "next-idx"],
@@ -735,8 +735,10 @@ class App extends React.Component {
               TODO: code
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
-              <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats?
+              <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>
               <h6> Why hash tables are called hash tables? </h6>
+              <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? It turns out we can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same nubmer - we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to get different numbers for different objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we always need to get the same value for the same object. In other words, <code>random()</code>  would not work, because we wouldn't be able to find our objects.</p>
+              <p> Functions that do this transformation are called <strong>hash functions</strong>. </p>
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
