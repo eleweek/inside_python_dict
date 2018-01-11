@@ -454,6 +454,30 @@ const ADD_CODE = [
     ["    self.table[idx].key = key", "assign-elem"],
 ];
 
+const SIMPLIFIED_INSERT_ALL_CODE = [
+    ["def transform_all(original_list):", ""],
+    ["    new_list = []", "create-new-list"],
+    ["    for i in range(len(original_list) * 3 // 2):", "new-list-for"],
+    ["        new_list.append(None)", "append-none"],
+    ["", ""],
+    ["    for number in original_list:, "for-loop"].
+    ["        idx = number % len(new_list)", "compute-idx"],
+    ["        while new_list[idx] is not None:", "check-collision"],
+    ["            idx = (idx + 1) % len(new_list)", "next-idx"],
+    ["    new_list[idx] = number", "assign-elem"],
+    ["    return new_lsit", "return-created-list"],
+];
+
+const SIMPLIFIED_SEARCH_CODE = [
+    ["def has_number(new_list, number):", ""],
+    ["    idx = number % len(new_list)", "compute-idx"],
+    ["    while number is not None:", "check-not-found"],
+    ["        if new_list[idx] == number:", "check-found"],
+    ["            return True", "found-key"],
+    ["        idx = (idx + 1) % len(new_list)", "next-idx"],
+    ["    return False", "found-nothing"],
+];
+
 
 const SEARCH_CODE = [
     ["def has_key(self, key):", ""],
@@ -702,9 +726,17 @@ class App extends React.Component {
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
               <p> So we need to organize the data in some other way. But let's n What if we compute the index of a number based on the number itself. The simplest way to do this is just <code> number % len(the_list) </code>. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same index. This is called a collision.</p>
-              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. There are multiple ways we could do this. Let's do the following. If we encounter an occupied slot, we simply going to check the next slot, and if it is empty, put the new element there (and if it is not empty, we are going to repeat the process). This process of continous searching for an empty slot in case of collision  is called <strong> linear probing </strong> </p>
+              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. Let's do the following. If we encounter an occupied slot, we simply going to check the next slot, and if it is empty, put the new element there (and if it is not empty, we will keep going until we hit an empty slot). This process of continous searching for an empty slot is called <strong> linear probing </strong>. Here is how it could be implemented in python (when reading this code, remember that <code>original_list</code> is a list of <em> distinct numbers </em> </p>
               TODO: code
-              <h6> Hash tables </h6>
+
+              <p> And searching is very similar to inserting. We do linear probing until we either find the number or we hit an empty slot (which would mean that the number is not there) </p>
+              <p> Let's say we want to search for TODO </p>
+              <p> Here is how the search process would look like: </p>
+              TODO: code
+
+              <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
+              <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats?
+              <h6> Why hash tables are called hash tables? </h6>
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
