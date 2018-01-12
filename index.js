@@ -738,7 +738,14 @@ class App extends React.Component {
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>
               <h6> Why hash tables are called hash tables? </h6>
               <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? It turns out we can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same nubmer - we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to get different numbers for different objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we always need to get the same value for the same object. In other words, <code>random()</code>  would not work, because we wouldn't be able to find our objects.</p>
-              <p> Functions that do this transformation are called <strong>hash functions</strong>. </p>
+              <p> Functions that do this transformation are called <strong>hash functions</strong>. A typical hash function may completely mix up the order of input values, hence the name "hash". </p>
+              <p> In python there are built-in implementations of hash functions for built-in types. </p> 
+              TODO: hash(int)
+              TODO: hash(float) 
+              TODO: hash("string")
+              TODO: hash( ("tuple", "of strings") )
+
+              As you can see in case of strings, hash() values look fairly unpredictable, as it should be. One major exception are integers, you can notice that hash(x) == x for "short" integers. However, python uses a different algorithm for small integers. Try typing a really big number, for example TODO to see this. This fact may seem surprising for most people, however it is a delibirate design decision (TODO: ok, i am really not sure. I can't find that link atm)
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
