@@ -324,7 +324,7 @@ class BreakpointsGroup extends React.Component {
                   onMouseEnter={this.props.onActiveBreakpointChange.bind(this, 0)}
                   dangerouslySetInnerHTML={{__html: icon + this.props.formatBpDesc(this.props.desc)}}
                  >
-                 </div>
+                </div>
             );
 
             if (this.props.active) {
@@ -355,7 +355,7 @@ class BreakpointsGroup extends React.Component {
 class BreakpointsList extends React.Component {
     render() {
         let elems = [];
-        for (let [i, desc] of this.props.breakpoints.entries()) {
+        for (let [i, desc] of this.props.breakpoints.originalDescs.entries()) {
             let active = (this.props.groupIdx == i);
 
             elems.push(
@@ -529,6 +529,7 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
 }
 
 let formatAddCodeBreakpointDescription = function(bp) {
+    console.log(bp);
     switch (bp.point) {
         case 'compute-idx':
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
@@ -588,14 +589,38 @@ function CodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
 
+
+class TimeSlider extends React.Component {
+    constructor() {
+        super();
+        this.handleValueChange = this.handleValueChange.bind(this);
+    }
+
+    handleValueChange(e) {
+        this.props.handleTimeChange(e.target.value);
+    }
+
+    render() {
+        return <ReactBootstrapSlider
+            value={this.props.time}
+            change={this.handleValueChange}
+            min={0}
+            max={this.props.maxTime}
+            step={1}
+        />
+    }
+
+}
+
 class VisualizedCode extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            bpGroupIdx: this.props.breakpoints.length - 1,
+            bpGroupIdx: -1,
             bpGroupActiveIdx: -1,
         }
         this.handleActiveBreakpointChange = this.handleActiveBreakpointChange.bind(this);
+        this.handleTimeChange = this.handleTimeChange.bind(this);
     }
 
     handleActiveBreakpointChange(bpGroupIdx, bpGroupActiveIdx) {
@@ -607,31 +632,28 @@ class VisualizedCode extends React.Component {
         });
     }
 
+    handleTimeChange(time) {
+        console.log("handleTimeChange: " + time);
+        let [bpGroupIdx, bpGroupActiveIdx] = this.props.breakpoints.timeToPair[time];
+        this.setState({
+            bpGroupIdx: bpGroupIdx,
+            bpGroupActiveIdx: bpGroupActiveIdx,
+        });
+    }
+
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) {
             this.setState({
-                bpGroupIdx: nextProps.breakpoints.length - 1,
+                bpGroupIdx: -1,
                 bpGroupActiveIdx: -1,
             });
         }
     }
 
     render() {
-        let bp = null;
         console.log('render() ' + this.state.bpGroupIdx + ' ' + this.state.bpGroupActiveIdx);
-        if (this.props.breakpoints[this.state.bpGroupIdx].type != 'breakpoint-group') {
-            bp = this.props.breakpoints[this.state.bpGroupIdx];
-        } else {
-            let group = this.props.breakpoints[this.state.bpGroupIdx];
-            if (this.state.bpGroupActiveIdx == -1) {
-                bp = group.children[group.children.length - 1];
-            } else {
-                bp = group.children[this.state.bpGroupActiveIdx];
-            }
-        }
-        console.log(bp);
-
-        let {data, idx, point} = bp;
+        console.log(this.props.breakpoints);
+        let {data, idx, point} = this.props.breakpoints.getBreakpoint(this.state.bpGroupIdx, this.state.bpGroupActiveIdx);
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -642,12 +664,10 @@ class VisualizedCode extends React.Component {
               </div>
               <div className="col-md-6">
                 <h6> Steps </h6>
-                <ReactBootstrapSlider
-                    value={10}
-                    change={this.changeValue}
-                    step={1}
-                    max={20}
-                    min={0}
+                <TimeSlider
+                   handleTimeChange={this.handleTimeChange}
+                   time={this.props.breakpoints.getPairToTime(this.state.bpGroupIdx, this.state.bpGroupActiveIdx)}
+                   maxTime={this.props.breakpoints.maxTime}
                 />
                 <CustomScroll>
                   <div className="breakpoints">
@@ -657,7 +677,6 @@ class VisualizedCode extends React.Component {
                           activeIdx={this.state.bpGroupActiveIdx}
                           key={JSON.stringify(this.props.breakpoints)}
                           breakpoints={this.props.breakpoints}
-                          time={this.state.time}
                           onActiveBreakpointChange={this.handleActiveBreakpointChange}
                           formatBpDesc={this.props.formatBpDesc}
                         />
@@ -697,6 +716,8 @@ class App extends React.Component {
 
     render() {
         let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
+        console.log("simpleListSearchBreakpoints");
+        console.log(simpleListSearchBreakpoints);
 
 
         let myhash = new MyHash();

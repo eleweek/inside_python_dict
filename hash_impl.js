@@ -195,6 +195,69 @@ let pyHash = function(o) {
     }
 }
 
+class Breakpoints {
+    constructor(breakpoints) {
+        let time = 0;
+        this.bpTree = [];
+        this.pairToTime = [];
+        this.originalDescs = breakpoints;
+        this.timeToPair = {};
+
+        for (var [i, desc] of breakpoints.entries()) {
+            if (desc.type != 'breakpoint-group') {
+                this.bpTree.push([desc]);
+                this.timeToPair[time] = [i, 0];
+                this.pairToTime.push([time]);
+                time += 1;
+            } else {
+                this.bpTree.push([]);
+                this.pairToTime.push([]);
+                for (var [j, desc] of desc.children.entries()) {
+                    this.bpTree[this.bpTree.length - 1].push(desc);
+                    this.pairToTime[this.pairToTime.length - 1].push(time);
+                    this.timeToPair[time] = [i, j];
+                    time += 1;
+                }
+            }
+        }
+        this.maxTime = time;
+    }
+
+    _normalizeNegativeIdx(array, idx) {
+        console.log(array);
+        console.log(idx);
+        if (idx >= 0) {
+            return idx;
+        }
+
+        // TODO: modulo
+        return array.length + idx;
+    }
+    
+    _normalizeNegativePair(groupIdx, activeIdx) {
+        groupIdx = this._normalizeNegativeIdx(this.bpTree, groupIdx);
+        activeIdx = this._normalizeNegativeIdx(this.bpTree[groupIdx], activeIdx);
+
+        return [groupIdx, activeIdx];
+    }
+
+    getPairToTime(groupIdx, activeIdx) {
+        [groupIdx, activeIdx] = this._normalizeNegativePair(groupIdx, activeIdx);
+
+        return this.pairToTime[groupIdx][activeIdx];
+    }
+
+    getBreakpoint(groupIdx, activeIdx) {
+        [groupIdx, activeIdx] = this._normalizeNegativePair(groupIdx, activeIdx);
+
+        return this.bpTree[groupIdx][activeIdx];
+    }
+
+    getGroupChildren(groupIdx) {
+        return this.bpTree[this._normalizeNegativeIdx(groupIdx)];
+    }
+}
+
 class MyHash {
     constructor() {
         let startCapacity = 8;
@@ -327,7 +390,7 @@ class MyHash {
 
             if (this.data[idx] === o) {
                 breakpoints.push(this._createBP('found-key', {}, idx));
-                return breakpoints;
+                return new Breakpoints(breakpoints);
             }
 
             idx = this._nextIdx(this.data, idx, breakpoints);
@@ -335,7 +398,7 @@ class MyHash {
 
         breakpoints.push(this._createBP('found-nothing', {}, idx));
 
-        return breakpoints;
+        return new Breakpoints(breakpoints);
     }
 
     add(o) {
@@ -362,6 +425,7 @@ class MyHash {
             insertionHistory.rehash = rehashEvent;
         }
         insertionHistory.breakpoints = breakpoints.concat(insertionHistory.breakpoints);
+        insertionHistory.breakpoints = new Breakpoints(insertionHistory.breakpoints);
 
         this.size += 1;
 
@@ -403,7 +467,7 @@ function simpleListSearch(l, key) {
             bpGroup.children.push(newBP('check-found', idx, {'found': true}));
             bpGroup.children.push(newBP('found-key', idx));
 
-            return breakpoints;
+            return new Breakpoints(breakpoints);
         } else {
             bpGroup.children.push(newBP('check-found', idx, {'found': false}));
         }
@@ -414,7 +478,7 @@ function simpleListSearch(l, key) {
 
     breakpoints.push(newBP('found-nothing'));
 
-    return breakpoints;
+    return new Breakpoints(breakpoints);
 }
 
 export {
