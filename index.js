@@ -4,6 +4,9 @@ import {pyHash, MyHash, simpleListSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
+import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
+import ReactBootstrapSlider from 'react-bootstrap-slider';
+
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(callback);
@@ -503,7 +506,7 @@ const SIMPLE_LIST_SEARCH = [
 let formatSimpleListSearchBreakpointDescription = function(bp) {
     switch (bp.point) {
         case 'iteration':
-            return `Check element at <code>${bp.idx}</code> (<code> ${bp.atIdx} </code>)`
+            return `Check element in slot ${bp.idx} (<code>${bp.atIdx}</code>)`
         case 'start-from-zero':
             return `Start from the beginning of the list`;
         case 'check-boundary':
@@ -633,9 +636,18 @@ class VisualizedCode extends React.Component {
         return (<React.Fragment>
             <div className="row">
               <div className="col-md-6">
+                <h6> Code </h6>
                 <CodeBlock code={this.props.code} bpPoint={point} />
               </div>
               <div className="col-md-6">
+                <h6> Steps </h6>
+                <ReactBootstrapSlider
+                    value={10}
+                    change={this.changeValue}
+                    step={1}
+                    max={20}
+                    min={0}
+                />
                 <CustomScroll>
                   <div className="breakpoints">
                     <CrossFade>
