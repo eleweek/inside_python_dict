@@ -685,6 +685,7 @@ class VisualizedCode extends React.Component {
                 </CustomScroll>
               </div>
             </div>
+            <h6> Data </h6>
             <StateVisualization array={data} idx={idx} />
         </React.Fragment>)
     }

@@ -104,3 +104,13 @@
 div.breakpoints {
     height: 250px;
 }
+
+.slider.slider-horizontal {
+    width: 100% !important;
+}
+
+/* .slider.slider-horizontal * {
+    transition-property: *;
+    transition-duration: .5s;
+    transition-timing-function: ease;
+}*/
