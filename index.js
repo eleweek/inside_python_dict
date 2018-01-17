@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, MyHash, simpleListSearch, simplifiedInsertAll} from './hash_impl.js';
+import {pyHash, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -715,6 +715,7 @@ class App extends React.Component {
         this.state = {
             exampleArrayNumbers: [2, 3, 5, 7, 11, 13, 17],
             simpleSearchObj: 17,
+            simplifiedSearchObj: 17,
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             howToAddObj: 'py',
             howToSearchObj: 'hmmm',
@@ -723,10 +724,10 @@ class App extends React.Component {
 
     render() {
         let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
-        let simplifiedInsertAllBreakpoints = simplifiedInsertAll(this.state.exampleArrayNumbers);
+        let [simplifiedInsertAllBreakpoints, simplifiedInsertedData] = simplifiedInsertAll(this.state.exampleArrayNumbers);
+        let simplifiedSearchBreakpoints = simplifiedSearch(simplifiedInsertedData, this.state.simplifiedSearchObj);
         console.log("simpleListSearchBreakpoints");
         console.log(simpleListSearchBreakpoints);
-
 
         let myhash = new MyHash();
 
@@ -779,7 +780,13 @@ class App extends React.Component {
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
               <p> Let's say we want to search for TODO </p>
               <p> Here is how the search process would look like: </p>
-              TODO: code
+
+              Let's say we want to insert <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
+              <VisualizedCode
+                code={SIMPLIFIED_SEARCH_CODE}
+                breakpoints={simplifiedSearchBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashBoxesComponent} />
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>

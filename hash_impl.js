@@ -284,9 +284,9 @@ let simplifiedInsertAll = function(originalList) {
     }
 
     for (let number of originalList) {
-        addBP('check-collision', number);
+        addBP('for-loop', number);
         let idx = number % newList.length;
-        addBP('for-loop', number, idx);
+        addBP('compute-idx', number);
         while (true) {
             addBP('check-collision', number, idx);
             if (newList[idx] === null) {
@@ -302,9 +302,46 @@ let simplifiedInsertAll = function(originalList) {
 
     addBP('return-created-list');
 
-    return new Breakpoints(breakpoints);
+    return [new Breakpoints(breakpoints), newList];
 }
 
+let simplifiedSearch = function(newList, number) {
+    let breakpoints = [];
+
+    let addBP = function(point, idx) {
+        let bp = {
+            point: point,
+            data: newList,
+        }
+        if (idx !== null && number !== undefined) {
+            bp["idx"] = idx;
+        }
+        breakpoints.push(bp);
+    }
+
+    let idx = number % newList.length;
+    addBP('compute-idx', idx);
+    while (true) {
+        addBP('check-not-found', idx);
+        if (newList[idx] === null) {
+            break;
+        }
+        if (newList[idx] === number) {
+            addBP('check-found', idx);
+            addBP('found-key', idx);
+            return new Breakpoints(breakpoints);
+        } else {
+            addBP('check-found', idx);
+        }
+
+        idx = (idx + 1) % newList.length;
+        addBP('next-idx', idx);
+    }
+
+    addBP('found-nothing');
+
+    return new Breakpoints(breakpoints);
+}
 
 class MyHash {
     constructor() {
@@ -530,5 +567,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, MyHash, simpleListSearch, simplifiedInsertAll
+    pyHash, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch
 }
