@@ -752,7 +752,9 @@ class App extends React.Component {
               <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. Let's start with a simplified problem here. We won't have any values. And "keys" will be plain integers. So our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
 
               <p> So, let's say we have a simple list of numbers:</p>
-              <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
+              <div className="sticky-top">
+                <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
+              </div>
               <p class="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
               <p> Python lists are actually arrays &mdash; contiguous chunks of memory. Thus the name "list" may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
@@ -800,9 +802,7 @@ class App extends React.Component {
               TODO: hash( ("tuple", "of strings") )
 
               As you can see in case of strings, hash() values look fairly unpredictable, as it should be. One major exception are integers, you can notice that hash(x) == x for "short" integers. However, python uses a different algorithm for small integers. Try typing a really big number, for example TODO to see this. This fact may seem surprising for most people, however it is a delibirate design decision (TODO: ok, i am really not sure. I can't find that link atm)
-              <div className="sticky-top">
-                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
-              </div>
+              <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               <h5> How does adding to a hash table work?  </h5>
               <p>
                 Let's say we want to add
