@@ -737,23 +737,24 @@ class App extends React.Component {
 
         return(
             <div>
-              <h4> Inside python dict - an explorable explanation. Part 1: hash tables </h4>
+              <h3> Inside python dict - an explorable explanation. Part 1: hash tables </h3>
               <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. The page is dynamic and interactive -- you can plug your own data and see how the algorithms work on it. </p>
-              <p> Second, this page discusses dict as it is implemented CPython -- the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works may be similar (in case of PyPy) or entirely different (in case of Jython -- TODO check this) </p>
-              <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure </em>.</p>
-              <h6> Let's get started! </h6>
+              <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
+              <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure. </em></p>
+              <h5> Let's get started! </h5>
 
-              <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. Sure, we need to handle values as well. But we can probably stash them somewhere "near" corresponding keys. So, let's start with a simplified problem here. We won't have any values. And the keys will be just integers. Our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
+              <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. Let's start with a simplified problem here. We won't have any values. And "keys" will be plain integers. So our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
 
-              So, let's say we have a simple list of numbers:
-              <br/>
+              <p> So, let's say we have a simple list of numbers:</p>
               <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
-              <p> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
-              <p> Python lists are actually arrays -- contiguous chunks of memory. The name may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
+              <p class="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
+              <p> Python lists are actually arrays &mdash; contiguous chunks of memory. Thus the name "list" may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
-              <p> Since lists are contiguous, getting element by index is really fast. Appending to a list is also fast. However, searching for a specific value can be slow, because we have to look at the elements one by one. Unless the searched element is located near the beginning of the list, the process is slow. Here is the code. </p>
+              <p> Appending to list is fast, as well as getting an element by index. However, searching for a specific element can be slow, because elements have no order whatsover. We may get lucky and do only a couple of iterations if the searched element is located near the beginning of the array. But if the searched element is not here, we'll have to scan over the whole array. </p>
+              <p> Here is how we could visualize the search algorithm. </p>
               <p> Let's search for
                 <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
+                <span class="text-muted"> (Try changing this field as well! And see how the steps and the data visualization updates) </span>
               </p>
               <VisualizedCode
                 code={SIMPLE_LIST_SEARCH}
@@ -762,18 +763,18 @@ class App extends React.Component {
                 stateVisualization={LineOfBoxesComponent} />
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
-              <p> So we need to organize the data in some other way. But let's n What if we compute the index of a number based on the number itself. The simplest way to do this is just <code> number % len(the_list) </code>. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same index. This is called a collision.</p>
-              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. Let's do the following. If we encounter an occupied slot, we simply going to check the next slot, and if it is empty, put the new element there (and if it is not empty, we will keep going until we hit an empty slot). This process of continous searching for an empty slot is called <strong> linear probing </strong>. Here is how it could be implemented in python (when reading this code, remember that <code>original_list</code> is a list of <em> distinct numbers </em> </p>
+              <p> What we can do is organize our data in a quite different way. Here is how. Let's use the number itself to compute an index of a slot where we'll put this number. The super simple way is <code> number % len(the_list) </code>. We simply use modulo operation to make sure the number would stay within the bounds of an array. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same slot. Such situtation is called <em>a collision</em>.</p>
+              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. Let's do the following. If the slot is already occupied by some other number, we'll just check the slot right after it  What if the next slot is also occupied? We'll repeat the process until we finally hit an empty slot! This process of continous searching for an empty slot is called <strong> linear probing </strong>. Here is how it could be implemented in python (when reading this code, remember that <code>original_list</code> is a list of <em> distinct numbers </em>, so we don't need to handle duplicates just yet. </p>
               TODO: code
 
-              <p> And searching is very similar to inserting. We do linear probing until we either find the number or we hit an empty slot (which would mean that the number is not there) </p>
+              <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
               <p> Let's say we want to search for TODO </p>
               <p> Here is how the search process would look like: </p>
               TODO: code
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>
-              <h6> Why hash tables are called hash tables? </h6>
+              <h5> Why hash tables are called hash tables? </h5>
               <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? It turns out we can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same nubmer - we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to get different numbers for different objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we always need to get the same value for the same object. In other words, <code>random()</code>  would not work, because we wouldn't be able to find our objects.</p>
               <p> Functions that do this transformation are called <strong>hash functions</strong>. A typical hash function may completely mix up the order of input values, hence the name "hash". </p>
               <p> In python there are built-in implementations of hash functions for built-in types. </p> 
