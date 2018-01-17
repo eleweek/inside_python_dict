@@ -220,7 +220,7 @@ class Breakpoints {
                 }
             }
         }
-        this.maxTime = time;
+        this.maxTime = time - 1;
     }
 
     _normalizeNegativeIdx(array, idx) {

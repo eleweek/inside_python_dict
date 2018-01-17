@@ -355,14 +355,16 @@ class BreakpointsGroup extends React.Component {
 class BreakpointsList extends React.Component {
     render() {
         let elems = [];
+        let [groupIdx, activeIdx] = this.props.breakpoints._normalizeNegativePair(this.props.groupIdx, this.props.activeIdx);
+
         for (let [i, desc] of this.props.breakpoints.originalDescs.entries()) {
-            let active = (this.props.groupIdx == i);
+            let active = (groupIdx == i);
 
             elems.push(
                 <BreakpointsGroup
                     desc={desc}
                     active={active}
-                    activeIdx={active ? this.props.activeIdx : null}
+                    activeIdx={active ? activeIdx : null}
                     formatBpDesc={this.props.formatBpDesc}
                     onActiveBreakpointChange={this.props.onActiveBreakpointChange.bind(this, i)}
                 />
