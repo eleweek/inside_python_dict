@@ -30,6 +30,7 @@ class BoxesBase {
         this.ACTIVE_CLASS = 'box-active';
         this.EMPTY = 'box-empty';
         this.FULL = 'box-full';
+        this.GC_TIMEOUT = 2000;
     }
 
     init(values) {
@@ -121,9 +122,9 @@ class BoxesBase {
     }
 
     removeBox(idx) {
-        // TODO: garbage collect
         let $box = this.$boxDivs[idx];
         $box.addClass(this.REMOVED_CLASS);
+        setTimeout(() => $box.remove(), this.GC_TIMEOUT);
         this._setBoxIdxAndPos($box, idx, (this.boxValues[idx] !== null ? "removed" : "empty-removed"));
     }
 
@@ -137,7 +138,6 @@ class BoxesBase {
     }
 
     startModifications(numBoxes) {
-        /* TODO: garbage collect old removed and faded out divs */
         // this.resetZIndex();
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
