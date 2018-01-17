@@ -258,6 +258,54 @@ class Breakpoints {
     }
 }
 
+let simplifiedInsertAll = function(originalList) {
+    let breakpoints = [];
+    let newList = [];
+
+    let addBP = function(point, number, idx) {
+        let bp = {
+            point: point,
+            data: _.cloneDeep(newList),
+        }
+        if (number !== null && number !== undefined) {
+            bp["number"] = number;
+        }
+        if (idx !== null && number !== undefined) {
+            bp["idx"] = idx;
+        }
+        breakpoints.push(bp);
+    }
+    addBP('create-new-list');
+
+    for (let i = 0; i < originalList.length * 2; ++i) {
+        addBP('new-list-for', null, i);
+        newList.push(null);
+        addBP('append-node', null, i);
+    }
+
+    for (let number of originalList) {
+        addBP('check-collision', number);
+        let idx = number % newList.length;
+        addBP('for-loop', number, idx);
+        while (true) {
+            addBP('check-collision', number, idx);
+            if (newList[idx] === null) {
+                break;
+            }
+
+            idx = (idx + 1) % newList.length;
+            addBP('next-idx', number, idx);
+        }
+        newList[idx] = number;
+        addBP('assign-elem', number, idx);
+    }
+
+    addBP('return-created-list');
+
+    return new Breakpoints(breakpoints);
+}
+
+
 class MyHash {
     constructor() {
         let startCapacity = 8;
@@ -482,5 +530,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, MyHash, simpleListSearch
+    pyHash, MyHash, simpleListSearch, simplifiedInsertAll
 }

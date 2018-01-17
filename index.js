@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, MyHash, simpleListSearch} from './hash_impl.js';
+import {pyHash, MyHash, simpleListSearch, simplifiedInsertAll} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -460,17 +460,17 @@ const ADD_CODE = [
 ];
 
 const SIMPLIFIED_INSERT_ALL_CODE = [
-    ["def transform_all(original_list):", ""],
+    ["def build_insert_all(original_list):", ""],
     ["    new_list = []", "create-new-list"],
-    ["    for i in range(len(original_list) * 3 // 2):", "new-list-for"],
+    ["    for i in range(len(original_list) * 2):", "new-list-for"],
     ["        new_list.append(None)", "append-none"],
     ["", ""],
     ["    for number in original_list:", "for-loop"],
     ["        idx = number % len(new_list)", "compute-idx"],
     ["        while new_list[idx] is not None:", "check-collision"],
     ["            idx = (idx + 1) % len(new_list)", "next-idx"],
-    ["    new_list[idx] = number", "assign-elem"],
-    ["    return new_lsit", "return-created-list"],
+    ["        new_list[idx] = number", "assign-elem"],
+    ["    return new_list", "return-created-list"],
 ];
 
 const SIMPLIFIED_SEARCH_CODE = [
@@ -571,6 +571,10 @@ let formatSearchCodeBreakpointDescription = function(bp) {
         default:
             throw "Unknown bp type: " + bp.point;
     }
+}
+
+let dummyFormat = function(bp) {
+    return JSON.stringify(bp);
 }
 
 
@@ -719,6 +723,7 @@ class App extends React.Component {
 
     render() {
         let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
+        let simplifiedInsertAllBreakpoints = simplifiedInsertAll(this.state.exampleArrayNumbers);
         console.log("simpleListSearchBreakpoints");
         console.log(simpleListSearchBreakpoints);
 
@@ -764,8 +769,12 @@ class App extends React.Component {
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
               <p> What we can do is organize our data in a quite different way. Here is how. Let's use the number itself to compute an index of a slot where we'll put this number. The super simple way is <code> number % len(the_list) </code>. We simply use modulo operation to make sure the number would stay within the bounds of an array. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same slot. Such situtation is called <em>a collision</em>.</p>
-              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. Let's do the following. If the slot is already occupied by some other number, we'll just check the slot right after it  What if the next slot is also occupied? We'll repeat the process until we finally hit an empty slot! This process of continous searching for an empty slot is called <strong> linear probing </strong>. Here is how it could be implemented in python (when reading this code, remember that <code>original_list</code> is a list of <em> distinct numbers </em>, so we don't need to handle duplicates just yet. </p>
-              TODO: code
+              <p> To make this approach work we need to somehow <strong>resolve collisions</strong>. Let's do the following. If the slot is already occupied by some other number, we'll just check the slot right after it  What if the next slot is also occupied? We'll repeat the process until we finally hit an empty slot! This process of continous searching for an empty slot is called <strong> linear probing </strong>. Let's transform the original list using this method (when reading this code, remember that <code>original_list</code> is a list of <em> distinct numbers </em>, so we don't need to handle duplicates just yet. </p>
+              <VisualizedCode
+                code={SIMPLIFIED_INSERT_ALL_CODE}
+                breakpoints={simplifiedInsertAllBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashBoxesComponent} />
 
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
               <p> Let's say we want to search for TODO </p>
@@ -787,7 +796,7 @@ class App extends React.Component {
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </div>
-              <h6> How does adding to a hash table work?  </h6>
+              <h5> How does adding to a hash table work?  </h5>
               <p>
                 Let's say we want to add
                 <JsonInput inline={true} value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
@@ -803,7 +812,7 @@ class App extends React.Component {
                 formatBpDesc={formatAddCodeBreakpointDescription}
                 stateVisualization={HashBoxesComponent} />
 
-              <h6> How does searching in a hash table work?  </h6>
+              <h5> How does searching in a hash table work?  </h5>
               <p> In a similar fashion, we start at an expected slot and do linear probing until we hit an empty slot. However, while checking an occopied slot, we compare the key in it to the target key. If the key is equal to the target key, this means that we found it. However, if we find an empty slot without finding an occopied slot with our target key, then it means that the key is not in the table. </p>
               <p> Let's say we want to find <JsonInput inline={true} value={this.state.howToSearchObj} onChange={(value) => this.setState({howToSearchObj: value})} /></p>
               <VisualizedCode
