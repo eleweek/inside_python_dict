@@ -270,6 +270,8 @@ function arraysDiff(arrayFrom, arrayTo)
 
 class BoxesWrapperComponent extends React.Component {
     componentDidMount() {
+        console.log("BWC props componentDidMount()");
+        console.log(this.props);
         this.$el = $(this.el);
 
         this.boxes = new this.props.boxesClass(this.$el, 40);
@@ -294,6 +296,8 @@ class BoxesWrapperComponent extends React.Component {
     }
 
     render() {
+        console.log("BWC props");
+        console.log(this.props);
         return <div className="clearfix hash-vis" ref={el => this.el = el} />;
     }
 }
@@ -304,6 +308,27 @@ function HashBoxesComponent(props) {
 
 function LineOfBoxesComponent(props) {
     return <BoxesWrapperComponent boxesClass={LineOfBoxes} {...props} />
+}
+
+function Tetris(props) {
+    let elems = [];
+    console.log("PROPS");
+    console.log(props);
+    for (let [Component, [dataLabel, dataName, idxName]] of props.lines) {
+        elems.push(<div className="tetris-row"> <p> {dataLabel} </p> <Component array={props.bp[dataName]} idx={props.bp[idxName]} /> </div>);
+    }
+
+    return <div className="tetris"> {elems} </div>
+}
+
+function TetrisSingleRowWrap(component, dataLabel) {
+    return class extends React.Component {
+        render() {
+            console.log("PROPS TSRW");
+            console.log(this.props);
+            return <Tetris lines={[[component, [dataLabel, "data", "idx"]]]} {...this.props} />;
+        }
+    }
 }
 
 class BreakpointsGroup extends React.Component {
@@ -659,14 +684,16 @@ class VisualizedCode extends React.Component {
     render() {
         console.log('render() ' + this.state.bpGroupIdx + ' ' + this.state.bpGroupActiveIdx);
         console.log(this.props.breakpoints);
-        let {data, idx, point} = this.props.breakpoints.getBreakpoint(this.state.bpGroupIdx, this.state.bpGroupActiveIdx);
+        let bp = this.props.breakpoints.getBreakpoint(this.state.bpGroupIdx, this.state.bpGroupActiveIdx);
+        console.log("BP");
+        console.log(bp);
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
             <div className="row">
               <div className="col-md-6">
                 <h6> Code </h6>
-                <CodeBlock code={this.props.code} bpPoint={point} />
+                <CodeBlock code={this.props.code} bpPoint={bp.point} />
               </div>
               <div className="col-md-6">
                 <h6> Steps </h6>
@@ -692,7 +719,7 @@ class VisualizedCode extends React.Component {
               </div>
             </div>
             <h6> Data </h6>
-            <StateVisualization array={data} idx={idx} />
+            <StateVisualization bp={bp} />
         </React.Fragment>)
     }
 }
@@ -755,20 +782,20 @@ class App extends React.Component {
               <div className="sticky-top">
                 <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
               </div>
-              <p class="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
+              <p className="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
               <p> Python lists are actually arrays &mdash; contiguous chunks of memory. Thus the name "list" may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
               <p> Appending to list is fast, as well as getting an element by index. However, searching for a specific element can be slow, because elements have no order whatsover. We may get lucky and do only a couple of iterations if the searched element is located near the beginning of the array. But if the searched element is not here, we'll have to scan over the whole array. </p>
               <p> Here is how we could visualize the search algorithm. </p>
               <p> Let's search for
                 <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
-                <span class="text-muted"> (Try changing this field as well! And see how the steps and the data visualization updates) </span>
+                <span className="text-muted"> (Try changing this field as well! And see how the steps and the data visualization updates) </span>
               </p>
               <VisualizedCode
                 code={SIMPLE_LIST_SEARCH}
                 breakpoints={simpleListSearchBreakpoints}
                 formatBpDesc={formatSimpleListSearchBreakpointDescription}
-                stateVisualization={LineOfBoxesComponent} />
+                stateVisualization={TetrisSingleRowWrap(LineOfBoxesComponent, "l")} />
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
               <p> What we can do is organize our data in a quite different way. Here is how. Let's use the number itself to compute an index of a slot where we'll put this number. The super simple way is <code> number % len(the_list) </code>. We simply use modulo operation to make sure the number would stay within the bounds of an array. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same slot. Such situtation is called <em>a collision</em>.</p>
@@ -777,7 +804,7 @@ class App extends React.Component {
                 code={SIMPLIFIED_INSERT_ALL_CODE}
                 breakpoints={simplifiedInsertAllBreakpoints}
                 formatBpDesc={dummyFormat}
-                stateVisualization={HashBoxesComponent} />
+                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent, "new_list")} />
 
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
               <p> Let's say we want to search for TODO </p>
@@ -788,7 +815,7 @@ class App extends React.Component {
                 code={SIMPLIFIED_SEARCH_CODE}
                 breakpoints={simplifiedSearchBreakpoints}
                 formatBpDesc={dummyFormat}
-                stateVisualization={HashBoxesComponent} />
+                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>
@@ -817,7 +844,7 @@ class App extends React.Component {
                 code={ADD_CODE}
                 breakpoints={addBreakpoints}
                 formatBpDesc={formatAddCodeBreakpointDescription}
-                stateVisualization={HashBoxesComponent} />
+                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
 
               <h5> How does searching in a hash table work?  </h5>
               <p> In a similar fashion, we start at an expected slot and do linear probing until we hit an empty slot. However, while checking an occopied slot, we compare the key in it to the target key. If the key is equal to the target key, this means that we found it. However, if we find an empty slot without finding an occopied slot with our target key, then it means that the key is not in the table. </p>
@@ -826,7 +853,7 @@ class App extends React.Component {
                 code={SEARCH_CODE}
                 breakpoints={searchBreakpoints}
                 formatBpDesc={formatSearchCodeBreakpointDescription}
-                stateVisualization={HashBoxesComponent} />
+                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
           </div>)
     }
 }
