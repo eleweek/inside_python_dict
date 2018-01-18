@@ -262,16 +262,20 @@ let simplifiedInsertAll = function(originalList) {
     let breakpoints = [];
     let newList = [];
 
-    let addBP = function(point, number, idx) {
+    let addBP = function(point, number, idx, originalIdx) {
         let bp = {
             point: point,
-            data: _.cloneDeep(newList),
+            newList: _.cloneDeep(newList),
+            originalList: _.cloneDeep(originalList),
         }
         if (number !== null && number !== undefined) {
-            bp["number"] = number;
+            bp.number = number;
         }
         if (idx !== null && number !== undefined) {
-            bp["idx"] = idx;
+            bp.newListIdx = idx;
+        }
+        if (originalIdx !== null && originalIdx !== undefined) {
+            bp.originalIdx = originalIdx;
         }
         breakpoints.push(bp);
     }
@@ -283,21 +287,21 @@ let simplifiedInsertAll = function(originalList) {
         addBP('append-node', null, i);
     }
 
-    for (let number of originalList) {
-        addBP('for-loop', number);
+    for (let [originalIdx, number] of originalList.entries()) {
+        addBP('for-loop', number, null, originalIdx);
         let idx = number % newList.length;
-        addBP('compute-idx', number);
+        addBP('compute-idx', number, idx, originalIdx);
         while (true) {
-            addBP('check-collision', number, idx);
+            addBP('check-collision', number, idx, originalIdx);
             if (newList[idx] === null) {
                 break;
             }
 
             idx = (idx + 1) % newList.length;
-            addBP('next-idx', number, idx);
+            addBP('next-idx', number, idx, originalIdx);
         }
         newList[idx] = number;
-        addBP('assign-elem', number, idx);
+        addBP('assign-elem', number, idx, originalIdx);
     }
 
     addBP('return-created-list');

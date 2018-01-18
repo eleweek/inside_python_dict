@@ -555,6 +555,18 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
     }
 }
 
+function SimplifiedInsertStateVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [LineOfBoxesComponent, ["original_list", "originalList", "originalIdx"]],
+                [HashBoxesComponent, ["new_list", "newList", "newListIdx"]]
+            ]
+        }
+        {...props}
+    />;
+}
+
 let formatAddCodeBreakpointDescription = function(bp) {
     console.log(bp);
     switch (bp.point) {
@@ -804,7 +816,7 @@ class App extends React.Component {
                 code={SIMPLIFIED_INSERT_ALL_CODE}
                 breakpoints={simplifiedInsertAllBreakpoints}
                 formatBpDesc={dummyFormat}
-                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent, "new_list")} />
+                stateVisualization={SimplifiedInsertStateVisualization} />
 
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
               <p> Let's say we want to search for TODO </p>
