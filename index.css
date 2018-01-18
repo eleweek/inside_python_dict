@@ -114,3 +114,7 @@ div.breakpoints {
     transition-duration: .5s;
     transition-timing-function: ease;
 }*/
+
+.tetris-row-label {
+    margin-bottom: 5px;
+}
