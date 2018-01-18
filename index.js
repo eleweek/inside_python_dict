@@ -315,7 +315,7 @@ function Tetris(props) {
     console.log("PROPS");
     console.log(props);
     for (let [Component, [dataLabel, dataName, idxName]] of props.lines) {
-        elems.push(<div className="tetris-row"> <p className="tetris-row-label"> {dataLabel}: </p> <Component array={props.bp[dataName]} idx={props.bp[idxName]} /> </div>);
+        elems.push(<div className="tetris-row"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> <Component array={props.bp[dataName]} idx={props.bp[idxName]} /> </div>);
     }
 
     return <div className="tetris"> {elems} </div>
