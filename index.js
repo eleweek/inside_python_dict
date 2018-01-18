@@ -553,6 +553,8 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
     }
 }
 
+const SimpleListSearchStateVisualization = TetrisSingleRowWrap(LineOfBoxesComponent, "l");
+
 function SimplifiedInsertStateVisualization(props) {
     return <Tetris
         lines={
@@ -564,6 +566,9 @@ function SimplifiedInsertStateVisualization(props) {
         {...props}
     />;
 }
+
+const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
+const AddStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
 
 let formatAddCodeBreakpointDescription = function(bp) {
     console.log(bp);
@@ -860,7 +865,7 @@ class App extends React.Component {
                 code={SIMPLE_LIST_SEARCH}
                 breakpoints={simpleListSearchBreakpoints}
                 formatBpDesc={formatSimpleListSearchBreakpointDescription}
-                stateVisualization={TetrisSingleRowWrap(LineOfBoxesComponent, "l")} />
+                stateVisualization={SimpleListSearchStateVisualization} />
               
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
               <p> What we can do is organize our data in a quite different way. Here is how. Let's use the number itself to compute an index of a slot where we'll put this number. The super simple way is <code> number % len(the_list) </code>. We simply use modulo operation to make sure the number would stay within the bounds of an array. Would this approach work? Not quite. For example, TODO_EXAMPLE_X and TODO_EXAMPLE_Y would be put in the same slot. Such situtation is called <em>a collision</em>.</p>
@@ -879,7 +884,7 @@ class App extends React.Component {
                 code={SIMPLIFIED_SEARCH_CODE}
                 breakpoints={simplifiedSearchBreakpoints}
                 formatBpDesc={dummyFormat}
-                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
+                stateVisualization={SimplifiedSearchStateVisualization} />
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, how that would work with a linear probing?). And perhaps most imporantly, how do we handle objects other than integers - strings, tuples, floats? </p>
@@ -905,7 +910,7 @@ class App extends React.Component {
                 code={ADD_CODE}
                 breakpoints={addBreakpoints}
                 formatBpDesc={formatAddCodeBreakpointDescription}
-                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
+                stateVisualization={AddStateVisualization} />
 
               <h5> How does searching in a hash table work?  </h5>
               <p> In a similar fashion, we start at an expected slot and do linear probing until we hit an empty slot. However, while checking an occopied slot, we compare the key in it to the target key. If the key is equal to the target key, this means that we found it. However, if we find an empty slot without finding an occopied slot with our target key, then it means that the key is not in the table. </p>
