@@ -819,10 +819,9 @@ class App extends React.Component {
                 stateVisualization={SimplifiedInsertStateVisualization} />
 
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>
-              <p> Let's say we want to search for TODO </p>
               <p> Here is how the search process would look like: </p>
 
-              Let's say we want to insert <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
+              Let's say we want to search for <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
               <VisualizedCode
                 code={SIMPLIFIED_SEARCH_CODE}
                 breakpoints={simplifiedSearchBreakpoints}
