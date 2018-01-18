@@ -78,7 +78,7 @@
 }
 .cross-fade-leave.cross-fade-leave-active {
   opacity: 0;
-  transition: opacity .5s ease-in;
+  transition: opacity .35s ease-in;
 }
 
 .cross-fade-enter {
@@ -86,7 +86,7 @@
 }
 .cross-fade-enter.cross-fade-enter-active {
   opacity: 1;
-  transition: opacity .5s ease-in;
+  transition: opacity .35s ease-in;
 }
 
 .cross-fade-height {

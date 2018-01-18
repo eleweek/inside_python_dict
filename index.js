@@ -828,7 +828,7 @@ class CrossFade extends React.Component {
     render() {
       return <ReactCSSTransitionReplace
         transitionName="cross-fade"
-        transitionEnterTimeout={500} transitionLeaveTimeout={500}>
+        transitionEnterTimeout={350} transitionLeaveTimeout={350}>
           {this.props.children}
       </ReactCSSTransitionReplace>
     }
