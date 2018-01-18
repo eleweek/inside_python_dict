@@ -714,7 +714,7 @@ class VisualizedCode extends React.Component {
                    time={this.props.breakpoints.getPairToTime(this.state.bpGroupIdx, this.state.bpGroupActiveIdx)}
                    maxTime={this.props.breakpoints.maxTime}
                 />
-                <CustomScroll>
+                <CustomScroll allowOuterScroll={true}>
                   <div className="breakpoints">
                     <CrossFade>
                         <BreakpointsList
