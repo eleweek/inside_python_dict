@@ -542,8 +542,8 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
                     : `<code>${bp.idx} == ${bp.size}</code>, so all elements are processed`);
         case 'check-found':
             return (bp.found
-                    ? `<code>${bp.atIdx} == ${bp.arg}</code> -- the searched key is found`
-                    : `<code>${bp.atIdx} != ${bp.arg}</code> -- the searched key is not found so far`);
+                    ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the searched key is found`
+                    : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the searched key is not found so far`);
         case 'found-key':
             return `The searched key (${bp.arg}) is found, so return True`
         case 'found-nothing':
@@ -577,7 +577,7 @@ let formatAddCodeBreakpointDescription = function(bp) {
         case 'nothing-to-assign':
             return `The key was found, so there is nothing to assign`;
         case 'check-collision':
-            return `Check collision at <code>${bp.idx}</code> -- ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
+            return `Check collision at <code>${bp.idx}</code> &mdash; ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
         case 'assign-elem':
             return `Set element at <code>${bp.idx}</code> to <code>${bp.elem}</code>`;
         case 'rehash':
@@ -596,7 +596,7 @@ let formatSearchCodeBreakpointDescription = function(bp) {
         case 'compute-idx':
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
         case 'check-not-found':
-            return `Check if some key at <code>${bp.idx}</code> exists -- ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
+            return `Check if some key at <code>${bp.idx}</code> exists &mdash; ` + (bp.atIdx === null ? `empty slot` : `occupied by <code>${bp.atIdx}</code>`);
         case 'check-found':
             return `The key at <code>${bp.idx}</code> ${bp.found ? "is equal to the searched key" : "is not equal to the searched key"} </code>`;
         case 'found-key':
@@ -782,8 +782,9 @@ class App extends React.Component {
 
         return(
             <div>
-              <h3> Inside python dict - an explorable explanation. Part 1: hash tables </h3>
-              <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. The page is dynamic and interactive -- you can plug your own data and see how the algorithms work on it. </p>
+              <h1> Inside python dict &mdash; an explorable explanation</h1>
+              <h2> Chapter 1: hash tables </h2>
+              <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. The page is dynamic and interactive &mdash; you can plug your own data and see how the algorithms work on it. </p>
               <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
               <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure. </em></p>
               <h5> Let's get started! </h5>
