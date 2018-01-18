@@ -271,9 +271,9 @@ let simplifiedInsertAll = function(originalList) {
         if (number !== null && number !== undefined) {
             bp.number = number;
         }
-        if (idx !== null && number !== undefined) {
+        if (idx !== null && idx !== undefined) {
             bp.newListIdx = idx;
-            bp.newListAtIdx = bp.newList[idx];
+            bp.newListAtIdx = newList[idx];
         }
         if (originalListIdx !== null && originalListIdx !== undefined) {
             bp.originalListIdx = originalListIdx;
@@ -315,10 +315,12 @@ let simplifiedSearch = function(newList, number) {
     let addBP = function(point, idx) {
         let bp = {
             point: point,
-            data: newList,
+            number: number,
+            newList: _.cloneDeep(newList),
         }
-        if (idx !== null && number !== undefined) {
-            bp["idx"] = idx;
+        if (idx !== null && idx !== undefined) {
+            bp.newListIdx = idx;
+            bp.newListAtIdx = newList[idx];
         }
         breakpoints.push(bp);
     }

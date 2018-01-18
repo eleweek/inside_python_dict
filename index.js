@@ -321,12 +321,12 @@ function Tetris(props) {
     return <div className="tetris"> {elems} </div>
 }
 
-function TetrisSingleRowWrap(component, dataLabel) {
+function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     return class extends React.Component {
         render() {
             console.log("PROPS TSRW");
             console.log(this.props);
-            return <Tetris lines={[[component, [dataLabel, "data", "idx"]]]} {...this.props} />;
+            return <Tetris lines={[[component, [dataLabel, (dataName || "data"), (idxName || "idx")]]]} {...this.props} />;
         }
     }
 }
@@ -499,7 +499,7 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 const SIMPLIFIED_SEARCH_CODE = [
     ["def has_number(new_list, number):", "start-execution"],
     ["    idx = number % len(new_list)", "compute-idx"],
-    ["    while number is not None:", "check-not-found"],
+    ["    while new_list[idx] is not None:", "check-not-found"],
     ["        if new_list[idx] == number:", "check-found"],
     ["            return True", "found-key"],
     ["        idx = (idx + 1) % len(new_list)", "next-idx"],
@@ -553,7 +553,7 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
     }
 }
 
-const SimpleListSearchStateVisualization = TetrisSingleRowWrap(LineOfBoxesComponent, "l");
+const SimpleListSearchStateVisualization = TetrisSingleRowWrap(LineOfBoxesComponent, "simple_list");
 
 function SimplifiedInsertStateVisualization(props) {
     return <Tetris
@@ -567,7 +567,7 @@ function SimplifiedInsertStateVisualization(props) {
     />;
 }
 
-const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
+const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent, "new_list", "newList", "newListIdx");
 const AddStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
 
 let formatAddCodeBreakpointDescription = function(bp) {
@@ -612,6 +612,36 @@ let formatSimplifiedInsertAllDescription = function(bp) {
             return `Next slot to probe will be ${bp.newListIdx}`;
         case 'assign-elem':
             return `Put <code>${bp.number}</code> in the empty slot ${bp.newListIdx}`;
+        case 'return-created-list':
+            return `Return created list`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatSimplifiedSearchDescription = function(bp) {
+    switch (bp.point) {
+        case 'compute-idx':
+            return `Compute the slot number: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+        case 'check-not-found':
+            if (bp.newListAtIdx === null) {
+                return `The slot ${bp.newListIdx} is empty`;
+            } else {
+                return `The slot ${bp.newListIdx} is occupied by <code>${bp.newListAtIdx}</code>`;
+            }
+        case 'check-found':
+            let found = (bp.newListAtIdx === bp.number);
+            if (found) {
+                return `The number is found: <code>${bp.newListAtIdx}</code> == ${bp.number}</code>`;
+            } else {
+                return `The number is not found yet: <code>${bp.newListAtIdx} != ${bp.number}</code>`;
+            }
+        case 'found-key':
+            return "Simply return true";
+        case 'found-nothing':
+            return "Simply return false";
+        case 'next-idx':
+            return `${bp.number} is not found so far. Keep probing, the next slot to check will be ${bp.newListIdx}`;
         case 'return-created-list':
             return `Return created list`;
         default:
@@ -809,9 +839,9 @@ class App extends React.Component {
         super();
 
         this.state = {
-            exampleArrayNumbers: [2, 3, 5, 7, 11, 13, 17],
-            simpleSearchObj: 17,
-            simplifiedSearchObj: 17,
+            exampleArrayNumbers: [14, 8, 19, 15, 13, 42, 46, 22],
+            simpleSearchObj: 46,
+            simplifiedSearchObj: 46,
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             howToAddObj: 'py',
             howToSearchObj: 'hmmm',
@@ -883,7 +913,7 @@ class App extends React.Component {
               <VisualizedCode
                 code={SIMPLIFIED_SEARCH_CODE}
                 breakpoints={simplifiedSearchBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatSimplifiedSearchDescription}
                 stateVisualization={SimplifiedSearchStateVisualization} />
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
