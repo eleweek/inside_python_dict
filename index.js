@@ -485,10 +485,8 @@ const ADD_CODE = [
 ];
 
 const SIMPLIFIED_INSERT_ALL_CODE = [
-    ["def build_insert_all(original_list):", ""],
-    ["    new_list = []", "create-new-list"],
-    ["    for i in range(len(original_list) * 2):", "new-list-for"],
-    ["        new_list.append(None)", "append-none"],
+    ["def build_insert_all(original_list):", "start-execution"],
+    ["    new_list = [None for i in xrange(2 * len(original_list))]", "create-new-list"],
     ["", ""],
     ["    for number in original_list:", "for-loop"],
     ["        idx = number % len(new_list)", "compute-idx"],
@@ -499,7 +497,7 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 ];
 
 const SIMPLIFIED_SEARCH_CODE = [
-    ["def has_number(new_list, number):", ""],
+    ["def has_number(new_list, number):", "start-execution"],
     ["    idx = number % len(new_list)", "compute-idx"],
     ["    while number is not None:", "check-not-found"],
     ["        if new_list[idx] == number:", "check-found"],
@@ -559,7 +557,7 @@ function SimplifiedInsertStateVisualization(props) {
     return <Tetris
         lines={
             [
-                [LineOfBoxesComponent, ["original_list", "originalList", "originalIdx"]],
+                [LineOfBoxesComponent, ["original_list", "originalList", "originalListIdx"]],
                 [HashBoxesComponent, ["new_list", "newList", "newListIdx"]]
             ]
         }
@@ -586,6 +584,31 @@ let formatAddCodeBreakpointDescription = function(bp) {
             return `Compare <code>${bp.size} + 1</code> with <code>${bp.capacity} * ${bp.maxLoadFactor}</code>`;
         case 'next-idx':
             return `Compute next idx: <code>${bp.idx}</code>`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatSimplifiedInsertAllDescription = function(bp) {
+    switch (bp.point) {
+        case 'create-new-list':
+            return `Create new list of size ${bp.newList.length}`;
+        case 'for-loop':
+            return `Process the next number <code> ${bp.number} </code>`;
+        case 'compute-idx':
+            return `Compute the slot number: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+        case 'check-collision':
+            if (bp.newListAtIdx === null) {
+                return `No collision in the slot ${bp.newListIdx}, the slot is empty`;
+            } else {
+                return `Collision in the slot ${bp.newListIdx} with the number ${bp.newListAtIdx}, skip this slot`;
+            }
+        case 'next-idx':
+            return `Next slot to probe will be ${bp.newListIdx}`;
+        case 'assign-elem':
+            return `Put <code>${bp.number}</code> in the empty slot ${bp.newListIdx}`;
+        case 'return-created-list':
+            return `Return created list`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -845,7 +868,7 @@ class App extends React.Component {
               <VisualizedCode
                 code={SIMPLIFIED_INSERT_ALL_CODE}
                 breakpoints={simplifiedInsertAllBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatSimplifiedInsertAllDescription}
                 stateVisualization={SimplifiedInsertStateVisualization} />
 
               <p> And searching is very similar to inserting. We keep doing linear probing until we either find the number or we hit an empty slot (in this case we can conclude that the number is not here) </p>

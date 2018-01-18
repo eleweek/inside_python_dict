@@ -262,7 +262,7 @@ let simplifiedInsertAll = function(originalList) {
     let breakpoints = [];
     let newList = [];
 
-    let addBP = function(point, number, idx, originalIdx) {
+    let addBP = function(point, number, idx, originalListIdx) {
         let bp = {
             point: point,
             newList: _.cloneDeep(newList),
@@ -273,35 +273,35 @@ let simplifiedInsertAll = function(originalList) {
         }
         if (idx !== null && number !== undefined) {
             bp.newListIdx = idx;
+            bp.newListAtIdx = bp.newList[idx];
         }
-        if (originalIdx !== null && originalIdx !== undefined) {
-            bp.originalIdx = originalIdx;
+        if (originalListIdx !== null && originalListIdx !== undefined) {
+            bp.originalListIdx = originalListIdx;
         }
         breakpoints.push(bp);
     }
-    addBP('create-new-list');
+    // addBP('start-execution');
 
     for (let i = 0; i < originalList.length * 2; ++i) {
-        addBP('new-list-for', null, i);
         newList.push(null);
-        addBP('append-node', null, i);
     }
+    addBP('create-new-list');
 
-    for (let [originalIdx, number] of originalList.entries()) {
-        addBP('for-loop', number, null, originalIdx);
+    for (let [originalListIdx, number] of originalList.entries()) {
+        addBP('for-loop', number, null, originalListIdx);
         let idx = number % newList.length;
-        addBP('compute-idx', number, idx, originalIdx);
+        addBP('compute-idx', number, idx, originalListIdx);
         while (true) {
-            addBP('check-collision', number, idx, originalIdx);
+            addBP('check-collision', number, idx, originalListIdx);
             if (newList[idx] === null) {
                 break;
             }
 
             idx = (idx + 1) % newList.length;
-            addBP('next-idx', number, idx, originalIdx);
+            addBP('next-idx', number, idx, originalListIdx);
         }
         newList[idx] = number;
-        addBP('assign-elem', number, idx, originalIdx);
+        addBP('assign-elem', number, idx, originalListIdx);
     }
 
     addBP('return-created-list');
