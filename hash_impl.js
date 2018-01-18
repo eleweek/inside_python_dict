@@ -571,5 +571,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch
+    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch
 }

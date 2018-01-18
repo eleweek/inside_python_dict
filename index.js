@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -736,6 +736,35 @@ class VisualizedCode extends React.Component {
     }
 }
 
+class HashExamples extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            string: "Hello",
+            integer: 42,
+        };
+    }
+
+    render() {
+        return <div> 
+            <p>
+                Strings:
+                hash(<JsonInput inline={true} value={this.state.string} onChange={(value) => this.setState({string: value})} />) = <code>{pyHashString(this.state.string)}</code>
+            </p>
+            <p>
+                Integers:
+                hash(<JsonInput inline={true} value={this.state.integer} onChange={(value) => this.setState({integer: value})} />) = <code>{pyHashInt(this.state.integer)}</code>
+            </p>
+            <p>
+                Floats: hash(42.5) = <code>1426259968</code>
+            </p>
+            <p>
+                Tuples: hash(("Hello", 42)) = <code>4421265786515608844</code>
+            </p>
+        </div>
+    }
+}
+
 
 class CrossFade extends React.Component {
     render() {
@@ -784,7 +813,7 @@ class App extends React.Component {
             <div>
               <h1> Inside python dict &mdash; an explorable explanation</h1>
               <h2> Chapter 1: hash tables </h2>
-              <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. The page is dynamic and interactive &mdash; you can plug your own data and see how the algorithms work on it. </p>
+              <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. This page is dynamic and interactive &mdash; you can plug your own data and see how the algorithms work on it. </p>
               <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
               <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure. </em></p>
               <h5> Let's get started! </h5>
@@ -835,12 +864,9 @@ class App extends React.Component {
               <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? It turns out we can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same nubmer - we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to get different numbers for different objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we always need to get the same value for the same object. In other words, <code>random()</code>  would not work, because we wouldn't be able to find our objects.</p>
               <p> Functions that do this transformation are called <strong>hash functions</strong>. A typical hash function may completely mix up the order of input values, hence the name "hash". </p>
               <p> In python there are built-in implementations of hash functions for built-in types. </p> 
-              TODO: hash(int)
-              TODO: hash(float) 
-              TODO: hash("string")
-              TODO: hash( ("tuple", "of strings") )
+              <HashExamples />
 
-              As you can see in case of strings, hash() values look fairly unpredictable, as it should be. One major exception are integers, you can notice that hash(x) == x for "short" integers. However, python uses a different algorithm for small integers. Try typing a really big number, for example TODO to see this. This fact may seem surprising for most people, however it is a delibirate design decision (TODO: ok, i am really not sure. I can't find that link atm)
+              <p> As you can see in case of strings, hash() values look fairly unpredictable, as it should be. One major exception are integers, you can notice that hash(x) == x for "short" integers. However, python uses a different algorithm for small integers. Try typing a really big number, for example TODO to see this. This fact may seem surprising for most people, however it is a delibirate design decision (TODO: ok, i am really not sure. I can't find that link atm) </p>
               <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               <h5> How does adding to a hash table work?  </h5>
               <p>
