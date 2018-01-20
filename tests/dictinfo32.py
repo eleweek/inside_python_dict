@@ -1,10 +1,10 @@
-from ctypes import Structure, c_ulong, POINTER, cast, py_object
+from ctypes import Structure, c_ulong, POINTER, cast, py_object, c_long
 from dict_reimpl_common import get_object_field_or_none
 
 
 class PyDictEntry(Structure):
     _fields_ = [
-        ('me_hash', c_ulong),
+        ('me_hash', c_long),
         ('me_key', py_object),
         ('me_value', py_object),
     ]
@@ -36,7 +36,6 @@ def dump_py_dict(do):
         keys.append(get_object_field_or_none(do.ma_table[i], 'me_key'))
 
     for i, key in enumerate(keys):
-        print i, key
         if key is None:
             hashes.append(None)
             values.append(None)
@@ -44,4 +43,4 @@ def dump_py_dict(do):
             hashes.append(do.ma_table[i].me_hash)
             values.append(do.ma_table[i].me_value)
 
-    return keys, hashes, values
+    return hashes, keys, values
