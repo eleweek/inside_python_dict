@@ -1,4 +1,5 @@
 from ctypes import Structure, c_ulong, POINTER, cast, py_object
+from dict_reimpl_common import get_object_field_or_none
 
 
 class PyDictEntry(Structure):
@@ -24,25 +25,23 @@ def dictobject(d):
     return cast(id(d), POINTER(PyDictObject)).contents
 
 
-class NullValue(object):
-    def __str__(self):
-        return "NULL"
+def dump_py_dict(do):
+    keys = []
+    hashes = []
+    values = []
 
-    def __repr__(self):
-        return "<NULL>"
+    size = do.ma_mask + 1
 
+    for i in range(size):
+        keys.append(get_object_field_or_none(do.ma_table[i], 'me_key'))
 
-NULL = NullValue()
+    for i, key in enumerate(keys):
+        print i, key
+        if key is None:
+            hashes.append(None)
+            values.append(None)
+        else:
+            hashes.append(do.ma_table[i].me_hash)
+            values.append(do.ma_table[i].me_value)
 
-
-def get_object_field_or_NULL(obj, field_name):
-    try:
-        return getattr(obj, field_name)
-    except ValueError:
-        return NULL
-
-
-d = {1: 2, 3: 4, 5: 6, 7: 8, 9: 10, 10: 11}
-do = dictobject(d)
-for i in xrange(do.ma_mask + 1):
-    print do.ma_table[i].me_hash, get_object_field_or_NULL(do.ma_table[i], 'me_key'), get_object_field_or_NULL(do.ma_table[i], 'me_value')
+    return keys, hashes, values
