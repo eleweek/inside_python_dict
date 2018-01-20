@@ -84,7 +84,7 @@ class PyDictReimplementation(object):
         # TODO: less hack-ish way of handling fill
         self.fill = old_fill
 
-        for h, k, v in reversed(zip(old_hashes, old_keys, old_values)):
+        for h, k, v in zip(reversed(old_hashes), reversed(old_keys), reversed(old_values)):
             if h is not None and k is not None:
                 self.insertdict_clean(self.hashes, self.keys, self.values, k, v)
 
