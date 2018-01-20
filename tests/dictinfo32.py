@@ -4,7 +4,7 @@ from dict_reimpl_common import get_object_field_or_none
 
 class PyDictEntry(Structure):
     _fields_ = [
-        ('me_hash', c_long),
+        ('me_hash', c_ulong),
         ('me_key', py_object),
         ('me_value', py_object),
     ]

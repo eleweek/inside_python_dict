@@ -17,7 +17,7 @@ class PyDictReimplementation(object):
 
     @staticmethod
     def _new_empty(size):
-        return [None for _ in xrange(size)]
+        return [None for _ in range(size)]
 
     def lookdict(self, key):
         hash_code = hash(key)
@@ -67,7 +67,6 @@ class PyDictReimplementation(object):
 
     def __setitem__(self, key, value):
         if (self.fill + 1) * 3 >= len(self.keys) * 2:
-            print "RESIZE"
             self.resize()
         self.insertdict_clean(self.hashes, self.keys, self.values, key, value)
         self.fill += 1

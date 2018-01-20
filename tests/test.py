@@ -12,8 +12,8 @@ def generate_random_string():
 class MyHashTest(unittest.TestCase):
     def test_all(self):
         n = 10
-        initial_keys = [generate_random_string() for _ in xrange(n)]
-        more_keys = [generate_random_string() for _ in xrange(n / 3)]
+        initial_keys = [generate_random_string() for _ in range(n)]
+        more_keys = [generate_random_string() for _ in range(n / 3)]
         myhashes, mykeys = create_new(initial_keys)
 
         for key in more_keys:
@@ -29,7 +29,7 @@ class MyHashTest(unittest.TestCase):
         for key in existing_keys:
             self.assertTrue(has_key(myhashes, mykeys, key))
 
-        missing_keys = [generate_random_string() for _ in xrange(3 * n)]
+        missing_keys = [generate_random_string() for _ in range(3 * n)]
         for key in set(missing_keys) - set(existing_keys):
             self.assertFalse(has_key(myhashes, mykeys, key))
             with self.assertRaises(KeyError):
