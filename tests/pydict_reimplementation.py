@@ -56,7 +56,7 @@ class PyDictReimplementation(object):
         idx = hash_code % len(keys)
         while keys[idx] is not None:
             if hashes[idx] == hash_code and keys[idx] == key:
-                break
+                return
 
             idx = (idx * 5 + perturb + 1) % len(keys)
             perturb >>= cls.PERTURB_SHIFT
@@ -85,7 +85,7 @@ class PyDictReimplementation(object):
         # TODO: less hack-ish way of handling fill
         self.fill = old_fill
 
-        for h, k, v in zip(reversed(old_hashes), reversed(old_keys), reversed(old_values)):
+        for h, k, v in zip(old_hashes, old_keys, old_values):
             if h is not None and k is not None:
                 self.insertdict_clean(self.hashes, self.keys, self.values, k, v)
 
