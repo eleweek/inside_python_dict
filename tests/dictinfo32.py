@@ -1,5 +1,5 @@
 from ctypes import Structure, c_ulong, POINTER, cast, py_object, c_long
-from dict_reimpl_common import get_object_field_or_none
+from dict_reimpl_common import get_object_field_or_null, NULL, DUMMY
 
 
 class PyDictEntry(Structure):
@@ -25,6 +25,12 @@ def dictobject(d):
     return cast(id(d), POINTER(PyDictObject)).contents
 
 
+d = {0: 0}
+del d[0]
+dummy_internal = dictobject(d).ma_table[0].me_key
+del d
+
+
 def dump_py_dict(do):
     keys = []
     hashes = []
@@ -33,14 +39,15 @@ def dump_py_dict(do):
     size = do.ma_mask + 1
 
     for i in range(size):
-        keys.append(get_object_field_or_none(do.ma_table[i], 'me_key'))
+        key = get_object_field_or_null(do.ma_table[i], 'me_key')
+        keys.append(key if key is not dummy_internal else DUMMY)
 
     for i, key in enumerate(keys):
-        if key is None:
-            hashes.append(None)
-            values.append(None)
+        if key is NULL:
+            hashes.append(NULL)
+            values.append(NULL)
         else:
             hashes.append(do.ma_table[i].me_hash)
-            values.append(do.ma_table[i].me_value)
+            values.append(get_object_field_or_null(do.ma_table[i], 'me_value'))
 
     return hashes, keys, values

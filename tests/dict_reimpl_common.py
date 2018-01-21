@@ -1,4 +1,4 @@
-class NullValue(object):
+class NullValueClass(object):
     def __str__(self):
         return "NULL"
 
@@ -6,10 +6,19 @@ class NullValue(object):
         return "<NULL>"
 
 
-NULL = NullValue()
+class DummyValueClass(object):
+    def __str__(self):
+        return "<DUMMY>"
+
+    def __repr__(self):
+        return "<DUMMY>"
 
 
-def get_object_field_or_NULL(obj, field_name):
+NULL = NullValueClass()
+DUMMY = DummyValueClass()
+
+
+def get_object_field_or_null(obj, field_name):
     try:
         return getattr(obj, field_name)
     except ValueError:
