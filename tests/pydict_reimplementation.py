@@ -72,6 +72,7 @@ class PyDictReimplementation(object):
         self.fill += 1
 
     def resize(self):
+        print("RESIZE")
         old_hashes, old_keys, old_values = self.hashes, self.keys, self.values
         old_fill = self.fill
         self.fill = 0
