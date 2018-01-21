@@ -60,7 +60,7 @@ class PyDictReimplementation(object):
         idx = hash_code % len(keys)
         while keys[idx] is not None:
             if hashes[idx] == hash_code and keys[idx] == key:
-                return
+                break
 
             idx = (idx * 5 + perturb + 1) % len(keys)
             perturb >>= cls.PERTURB_SHIFT
