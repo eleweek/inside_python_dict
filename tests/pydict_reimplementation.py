@@ -19,9 +19,13 @@ class PyDictReimplementation(object):
     def _new_empty(size):
         return [None for _ in range(size)]
 
+    @staticmethod
+    def signed_to_unsigned(hash_code):
+        return 2**64 + hash_code if hash_code < 0 else hash_code
+
     def lookdict(self, key):
         hash_code = hash(key)
-        perturb = hash_code
+        perturb = self.signed_to_unsigned(hash_code)
 
         idx = hash_code % len(self.keys)
         while self.keys[idx] is not None:
@@ -51,7 +55,7 @@ class PyDictReimplementation(object):
     @classmethod
     def insertdict_clean(cls, hashes, keys, values, key, value):
         hash_code = hash(key)
-        perturb = hash_code
+        perturb = cls.signed_to_unsigned(hash_code)
 
         idx = hash_code % len(keys)
         while keys[idx] is not None:
