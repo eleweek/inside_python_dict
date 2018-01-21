@@ -6,15 +6,18 @@ import datadiff
 while True:
     d = {}
     dreimpl = PyDictReimplementation()
-    for i in range(10000):
+    keys = []
+    for i in range(6):
         print(i)
         s = generate_random_string()
         d[s] = 2 * i
         dreimpl[s] = 2 * i
+        keys.append(s)
         assert dreimpl[s] == 2 * i
         dump_do = dump_py_dict(dictobject(d))
         dump_reimpl = dump_py_reimpl_dict(dreimpl)
         if dump_do != dump_reimpl:
+            print(keys)
             print(dump_py_dict(dictobject(d)))
             print(dump_py_reimpl_dict(dreimpl))
             print(datadiff.diff(dump_do, dump_reimpl))

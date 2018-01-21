@@ -78,16 +78,11 @@ class PyDictReimplementation(object):
     def resize(self):
         print("RESIZE")
         old_hashes, old_keys, old_values = self.hashes, self.keys, self.values
-        old_fill = self.fill
-        self.fill = 0
 
         new_size = len(self.keys) * 4  # TODO: properly copy new size calculation
         self.hashes = self._new_empty(new_size)
         self.keys = self._new_empty(new_size)
         self.values = self._new_empty(new_size)
-
-        # TODO: less hack-ish way of handling fill
-        self.fill = old_fill
 
         for h, k, v in zip(old_hashes, old_keys, old_values):
             if h is not None and k is not None:
