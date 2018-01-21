@@ -7,7 +7,7 @@ while True:
     d = {}
     dreimpl = PyDictReimplementation()
     keys = []
-    for i in range(6):
+    for i in range(2000):
         print(i)
         s = generate_random_string()
         d[s] = 2 * i

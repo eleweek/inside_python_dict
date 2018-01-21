@@ -70,10 +70,11 @@ class PyDictReimplementation(object):
         values[idx] = value
 
     def __setitem__(self, key, value):
-        if (self.fill + 1) * 3 >= len(self.keys) * 2:
-            self.resize()
-        self.insertdict_clean(self.hashes, self.keys, self.values, key, value)
         self.fill += 1
+        self.insertdict_clean(self.hashes, self.keys, self.values, key, value)
+
+        if self.fill * 3 >= len(self.keys) * 2:
+            self.resize()
 
     def resize(self):
         print("RESIZE")
