@@ -10,6 +10,7 @@ class PyDictReimplementation(object):
         self.keys = self._new_empty(self.START_SIZE)
         self.values = self._new_empty(self.START_SIZE)
         self.fill = 0
+        self.used = 0
 
     @staticmethod
     def _new_empty(size):
@@ -38,6 +39,7 @@ class PyDictReimplementation(object):
         if idx is NULL:
             raise KeyError()
 
+        self.used -= 1
         self.keys[idx] = DUMMY
         self.values[idx] = NULL
 
@@ -63,6 +65,8 @@ class PyDictReimplementation(object):
         if self.keys[idx] is NULL:
             self.fill += 1
 
+        self.used += 1
+
         self.hashes[idx] = hash_code
         self.keys[idx] = key
         self.values[idx] = value
@@ -74,14 +78,18 @@ class PyDictReimplementation(object):
             self.resize()
 
     def resize(self):
-        print("RESIZE")
         old_hashes, old_keys, old_values = self.hashes, self.keys, self.values
 
-        new_size = len(self.keys) * 4  # TODO: properly copy new size calculation
+        new_size = 8
+        # TODO: proper target size (it is sometimes 2, sometimes 4 -- based on used)
+        while new_size < 4 * self.used:
+            new_size *= 2
         self.hashes = self._new_empty(new_size)
         self.keys = self._new_empty(new_size)
         self.values = self._new_empty(new_size)
+        # TODO: rewrite handling of fill and used
         self.fill = 0
+        self.used = 0
 
         for h, k, v in zip(old_hashes, old_keys, old_values):
             if h is not NULL and k is not NULL and k is not DUMMY:
