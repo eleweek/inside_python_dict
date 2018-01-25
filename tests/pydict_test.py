@@ -8,9 +8,6 @@ import datadiff
 n_inserts = int(sys.argv[1])
 
 while True:
-    d = {}
-    dreimpl = PyDictReimplementation()
-
     def verify_same():
         dump_do = dump_py_dict(dictobject(d))
         dump_reimpl = dump_py_reimpl_dict(dreimpl)
@@ -25,9 +22,18 @@ while True:
 
         assert dump_do == dump_reimpl
 
+    initial_key_set_size = 20
+    initial_keys = set(generate_random_string() for _ in range(initial_key_set_size))
+    keys = list(initial_keys)
+
+    d = dict([(k, -1) for k in initial_keys])
+    dreimpl = PyDictReimplementation()
+    for key in initial_keys:
+        dreimpl[key] = -1
+    verify_same()
+
     n_clear_iterations = 10
     for clear_iteration in range(n_clear_iterations):
-        keys = []
         for i in range(n_inserts):
             print(clear_iteration, i)
             s = generate_random_string()
