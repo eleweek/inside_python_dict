@@ -931,7 +931,7 @@ class App extends React.Component {
 
               <h5> Using hash function in a hash table</h5>
               <p> Recall that we started with a simple problem: just efficiently searching in a list of distinct numbers. Let's make this problem harder: now our hash table needs to support other objects, handle duplicates, support removing and adding keys (and therefore resizing). Let's leave values out of equation (TODO: better tem) for now. </p>
-              <p> (If you are thinking right now, "this is enough to build a python dict", you are correct! However, python dict uses a bit more complicated hash table with a different probing algorithm)
+              <p> (If you are thinking right now, "this is enough to build a python dict", you are correct! However, python dict uses a bit more complicated hash table with a different probing algorithm) </p>
               <p> Let's say we have a mixed list of strings and integers now: </p>
               <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
 
