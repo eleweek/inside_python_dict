@@ -937,7 +937,20 @@ class App extends React.Component {
 
               <p> We're going to update our previous (trivial) hash table to make it work with any hashable objects, including strings. </p>
 
-              <h5> How does adding to a hash table work?  </h5>
+              <h5> How does using hash function change adding?  </h5>
+
+              <p> We obviously have to use hash() function to convert object to number now. But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing almost-equal strings of length 1000 may require up to 1000 comparision operations - one per each pair of corresponding characters. And we may end up doing several comparisons in linear probing. So efficincy of comparison is important. </p>
+              <p> Before we didn't have this problem, because comparing numbers is cheap. Here is a cool thing. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. If hashes are different we can safely conclude that keys are different. However, if hashes are equal, there is still a possibility of two distinct objects having the same hash, so we have to compare the actual objects. </p>
+              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p>
+              <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
+              TODO: visualization
+
+
+
+
+
+
+              <h5> Dev stuff</h5>
               <p>
                 Let's say we want to add
                 <JsonInput inline={true} value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
