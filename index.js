@@ -956,7 +956,14 @@ class App extends React.Component {
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. </p>
               <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing.  </p>
               TODO: visualization
-
+            
+              <h2> How does python dict work internally? </h2>
+              <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
+              <p> The core idea is stayed the same. Python dict is internally is still a hash table. </p>
+              <p> Let's start tackling major changes one by one. </p>
+              
+              <h5> Dict in python 3.2</h5>
+              TODO
 
               <h5> Dev stuff</h5>
               <p>
