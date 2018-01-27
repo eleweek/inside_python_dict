@@ -5,16 +5,23 @@ class DummyClass(object):
 DUMMY = DummyClass()
 
 
+class EmptyClass(object):
+    pass
+
+
+EMPTY = EmptyClass()
+
+
 def create_new(from_keys):
     n = len(from_keys)
-    hash_codes = [None for i in xrange(2 * n)]
-    keys = [None for i in xrange(2 * n)]
+    hash_codes = [EMPTY for i in xrange(2 * n)]
+    keys = [EMPTY for i in xrange(2 * n)]
 
     for key in from_keys:
         hash_code = hash(key)
         idx = hash_code % len(keys)
 
-        while hash_codes[idx] is not None:
+        while hash_codes[idx] is not EMPTY:
             idx = (idx + 1) % len(keys)
 
         hash_codes[idx] = hash_code
@@ -27,7 +34,7 @@ def insert(hash_codes, keys, key):
     hash_code = hash(key)
     idx = hash_code % len(keys)
 
-    while hash_codes[idx] is not None:
+    while hash_codes[idx] is not EMPTY:
         if hash_codes[idx] == hash_code and keys[idx] == key:
             return
         idx = (idx + 1) % len(keys)
@@ -40,7 +47,7 @@ def remove(hash_codes, keys, key):
     hash_code = hash(key)
     idx = hash_code % len(keys)
 
-    while hash_codes[idx] is not None:
+    while hash_codes[idx] is not EMPTY:
         if hash_codes[idx] == hash_code and keys[idx] == key:
             keys[idx] = DUMMY
             return
@@ -52,7 +59,7 @@ def remove(hash_codes, keys, key):
 def has_key(hash_codes, keys, key):
     hash_code = hash(key)
     idx = hash_code % len(keys)
-    while hash_codes[idx] is not None:
+    while hash_codes[idx] is not EMPTY:
         if hash_codes[idx] == hash_code and keys[idx] == key:
             return True
         idx = (idx + 1) % len(keys)
@@ -60,13 +67,13 @@ def has_key(hash_codes, keys, key):
 
 
 def resize(hash_codes, keys):
-    new_hash_codes = [None for i in range(len(hash_codes) * 2)]
-    new_keys = [None for i in range(len(keys) * 2)]
+    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]
+    new_keys = [EMPTY for i in range(len(keys) * 2)]
     for hash_code, key in zip(hash_codes, keys):
-        if hash_code is None or key is DUMMY:
+        if hash_code is EMPTY or key is DUMMY:
             continue
         idx = hash_code % len(new_keys)
-        while new_hash_codes[idx] is not None:
+        while new_hash_codes[idx] is not EMPTY:
             idx = (idx + 1) % len(new_keys)
         new_hash_codes[idx] = hash_code
         new_keys[idx] = key
