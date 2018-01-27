@@ -941,13 +941,19 @@ class App extends React.Component {
 
               <p> We obviously have to use hash() function to convert object to number now. But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing almost-equal strings of length 1000 may require up to 1000 comparision operations - one per each pair of corresponding characters. And we may end up doing several comparisons in linear probing. So efficincy of comparison is important. </p>
               <p> Before we didn't have this problem, because comparing numbers is cheap. Here is a cool thing. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. If hashes are different we can safely conclude that keys are different. However, if hashes are equal, there is still a possibility of two distinct objects having the same hash, so we have to compare the actual objects. </p>
-              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p>
+              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
+              TODO: handling None
               <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
               TODO: visualization
-
-
-
-
+              <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, that's fairly expensive, but we will use 2x larger table, which means that resizes will happen relatively rare. </p>
+              <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
+              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. When doing a search, if we encounter it, we know that we need to keep probing. </p>
+              <p> Let's see this in action. </p>
+              TODO: visualization
+              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. Do they ever get thrown way at all? The answer is yes. Remember that when a table gets full, we need to resize it by throwing away the old table and creating a new one? We simply ignore these dummy objects during a resize operation. </p>
+              <p> Let's see how we could resize the current table </p>
+              TODO: visualization
+              <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. </p>
 
 
               <h5> Dev stuff</h5>
