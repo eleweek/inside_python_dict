@@ -940,12 +940,20 @@ class App extends React.Component {
 
               <p> We're going to update our previous (trivial) hash table to make it work with any hashable objects, including strings. </p>
 
-              <h5> How does using hash function change adding?  </h5>
+              <h5> How does using hash function change insertion algorithm?  </h5>
 
-              <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 1000 may require up to 1000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons in linear probing. So efficincy of comparison is important. </p>
-              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. Here is a cool thing. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
+              <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. </p> 
+              <p> Another change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
+              <pre><code>{`
+class EmptyValueClass(object):
+    pass
+
+EMPTY = EmptyValueClass()
+              `}</code></pre>
+              <p> We will now use <code>EMPTY</code> to denote an empty slot. And we can safely insert <code>None</code> in the hash table.</p>
+              <p> But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 1000 may require up to 1000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons when doing linear probing. </p>
+              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
               <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
-              TODO: handling None
               <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
               TODO: visualization
               <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, that's fairly expensive, but we will use 2x larger table, which means that resizes will happen relatively rare. </p>
