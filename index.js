@@ -956,7 +956,7 @@ EMPTY = EmptyValueClass()
               <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
               <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
               TODO: visualization
-              <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, that's fairly expensive, but we will use 2x larger table, which means that resizes will happen relatively rare. </p>
+              <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
               <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
               <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. When doing a search, if we encounter it, we know that we need to keep probing. </p>
               <p> Let's see this in action. </p>
