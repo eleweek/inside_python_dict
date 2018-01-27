@@ -954,6 +954,8 @@ class App extends React.Component {
               <p> Let's see how we could resize the current table </p>
               TODO: visualization
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. </p>
+              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing.  </p>
+              TODO: visualization
 
 
               <h5> Dev stuff</h5>
