@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -885,12 +885,15 @@ class App extends React.Component {
 
     render() {
         let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
+
         let sia = new SimplifiedInsertAll();
         let simplifiedInsertAllData = sia.run(this.state.exampleArrayNumbers);
         let simplifiedInsertAllBreakpoints = sia.getBreakpoints();
-        let simplifiedSearchBreakpoints = simplifiedSearch(simplifiedInsertAllData, this.state.simplifiedSearchObj);
-        console.log("simpleListSearchBreakpoints");
-        console.log(simpleListSearchBreakpoints);
+
+
+        let ss = new SimplifiedSearch() 
+        ss.run(simplifiedInsertAllData, this.state.simplifiedSearchObj);
+        let simplifiedSearchBreakpoints = ss.getBreakpoints();
 
         let myhash = new MyHash();
 

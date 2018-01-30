@@ -326,45 +326,41 @@ class SimplifiedInsertAll extends BreakpointFunction {
     }
 }
 
-let simplifiedSearch = function(newList, number) {
-    let breakpoints = [];
-
-    let addBP = function(point, idx) {
-        let bp = {
-            point: point,
-            number: number,
-            newList: _.cloneDeep(newList),
-        }
-        if (idx !== null && idx !== undefined) {
-            bp.newListIdx = idx;
-            bp.newListAtIdx = newList[idx];
-        }
-        breakpoints.push(bp);
+class SimplifiedSearch extends BreakpointFunction {
+    constructor() {
+        super({
+            'newListAtIdx': 'this.newList[this.newListIdx]'
+        });
     }
 
-    let idx = number % newList.length;
-    addBP('compute-idx', idx);
-    while (true) {
-        addBP('check-not-found', idx);
-        if (newList[idx] === null) {
-            break;
-        }
-        if (newList[idx] === number) {
-            addBP('check-found', idx);
-            addBP('found-key', idx);
-            return new Breakpoints(breakpoints);
-        } else {
-            addBP('check-found', idx);
+    run(_newList, _number) {
+        this.newList = _newList;
+        this.number = _number;
+
+        this.newListIdx = this.number % this.newList.length;
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-not-found');
+            if (this.newList[this.newListIdx] === null) {
+                break;
+            }
+            this.addBP('check-found');
+            if (this.newList[this.newListIdx] === this.number) {
+                this.addBP('found-key');
+                return true;
+            }
+
+            this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+            this.addBP('next-idx');
         }
 
-        idx = (idx + 1) % newList.length;
-        addBP('next-idx', idx);
+        this.addBP('found-nothing');
+
+        return false;
     }
-
-    addBP('found-nothing');
-
-    return new Breakpoints(breakpoints);
 }
+
 
 class MyHash {
     constructor() {
@@ -590,5 +586,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, simplifiedSearch
+    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch
 }
