@@ -102,7 +102,7 @@ class BoxesBase {
                 return s;
             }
 
-            return s.substring(0, 4) + "&#8230;" + s.substring(s.length - 5, s.length - 1); 
+            return s.substring(0, 4) + "&#8943;" + s.substring(s.length - 5, s.length - 1);
         }
 
         // TODO: unhardcode class names?
