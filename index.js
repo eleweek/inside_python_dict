@@ -1,6 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
+        HashRemove} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -527,6 +528,20 @@ const HASH_CREATE_NEW_CODE = [
     ["    return hash_codes, keys", "return-lists"],
 ];
 
+const HASH_REMOVE_CODE = [
+    ["def remove(hash_codes, keys, key):", "start-execution"],
+    ["    hash_code = hash(key)", "compute-hash"],
+    ["    idx = hash_code % len(keys)", "compute-idx"],
+    ["", ""],
+    ["    while hash_codes[idx] is not EMPTY:", "check-not-found"],
+    ["        if hash_codes[idx] == hash_code and keys[idx] == key:", "check-found"],
+    ["            keys[idx] = DUMMY", "assign-dummy"],
+    ["            return", "return"],
+    ["        idx = (idx + 1) % len(keys)", "next-idx"],
+    ["", ""],
+    ["    raise KeyError()", "throw-key-error"]
+];
+
 
 const SIMPLIFIED_SEARCH_CODE = [
     ["def has_number(new_list, number):", "start-execution"],
@@ -620,6 +635,18 @@ function HashCreateNewStateVisualization(props) {
         lines={
             [
                 [LineOfBoxesComponent, ["from_keys", "fromKeys", "fromKeysIdx"]],
+                [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["keys", "keys", "idx"]]
+            ]
+        }
+        {...props}
+    />;
+}
+
+function HashRemoveStateVisualization(props) {
+    return <Tetris
+        lines={
+            [
                 [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
                 [HashBoxesComponent, ["keys", "keys", "idx"]]
             ]
@@ -906,6 +933,7 @@ class App extends React.Component {
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             howToAddObj: 'py',
             howToSearchObj: 'hmmm',
+            hrToRemove: "xxx",
         }
     }
 
@@ -923,8 +951,12 @@ class App extends React.Component {
 
 
         let hcn = new HashCreateNew();
-        hcn.run(this.state.exampleArray);
+        let [hcnHashCodes, hcnKeys] = hcn.run(this.state.exampleArray);
         let hashCreateNewBreakpoints = hcn.getBreakpoints();
+
+        let hr = new HashRemove();
+        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove);
+        let hashRemoveBreakpoints = hr.getBreakpoints();
 
         let myhash = new MyHash();
 
@@ -1034,8 +1066,12 @@ EMPTY = EmptyValueClass()
               <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
               <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
               <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. When doing a search, if we encounter it, we know that we need to keep probing. </p>
-              <p> Let's see this in action. </p>
-              TODO: visualization
+              <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
+              <VisualizedCode
+                code={HASH_REMOVE_CODE}
+                breakpoints={hashRemoveBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashRemoveStateVisualization} />
               <p> Removing a lot of objects may lead to a table being filled with these dummy objects. Do they ever get thrown way at all? The answer is yes. Remember that when a table gets full, we need to resize it by throwing away the old table and creating a new one? We simply ignore these dummy objects during a resize operation. </p>
               <p> Let's see how we could resize the current table </p>
               TODO: visualization

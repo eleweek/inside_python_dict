@@ -369,7 +369,7 @@ class SimplifiedSearch extends BreakpointFunction {
     }
 }
 
-class HashCreateNew extends BreakpointFunction {
+class HashBreakpointFunction extends BreakpointFunction {
     constructor() {
         super(null, {
             'hashCode': hc => hc.toString(),
@@ -377,6 +377,12 @@ class HashCreateNew extends BreakpointFunction {
         });
     }
 
+    computeIdx(hashCodeBig) {
+        return +hashCodeBig.mod(this.keys.length).plus(this.keys.length).mod(this.keys.length).toString();
+    }
+}
+
+class HashCreateNew extends HashBreakpointFunction {
     run(_fromKeys) {
         this.fromKeys = _fromKeys;
 
@@ -399,7 +405,7 @@ class HashCreateNew extends BreakpointFunction {
             this.hashCode = pyHash(this.key);
             this.addBP('compute-hash');
 
-            this.idx = +this.hashCode.mod(this.keys.length).plus(this.keys.length).mod(this.keys.length).toString();
+            this.idx = this.computeIdx(this.hashCode);
             this.addBP('compute-idx');
 
             while (true) {
@@ -409,7 +415,7 @@ class HashCreateNew extends BreakpointFunction {
                 }
 
                 this.addBP('check-dup');
-                if (this.hashCodes[this.idx] == this.hashCode && this.keys[this.idx] == this.key) {
+                if (this.hashCodes[this.idx].eq(this.hashCode) && this.keys[this.idx] == this.key) {
                     this.addBP('check-dup-break');
                     break;
                 }
@@ -432,6 +438,41 @@ class HashCreateNew extends BreakpointFunction {
         return [this.hashCodes, this.keys];
     }
 }
+
+class HashRemove extends HashBreakpointFunction {
+    run(_hashCodes, _keys, _key) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+        this.key = _key;
+
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-not-found');
+            if (this.keys[this.idx] === null) {
+                break;
+            }
+
+            this.addBP('check-found');
+            if (this.hashCodes[this.idx].eq(this.hashCode) && this.keys[this.idx] == this.key) {
+                this.keys[this.idx] = "DUMMY";
+                this.addBP('assign-dummy');
+                this.addBP('return');
+                return;
+            }
+
+            this.idx = (this.idx + 1) % this.keys.length;
+            this.addBP('next-idx');
+        }
+
+        this.addBP('throw-key-error');
+        return "KeyError()";
+    }
+};
 
 
 class MyHash {
@@ -658,5 +699,6 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew
+    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
+    HashRemove
 }
