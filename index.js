@@ -95,10 +95,20 @@ class BoxesBase {
     }
 
     makeNewBox(value) {
+        let shortenValue = function(value) {
+            // TODO: better way + add hover
+            let s = value.toString();
+            if (s.length <= 13) {
+                return s;
+            }
+
+            return s.substring(0, 4) + "&#8230;" + s.substring(s.length - 5, s.length - 1); 
+        }
+
         // TODO: unhardcode class names?
         let $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
-            $box.html('<span class="box-content">' + value + '</span>');
+            $box.html('<span class="box-content">' + shortenValue(value) + '</span>');
             $box.attr('data-value', value);
             $box.addClass(this.FULL);
         } else {
