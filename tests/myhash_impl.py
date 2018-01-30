@@ -21,7 +21,9 @@ def create_new(from_keys):
         hash_code = hash(key)
         idx = hash_code % len(keys)
 
-        while hash_codes[idx] is not EMPTY:
+        while keys[idx] is not EMPTY:
+            if hash_codes[idx] == hash_code and keys[idx] == key:
+                break
             idx = (idx + 1) % len(keys)
 
         hash_codes[idx] = hash_code

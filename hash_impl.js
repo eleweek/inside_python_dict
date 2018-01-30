@@ -259,9 +259,10 @@ class Breakpoints {
 }
 
 class BreakpointFunction {
-    constructor(evals) {
+    constructor(evals, converters) {
         this._breakpoints = [];
         this._evals = evals;
+        this._converters = converters || {};
     }
 
     addBP(point) {
@@ -270,12 +271,18 @@ class BreakpointFunction {
             if (key[0] != "_") {
                 if (value !== null && value !== undefined) {
                     bp[key] = _.cloneDeep(value);
+
+                    if (key in this._converters) {
+                        bp[key] = this._converters[key](bp[key]);
+                    }
                 }
             }
         }
 
-        for (let [key, toEval] of Object.entries(this._evals)) {
-            bp[key] = eval(toEval);
+        if (this._evals) {
+            for (let [key, toEval] of Object.entries(this._evals)) {
+                bp[key] = eval(toEval);
+            }
         }
 
         this._breakpoints.push(bp);
@@ -294,7 +301,6 @@ class SimplifiedInsertAll extends BreakpointFunction {
     }
 
     run(_originalList) {
-        console.log("test");
         this.originalList = _originalList;
         this.newList = [];
 
@@ -319,6 +325,8 @@ class SimplifiedInsertAll extends BreakpointFunction {
             this.newList[this.newListIdx] = this.number;
             this.addBP('assign-elem');
         }
+        this.originalListIdx = null;
+        this.number = null;
 
         this.addBP('return-created-list');
 
@@ -358,6 +366,70 @@ class SimplifiedSearch extends BreakpointFunction {
         this.addBP('found-nothing');
 
         return false;
+    }
+}
+
+class HashCreateNew extends BreakpointFunction {
+    constructor() {
+        super(null, {
+            'hashCode': hc => hc.toString(),
+            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+        });
+    }
+
+    run(_fromKeys) {
+        this.fromKeys = _fromKeys;
+
+        this.hashCodes = [];
+        this.keys = [];
+
+        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
+            this.hashCodes.push(null);
+        }
+        this.addBP("create-new-empty-hashes");
+
+        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
+            this.keys.push(null);
+        }
+        this.addBP("create-new-empty-keys");
+
+        for ([this.fromKeysIdx, this.key] of this.fromKeys.entries()) {
+            this.addBP('for-loop');
+
+            this.hashCode = pyHash(this.key);
+            this.addBP('compute-hash');
+
+            this.idx = +this.hashCode.mod(this.keys.length).plus(this.keys.length).mod(this.keys.length).toString();
+            this.addBP('compute-idx');
+
+            while (true) {
+                this.addBP('check-collision');
+                if (this.keys[this.idx] === null) {
+                    break;
+                }
+
+                this.addBP('check-dup');
+                if (this.hashCodes[this.idx] == this.hashCode && this.keys[this.idx] == this.key) {
+                    this.addBP('check-dup-break');
+                    break;
+                }
+
+                this.idx = (this.idx + 1) % this.keys.length;
+                this.addBP('next-idx');
+            }
+
+            this.hashCodes[this.idx] = this.hashCode;
+            this.addBP('assign-hash');
+
+            this.keys[this.idx] = this.key;
+            this.addBP('assign-key');
+        }
+
+        this.fromKeysIdx = null;
+        this.key = null;
+
+        this.addBP('return-lists');
+        return [this.hashCodes, this.keys];
     }
 }
 
@@ -586,5 +658,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch
+    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew
 }

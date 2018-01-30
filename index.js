@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -498,20 +498,22 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 
 const HASH_CREATE_NEW_CODE = [
     ["def create_new(from_keys):", "start-execution"],
-    ["    n = len(from_keys)", "get-length"],
-    ["    hash_codes = [EMPTY for i in xrange(2 * n)]", "create-new-empty-hashes"],
-    ["    keys = [EMPTY for i in xrange(2 * n)]", "create-new-empty-keys"],
-    
+    ["    hash_codes = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-hashes"],
+    ["    keys = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-keys"],
+    ["", ""],
     ["    for key in from_keys:", "for-loop"],
     ["        hash_code = hash(key)", "compute-hash"],
     ["        idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],
     ["        while hash_codes[idx] is not EMPTY:", "check-collision"],
+    ["            if hash_codes[idx] == hash_code and keys[idx] == key:", "check-dup"],
+    ["                #TODO: separate condition in two parts", ""],
+    ["                break", "check-dup-break"],
     ["            idx = (idx + 1) % len(keys)", "next-idx"],
-
+    ["", ""],
     ["        hash_codes[idx] = hash_code", "assign-hash"],
     ["        keys[idx] = key", "assign-key"],
-
+    ["", ""],
     ["    return hash_codes, keys", "return-lists"],
 ];
 
@@ -525,6 +527,7 @@ const SIMPLIFIED_SEARCH_CODE = [
     ["        idx = (idx + 1) % len(new_list)", "next-idx"],
     ["    return False", "found-nothing"],
 ];
+
 
 const HASH_INSERT_CODE = [
     ["def insert(hash_codes, keys, key):", "start-execution"],
@@ -596,6 +599,19 @@ function SimplifiedInsertStateVisualization(props) {
             [
                 [LineOfBoxesComponent, ["original_list", "originalList", "originalListIdx"]],
                 [HashBoxesComponent, ["new_list", "newList", "newListIdx"]]
+            ]
+        }
+        {...props}
+    />;
+}
+
+function HashCreateNewStateVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [LineOfBoxesComponent, ["from_keys", "fromKeys", "fromKeysIdx"]],
+                [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["keys", "keys", "idx"]]
             ]
         }
         {...props}
@@ -895,6 +911,11 @@ class App extends React.Component {
         ss.run(simplifiedInsertAllData, this.state.simplifiedSearchObj);
         let simplifiedSearchBreakpoints = ss.getBreakpoints();
 
+
+        let hcn = new HashCreateNew();
+        hcn.run(this.state.exampleArray);
+        let hashCreateNewBreakpoints = hcn.getBreakpoints();
+
         let myhash = new MyHash();
 
         myhash.addArray(this.state.exampleArray);
@@ -995,7 +1016,11 @@ EMPTY = EmptyValueClass()
               <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
               <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
               <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
-              TODO: visualization
+              <VisualizedCode
+                code={HASH_CREATE_NEW_CODE}
+                breakpoints={hashCreateNewBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashCreateNewStateVisualization} />
               <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
               <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
               <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. When doing a search, if we encounter it, we know that we need to keep probing. </p>
