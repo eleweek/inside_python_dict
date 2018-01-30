@@ -1,6 +1,6 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, simplifiedSearch} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -496,6 +496,26 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
     ["    return new_list", "return-created-list"],
 ];
 
+const HASH_CREATE_NEW_CODE = [
+    ["def create_new(from_keys):", "start-execution"],
+    ["    n = len(from_keys)", "get-length"],
+    ["    hash_codes = [EMPTY for i in xrange(2 * n)]", "create-new-empty-hashes"],
+    ["    keys = [EMPTY for i in xrange(2 * n)]", "create-new-empty-keys"],
+    
+    ["    for key in from_keys:", "for-loop"],
+    ["        hash_code = hash(key)", "compute-hash"],
+    ["        idx = hash_code % len(keys)", "compute-idx"],
+    ["", ""],
+    ["        while hash_codes[idx] is not EMPTY:", "check-collision"],
+    ["            idx = (idx + 1) % len(keys)", "next-idx"],
+
+    ["        hash_codes[idx] = hash_code", "assign-hash"],
+    ["        keys[idx] = key", "assign-key"],
+
+    ["    return hash_codes, keys", "return-lists"],
+];
+
+
 const SIMPLIFIED_SEARCH_CODE = [
     ["def has_number(new_list, number):", "start-execution"],
     ["    idx = number % len(new_list)", "compute-idx"],
@@ -504,6 +524,21 @@ const SIMPLIFIED_SEARCH_CODE = [
     ["            return True", "found-key"],
     ["        idx = (idx + 1) % len(new_list)", "next-idx"],
     ["    return False", "found-nothing"],
+];
+
+const HASH_INSERT_CODE = [
+    ["def insert(hash_codes, keys, key):", "start-execution"],
+    ["    hash_code = hash(key)", "compute-hash-code"],
+    ["    idx = hash_code % len(keys)", "compute-idx"],
+    ["", ""],     
+    ["    while hash_codes[idx] is not EMPTY:", "check-collision"],
+    ["        if hash_codes[idx] == hash_code\\", "compare-hashes"],
+    ["           and keys[idx] == key:", "compare-keys"],
+    ["            return", "already-present"],
+    ["        idx = (idx + 1) % len(keys)", "next-idx"],
+    ["", ""],
+    ["    hash_codes[idx] = hash_code", "assign-hash-code"],
+    ["    keys[idx] = key", "assign-key"],
 ];
 
 
@@ -850,8 +885,10 @@ class App extends React.Component {
 
     render() {
         let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
-        let [simplifiedInsertAllBreakpoints, simplifiedInsertedData] = simplifiedInsertAll(this.state.exampleArrayNumbers);
-        let simplifiedSearchBreakpoints = simplifiedSearch(simplifiedInsertedData, this.state.simplifiedSearchObj);
+        let sia = new SimplifiedInsertAll();
+        let simplifiedInsertAllData = sia.run(this.state.exampleArrayNumbers);
+        let simplifiedInsertAllBreakpoints = sia.getBreakpoints();
+        let simplifiedSearchBreakpoints = simplifiedSearch(simplifiedInsertAllData, this.state.simplifiedSearchObj);
         console.log("simpleListSearchBreakpoints");
         console.log(simpleListSearchBreakpoints);
 

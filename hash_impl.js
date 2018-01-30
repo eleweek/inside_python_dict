@@ -258,55 +258,72 @@ class Breakpoints {
     }
 }
 
-let simplifiedInsertAll = function(originalList) {
-    let breakpoints = [];
-    let newList = [];
-
-    let addBP = function(point, number, idx, originalListIdx) {
-        let bp = {
-            point: point,
-            newList: _.cloneDeep(newList),
-            originalList: _.cloneDeep(originalList),
-        }
-        if (number !== null && number !== undefined) {
-            bp.number = number;
-        }
-        if (idx !== null && idx !== undefined) {
-            bp.newListIdx = idx;
-            bp.newListAtIdx = newList[idx];
-        }
-        if (originalListIdx !== null && originalListIdx !== undefined) {
-            bp.originalListIdx = originalListIdx;
-        }
-        breakpoints.push(bp);
+class BreakpointFunction {
+    constructor(evals) {
+        this._breakpoints = [];
+        this._evals = evals;
     }
-    // addBP('start-execution');
 
-    for (let i = 0; i < originalList.length * 2; ++i) {
-        newList.push(null);
-    }
-    addBP('create-new-list');
-
-    for (let [originalListIdx, number] of originalList.entries()) {
-        addBP('for-loop', number, null, originalListIdx);
-        let idx = number % newList.length;
-        addBP('compute-idx', number, idx, originalListIdx);
-        while (true) {
-            addBP('check-collision', number, idx, originalListIdx);
-            if (newList[idx] === null) {
-                break;
+    addBP(point) {
+        let bp = {point: point}
+        for (let [key, value] of Object.entries(this)) {
+            if (key[0] != "_") {
+                if (value !== null && value !== undefined) {
+                    bp[key] = _.cloneDeep(value);
+                }
             }
-
-            idx = (idx + 1) % newList.length;
-            addBP('next-idx', number, idx, originalListIdx);
         }
-        newList[idx] = number;
-        addBP('assign-elem', number, idx, originalListIdx);
+
+        for (let [key, toEval] of Object.entries(this._evals)) {
+            bp[key] = eval(toEval);
+        }
+
+        this._breakpoints.push(bp);
     }
 
-    addBP('return-created-list');
+    getBreakpoints() {
+        return new Breakpoints(this._breakpoints);
+    }
+}
 
-    return [new Breakpoints(breakpoints), newList];
+class SimplifiedInsertAll extends BreakpointFunction {
+    constructor() {
+        super({
+            'newListAtIdx': 'this.newList[this.newListIdx]'
+        });
+    }
+
+    run(_originalList) {
+        console.log("test");
+        this.originalList = _originalList;
+        this.newList = [];
+
+        for (let i = 0; i < this.originalList.length * 2; ++i) {
+            this.newList.push(null);
+        }
+        this.addBP('create-new-list');
+
+        for ([this.originalListIdx, this.number] of this.originalList.entries()) {
+            this.addBP('for-loop');
+            this.newListIdx = this.number % this.newList.length;
+            this.addBP('compute-idx');
+            while (true) {
+                this.addBP('check-collision');
+                if (this.newList[this.newListIdx] === null) {
+                    break;
+                }
+
+                this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+                this.addBP('next-idx');
+            }
+            this.newList[this.newListIdx] = this.number;
+            this.addBP('assign-elem');
+        }
+
+        this.addBP('return-created-list');
+
+        return this.newList;
+    }
 }
 
 let simplifiedSearch = function(newList, number) {
@@ -573,5 +590,5 @@ function simpleListSearch(l, key) {
 }
 
 export {
-    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, simplifiedInsertAll, simplifiedSearch
+    pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, simplifiedSearch
 }
