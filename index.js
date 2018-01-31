@@ -14,6 +14,11 @@ function doubleRAF(callback) {
     });
 }
 
+function logViewportStats() {
+    console.log("window: " + window.innerWidth + "x" + window.innerHeight);
+    console.log("document.documentElement: " + document.documentElement.clientWidth + "x" + document.documentElement.clientHeight);
+}
+
 class BoxesBase {
     constructor(element, boxSize) {
         this.$element = $(element);
@@ -1151,6 +1156,7 @@ EMPTY = EmptyValueClass()
 }
 
 $(document).ready(function() {
+    logViewportStats();
     /* TODO: properly apply stickyfill */
     /*let elements = $('.sticky-top');
     Stickyfill.add(elements);*/
