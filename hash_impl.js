@@ -370,15 +370,15 @@ class SimplifiedSearch extends BreakpointFunction {
 }
 
 class HashBreakpointFunction extends BreakpointFunction {
-    constructor() {
-        super(null, {
+    constructor(evals, converters) {
+        super(evals, converters || {
             'hashCode': hc => hc.toString(),
             'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
         });
     }
 
-    computeIdx(hashCodeBig) {
-        return +hashCodeBig.mod(this.keys.length).plus(this.keys.length).mod(this.keys.length).toString();
+    computeIdx(hashCodeBig, len) {
+        return +hashCodeBig.mod(len).plus(len).mod(len).toString();
     }
 }
 
@@ -405,7 +405,7 @@ class HashCreateNew extends HashBreakpointFunction {
             this.hashCode = pyHash(this.key);
             this.addBP('compute-hash');
 
-            this.idx = this.computeIdx(this.hashCode);
+            this.idx = this.computeIdx(this.hashCode, this.keys.length);
             this.addBP('compute-idx');
 
             while (true) {
@@ -448,7 +448,7 @@ class HashRemove extends HashBreakpointFunction {
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.idx = this.computeIdx(this.hashCode);
+        this.idx = this.computeIdx(this.hashCode, this.keys.length);
         this.addBP('compute-idx');
 
         while (true) {
@@ -472,6 +472,63 @@ class HashRemove extends HashBreakpointFunction {
         this.addBP('throw-key-error');
         return "KeyError()";
     }
+};
+
+
+class HashResize extends HashBreakpointFunction {
+    constructor() {
+        super(null, {
+            'hashCode': hc => hc.toString(),
+            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+            'newHashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+        });
+    }
+
+    run(_hashCodes, _keys) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+
+        this.newHashCodes = [];
+        this.newKeys = [];
+
+        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+            this.newHashCodes.push(null);
+        }
+        this.addBP("create-new-empty-hashes");
+
+        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+            this.newKeys.push(null);
+        }
+        this.addBP("create-new-empty-keys");
+
+        for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
+            this.addBP('for-loop');
+            if (this.key === null || this.key == "DUMMY") {
+                this.addBP('skip-empty-dummy');
+                this.addBP('continue');
+                continue;
+            }
+            this.idx = this.computeIdx(this.hashCode, this.newKeys.length);
+            this.addBP('compute-idx');
+
+            while (true) {
+                this.addBP('check-collision');
+                if (this.newKeys[this.idx] === null) {
+                    break;
+                }
+
+                this.idx = (this.idx + 1) % this.newKeys.length;
+                this.addBP('next-idx');
+            }
+
+            this.newHashCodes[this.idx] = this.hashCode;
+            this.addBP('assign-hash');
+
+            this.newKeys[this.idx] = this.key;
+            this.addBP('assign-key');
+        }
+    }
+    this.addBP('return');
 };
 
 
@@ -700,5 +757,5 @@ function simpleListSearch(l, key) {
 
 export {
     pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-    HashRemove
+    HashRemove, HashResize
 }

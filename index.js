@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-        HashRemove} from './hash_impl.js';
+        HashRemove, HashResize} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -542,6 +542,22 @@ const HASH_REMOVE_CODE = [
     ["    raise KeyError()", "throw-key-error"]
 ];
 
+const HASH_RESIZE_CODE = [
+    ["def resize(hash_codes, keys):", "start-execution"],
+    ["    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]", "create-new-empty-hashes"],
+    ["    new_keys = [EMPTY for i in range(len(keys) * 2)]", "create-new-empty-keys"],
+    ["    for hash_code, key in zip(hash_codes, keys):", "for-loop"],
+    ["        if key is EMPTY or key is DUMMY:", "skip-empty-dummy"],
+    ["            continue", "continue"],
+    ["        idx = hash_code % len(new_keys)", "compute-idx"],
+    ["        while new_hash_codes[idx] is not EMPTY:", "check-collision"],
+    ["            idx = (idx + 1) % len(new_keys)", "next-idx"],
+    ["        new_hash_codes[idx] = hash_code", "assign-hash"],
+    ["        new_keys[idx] = key", "assign-key"],
+    ["", ""],
+    ["    return new_hash_codes, new_keys", "return"],
+];
+
 
 const SIMPLIFIED_SEARCH_CODE = [
     ["def has_number(new_list, number):", "start-execution"],
@@ -649,6 +665,20 @@ function HashRemoveStateVisualization(props) {
             [
                 [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
                 [HashBoxesComponent, ["keys", "keys", "idx"]]
+            ]
+        }
+        {...props}
+    />;
+}
+
+function HashResizeStateVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [HashBoxesComponent, ["hash_codes", "hashCodes", "oldIdx"]],
+                [HashBoxesComponent, ["keys", "keys", "oldIdx"]],
+                [HashBoxesComponent, ["new_hash_codes", "newHashCodes", "idx"]],
+                [HashBoxesComponent, ["new_keys", "newKeys", "idx"]],
             ]
         }
         {...props}
@@ -958,6 +988,10 @@ class App extends React.Component {
         hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove);
         let hashRemoveBreakpoints = hr.getBreakpoints();
 
+        let hres = new HashResize();
+        hres.run(hcnHashCodes, hcnKeys);
+        let hashResizeBreakpoints = hres.getBreakpoints();
+
         let myhash = new MyHash();
 
         myhash.addArray(this.state.exampleArray);
@@ -1074,7 +1108,11 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashRemoveStateVisualization} />
               <p> Removing a lot of objects may lead to a table being filled with these dummy objects. Do they ever get thrown way at all? The answer is yes. Remember that when a table gets full, we need to resize it by throwing away the old table and creating a new one? We simply ignore these dummy objects during a resize operation. </p>
               <p> Let's see how we could resize the current table </p>
-              TODO: visualization
+              <VisualizedCode
+                code={HASH_RESIZE_CODE}
+                breakpoints={hashResizeBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashResizeStateVisualization} />
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. </p>
               <p> And one more thing. The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
               TODO: visualization

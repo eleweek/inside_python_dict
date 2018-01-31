@@ -72,7 +72,7 @@ def resize(hash_codes, keys):
     new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]
     new_keys = [EMPTY for i in range(len(keys) * 2)]
     for hash_code, key in zip(hash_codes, keys):
-        if hash_code is EMPTY or key is DUMMY:
+        if key is EMPTY or key is DUMMY:
             continue
         idx = hash_code % len(new_keys)
         while new_hash_codes[idx] is not EMPTY:
