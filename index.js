@@ -1121,6 +1121,8 @@ EMPTY = EmptyValueClass()
               <p> To efficiently implement these things, we need to track fill factor and useful usage. With the way the code is currently structured right now, this will be messy, because we will need to pass fill/used counter to and from every function. </p>
               
               <h2> Putting it all together to make an almost-python-dict</h2>
+              <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. So we can write our_dict[key] instead of writing our_dict.find(key). The former looks nicer and allows us to mimic some parts of the interface of python dict. </p>
+              <p> TODO: links to some guides. </p>
             
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
