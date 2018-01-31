@@ -69,6 +69,10 @@
     background-color: #fcf8e3;
 }
 
+pre > code {
+    font-size: 13px !important;
+}
+
 .code-highlight {
     background-color: #C2DFFF;
 }

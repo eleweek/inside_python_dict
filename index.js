@@ -812,7 +812,7 @@ function CodeBlock(props) {
         formattedLine += explanation;
         lines.push(formattedLine);
     }
-    return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
+    return <div className="code-block"><pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre></div>;
 }
 
 
@@ -887,7 +887,6 @@ class VisualizedCode extends React.Component {
         return (<React.Fragment>
             <div className="row">
               <div className="col-md-6 col-sm-12">
-                <h6> Steps </h6>
                 <TimeSlider
                    handleTimeChange={this.handleTimeChange}
                    time={this.props.breakpoints.getPairToTime(this.state.bpGroupIdx, this.state.bpGroupActiveIdx)}
@@ -897,11 +896,9 @@ class VisualizedCode extends React.Component {
             </div>
             <div className="row">
               <div className="col">
-                <h6> Code </h6>
                 <CodeBlock code={this.props.code} bp={bp} formatBpDesc={this.props.formatBpDesc}/>
               </div>
             </div>
-            <h6> Data </h6>
             <StateVisualization bp={bp} />
         </React.Fragment>)
     }
