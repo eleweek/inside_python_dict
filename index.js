@@ -1004,13 +1004,13 @@ class App extends React.Component {
         return(
             <div>
               <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <h2> Chapter 1: hash tables </h2>
+              <h2> Chapter 1: searching in a list efficiently</h2>
               <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. This page is dynamic and interactive &mdash; you can plug your own data and see how the algorithms work on it. </p>
-              <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you are using, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
-              <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <em> the algorithms and the underlying data structure. </em></p>
+              <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you usually use, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
+              <p> Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is help you understand <strong> the algorithms and the underlying data structure</strong>, not the minutae details of C code (these are interesting too, but are out of the scope of this page).</p>
               <h5> Let's get started! </h5>
 
-              <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. Let's start with a simplified problem here. We won't have any values. And "keys" will be plain integers. So our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
+              <p> The most important part of python dict is handling keys. Somehow we need to organize our keys in such a way that searching, inserting and deleting is possible. We will begin with a simplified problem. We won't have any values. And "keys" will be just plain integers. So our simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem in a few moments, but for now, bear with me. </p>
 
               <p> So, let's say we have a simple list of numbers:</p>
               <div className="sticky-top">
@@ -1019,7 +1019,7 @@ class App extends React.Component {
               <p className="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
               <p> Python lists are actually arrays &mdash; contiguous chunks of memory. Thus the name "list" may be misleading to people who are unfamiliar with python but know about e.g. double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
-              <p> Appending to list is fast, as well as getting an element by index. However, searching for a specific element can be slow, because elements have no order whatsover. We may get lucky and do only a couple of iterations if the searched element is located near the beginning of the array. But if the searched element is not here, we'll have to scan over the whole array. </p>
+              <p> Appending to list is fast, as well as getting an element by index. However, searching for a specific element can be slow, because elements have no order whatsoever. We may get lucky and do only a couple of iterations if the searched element is located near the beginning of the array. But if the searched element is not here, we'll have to scan over the whole array. </p>
               <p> Here is how we could visualize the search algorithm. </p>
               <p> Let's search for
                 <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
@@ -1034,7 +1034,7 @@ class App extends React.Component {
               <p> Sure, scanning over a few values is no big deal. But what if we have a million of distinct numbers? If a number is missing, verifying this requires looking through the whole million of numbers. </p>
               <p> What we can do is organize our data in a quite different way. Here is how. Let's create a new list. This list will be a list of slots where we'll put numbers from the original list. And we'll use the number itself to compute an index of a slot for the number. The super simple way is just take the slot <code> number % len(the_list) </code> and put our number there. Would this approach work? Not quite. For example, two numbers (TODO: compute it) would be put in the same slot. Such situtations are called <em>collisions</em>.</p>
               <p> To make this approach viable we need to somehow <strong>resolve collisions</strong>. Let's do the following. If the slot is already occupied by some other number, we'll just check the slot right after it. And if the next slot is empty, we'll put the number there. What if the next slot is also occupied? We'll repeat the process until we finally hit an empty slot! This process of continous searching for an empty slot is called <strong> linear probing </strong>. </p> 
-              <p> If we make it the same size as the original list, we'll have too many collisions. So what size it should be? If we make it 10x larger we'll have very few collisions, but we'll waste a lot of memory. We want to hit the sweet spot where we don't spend too much memory but also don't have too many collisions. Let's make the new list double the size of the original list. </p>
+              <p> If we make it the same size as the original list, we'll have too many collisions. So what size should it be? If we make it 10x larger we'll have very few collisions, but we'll waste a lot of memory. We want to hit the sweet spot where we don't spend too much memory but also don't have too many collisions. Double the size of the original list is reasonable. </p>
               <p> Let's transform the original list using this method (when reading this code, remember that <code>original_list</code> is a list of <em>distinct numbers</em>, so we don't need to handle duplicates just yet.</p>
               <VisualizedCode
                 code={SIMPLIFIED_INSERT_ALL_CODE}
@@ -1052,11 +1052,11 @@ class App extends React.Component {
                 formatBpDesc={formatSimplifiedSearchDescription}
                 stateVisualization={SimplifiedSearchStateVisualization} />
 
-              <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dicts internally use hash tables, albeit a more complicated variant. </p>
+              <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dict internally uses hash table, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm stop prematurely in many cases?). And perhaps most importantly, how do we handle objects other than integers - strings, tuples, floats? </p>
-              <h5> Why hash tables are called hash tables? </h5>
-              <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number - we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we always need to get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them. </p>
-              <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash". </p>
+              <h2> Chapter 2. Why hash tables are called hash tables? </h2>
+              <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them. </p>
+              <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
               <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single python function <code>hash()</code></p> 
               <HashExamples />
               <p> As you can see in case of strings, hash() returns fairly unpredictable integers, as it should. One major exception is integers, you can notice that hash(x) == x for "short" integers. This fact may seem surprising for most people, however it is a delibirate design decision. </p>
@@ -1073,22 +1073,23 @@ class App extends React.Component {
               <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
 
               <p> We're going to update our previous (trivial) hash table to make it work with any hashable objects, including strings. </p>
+              <p> Hash tables are called hash tables, because they use hash functions and because they also "mix up" the order of input elements </p>.
 
               <h5> How does using hash function change insertion algorithm?  </h5>
 
               <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. </p> 
-              <p> Another change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
+              <p> Another small change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
               <pre><code>{`
 class EmptyValueClass(object):
     pass
 
 EMPTY = EmptyValueClass()
               `}</code></pre>
-              <p> We will now use <code>EMPTY</code> to denote an empty slot. And we can safely insert <code>None</code> in the hash table.</p>
-              <p> But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 1000 may require up to 1000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons when doing linear probing. </p>
+              <p> We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
+              <p> But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons when doing linear probing. </p>
               <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
               <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
-              <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hashes</code> </p>
+              <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hash_codes</code> </p>
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
                 breakpoints={hashCreateNewBreakpoints}
@@ -1096,13 +1097,18 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashCreateNewStateVisualization} />
               <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
               <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
-              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. When doing a search, if we encounter it, we know that we need to keep probing. </p>
+              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. During search, if we encounter it, we know that we need to keep probing. </p>
               <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
+
               <VisualizedCode
                 code={HASH_REMOVE_CODE}
                 breakpoints={hashRemoveBreakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashRemoveStateVisualization} />
+
+              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
+              TODO: visualization
+
               <p> Removing a lot of objects may lead to a table being filled with these dummy objects. Do they ever get thrown way at all? The answer is yes. Remember that when a table gets full, we need to resize it by throwing away the old table and creating a new one? We simply ignore these dummy objects during a resize operation. </p>
               <p> Let's see how we could resize the current table </p>
               <VisualizedCode
@@ -1110,11 +1116,13 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashResizeBreakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashResizeStateVisualization} />
-              <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. </p>
-              <p> And one more thing. The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
-              TODO: visualization
+              <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. A typical hash table is resized when fill factor hits 2/3. How does the size change? Normally the size of table is increased by a factor of 2 or 4. But because the table may contain dummy elements, the size of the table may actually decrease.</p>
+              <p> To efficiently implement these things, we need to track fill factor and useful usage. With the way the code is currently structured right now, this will be messy, because we will need to pass fill/used counter to and from every function. </p>
+              
+              <h2> Putting it all together to make an almost-python-dict</h2>
             
-              <h2> How does python dict *really* work internally? </h2>
+              <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
               <p> However, the core idea is stayed the same. Python dict is internally is still a hash table. </p>
               <p> Let's start tackling major changes one by one. </p>
