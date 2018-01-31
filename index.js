@@ -787,7 +787,8 @@ let formatSearchCodeBreakpointDescription = function(bp) {
 }
 
 let dummyFormat = function(bp) {
-    return JSON.stringify(bp);
+    /* return JSON.stringify(bp); */
+    return "";
 }
 
 
@@ -800,7 +801,10 @@ function CodeBlock(props) {
         let explanation = "";
         if (bpPoint == props.bp.point) {
             className += " code-highlight";
-            explanation = ` # <span class="code-explanation">${props.formatBpDesc(props.bp)}</span>`
+            let formattedBpDesc = props.formatBpDesc(props.bp);
+            if (formattedBpDesc) {
+                explanation = ` # <span class="code-explanation">${formattedBpDesc}</span>`
+            }
         }
 
         let paddedLine = _.padEnd(line, maxLen);
