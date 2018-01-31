@@ -796,14 +796,17 @@ function CodeBlock(props) {
     let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
 
     for (let [line, bpPoint] of props.code) {
-        let className = bpPoint;
-        if (bpPoint == props.bpPoint) {
+        let className = props.bp.point;
+        let explanation = "";
+        if (bpPoint == props.bp.point) {
             className += " code-highlight";
+            explanation = ` # <span class="code-explanation">${props.formatBpDesc(props.bp)}</span>`
         }
 
         let paddedLine = _.padEnd(line, maxLen);
-
-        lines.push(`<span class="${className}">${paddedLine}</span>`);
+        let formattedLine = `<span class="${className}">${paddedLine}</span>`;
+        formattedLine += explanation;
+        lines.push(formattedLine);
     }
     return <pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre>
 }
@@ -879,29 +882,19 @@ class VisualizedCode extends React.Component {
 
         return (<React.Fragment>
             <div className="row">
-              <div className="col-md-6">
-                <h6> Code </h6>
-                <CodeBlock code={this.props.code} bpPoint={bp.point} />
-              </div>
-              <div className="col-md-6">
+              <div className="col-md-6 col-sm-12">
                 <h6> Steps </h6>
                 <TimeSlider
                    handleTimeChange={this.handleTimeChange}
                    time={this.props.breakpoints.getPairToTime(this.state.bpGroupIdx, this.state.bpGroupActiveIdx)}
                    maxTime={this.props.breakpoints.maxTime}
                 />
-                <CustomScroll allowOuterScroll={true}>
-                  <div className="breakpoints">
-                    <BreakpointsList
-                      groupIdx={this.state.bpGroupIdx}
-                      activeIdx={this.state.bpGroupActiveIdx}
-                      key={JSON.stringify(this.props.breakpoints)}
-                      breakpoints={this.props.breakpoints}
-                      onActiveBreakpointChange={this.handleActiveBreakpointChange}
-                      formatBpDesc={this.props.formatBpDesc}
-                    />
-                  </div>
-                </CustomScroll>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                <h6> Code </h6>
+                <CodeBlock code={this.props.code} bp={bp} formatBpDesc={this.props.formatBpDesc}/>
               </div>
             </div>
             <h6> Data </h6>
