@@ -527,8 +527,8 @@ class HashResize extends HashBreakpointFunction {
             this.newKeys[this.idx] = this.key;
             this.addBP('assign-key');
         }
+        this.addBP('return');
     }
-    this.addBP('return');
 };
 
 
