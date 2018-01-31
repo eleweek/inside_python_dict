@@ -892,16 +892,14 @@ class VisualizedCode extends React.Component {
                 />
                 <CustomScroll allowOuterScroll={true}>
                   <div className="breakpoints">
-                    <CrossFade>
-                        <BreakpointsList
-                          groupIdx={this.state.bpGroupIdx}
-                          activeIdx={this.state.bpGroupActiveIdx}
-                          key={JSON.stringify(this.props.breakpoints)}
-                          breakpoints={this.props.breakpoints}
-                          onActiveBreakpointChange={this.handleActiveBreakpointChange}
-                          formatBpDesc={this.props.formatBpDesc}
-                        />
-                    </CrossFade>
+                    <BreakpointsList
+                      groupIdx={this.state.bpGroupIdx}
+                      activeIdx={this.state.bpGroupActiveIdx}
+                      key={JSON.stringify(this.props.breakpoints)}
+                      breakpoints={this.props.breakpoints}
+                      onActiveBreakpointChange={this.handleActiveBreakpointChange}
+                      formatBpDesc={this.props.formatBpDesc}
+                    />
                   </div>
                 </CustomScroll>
               </div>
