@@ -745,10 +745,10 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 let formatSimplifiedSearchDescription = function(bp) {
     switch (bp.point) {
         case 'compute-idx':
-            return `Compute the slot number: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+            return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-not-found':
             if (bp.newListAtIdx === null) {
-                return `The slot ${bp.newListIdx} is empty`;
+                return `The slot ${bp.newListIdx} is empty, so don't loop`;
             } else {
                 return `The slot ${bp.newListIdx} is occupied by <code>${bp.newListAtIdx}</code>`;
             }
@@ -764,7 +764,7 @@ let formatSimplifiedSearchDescription = function(bp) {
         case 'found-nothing':
             return "Simply return false";
         case 'next-idx':
-            return `${bp.number} is not found so far. Keep probing, the next slot to check will be ${bp.newListIdx}`;
+            return `Keep retracing probing steps, the next slot will be ${bp.newListIdx}`;
         case 'return-created-list':
             return `Return created list`;
         default:
