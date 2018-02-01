@@ -722,17 +722,17 @@ let formatSimplifiedInsertAllDescription = function(bp) {
         case 'create-new-list':
             return `Create new list of size ${bp.newList.length}`;
         case 'for-loop':
-            return `Process the next number <code> ${bp.number} </code>`;
+            return `Current number to insert is <code>${bp.number}</code>`;
         case 'compute-idx':
-            return `Compute the slot number: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+            return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-collision':
             if (bp.newListAtIdx === null) {
-                return `No collision in the slot ${bp.newListIdx}, the slot is empty`;
+                return `The slot ${bp.newListIdx} is empty, so don't loop`;
             } else {
-                return `Collision in the slot ${bp.newListIdx} with the number ${bp.newListAtIdx}, skip this slot`;
+                return `Collision in the slot ${bp.newListIdx} with the number ${bp.newListAtIdx}`;
             }
         case 'next-idx':
-            return `Next slot to probe will be ${bp.newListIdx}`;
+            return `Keep probing, the next slot will be ${bp.newListIdx}`;
         case 'assign-elem':
             return `Put <code>${bp.number}</code> in the empty slot ${bp.newListIdx}`;
         case 'return-created-list':
@@ -808,7 +808,7 @@ function CodeBlock(props) {
             className += " code-highlight";
             let formattedBpDesc = props.formatBpDesc(props.bp);
             if (formattedBpDesc) {
-                explanation = ` # <span class="code-explanation">${formattedBpDesc}</span>`
+                explanation = ` | <span class="code-explanation">${formattedBpDesc}</span>`
             }
         }
 
