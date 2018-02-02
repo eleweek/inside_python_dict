@@ -8,6 +8,13 @@ import CustomScroll from 'react-custom-scroll';
 import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
 
+var low = require('lowlight');
+var rehype = require('rehype');
+var python = require('highlight.js/lib/languages/python');
+low.registerLanguage('python', python);
+
+import HighLightJStyle from 'highlight.js/styles/default.css';
+
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(callback);
@@ -853,7 +860,17 @@ function CodeBlock(props) {
         }
 
         let paddedLine = _.padEnd(line, maxLen);
-        let formattedLine = `<span class="${className}">${paddedLine}</span>`;
+        let lowAst = low.highlight('python', paddedLine).value;
+
+        let htCodeHtml = rehype().stringify({
+                type: 'root',
+                children: lowAst
+            }).toString();
+        console.log(paddedLine);
+        console.log(lowAst);
+        console.log(htCodeHtml);
+
+        let formattedLine = `<span class="${className}">${htCodeHtml}</span>`;
         formattedLine += explanation;
         lines.push(formattedLine);
     }
