@@ -512,8 +512,8 @@ class HashResize extends HashBreakpointFunction {
 
         for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
             this.addBP('for-loop');
+            this.addBP('check-skip-empty-dummy');
             if (this.key === null || this.key == "DUMMY") {
-                this.addBP('skip-empty-dummy');
                 this.addBP('continue');
                 continue;
             }

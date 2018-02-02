@@ -558,7 +558,7 @@ const HASH_RESIZE_CODE = [
     ["    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]", "create-new-empty-hashes"],
     ["    new_keys = [EMPTY for i in range(len(keys) * 2)]", "create-new-empty-keys"],
     ["    for hash_code, key in zip(hash_codes, keys):", "for-loop"],
-    ["        if key is EMPTY or key is DUMMY:", "skip-empty-dummy"],
+    ["        if key is EMPTY or key is DUMMY:", "check-skip-empty-dummy"],
     ["            continue", "continue"],
     ["        idx = hash_code % len(new_keys)", "compute-idx"],
     ["        while new_hash_codes[idx] is not EMPTY:", "check-collision"],
@@ -843,11 +843,13 @@ let formatHashResize = function(bp) {
             return `The current key to insert is <code>${bp.key === null ? "EMPTY" : bp.key}</code>, its hash is <code>${bp.hashCode === null ? "EMPTY" : bp.hashCode}</code>`;
         case 'compute-idx':
             return `Compute starting slot index: ${bp.hashCode} % ${bp.newKeys.length} == ${bp.idx}`;
-        case 'skip-empty-dummy':
+        case 'check-skip-empty-dummy':
             if (bp.keys[bp.oldIdx] === null) {
                 return `The current slot is empty`;
-            } else {
+            } else if (bp.keys[bp.oldIdx] == "DUMMY") {
                 return `The current slot contains DUMMY placeholder`;
+            } else {
+                return `The current slot is occupied by a non-removed key`;
             }
         case 'continue':
             return 'So skip it';
