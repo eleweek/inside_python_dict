@@ -563,10 +563,9 @@ const HASH_RESIZE_CODE = [
     ["        idx = hash_code % len(new_keys)", "compute-idx"],
     ["        while new_hash_codes[idx] is not EMPTY:", "check-collision"],
     ["            idx = (idx + 1) % len(new_keys)", "next-idx"],
-    ["        new_hash_codes[idx] = hash_code", "assign-hash"],
-    ["        new_keys[idx] = key", "assign-key"],
+    ["        new_hash_codes[idx], new_keys[idx] = hash_code, key", "assign-elem"],
     ["", ""],
-    ["    return new_hash_codes, new_keys", "return"],
+    ["    return new_hash_codes, new_keys", "return-lists"],
 ];
 
 
@@ -827,6 +826,43 @@ let formatHashRemove = function(bp) {
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'throw-key-error':
             return `throw an excaption, because no key was found`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatHashResize = function(bp) {
+    console.log("formatHashResize");
+    console.log(bp);
+    switch (bp.point) {
+        case 'create-new-empty-hashes':
+            return `Create new list of size ${bp.newHashCodes.length} for hash codes`;
+        case 'create-new-empty-keys':
+            return `Create new list of size ${bp.newKeys.length} for keys`;
+        case 'for-loop':
+            return `The current key to insert is <code>${bp.key === null ? "EMPTY" : bp.key}</code>, its hash is <code>${bp.hashCode === null ? "EMPTY" : bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: ${bp.hashCode} % ${bp.newKeys.length} == ${bp.idx}`;
+        case 'skip-empty-dummy':
+            if (bp.keys[bp.oldIdx] === null) {
+                return `The current slot is empty`;
+            } else {
+                return `The current slot contains DUMMY placeholder`;
+            }
+        case 'continue':
+            return 'So skip it';
+        case 'check-collision':
+            if (bp.keys[bp.idx] === null) {
+                return `The slot ${bp.idx} is empty, so don't loop`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
+            }
+        case 'next-idx':
+            return `Keep probing, the next slot will be ${bp.idx}`;
+        case 'assign-elem':
+            return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.idx}`;
+        case 'return-lists':
+            return `The hash table has been rebuilt, return the lists`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -1214,7 +1250,7 @@ EMPTY = EmptyValueClass()
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
                 breakpoints={hashResizeBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
               <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. A typical hash table is resized when fill factor hits 2/3. How does the size change? Normally the size of table is increased by a factor of 2 or 4. But because the table may contain dummy elements, the size of the table may actually decrease.</p>

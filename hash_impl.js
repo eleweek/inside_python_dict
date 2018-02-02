@@ -273,7 +273,7 @@ class BreakpointFunction {
 
         for (let [key, value] of Object.entries(this)) {
             if (key[0] != "_") {
-                if (value !== null && value !== undefined) {
+                if (value !== undefined) {
                     bp[key] = _.cloneDeep(value);
 
                     if (key in this._converters) {
@@ -376,7 +376,7 @@ class SimplifiedSearch extends BreakpointFunction {
 class HashBreakpointFunction extends BreakpointFunction {
     constructor(evals, converters) {
         super(evals, converters || {
-            'hashCode': hc => hc.toString(),
+            'hashCode': hc => hc !== null ? hc.toString() : null,
             'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
         });
     }
@@ -487,7 +487,7 @@ class HashRemove extends HashBreakpointFunction {
 class HashResize extends HashBreakpointFunction {
     constructor() {
         super(null, {
-            'hashCode': hc => hc.toString(),
+            'hashCode': hc => hc !== null ? hc.toString() : null,
             'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
             'newHashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
         });
@@ -536,7 +536,11 @@ class HashResize extends HashBreakpointFunction {
             this.newKeys[this.idx] = this.key;
             this.addBP('assign-key');
         }
-        this.addBP('return');
+        this.oldIdx = null;
+        this.key = null;
+        this.idx = null;
+        this.addBP('return-lists');
+        return [this.newHashCodes, this.newKeys];
     }
 };
 
