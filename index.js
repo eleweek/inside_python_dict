@@ -770,8 +770,8 @@ let formatHashCreateNew = function(bp) {
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.newListIdx}`;
         case 'assign-elem':
-            if (bp.keys[bp.idx] === null) {
-                return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.newListIdx}`;
+            if (bp._prev_bp.keys[bp.idx] === null) {
+                return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.idx}`;
             } else {
                 return `${bp.key} and its hash (${bp.hashCode}) is already in slot, overwriting it anyway`;
             }

@@ -266,7 +266,11 @@ class BreakpointFunction {
     }
 
     addBP(point) {
-        let bp = {point: point}
+        let bp = {
+            point: point,
+            _prev_bp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null
+        }
+
         for (let [key, value] of Object.entries(this)) {
             if (key[0] != "_") {
                 if (value !== null && value !== undefined) {
