@@ -776,7 +776,7 @@ let formatHashCreateNew = function(bp) {
                 return `${bp.key} and its hash (${bp.hashCode}) is already in slot, overwriting it anyway`;
             }
         case 'return-lists':
-            return `Hash table is built, return the lists`;
+            return `The hash table is built, return the lists`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
