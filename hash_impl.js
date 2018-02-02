@@ -418,10 +418,13 @@ class HashCreateNew extends HashBreakpointFunction {
                     break;
                 }
 
-                this.addBP('check-dup');
-                if (this.hashCodes[this.idx].eq(this.hashCode) && this.keys[this.idx] == this.key) {
-                    this.addBP('check-dup-break');
-                    break;
+                this.addBP('check-dup-hash');
+                if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                    this.addBP('check-dup-key');
+                    if (this.keys[this.idx] == this.key) {
+                        this.addBP('check-dup-break');
+                        break;
+                    }
                 }
 
                 this.idx = (this.idx + 1) % this.keys.length;

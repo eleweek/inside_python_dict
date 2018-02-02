@@ -527,10 +527,9 @@ const HASH_CREATE_NEW_CODE = [
     ["    for key in from_keys:", "for-loop"],
     ["        hash_code = hash(key)", "compute-hash"],
     ["        idx = hash_code % len(keys)", "compute-idx"],
-    ["", ""],
     ["        while hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["            if hash_codes[idx] == hash_code and keys[idx] == key:", "check-dup"],
-    ["                #TODO: separate condition in two parts", ""],
+    ["            if hash_codes[idx] == hash_code and\\", "check-dup-hash"],
+    ["               keys[idx] == key:", "check-dup-key"],
     ["                break", "check-dup-break"],
     ["            idx = (idx + 1) % len(keys)", "next-idx"],
     ["", ""],
@@ -766,7 +765,13 @@ let formatHashCreateNew = function(bp) {
             } else {
                 return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
             }
-        case 'check-dup':
+        case 'check-dup-hash':
+            if (bp.hashCodes[bp.idx] == bp.key) {
+                return `${bp.hashCodes[bp.idx]} == ${bp.hashCode}, we cannot rule out the slot being occupied by the same key`;
+            } else {
+                return `${bp.hashCodes[bp.idx]} != ${bp.hashCode}, so there is a collision with a different key`;
+            }
+        case 'check-dup-key':
             if (bp.keys[bp.idx] == bp.key) {
                 return `${bp.keys[bp.idx]} == ${bp.key}, so the key is already present in the table`;
             } else {
@@ -775,7 +780,7 @@ let formatHashCreateNew = function(bp) {
         case 'check-dup-break':
             return "Because the key is found, break"
         case 'next-idx':
-            return `Keep probing, the next slot will be ${bp.newListIdx}`;
+            return `Keep probing, the next slot will be ${bp.idx}`;
         case 'assign-elem':
             if (bp._prev_bp.keys[bp.idx] === null) {
                 return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.idx}`;
