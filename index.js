@@ -528,7 +528,7 @@ const HASH_CREATE_NEW_CODE = [
     ["        hash_code = hash(key)", "compute-hash"],
     ["        idx = hash_code % len(keys)", "compute-idx"],
     ["        while hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["            if hash_codes[idx] == hash_code and\\", "check-dup-hash"],
+    ["            if hash_codes[idx] == hash_code and \\", "check-dup-hash"],
     ["               keys[idx] == key:", "check-dup-key"],
     ["                break", "check-dup-break"],
     ["            idx = (idx + 1) % len(keys)", "next-idx"],
@@ -544,7 +544,8 @@ const HASH_REMOVE_CODE = [
     ["    idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],
     ["    while hash_codes[idx] is not EMPTY:", "check-not-found"],
-    ["        if hash_codes[idx] == hash_code and keys[idx] == key:", "check-found"],
+    ["        if hash_codes[idx] == hash_code and \\", "check-hash"],
+    ["           keys[idx] == key:", "check-key"],
     ["            keys[idx] = DUMMY", "assign-dummy"],
     ["            return", "return"],
     ["        idx = (idx + 1) % len(keys)", "next-idx"],
@@ -758,7 +759,7 @@ let formatHashCreateNew = function(bp) {
         case 'compute-hash':
             return `Compute hash code: ${bp.hashCode}`;
         case 'compute-idx':
-            return `Compute slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
+            return `Compute starting slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
         case 'check-collision':
             if (bp.keys[bp.idx] === null) {
                 return `The slot ${bp.idx} is empty, so don't loop`;
@@ -766,7 +767,7 @@ let formatHashCreateNew = function(bp) {
                 return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
             }
         case 'check-dup-hash':
-            if (bp.hashCodes[bp.idx] == bp.key) {
+            if (bp.hashCodes[bp.idx] == bp.hashCode) {
                 return `${bp.hashCodes[bp.idx]} == ${bp.hashCode}, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `${bp.hashCodes[bp.idx]} != ${bp.hashCode}, so there is a collision with a different key`;
@@ -789,6 +790,43 @@ let formatHashCreateNew = function(bp) {
             }
         case 'return-lists':
             return `The hash table is built, return the lists`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatHashRemove = function(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: ${bp.hashCode}`;
+        case 'compute-idx':
+            return `Compute starting slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
+        case 'check-not-found':
+            if (bp.keys[bp.idx] === null) {
+                return `The slot ${bp.idx} is empty, no slots to check anymore`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied, so check it`;
+            }
+        case 'check-hash':
+            if (bp.hashCodes[bp.idx] == bp.hashCode) {
+                return `${bp.hashCodes[bp.idx]} == ${bp.hashCode}, we cannot rule out the slot being occupied by the same key`;
+            } else {
+                return `${bp.hashCodes[bp.idx]} != ${bp.hashCode}, so the slot definitely contains a different key`;
+            }
+        case 'check-key':
+            if (bp.keys[bp.idx] == bp.key) {
+                return `${bp.keys[bp.idx]} == ${bp.key}, so the key is already present in the table`;
+            } else {
+                return `${bp.keys[bp.idx]} != ${bp.key}, so there is a collision`;
+            }
+        case 'assign-dummy':
+            return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
+        case 'return':
+            return `They key is removed, work is done`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be ${bp.idx}`;
+        case 'throw-key-error':
+            return `throw an excaption, because no key was found`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -1165,7 +1203,7 @@ EMPTY = EmptyValueClass()
               <VisualizedCode
                 code={HASH_REMOVE_CODE}
                 breakpoints={hashRemoveBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashRemove}
                 stateVisualization={HashRemoveStateVisualization} />
 
               <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>

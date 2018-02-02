@@ -463,12 +463,15 @@ class HashRemove extends HashBreakpointFunction {
                 break;
             }
 
-            this.addBP('check-found');
-            if (this.hashCodes[this.idx].eq(this.hashCode) && this.keys[this.idx] == this.key) {
-                this.keys[this.idx] = "DUMMY";
-                this.addBP('assign-dummy');
-                this.addBP('return');
-                return;
+            this.addBP('check-hash');
+            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                this.addBP('check-key');
+                if (this.keys[this.idx] == this.key) {
+                    this.keys[this.idx] = "DUMMY";
+                    this.addBP('assign-dummy');
+                    this.addBP('return');
+                    return;
+                }
             }
 
             this.idx = (this.idx + 1) % this.keys.length;
