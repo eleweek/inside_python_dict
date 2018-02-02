@@ -425,10 +425,8 @@ class HashCreateNew extends HashBreakpointFunction {
             }
 
             this.hashCodes[this.idx] = this.hashCode;
-            this.addBP('assign-hash');
-
             this.keys[this.idx] = this.key;
-            this.addBP('assign-key');
+            this.addBP('assign-elem');
         }
 
         this.fromKeysIdx = null;

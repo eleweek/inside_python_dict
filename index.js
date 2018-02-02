@@ -527,8 +527,7 @@ const HASH_CREATE_NEW_CODE = [
     ["                break", "check-dup-break"],
     ["            idx = (idx + 1) % len(keys)", "next-idx"],
     ["", ""],
-    ["        hash_codes[idx] = hash_code", "assign-hash"],
-    ["        keys[idx] = key", "assign-key"],
+    ["        hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
     ["", ""],
     ["    return hash_codes, keys", "return-lists"],
 ];
@@ -737,6 +736,47 @@ let formatSimplifiedInsertAllDescription = function(bp) {
             return `Put <code>${bp.number}</code> in the empty slot ${bp.newListIdx}`;
         case 'return-created-list':
             return `Return created list`;
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+let formatHashCreateNew = function(bp) {
+    switch (bp.point) {
+        case 'create-new-empty-hashes':
+            return `Create new list of size ${bp.hashCodes.length} for hash codes`;
+        case 'create-new-empty-keys':
+            return `Create new list of size ${bp.keys.length} for keys`;
+        case 'for-loop':
+            return `Current key to insert is <code>${bp.key}</code>`;
+        case 'compute-hash':
+            return `Compute hash code: ${bp.hashCode}`;
+        case 'compute-idx':
+            return `Compute slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
+        case 'check-collision':
+            if (bp.keys[bp.idx] === null) {
+                return `The slot ${bp.idx} is empty, so don't loop`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
+            }
+        case 'check-dup':
+            if (bp.keys[bp.idx] == bp.key) {
+                return `${bp.keys[bp.idx]} == ${bp.key}, so the key is already present in the table`;
+            } else {
+                return `${bp.keys[bp.idx]} != ${bp.key}, so there is a collision`;
+            }
+        case 'check-dup-break':
+            return "Because the key is found, break"
+        case 'next-idx':
+            return `Keep probing, the next slot will be ${bp.newListIdx}`;
+        case 'assign-elem':
+            if (bp.keys[bp.idx] === null) {
+                return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.newListIdx}`;
+            } else {
+                return `${bp.key} and its hash (${bp.hashCode}) is already in slot, overwriting it anyway`;
+            }
+        case 'return-lists':
+            return `Hash table is built, return the lists`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -1093,7 +1133,7 @@ EMPTY = EmptyValueClass()
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
                 breakpoints={hashCreateNewBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashCreateNew}
                 stateVisualization={HashCreateNewStateVisualization} />
               <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
               <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
