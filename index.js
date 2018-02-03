@@ -344,74 +344,6 @@ function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     }
 }
 
-class BreakpointsGroup extends React.Component {
-    render() {
-        if (this.props.desc.type != 'breakpoint-group') {
-            return (
-                <div
-                    className={this.props.active ? "highlight" : null}
-                    onMouseEnter={this.props.onActiveBreakpointChange.bind(this, 0)}
-                    dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(this.props.desc)}}
-                />
-            );
-        } else {
-            let elems = [];
-            const icon = this.props.active ? '<i class="fa fa-chevron-down" aria-hidden="true"></i>' : '<i class="fa fa-chevron-right" aria-hidden="true"></i>'; 
-            elems.push(
-                <div
-                  onMouseEnter={this.props.onActiveBreakpointChange.bind(this, 0)}
-                  dangerouslySetInnerHTML={{__html: icon + this.props.formatBpDesc(this.props.desc)}}
-                 >
-                </div>
-            );
-
-            if (this.props.active) {
-                let activeIdx = null;
-                if (this.props.activeIdx == -1) {
-                    activeIdx = this.props.desc.children.length - 1; 
-                } else {
-                    activeIdx = this.props.activeIdx;
-                }
-                console.log("activeIdx " + activeIdx);
-
-                for (let [i, childDesc] of this.props.desc.children.entries()) {
-                    elems.push(
-                        <div
-                            className={activeIdx == i ? "highlight" : null}
-                            onMouseEnter={this.props.onActiveBreakpointChange.bind(this, i)}
-                            dangerouslySetInnerHTML={{__html: this.props.formatBpDesc(childDesc)}}
-                        />
-                    );
-                }
-            }
-
-            return <div> {elems} </div>
-        }
-    }
-};
-
-class BreakpointsList extends React.Component {
-    render() {
-        let elems = [];
-        let [groupIdx, activeIdx] = this.props.breakpoints._normalizeNegativePair(this.props.groupIdx, this.props.activeIdx);
-
-        for (let [i, desc] of this.props.breakpoints.originalDescs.entries()) {
-            let active = (groupIdx == i);
-
-            elems.push(
-                <BreakpointsGroup
-                    desc={desc}
-                    active={active}
-                    activeIdx={active ? activeIdx : null}
-                    formatBpDesc={this.props.formatBpDesc}
-                    onActiveBreakpointChange={this.props.onActiveBreakpointChange.bind(this, i)}
-                />
-            );
-        }
-        return <div> {elems} </div>
-    }
-}
-
 function InsertionHistory(props) {
     let ih = props.insertionHistory;
 
@@ -971,15 +903,7 @@ class VisualizedCode extends React.Component {
             bpGroupIdx: -1,
             bpGroupActiveIdx: -1,
         }
-        this.handleActiveBreakpointChange = this.handleActiveBreakpointChange.bind(this);
         this.handleTimeChange = this.handleTimeChange.bind(this);
-    }
-
-    handleActiveBreakpointChange(bpGroupIdx, bpGroupActiveIdx) {
-        this.setState({
-            bpGroupIdx: bpGroupIdx,
-            bpGroupActiveIdx: bpGroupActiveIdx,
-        });
     }
 
     handleTimeChange(time) {
