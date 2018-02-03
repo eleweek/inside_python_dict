@@ -896,7 +896,7 @@ function CodeBlock(props) {
         if (bpPoint in visibleBreakpoints) {
             let formattedBpDesc = props.formatBpDesc(visibleBreakpoints[bpPoint]);
             if (formattedBpDesc) {
-                explanation = ` | <span class="code-explanation">${formattedBpDesc}</span>`
+                explanation = ` <span class="code-explanation"> ${formattedBpDesc}</span>`
             }
         }
 
@@ -907,12 +907,13 @@ function CodeBlock(props) {
                 type: 'root',
                 children: lowAst
             }).toString();
+        console.log(htCodeHtml);
 
-        let formattedLine = `<span class="${className}">${htCodeHtml}</span>`;
-        formattedLine += explanation;
+        let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
+        formattedLine += explanation + "<br>";
         lines.push(formattedLine);
     }
-    return <div className="code-block"><pre><code dangerouslySetInnerHTML={{__html: lines.join("\n")}} /></pre></div>;
+    return <div className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />;
 }
 
 

@@ -69,8 +69,18 @@
     background-color: #fcf8e3;
 }
 
-pre > code {
+pre > code,
+span.code-explanation {
     font-size: 13px !important;
+}
+
+div.code-block {
+    line-height: 1.2;
+}
+
+pre.code-line-container {
+    margin: 0px;
+    display: inline;
 }
 
 .code-highlight {
