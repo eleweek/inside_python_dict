@@ -430,7 +430,7 @@ const ADD_CODE = [
 
 const SIMPLIFIED_INSERT_ALL_CODE = [
     ["def build_insert_all(original_list):", "start-execution"],
-    ["    new_list = [None for i in xrange(2 * len(original_list))]", "create-new-list"],
+    ["    new_list = [None for i in range(2 * len(original_list))]", "create-new-list"],
     ["", ""],
     ["    for number in original_list:", "for-loop"],
     ["        idx = number % len(new_list)", "compute-idx"],
@@ -442,8 +442,8 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 
 const HASH_CREATE_NEW_CODE = [
     ["def create_new(from_keys):", "start-execution", 0],
-    ["    hash_codes = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-hashes", 1],
-    ["    keys = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-keys", 1],
+    ["    hash_codes = [EMPTY for i in range(2 * len(from_keys))]", "create-new-empty-hashes", 1],
+    ["    keys = [EMPTY for i in range(2 * len(from_keys))]", "create-new-empty-keys", 1],
     ["", "", -1],
     ["    for key in from_keys:", "for-loop", 2],
     ["        hash_code = hash(key)", "compute-hash", 2],
