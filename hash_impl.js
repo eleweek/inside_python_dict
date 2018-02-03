@@ -267,6 +267,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
             this.addBP('assign-elem');
         }
         this.originalListIdx = null;
+        this.newListIdx = null;
         this.number = null;
 
         this.addBP('return-created-list');
