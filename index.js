@@ -647,7 +647,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
         case 'create-new-list':
             return `Create new list of size <code>${bp.newList.length}</code>`;
         case 'for-loop':
-            return `Current number to insert is <code>${bp.number}</code>`;
+            return `[${bp.newListIdx}/${bp.newlist.length}] Number to insert is <code>${bp.number}</code>`;
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-collision':
@@ -674,7 +674,7 @@ let formatHashCreateNew = function(bp) {
         case 'create-new-empty-keys':
             return `Create new list of size <code>${bp.keys.length}</code> for keys`;
         case 'for-loop':
-            return `Current key to insert is <code>${bp.key}</code>`;
+            return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.length}] Current key to insert is <code>${bp.key}</code>`;
         case 'compute-hash':
             return `Compute hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
@@ -700,7 +700,7 @@ let formatHashCreateNew = function(bp) {
         case 'check-dup-break':
             return "Because the key is found, break"
         case 'next-idx':
-            return `Keep probing, the next slot will be ${bp.idx}`;
+            return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
         case 'assign-elem':
             if (bp._prev_bp.keys[bp.idx] === null) {
                 return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
@@ -794,9 +794,9 @@ let formatSimplifiedSearchDescription = function(bp) {
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-not-found':
             if (bp.newListAtIdx === null) {
-                return `The slot ${bp.newListIdx} is empty, so don't loop`;
+                return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `The slot ${bp.newListIdx} is occupied by <code>${bp.newListAtIdx}</code>`;
+                return `The slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newListAtIdx}</code>`;
             }
         case 'check-found':
             let found = (bp.newListAtIdx === bp.number);
@@ -810,7 +810,7 @@ let formatSimplifiedSearchDescription = function(bp) {
         case 'found-nothing':
             return "Simply return false";
         case 'next-idx':
-            return `Keep retracing probing steps, the next slot will be ${bp.newListIdx}`;
+            return `Keep retracing probing steps, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'return-created-list':
             return `Return created list`;
         default:
