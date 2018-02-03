@@ -441,22 +441,22 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 ];
 
 const HASH_CREATE_NEW_CODE = [
-    ["def create_new(from_keys):", "start-execution"],
-    ["    hash_codes = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-hashes"],
-    ["    keys = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-keys"],
-    ["", ""],
-    ["    for key in from_keys:", "for-loop"],
-    ["        hash_code = hash(key)", "compute-hash"],
-    ["        idx = hash_code % len(keys)", "compute-idx"],
-    ["        while hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["            if hash_codes[idx] == hash_code and \\", "check-dup-hash"],
-    ["               keys[idx] == key:", "check-dup-key"],
-    ["                break", "check-dup-break"],
-    ["            idx = (idx + 1) % len(keys)", "next-idx"],
-    ["", ""],
-    ["        hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
-    ["", ""],
-    ["    return hash_codes, keys", "return-lists"],
+    ["def create_new(from_keys):", "start-execution", 0],
+    ["    hash_codes = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-hashes", 1],
+    ["    keys = [EMPTY for i in xrange(2 * len(from_keys))]", "create-new-empty-keys", 1],
+    ["", "", -1],
+    ["    for key in from_keys:", "for-loop", 2],
+    ["        hash_code = hash(key)", "compute-hash", 2],
+    ["        idx = hash_code % len(keys)", "compute-idx", 2],
+    ["        while hash_codes[idx] is not EMPTY:", "check-collision", 3],
+    ["            if hash_codes[idx] == hash_code and \\", "check-dup-hash", 3],
+    ["               keys[idx] == key:", "check-dup-key", 3],
+    ["                break", "check-dup-break", 4],
+    ["            idx = (idx + 1) % len(keys)", "next-idx", 3],
+    ["", "", -1],
+    ["        hash_codes[idx], keys[idx] = hash_code, key", "assign-elem", 2],
+    ["", "", -1],
+    ["    return hash_codes, keys", "return-lists", 1],
 ];
 
 const HASH_REMOVE_CODE = [
@@ -842,18 +842,59 @@ let dummyFormat = function(bp) {
     return "";
 }
 
-
 function CodeBlock(props) {
     let lines = [];
     let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
-    let bp = props.breakpoints[props.time];
+    let activeBp = props.breakpoints[props.time];
+
+    let visibleBreakpoints = {};
+    let pointToLevel = {};
+    console.log(props.code);
+    for (let [line, bpPoint, level] of props.code) {
+        if (line === "" || bpPoint === "") {
+            continue;
+        }
+        console.log(line, bpPoint, level);
+        if (level === undefined) {
+            console.log("BREAK");
+            pointToLevel = null;
+            break;
+        }
+        pointToLevel[bpPoint] = level;
+    }
+
+    console.log(pointToLevel);
+
+    if (pointToLevel !== null) {
+        for (let [time, bp] of props.breakpoints.entries()) {
+            if (time > props.time) {
+                break;
+            }
+
+            if (bp.point in visibleBreakpoints) {
+                let level = pointToLevel[bp.point];
+                for (let visibleBpPoint in visibleBreakpoints) {
+                    if (pointToLevel[visibleBpPoint] >= level) {
+                        delete visibleBreakpoints[visibleBpPoint];
+                    }
+                }
+            }
+
+            visibleBreakpoints[bp.point] = bp;
+        }
+    } else {
+        visibleBreakpoints[activeBp.point] = activeBp;
+    }
 
     for (let [line, bpPoint] of props.code) {
-        let className = bp.point;
+        let className = activeBp.point;
         let explanation = "";
-        if (bpPoint == bp.point) {
+        if (bpPoint == activeBp.point) {
             className += " code-highlight";
-            let formattedBpDesc = props.formatBpDesc(bp);
+        }
+
+        if (bpPoint in visibleBreakpoints) {
+            let formattedBpDesc = props.formatBpDesc(visibleBreakpoints[bpPoint]);
             if (formattedBpDesc) {
                 explanation = ` | <span class="code-explanation">${formattedBpDesc}</span>`
             }
