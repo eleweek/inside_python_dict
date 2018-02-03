@@ -846,13 +846,14 @@ let dummyFormat = function(bp) {
 function CodeBlock(props) {
     let lines = [];
     let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
+    let bp = props.breakpoints[props.time];
 
     for (let [line, bpPoint] of props.code) {
-        let className = props.bp.point;
+        let className = bp.point;
         let explanation = "";
-        if (bpPoint == props.bp.point) {
+        if (bpPoint == bp.point) {
             className += " code-highlight";
-            let formattedBpDesc = props.formatBpDesc(props.bp);
+            let formattedBpDesc = props.formatBpDesc(bp);
             if (formattedBpDesc) {
                 explanation = ` | <span class="code-explanation">${formattedBpDesc}</span>`
             }
@@ -935,7 +936,12 @@ class VisualizedCode extends React.Component {
             </div>
             <div className="row">
               <div className="col">
-                <CodeBlock code={this.props.code} bp={bp} formatBpDesc={this.props.formatBpDesc}/>
+                <CodeBlock
+                    time={this.state.time}
+                    code={this.props.code}
+                    breakpoints={this.props.breakpoints}
+                    formatBpDesc={this.props.formatBpDesc}
+                />
               </div>
             </div>
             <StateVisualization bp={bp} />
