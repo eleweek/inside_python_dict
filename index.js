@@ -900,31 +900,27 @@ class VisualizedCode extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            bpGroupIdx: -1,
-            bpGroupActiveIdx: -1,
+            time: props.breakpoints.length - 1,
         }
         this.handleTimeChange = this.handleTimeChange.bind(this);
     }
 
     handleTimeChange(time) {
-        let [bpGroupIdx, bpGroupActiveIdx] = this.props.breakpoints.timeToPair[time];
         this.setState({
-            bpGroupIdx: bpGroupIdx,
-            bpGroupActiveIdx: bpGroupActiveIdx,
+            time: time
         });
     }
 
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) {
             this.setState({
-                bpGroupIdx: -1,
-                bpGroupActiveIdx: -1,
+                time: this.props.breakpoints.length - 1,
             });
         }
     }
 
     render() {
-        let bp = this.props.breakpoints.getBreakpoint(this.state.bpGroupIdx, this.state.bpGroupActiveIdx);
+        let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -932,8 +928,8 @@ class VisualizedCode extends React.Component {
               <div className="col-md-6 col-sm-12">
                 <TimeSlider
                    handleTimeChange={this.handleTimeChange}
-                   time={this.props.breakpoints.getPairToTime(this.state.bpGroupIdx, this.state.bpGroupActiveIdx)}
-                   maxTime={this.props.breakpoints.maxTime}
+                   time={this.state.time}
+                   maxTime={this.props.breakpoints.length - 1}
                 />
               </div>
             </div>
