@@ -553,9 +553,9 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
                     ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the searched key is found`
                     : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the searched key is not found so far`);
         case 'found-key':
-            return `The searched key (${bp.arg}) is found, so return True`
+            return `The searched key <code>${bp.arg}</code> is found, so return <code>True</code>`
         case 'found-nothing':
-            return `The searched key (${bp.arg}) is not found, so return False`;
+            return `The searched key <code>${bp.arg}</code> is not found, so return <code>False</code>`;
         case 'next-idx':
             return `Go to next idx: <code>${bp.idx}</code>`;
         default:
@@ -645,21 +645,21 @@ let formatAddCodeBreakpointDescription = function(bp) {
 let formatSimplifiedInsertAllDescription = function(bp) {
     switch (bp.point) {
         case 'create-new-list':
-            return `Create new list of size ${bp.newList.length}`;
+            return `Create new list of size <code>${bp.newList.length}</code>`;
         case 'for-loop':
             return `Current number to insert is <code>${bp.number}</code>`;
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-collision':
             if (bp.newListAtIdx === null) {
-                return `The slot ${bp.newListIdx} is empty, so don't loop`;
+                return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `Collision in the slot ${bp.newListIdx} with the number ${bp.newListAtIdx}`;
+                return `Collision in the slot <code>${bp.newListIdx}</code> with the number <code>${bp.newListAtIdx}</code>`;
             }
         case 'next-idx':
-            return `Keep probing, the next slot will be ${bp.newListIdx}`;
+            return `Keep probing, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'assign-elem':
-            return `Put <code>${bp.number}</code> in the empty slot ${bp.newListIdx}`;
+            return `Put <code>${bp.number}</code> in the empty slot <code>${bp.newListIdx}</code>`;
         case 'return-created-list':
             return `Return created list`;
         default:
@@ -670,32 +670,32 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 let formatHashCreateNew = function(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
-            return `Create new list of size ${bp.hashCodes.length} for hash codes`;
+            return `Create new list of size <code>${bp.hashCodes.length}</code> for hash codes`;
         case 'create-new-empty-keys':
-            return `Create new list of size ${bp.keys.length} for keys`;
+            return `Create new list of size <code>${bp.keys.length}</code> for keys`;
         case 'for-loop':
             return `Current key to insert is <code>${bp.key}</code>`;
         case 'compute-hash':
-            return `Compute hash code: ${bp.hashCode}`;
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
         case 'check-collision':
             if (bp.keys[bp.idx] === null) {
-                return `The slot ${bp.idx} is empty, so don't loop`;
+                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
                 return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
             }
         case 'check-dup-hash':
             if (bp.hashCodes[bp.idx] == bp.hashCode) {
-                return `${bp.hashCodes[bp.idx]} == ${bp.hashCode}, we cannot rule out the slot being occupied by the same key`;
+                return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
-                return `${bp.hashCodes[bp.idx]} != ${bp.hashCode}, so there is a collision with a different key`;
+                return `<code>${bp.hashCodes[bp.idx]} != ${bp.hashCode}</code>, so there is a collision with a different key`;
             }
         case 'check-dup-key':
             if (bp.keys[bp.idx] == bp.key) {
-                return `${bp.keys[bp.idx]} == ${bp.key}, so the key is already present in the table`;
+                return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is already present in the table`;
             } else {
-                return `${bp.keys[bp.idx]} != ${bp.key}, so there is a collision`;
+                return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
             }
         case 'check-dup-break':
             return "Because the key is found, break"
@@ -703,9 +703,9 @@ let formatHashCreateNew = function(bp) {
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'assign-elem':
             if (bp._prev_bp.keys[bp.idx] === null) {
-                return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.idx}`;
+                return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
             } else {
-                return `${bp.key} and its hash (${bp.hashCode}) is already in slot, overwriting it anyway`;
+                return `${bp.key} and its hash <code>${bp.hashCode}</code> is already in slot, overwriting it anyway`;
             }
         case 'return-lists':
             return `The hash table is built, return the lists`;
@@ -722,7 +722,7 @@ let formatHashRemove = function(bp) {
             return `Compute starting slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
         case 'check-not-found':
             if (bp.keys[bp.idx] === null) {
-                return `The slot ${bp.idx} is empty, no slots to check anymore`;
+                return `The slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
             } else {
                 return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied, so check it`;
             }
@@ -773,14 +773,14 @@ let formatHashResize = function(bp) {
             return 'So skip it';
         case 'check-collision':
             if (bp.keys[bp.idx] === null) {
-                return `The slot ${bp.idx} is empty, so don't loop`;
+                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
                 return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'assign-elem':
-            return `Put <code>${bp.key}</code> and its hash (${bp.hashCode}) in the empty slot ${bp.idx}`;
+            return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
         case 'return-lists':
             return `The hash table has been rebuilt, return the lists`;
         default:
@@ -896,7 +896,7 @@ function CodeBlock(props) {
         if (bpPoint in visibleBreakpoints) {
             let formattedBpDesc = props.formatBpDesc(visibleBreakpoints[bpPoint]);
             if (formattedBpDesc) {
-                explanation = ` <span class="code-explanation"> ${formattedBpDesc}</span>`
+                explanation = `<span class="code-explanation"> ~ ${formattedBpDesc}</span>`
             }
         }
 
