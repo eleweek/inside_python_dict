@@ -47,8 +47,6 @@ class BoxesBase {
     }
 
     init(values) {
-        console.log("init");
-        console.log(values);
         this.boxValues = [];
 
         for (let [i, value] of values.entries()) {
@@ -293,8 +291,6 @@ function arraysDiff(arrayFrom, arrayTo)
 
 class BoxesWrapperComponent extends React.Component {
     componentDidMount() {
-        console.log("BWC props componentDidMount()");
-        console.log(this.props);
         this.$el = $(this.el);
 
         this.boxes = new this.props.boxesClass(this.$el, 40);
@@ -319,8 +315,6 @@ class BoxesWrapperComponent extends React.Component {
     }
 
     render() {
-        console.log("BWC props");
-        console.log(this.props);
         return <div className="clearfix hash-vis" ref={el => this.el = el} />;
     }
 }
@@ -335,8 +329,6 @@ function LineOfBoxesComponent(props) {
 
 function Tetris(props) {
     let elems = [];
-    console.log("PROPS");
-    console.log(props);
     for (let [Component, [dataLabel, dataName, idxName]] of props.lines) {
         elems.push(<div className="tetris-row"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> <Component array={props.bp[dataName]} idx={props.bp[idxName]} /> </div>);
     }
@@ -347,8 +339,6 @@ function Tetris(props) {
 function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     return class extends React.Component {
         render() {
-            console.log("PROPS TSRW");
-            console.log(this.props);
             return <Tetris lines={[[component, [dataLabel, (dataName || "data"), (idxName || "idx")]]]} {...this.props} />;
         }
     }
@@ -478,7 +468,6 @@ class JsonInput extends React.Component {
                 value: event.target.value
             })
             let value = JSON.parse(event.target.value);
-            console.log("Change " + value);
             this.props.onChange(value);
         } catch (e) {
             // TODO: add error?
@@ -699,7 +688,6 @@ const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponen
 const AddStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
 
 let formatAddCodeBreakpointDescription = function(bp) {
-    console.log(bp);
     switch (bp.point) {
         case 'compute-idx':
             return `Compute idx: <code>${bp.idx} = ${bp.hash} % ${bp.capacity}</code>`;
@@ -832,8 +820,6 @@ let formatHashRemove = function(bp) {
 }
 
 let formatHashResize = function(bp) {
-    console.log("formatHashResize");
-    console.log(bp);
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create new list of size ${bp.newHashCodes.length} for hash codes`;
@@ -947,9 +933,6 @@ function CodeBlock(props) {
                 type: 'root',
                 children: lowAst
             }).toString();
-        console.log(paddedLine);
-        console.log(lowAst);
-        console.log(htCodeHtml);
 
         let formattedLine = `<span class="${className}">${htCodeHtml}</span>`;
         formattedLine += explanation;
@@ -993,8 +976,6 @@ class VisualizedCode extends React.Component {
     }
 
     handleActiveBreakpointChange(bpGroupIdx, bpGroupActiveIdx) {
-        console.log('handleActiveBreakpointChange() ' + bpGroupIdx + ' ' + bpGroupActiveIdx);
-        console.trace();
         this.setState({
             bpGroupIdx: bpGroupIdx,
             bpGroupActiveIdx: bpGroupActiveIdx,
@@ -1002,7 +983,6 @@ class VisualizedCode extends React.Component {
     }
 
     handleTimeChange(time) {
-        console.log("handleTimeChange: " + time);
         let [bpGroupIdx, bpGroupActiveIdx] = this.props.breakpoints.timeToPair[time];
         this.setState({
             bpGroupIdx: bpGroupIdx,
@@ -1020,11 +1000,7 @@ class VisualizedCode extends React.Component {
     }
 
     render() {
-        console.log('render() ' + this.state.bpGroupIdx + ' ' + this.state.bpGroupActiveIdx);
-        console.log(this.props.breakpoints);
         let bp = this.props.breakpoints.getBreakpoint(this.state.bpGroupIdx, this.state.bpGroupActiveIdx);
-        console.log("BP");
-        console.log(bp);
         const StateVisualization = this.props.stateVisualization;
 
         return (<React.Fragment>
@@ -1130,7 +1106,6 @@ class App extends React.Component {
         let myhash = new MyHash();
 
         myhash.addArray(this.state.exampleArray);
-        console.log("myhash: " + myhash.data);
         let exampleArrayHashVis = {
             array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
         }
