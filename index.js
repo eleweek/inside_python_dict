@@ -1176,8 +1176,9 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashCreateNewBreakpoints}
                 formatBpDesc={formatHashCreateNew}
                 stateVisualization={HashCreateNewStateVisualization} />
-              <p> We still haven't figured out what to do when our table overflows. But here is a thing, we can simply create a larger table, put all objects from the old table in the new table, and then throw away the old table. Yep, this sounds fairly expensive (and it is expensive), but if a new table is twice as large, we end up doing resizing aevery once in a while. </p>
-              <p> The visualization will be later. There is another important question: how do we remove existing objects? If we removed an object without a trace, it'd leave a hole, and this would break the search algorithm. </p>
+              
+              <h5> Removing objects </h5>
+              <p> If we removed an object without a trace, it'd leave a hole, and this would certainly break the search algorithm. </p>
               <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. During search, if we encounter it, we know that we need to keep probing. </p>
               <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
@@ -1186,20 +1187,23 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashRemoveBreakpoints}
                 formatBpDesc={formatHashRemove}
                 stateVisualization={HashRemoveStateVisualization} />
-
-              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
-              TODO: visualization
-
-              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. Do they ever get thrown way at all? The answer is yes. Remember that when a table gets full, we need to resize it by throwing away the old table and creating a new one? We simply ignore these dummy objects during a resize operation. </p>
-              <p> Let's see how we could resize the current table </p>
+              
+              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table gets overflown with dummy objects? Actually, what happens if a table gets overflown with normal objects? </p>
+              <h5>Resizing hash tables</h5>
+              <p> How do we resize a hash table? Index of each element depends on the table size, so it may change with change of the size of a table. Moreover, because of linear probing, each index depends may depend on indexes of other objects (which also depend of the size of a table and indexes of other objects). This is a tangled mess. </p>
+              <p> There is a way to disentangle this Gordian Knot though. We can create a new larger table and re-insert all elements from the smaller table (skipping dummy placeholders). This may sound expensive. And it <em>is</em> expensive. But, the thing is, we don't have to resize the table on every operation. If we make the new table size 1.5x, 2x or even 4x of the size of the old table, we will do the resize operation rarely enough &mdash; and the heavy cost of it will "amortize" over many insertions/deletions. But more on that later. </p>
+              <p> Now, let's see how we could resize the current table </p>
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
                 breakpoints={hashResizeBreakpoints}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. A typical hash table is resized when fill factor hits 2/3. How does the size change? Normally the size of table is increased by a factor of 2 or 4. But because the table may contain dummy elements, the size of the table may actually decrease.</p>
-              <p> To efficiently implement these things, we need to track fill factor and useful usage. With the way the code is currently structured right now, this will be messy, because we will need to pass fill/used counter to and from every function. </p>
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, a typical hash table is resized when fill factor is around 2/3. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we also need to be able to shrink the table in case there are a lot of dummy placeholders. </p>
+              <p> To efficiently implement these things, we need to track fill factor and useful usage, so we will need fill/used counters. With the way the code is currently structured right now, this will be messy, because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
+
+              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
+              TODO: visualization
               
               <h2> Putting it all together to make an almost-python-dict</h2>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. So we can write our_dict[key] instead of writing our_dict.find(key). The former looks nicer and allows us to mimic some parts of the interface of python dict. </p>
