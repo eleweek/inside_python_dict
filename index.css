@@ -76,6 +76,7 @@ span.code-explanation {
 
 div.code-block {
     line-height: 1.2;
+    margin-bottom: 15px;
 }
 
 pre.code-line-container {
@@ -115,8 +116,14 @@ pre.code-line-container {
   margin-right: 5px;
 }
 
-div.breakpoints {
-    height: 250px;
+div.visualized-code {
+    margin-bottom: 35px;
+    padding-left: 15px;
+    border-left: solid 3px #999999;
+}
+
+div.slider-row {
+    margin-bottom: 15px;
 }
 
 .slider.slider-horizontal {

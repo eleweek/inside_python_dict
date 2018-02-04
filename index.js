@@ -982,8 +982,8 @@ class VisualizedCode extends React.Component {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
 
-        return (<React.Fragment>
-            <div className="row">
+        return (<div className="visualized-code">
+            <div className="row slider-row">
               <div className="col-md-6 col-sm-12">
                 <TimeSlider
                    handleTimeChange={this.handleTimeChange}
@@ -992,7 +992,7 @@ class VisualizedCode extends React.Component {
                 />
               </div>
             </div>
-            <div className="row">
+            <div className="row code-block-row">
               <div className="col">
                 <CodeBlock
                     time={this.state.time}
@@ -1003,7 +1003,7 @@ class VisualizedCode extends React.Component {
               </div>
             </div>
             <StateVisualization bp={bp} />
-        </React.Fragment>)
+        </div>)
     }
 }
 
