@@ -647,7 +647,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
         case 'create-new-list':
             return `Create new list of size <code>${bp.newList.length}</code>`;
         case 'for-loop':
-            return `[${bp.newListIdx}/${bp.newlist.length}] Number to insert is <code>${bp.number}</code>`;
+            return `[${bp.originalListIdx}/${bp.originalList.length}] Number to insert is <code>${bp.number}</code>`;
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-collision':
