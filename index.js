@@ -460,18 +460,18 @@ const HASH_CREATE_NEW_CODE = [
 ];
 
 const HASH_REMOVE_CODE = [
-    ["def remove(hash_codes, keys, key):", "start-execution"],
-    ["    hash_code = hash(key)", "compute-hash"],
-    ["    idx = hash_code % len(keys)", "compute-idx"],
+    ["def remove(hash_codes, keys, key):", "start-execution", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1],
+    ["    idx = hash_code % len(keys)", "compute-idx", 1],
+    ["", "", -1],
+    ["    while hash_codes[idx] is not EMPTY:", "check-not-found", 2],
+    ["        if hash_codes[idx] == hash_code and \\", "check-hash", 2],
+    ["           keys[idx] == key:", "check-key", 2],
+    ["            keys[idx] = DUMMY", "assign-dummy", 2],
+    ["            return", "return", 3],
+    ["        idx = (idx + 1) % len(keys)", "next-idx", 2],
     ["", ""],
-    ["    while hash_codes[idx] is not EMPTY:", "check-not-found"],
-    ["        if hash_codes[idx] == hash_code and \\", "check-hash"],
-    ["           keys[idx] == key:", "check-key"],
-    ["            keys[idx] = DUMMY", "assign-dummy"],
-    ["            return", "return"],
-    ["        idx = (idx + 1) % len(keys)", "next-idx"],
-    ["", ""],
-    ["    raise KeyError()", "throw-key-error"]
+    ["    raise KeyError()", "throw-key-error", 1]
 ];
 
 const HASH_RESIZE_CODE = [
