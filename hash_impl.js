@@ -383,8 +383,8 @@ class HashCreateNew extends HashBreakpointFunction {
     }
 }
 
-class HashRemove extends HashBreakpointFunction {
-    run(_hashCodes, _keys, _key) {
+class HashRemoveOrSearch extends HashBreakpointFunction {
+    run(_hashCodes, _keys, _key, isRemoveMode) {
         this.hashCodes = _hashCodes;
         this.keys = _keys;
         this.key = _key;
@@ -405,10 +405,15 @@ class HashRemove extends HashBreakpointFunction {
             if (this.hashCodes[this.idx].eq(this.hashCode)) {
                 this.addBP('check-key');
                 if (this.keys[this.idx] == this.key) {
-                    this.keys[this.idx] = "DUMMY";
-                    this.addBP('assign-dummy');
-                    this.addBP('return');
-                    return;
+                    if (isRemoveMode) {
+                        this.keys[this.idx] = "DUMMY";
+                        this.addBP('assign-dummy');
+                        this.addBP('return');
+                        return;
+                    } else {
+                        this.addBP('return-true');
+                        return true;
+                    }
                 }
             }
 
@@ -416,11 +421,15 @@ class HashRemove extends HashBreakpointFunction {
             this.addBP('next-idx');
         }
 
-        this.addBP('throw-key-error');
-        return "KeyError()";
+        if (isRemoveMode) {
+            this.addBP('throw-key-error');
+            return "KeyError()";
+        } else {
+            this.addBP('return-false');
+            return false;
+        }
     }
 };
-
 
 class HashResize extends HashBreakpointFunction {
     constructor() {
@@ -697,5 +706,5 @@ function simpleListSearch(l, key) {
 
 export {
     pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-    HashRemove, HashResize
+    HashRemoveOrSearch, HashResize
 }

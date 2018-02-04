@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-        HashRemove, HashResize} from './hash_impl.js';
+        HashRemoveOrSearch, HashResize} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -500,15 +500,26 @@ const SIMPLIFIED_SEARCH_CODE = [
     ["    return False", "found-nothing"],
 ];
 
+const HASH_SEARCH_CODE = [
+    ["def has_key(hash_codes, keys, key):", "start-execution", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1],
+    ["    idx = hash_code % len(keys)", "compute-idx", 1],
+    ["    while hash_codes[idx] is not EMPTY:", "check-not-found", 2],
+    ["        if hash_codes[idx] == hash_code and \\", "check-hash", 2],
+    ["           keys[idx] == key:", "check-key", 2],
+    ["            return True", "return-true", 3],
+    ["        idx = (idx + 1) % len(keys)", "next-idx", 2],
+    ["    return False", "return-false", 1],
+];
 
 const HASH_INSERT_CODE = [
     ["def insert(hash_codes, keys, key):", "start-execution"],
-    ["    hash_code = hash(key)", "compute-hash-code"],
+    ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],     
     ["    while hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["        if hash_codes[idx] == hash_code\\", "compare-hashes"],
-    ["           and keys[idx] == key:", "compare-keys"],
+    ["        if hash_codes[idx] == hash_code\\", "check-hash"],
+    ["           and keys[idx] == key:", "check-key"],
     ["            return", "already-present"],
     ["        idx = (idx + 1) % len(keys)", "next-idx"],
     ["", ""],
@@ -590,7 +601,7 @@ function HashCreateNewStateVisualization(props) {
     />;
 }
 
-function HashRemoveStateVisualization(props) {
+function HashNormalStateVisualization(props) {
     return <Tetris
         lines={
             [
@@ -683,7 +694,7 @@ let formatHashCreateNew = function(bp) {
             if (bp.keys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
-                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
         case 'check-dup-hash':
             if (bp.hashCodes[bp.idx] == bp.hashCode) {
@@ -714,38 +725,43 @@ let formatHashCreateNew = function(bp) {
     }
 }
 
-let formatHashRemove = function(bp) {
+let formatHashRemoveSearch = function(bp) {
     switch (bp.point) {
         case 'compute-hash':
-            return `Compute hash code: ${bp.hashCode}`;
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: ${bp.hashCode} % ${bp.keys.length} == ${bp.idx} `;
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
         case 'check-not-found':
             if (bp.keys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
             } else {
-                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied, so check it`;
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied, so check it`;
             }
         case 'check-hash':
             if (bp.hashCodes[bp.idx] == bp.hashCode) {
-                return `${bp.hashCodes[bp.idx]} == ${bp.hashCode}, we cannot rule out the slot being occupied by the same key`;
+                return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
             } else {
-                return `${bp.hashCodes[bp.idx]} != ${bp.hashCode}, so the slot definitely contains a different key`;
+                return `<code>${bp.hashCodes[bp.idx]} != ${bp.hashCode}</code>, so the slot definitely contains a different key`;
             }
         case 'check-key':
             if (bp.keys[bp.idx] == bp.key) {
-                return `${bp.keys[bp.idx]} == ${bp.key}, so the key is already present in the table`;
+                return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is found`;
             } else {
-                return `${bp.keys[bp.idx]} != ${bp.key}, so there is a collision`;
+                return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a different key with the same hash`;
             }
         case 'assign-dummy':
             return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
         case 'return':
-            return `They key is removed, work is done`;
+            return `The key is removed, work is done`;
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'throw-key-error':
             return `throw an excaption, because no key was found`;
+        /* search */
+        case 'return-true':
+            return `So return true`;
+        case 'return-false':
+            return `So return false`;
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -775,7 +791,7 @@ let formatHashResize = function(bp) {
             if (bp.keys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
-                return `We haven't hit an empty slot yet, the slot ${bp.idx} is occupied`;
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.idx}`;
@@ -801,7 +817,7 @@ let formatSimplifiedSearchDescription = function(bp) {
         case 'check-found':
             let found = (bp.newListAtIdx === bp.number);
             if (found) {
-                return `The number is found: <code>${bp.newListAtIdx}</code> == ${bp.number}</code>`;
+                return `The number is found: <code>${bp.newListAtIdx} == ${bp.number}</code>`;
             } else {
                 return `The number is not found yet: <code>${bp.newListAtIdx} != ${bp.number}</code>`;
             }
@@ -1063,8 +1079,12 @@ class App extends React.Component {
         let [hcnHashCodes, hcnKeys] = hcn.run(this.state.exampleArray);
         let hashCreateNewBreakpoints = hcn.getBreakpoints();
 
-        let hr = new HashRemove();
-        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove);
+        let hs = new HashRemoveOrSearch();
+        hs.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, false);
+        let hashSearchBreakpoints = hs.getBreakpoints();
+
+        let hr = new HashRemoveOrSearch();
+        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, true);
         let hashRemoveBreakpoints = hr.getBreakpoints();
 
         let hres = new HashResize();
@@ -1176,17 +1196,25 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashCreateNewBreakpoints}
                 formatBpDesc={formatHashCreateNew}
                 stateVisualization={HashCreateNewStateVisualization} />
+
+              <h5> Searching </h5>
+              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
+              <VisualizedCode
+                code={HASH_SEARCH_CODE}
+                breakpoints={hashSearchBreakpoints}
+                formatBpDesc={formatHashRemoveSearch}
+                stateVisualization={HashNormalStateVisualization} />
               
               <h5> Removing objects </h5>
               <p> If we removed an object without a trace, it'd leave a hole, and this would certainly break the search algorithm. </p>
-              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. During search, if we encounter it, we know that we need to keep probing. </p>
+              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. So we do what essentially a search search for the object, and if we encounter it, we know that we need to keep probing. </p>
               <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
               <VisualizedCode
                 code={HASH_REMOVE_CODE}
                 breakpoints={hashRemoveBreakpoints}
-                formatBpDesc={formatHashRemove}
-                stateVisualization={HashRemoveStateVisualization} />
+                formatBpDesc={formatHashRemoveSearch}
+                stateVisualization={HashNormalStateVisualization} />
               
               <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table gets overflown with dummy objects? Actually, what happens if a table gets overflown with normal objects? </p>
               <h5>Resizing hash tables</h5>
@@ -1201,9 +1229,6 @@ EMPTY = EmptyValueClass()
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
               <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, a typical hash table is resized when fill factor is around 2/3. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we also need to be able to shrink the table in case there are a lot of dummy placeholders. </p>
               <p> To efficiently implement these things, we need to track fill factor and useful usage, so we will need fill/used counters. With the way the code is currently structured right now, this will be messy, because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
-
-              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
-              TODO: visualization
               
               <h2> Putting it all together to make an almost-python-dict</h2>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. So we can write our_dict[key] instead of writing our_dict.find(key). The former looks nicer and allows us to mimic some parts of the interface of python dict. </p>
