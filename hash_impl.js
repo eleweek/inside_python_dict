@@ -491,6 +491,43 @@ class HashResize extends HashBreakpointFunction {
     }
 };
 
+class HashInsert extends HashBreakpointFunction {
+    run(_hashCodes, _keys, _key) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+        this.key = _key;
+
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode, this.keys.length);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-collision-with-dummy');
+            if (this.keys[this.idx] === null || this.keys[this.idx] === "DUMMY") {
+                break;
+            }
+
+            this.addBP('check-dup-hash');
+            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                this.addBP('check-dup-key');
+                if (this.keys[this.idx] == this.key) {
+                    this.addBP('check-dup-return');
+                    break;
+                }
+            }
+
+            this.idx = (this.idx + 1) % this.keys.length;
+            this.addBP('next-idx');
+        }
+
+        this.hashCodes[this.idx] = this.hashCode;
+        this.keys[this.idx] = this.key;
+
+        this.addBP('assign-elem');
+    }
+}
 
 class MyHash {
     constructor() {
@@ -706,5 +743,5 @@ function simpleListSearch(l, key) {
 
 export {
     pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-    HashRemoveOrSearch, HashResize
+    HashRemoveOrSearch, HashResize, HashInsert
 }

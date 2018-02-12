@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-        HashRemoveOrSearch, HashResize} from './hash_impl.js';
+        HashRemoveOrSearch, HashResize, HashInsert} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -517,14 +517,13 @@ const HASH_INSERT_CODE = [
     ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],     
-    ["    while hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["        if hash_codes[idx] == hash_code\\", "check-hash"],
-    ["           and keys[idx] == key:", "check-key"],
-    ["            return", "already-present"],
+    ["    while keys[idx] is not EMPTY and keys[idx] is not DUMMY:", "check-collision-with-dummy"],
+    ["        if hash_codes[idx] == hash_code\\", "check-dup-hash"],
+    ["           and keys[idx] == key:", "check-dup-key"],
+    ["            return", "check-dup-return"],
     ["        idx = (idx + 1) % len(keys)", "next-idx"],
     ["", ""],
-    ["    hash_codes[idx] = hash_code", "assign-hash-code"],
-    ["    keys[idx] = key", "assign-key"],
+    ["    hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
 ];
 
 
@@ -678,7 +677,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
     }
 }
 
-let formatHashCreateNew = function(bp) {
+let formatHashCreateNewAndInsert = function(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create new list of size <code>${bp.hashCodes.length}</code> for hash codes`;
@@ -696,6 +695,14 @@ let formatHashCreateNew = function(bp) {
             } else {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
+        case 'check-collision-with-dummy':
+            if (bp.keys[bp.idx] === null) {
+                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+            } else if (bp.keys[bp.idx] === "DUMMY") {
+                return `The slot <code>${bp.idx}</code> is a dummy slot, so don't loop`;
+            }else {
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+            }
         case 'check-dup-hash':
             if (bp.hashCodes[bp.idx] == bp.hashCode) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
@@ -709,6 +716,8 @@ let formatHashCreateNew = function(bp) {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
             }
         case 'check-dup-break':
+            return "Because the key is found, break"
+        case 'check-dup-return':
             return "Because the key is found, break"
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
@@ -1059,6 +1068,7 @@ class App extends React.Component {
             howToAddObj: 'py',
             howToSearchObj: 'hmmm',
             hrToRemove: "xxx",
+            hiToInsert: "okok",
         }
     }
 
@@ -1090,6 +1100,10 @@ class App extends React.Component {
         let hres = new HashResize();
         hres.run(hcnHashCodes, hcnKeys);
         let hashResizeBreakpoints = hres.getBreakpoints();
+
+        let hi = new HashInsert();
+        hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
+        let hashInsertBreakpoints = hi.getBreakpoints();
 
         let myhash = new MyHash();
 
@@ -1194,7 +1208,7 @@ EMPTY = EmptyValueClass()
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
                 breakpoints={hashCreateNewBreakpoints}
-                formatBpDesc={formatHashCreateNew}
+                formatBpDesc={formatHashCreateNewAndInsert}
                 stateVisualization={HashCreateNewStateVisualization} />
 
               <h5> Searching </h5>
@@ -1229,6 +1243,17 @@ EMPTY = EmptyValueClass()
               <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
               <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, a typical hash table is resized when fill factor is around 2/3. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we also need to be able to shrink the table in case there are a lot of dummy placeholders. </p>
               <p> To efficiently implement these things, we need to track fill factor and useful usage, so we will need fill/used counters. With the way the code is currently structured right now, this will be messy, because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
+              
+              <h5> One more trick for removing dummy objects </h5>
+              <p> The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. </p>
+              <p> But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - we don't need to search for an empty slot. </p>
+              <p> Let's say we want to insert </p>
+              <JsonInput inline={true} value={this.state.hiToInsert} onChange={(value) => this.setState({hiToInsert: value})} />
+              <VisualizedCode
+                code={HASH_INSERT_CODE}
+                breakpoints={hashInsertBreakpoints}
+                formatBpDesc={formatHashCreateNewAndInsert}
+                stateVisualization={HashNormalStateVisualization} />
               
               <h2> Putting it all together to make an almost-python-dict</h2>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. So we can write our_dict[key] instead of writing our_dict.find(key). The former looks nicer and allows us to mimic some parts of the interface of python dict. </p>
