@@ -14,8 +14,8 @@ EMPTY = EmptyClass()
 
 def create_new(from_keys):
     n = len(from_keys)
-    hash_codes = [EMPTY for i in xrange(2 * n)]
-    keys = [EMPTY for i in xrange(2 * n)]
+    hash_codes = [EMPTY for i in range(2 * n)]
+    keys = [EMPTY for i in range(2 * n)]
 
     for key in from_keys:
         hash_code = hash(key)

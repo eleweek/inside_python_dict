@@ -1,5 +1,5 @@
 from ctypes import Structure, c_ulong, POINTER, cast, py_object, c_long
-from dict_reimpl_common import get_object_field_or_null, NULL, DUMMY
+from common import get_object_field_or_null, NULL, DUMMY
 
 
 class PyDictEntry(Structure):

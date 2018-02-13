@@ -1,4 +1,4 @@
-from dict_reimpl_common import DUMMY, NULL
+from common import DUMMY, NULL
 
 
 class PyDictReimplementation(object):

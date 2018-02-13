@@ -1,8 +1,8 @@
 import sys
 
 from dictinfo32 import dictobject, dump_py_dict
-from pydict_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
-from test import generate_random_string
+from dict32_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
+from common import generate_random_string
 import datadiff
 
 n_inserts = int(sys.argv[1])
