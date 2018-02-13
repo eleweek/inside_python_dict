@@ -1247,8 +1247,9 @@ EMPTY = EmptyValueClass()
               <h5> One more trick for removing dummy objects </h5>
               <p> The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. </p>
               <p> But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - we don't need to search for an empty slot. </p>
-              <p> Let's say we want to insert </p>
-              <JsonInput inline={true} value={this.state.hiToInsert} onChange={(value) => this.setState({hiToInsert: value})} />
+              <p> Let's say we want to insert
+                <JsonInput inline={true} value={this.state.hiToInsert} onChange={(value) => this.setState({hiToInsert: value})} /> after removing TODO
+              </p>
               <VisualizedCode
                 code={HASH_INSERT_CODE}
                 breakpoints={hashInsertBreakpoints}
