@@ -2,7 +2,7 @@ from common import DUMMY, NULL
 from dict_reimpl_common import BaseDictImpl
 
 
-class HashDictImpl(BaseDictImpl):
+class HashDictImplementation(BaseDictImpl):
     START_SIZE = 8
 
     def __init__(self):

@@ -29,7 +29,7 @@ class PyDictReimplementation(BaseDictImpl):
             idx = (idx * 5 + perturb + 1) % len(self.keys)
             perturb >>= self.PERTURB_SHIFT
 
-        return NULL
+        raise KeyError()
 
     def insertdict_clean(self, key, value):
         hash_code = hash(key)
