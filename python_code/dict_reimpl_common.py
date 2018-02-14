@@ -1,43 +1,46 @@
 from common import NULL, DUMMY
 
 
+class Slot(object):
+    def __init__(self, hash_code=NULL, key=NULL, value=NULL):
+        self.hash_code = hash_code
+        self.key = key
+        self.value = value
+
+
 class BaseDictImpl(object):
     def __init__(self):
-        self.hashes = self._new_empty(self.START_SIZE)
-        self.keys = self._new_empty(self.START_SIZE)
-        self.values = self._new_empty(self.START_SIZE)
+        self.slots = [Slot() for _ in range(self.START_SIZE)]
         self.fill = 0
         self.used = 0
-
-    @staticmethod
-    def _new_empty(size):
-        return [NULL for _ in range(size)]
 
     def __delitem__(self, key):
         idx = self.lookdict(key)
 
         self.used -= 1
-        self.keys[idx] = DUMMY
-        self.values[idx] = NULL
+        self.slots[idx].key = DUMMY
+        self.slots[idx].value = NULL
 
     def __getitem__(self, key):
         idx = self.lookdict(key)
 
-        return self.values[idx]
+        return self.slots[idx].value
 
-    def base_resize(self, quot=4):
-        old_hashes, old_keys, old_values = self.hashes, self.keys, self.values
-
+    def find_optimal_size(self, quot):
         new_size = 8
         while new_size <= quot * self.used:
             new_size *= 2
-        self.hashes = self._new_empty(new_size)
-        self.keys = self._new_empty(new_size)
-        self.values = self._new_empty(new_size)
 
-        for h, k, v in zip(old_hashes, old_keys, old_values):
-            if h is not NULL and k is not NULL and k is not DUMMY:
-                self.insertdict_clean(k, v)
+        return new_size
+
+    def base_resize(self, quot=4):
+        old_slots = self.slots
+        new_size = self.find_optimal_size(quot)
+        self.slots = [Slot() for _ in range(new_size)]
+
+        for slot in old_slots:
+            if slot.key is not NULL and slot.key is not DUMMY:
+                self.insertdict_clean(slot.key, slot.value)
 
         self.fill = self.used
 
@@ -47,5 +50,5 @@ class BaseDictImpl(object):
             self.fill += 1
         self.used += 1
 
-        if self.fill * 3 >= len(self.keys) * 2:
+        if self.fill * 3 >= len(self.slots) * 2:
             self.resize()

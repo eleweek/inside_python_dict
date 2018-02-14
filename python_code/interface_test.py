@@ -13,7 +13,7 @@ class Interface(unittest.TestCase):
 
         for i in range(100):
             d[i] = i
-            self.assertEquals(d[i], i)
+            self.assertEqual(d[i], i)
 
         for i in range(50):
             del d[i]
@@ -22,7 +22,7 @@ class Interface(unittest.TestCase):
 
         for i in range(200):
             d[i] = i + 1
-            self.assertEquals(d[i], i + 1)
+            self.assertEqual(d[i], i + 1)
 
 
 def main():
