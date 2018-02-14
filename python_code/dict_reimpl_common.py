@@ -29,7 +29,7 @@ class BaseDictImpl(object):
         old_hashes, old_keys, old_values = self.hashes, self.keys, self.values
 
         new_size = 8
-        while new_size < quot * self.used:
+        while new_size <= quot * self.used:
             new_size *= 2
         self.hashes = self._new_empty(new_size)
         self.keys = self._new_empty(new_size)
