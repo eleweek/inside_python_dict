@@ -26,6 +26,15 @@ function logViewportStats() {
     console.log("document.documentElement: " + document.documentElement.clientWidth + "x" + document.documentElement.clientHeight);
 }
 
+function renderPythonCode(codeString) {
+    let lowAst = low.highlight('python', codeString).value;
+
+    return rehype().stringify({
+            type: 'root',
+            children: lowAst
+        }).toString();
+}
+
 class BoxesBase {
     constructor(element, boxSize) {
         this.$element = $(element);
@@ -867,6 +876,10 @@ let dummyFormat = function(bp) {
     return "";
 }
 
+function SimpleCodeBlock(props) {
+    return <pre><code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} /></pre>
+}
+
 function CodeBlock(props) {
     let lines = [];
     let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
@@ -926,13 +939,7 @@ function CodeBlock(props) {
         }
 
         let paddedLine = _.padEnd(line, maxLen);
-        let lowAst = low.highlight('python', paddedLine).value;
-
-        let htCodeHtml = rehype().stringify({
-                type: 'root',
-                children: lowAst
-            }).toString();
-        console.log(htCodeHtml);
+        let htCodeHtml = renderPythonCode(paddedLine);
 
         let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
         formattedLine += explanation + "<br>";
@@ -1194,12 +1201,12 @@ class App extends React.Component {
 
               <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. </p> 
               <p> Another small change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
-              <pre><code>{`
+              <SimpleCodeBlock>{`
 class EmptyValueClass(object):
     pass
 
 EMPTY = EmptyValueClass()
-              `}</code></pre>
+              `}</SimpleCodeBlock>
               <p> We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
               <p> But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons when doing linear probing. </p>
               <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
@@ -1260,18 +1267,18 @@ EMPTY = EmptyValueClass()
               <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table gets overflown. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) or our_dict.find(key). The <code>[]</code> looks nicer and allows us to mimic some parts of the interface of python dict. </p>
               <p> To handle values we'd need yet another list (in addition to <code>hash_codes</code> and <code>keys</code>. Using another list would totally work. But let's actually bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
-              <pre><code>
+              <SimpleCodeBlock>
 {`class Slot(object):
     def __init__(self, hash_code=NULL, key=NULL, value=NULL):
         self.hash_code = hash_code
         self.key = key
         self.value = value
 `}
-			  </code></pre>
+			  </SimpleCodeBlock>
 
               <p> Now, for our hash table we will use a class, and for each operation we will have a magic method. How do we initialize an empty hash table? We used to base the size on the original list. Now we know how to resize hash tables, so we can start from an empty table. The number shouldn't be too small and too big. Let's start with 8 (since that's what python does). Python hash table sizes are power of 2, so we will use power of 2 too. Technically, nothing prevents using "non-round" values. The only reason for using "round" powers of 2 is efficiency. Getting modulo by power of 2 can be implemented efficiently using bit operations. We will keep using modulo instead of bit ops for expressiveness. </p>
               <p> Here is how our class is going to look like: </p>
-              <pre><code>
+              <SimpleCodeBlock>
 {`class AlmostDict(object):
     def __init__(self):
         self.slots = [Slot() for _ in range(8)]
@@ -1299,7 +1306,7 @@ EMPTY = EmptyValueClass()
         # d[1] raises KeyError now
         <implementation here>
 `}
-			  </code></pre>
+			  </SimpleCodeBlock>
               <p> Each method is going to update <code>self.fill</code> and <code>self.used</code>, so the fill factor is tracked correctly. </p>
               <p> When resizing a hash table, how do we find a new optimal size? There is no definitive answer. Typically the size is increased by a power of two. Doubling is quite reasonable. </p>
             
