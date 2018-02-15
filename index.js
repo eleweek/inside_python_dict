@@ -1308,7 +1308,18 @@ EMPTY = EmptyValueClass()
 `}
 			  </SimpleCodeBlock>
               <p> Each method is going to update <code>self.fill</code> and <code>self.used</code>, so the fill factor is tracked correctly. </p>
-              <p> When resizing a hash table, how do we find a new optimal size? There is no definitive answer. Typically the size is increased by a power of two. Doubling is quite reasonable. </p>
+              <p> When resizing a hash table, how do we find a new optimal size? There is no definitive answer. The size is increased by a power of 2, because we want to keep the size a power of 2. </p>
+              <SimpleCodeBlock>
+{`def find_optimal_size(self):
+    new_size = 8
+    while new_size <= 2 * self.used:
+        new_size *= 2
+
+    return new_size
+`}
+              </SimpleCodeBlock>
+              <p> This code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way. This means that the table could potentially shrink if most slots are filled with dummy elements. </p>
+              TODO: nice component displaying the relationship between fill/used ?
             
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
