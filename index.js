@@ -1257,8 +1257,51 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashNormalStateVisualization} />
               
               <h2> Putting it all together to make an almost-python-dict</h2>
-              <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. So we can write our_dict[key] instead of writing our_dict.find(key). The former looks nicer and allows us to mimic some parts of the interface of python dict. </p>
-              <p> TODO: links to some guides. </p>
+              <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table gets overflown. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
+              <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) or our_dict.find(key). The <code>[]</code> looks nicer and allows us to mimic some parts of the interface of python dict. </p>
+              <p> To handle values we'd need yet another list (in addition to <code>hash_codes</code> and <code>keys</code>. Using another list would totally work. But let's actually bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
+              <pre><code>
+{`class Slot(object):
+    def __init__(self, hash_code=NULL, key=NULL, value=NULL):
+        self.hash_code = hash_code
+        self.key = key
+        self.value = value
+`}
+			  </code></pre>
+
+              <p> Now, for our hash table we will use a class, and for each operation we will have a magic method. How do we initialize an empty hash table? We used to base the size on the original list. Now we know how to resize hash tables, so we can start from an empty table. The number shouldn't be too small and too big. Let's start with 8 (since that's what python does). </p>
+              <p> Here is how our class is going to look like: </p>
+              <pre><code>
+{`class AlmostDict(object):
+    def __init__(self):
+        self.slots = [Slot() for _ in range(8)]
+        self.fill = 0
+        self.used = 0
+
+    def __setitem__(self, key, value):
+        # Allows us set value in a dict-like fashion
+        # d = Dict()
+        # d[1] = 2
+        <implementation here>
+
+    def __getitem__(self, key):
+        # Allows us to get value from a ict, for example:
+        # d = Dict()
+        # d[1] = 2
+        # d[1] == 2
+        <implementation here>
+
+    def __delitem__(self, key):
+        # Allows us to use del in a dict-like fashion, for example:
+        # d = Dict()
+        # d[1] = 2
+        # del d[1]
+        # d[1] raises KeyError now
+        <implementation here>
+`}
+			  </code></pre>
+              <p> Each method is going to update <code>self.fill</code> and <code>self.used</code>, so the fill factor is tracked correctly. </p>
+
             
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
