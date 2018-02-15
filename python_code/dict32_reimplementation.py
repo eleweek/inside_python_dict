@@ -10,10 +10,6 @@ class PyDictReimplementation(BaseDictImpl):
         BaseDictImpl.__init__(self)
 
     @staticmethod
-    def _new_empty(size):
-        return [NULL for _ in range(size)]
-
-    @staticmethod
     def signed_to_unsigned(hash_code):
         return 2**64 + hash_code if hash_code < 0 else hash_code
 
