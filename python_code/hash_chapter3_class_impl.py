@@ -37,4 +37,17 @@ class HashDictImplementation(BaseDictImpl):
         return fill_increased
 
     def resize(self):
-        return self.base_resize(2)
+        old_slots = self.slots
+        new_size = self.find_optimal_size(2)
+        self.slots = [Slot() for _ in range(new_size)]
+
+        for slot in old_slots:
+            if slot.key is not NULL and slot.key is not DUMMY:
+                hash_code = hash(slot.key)
+                idx = hash_code % len(self.slots)
+                while self.slots[idx].key is not NULL:
+                    idx = (idx + 1) % len(self.slots)
+
+                self.slots[idx] = Slot(hash_code, slot.key, slot.value)
+
+        self.fill = self.used

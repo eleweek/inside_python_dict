@@ -498,6 +498,38 @@ const HASH_RESIZE_CODE = [
     ["    return new_hash_codes, new_keys", "return-lists"],
 ];
 
+const HASH_CLASS_INSERTDICT_CODE = [
+    ["def insertdict(self, key, value):", ""],
+    ["    hash_code = hash(key)", "compute-hash"],
+    ["    idx = hash_code % len(self.slots)", "compute-idx"],
+    ["    while self.slots[idx].key is not EMPTY and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"]
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-hash"],
+    ["             self.slots[idx].key == key:", "check-key"],
+    ["            break", "check-dup-break"],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
+
+    ["    fill_increased = self.slots[idx].key is EMPTY", "assign-fill-increased"],
+    ["    self.slots[idx] = Slot(hash_code, key, value)", "assign-slot"],
+    ["    return fill_increased", "return-insert"],
+
+];
+
+const HASH_CLASS_RESIZE_CODE = [
+    ["def resize(self):", "start-execution"],
+    ["    old_slots = self.slots", "assign-old-slots"],
+    ["    new_size = self.find_optimal_size(quot)", "compute-new-size"],
+    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
+    ["    self.fill = self.used", "assign-fill"],
+    ["    for slot in old_slots:", "for-slots"],
+    ["        if slot.key is not EMPTY and slot.key is not DUMMY:", "check-skip-empty-dummy"],
+    ["              hash_code = hash(slot.key)", "compute-hash"],
+    ["              idx = hash_code % len(self.slots)", "compute-idx"],
+    ["              while self.slots[idx].key is not NULL:", "check-collision"],
+    ["                  idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["", ""],
+    ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
+];
+
 
 const SIMPLIFIED_SEARCH_CODE = [
     ["def has_number(new_list, number):", "start-execution"],
@@ -1269,7 +1301,7 @@ EMPTY = EmptyValueClass()
               <p> To handle values we'd need yet another list (in addition to <code>hash_codes</code> and <code>keys</code>. Using another list would totally work. But let's actually bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
               <SimpleCodeBlock>
 {`class Slot(object):
-    def __init__(self, hash_code=NULL, key=NULL, value=NULL):
+    def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
         self.hash_code = hash_code
         self.key = key
         self.value = value
