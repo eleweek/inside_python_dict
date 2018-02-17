@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-        HashRemoveOrSearch, HashResize, HashInsert} from './hash_impl.js';
+        HashRemoveOrSearch, HashResize, HashInsert, HashClassResize, hashClassConstructor, HashClassInsertAll} from './hash_impl.js';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
 
@@ -498,20 +498,25 @@ const HASH_RESIZE_CODE = [
     ["    return new_hash_codes, new_keys", "return-lists"],
 ];
 
-const HASH_CLASS_INSERTDICT_CODE = [
-    ["def insertdict(self, key, value):", ""],
+const HASH_CLASS_SETITEM_CODE = [
+    ["def __setitem__(self, key, value):", "start-execution"],
     ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    while self.slots[idx].key is not EMPTY and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"]
-    ["        if self.slots[idx].hash_code == hash_code and\\", "check-hash"],
-    ["             self.slots[idx].key == key:", "check-key"],
+    ["    while self.slots[idx].key is not NULL and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"],
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
+    ["           self.slots[idx].key == key:", "check-dup-key"],
     ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
-
-    ["    fill_increased = self.slots[idx].key is EMPTY", "assign-fill-increased"],
+    ["", ""],
+    ["    if self.slots[idx].key is NULL or self.slots[idx].key is DUMMY:", "check-used-increased"],
+    ["        self.used += 1", "inc-used"],
+    ["    if self.slots[idx].key is NULL:", "check-fill-increased"],
+    ["        self.fill += 1", "inc-fill"],
+    ["", ""],
     ["    self.slots[idx] = Slot(hash_code, key, value)", "assign-slot"],
-    ["    return fill_increased", "return-insert"],
-
+    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
+    ["        self.resize()", "resize"],
+    ["", "done-no-return"],
 ];
 
 const HASH_CLASS_RESIZE_CODE = [
@@ -520,7 +525,7 @@ const HASH_CLASS_RESIZE_CODE = [
     ["    new_size = self.find_optimal_size(quot)", "compute-new-size"],
     ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
     ["    self.fill = self.used", "assign-fill"],
-    ["    for slot in old_slots:", "for-slots"],
+    ["    for slot in old_slots:", "for-loop"],
     ["        if slot.key is not EMPTY and slot.key is not DUMMY:", "check-skip-empty-dummy"],
     ["              hash_code = hash(slot.key)", "compute-hash"],
     ["              idx = hash_code % len(self.slots)", "compute-idx"],
@@ -528,6 +533,7 @@ const HASH_CLASS_RESIZE_CODE = [
     ["                  idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
     ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
+    ["", "done-no-return"],
 ];
 
 
@@ -559,9 +565,9 @@ const HASH_INSERT_CODE = [
     ["    idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],     
     ["    while keys[idx] is not EMPTY and keys[idx] is not DUMMY:", "check-collision-with-dummy"],
-    ["        if hash_codes[idx] == hash_code\\", "check-dup-hash"],
-    ["           and keys[idx] == key:", "check-dup-key"],
-    ["            return", "check-dup-return"],
+    ["        if hash_codes[idx] == hash_code and\\", "check-dup-hash"],
+    ["           keys[idx] == key:", "check-dup-key"],
+    ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(keys)", "next-idx"],
     ["", ""],
     ["    hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
@@ -669,6 +675,22 @@ function HashResizeStateVisualization(props) {
 
 const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent, "new_list", "newList", "newListIdx");
 const AddStateVisualization = TetrisSingleRowWrap(HashBoxesComponent);
+
+
+function HashClassInsertAllVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [LineOfBoxesComponent, ["from_keys", "fromKeys", "oldIdx"]],
+                [LineOfBoxesComponent, ["from_values", "fromValues", "oldIdx"]],
+                [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["keys", "keys", "idx"]],
+                [HashBoxesComponent, ["values", "values", "idx"]],
+            ]
+        }
+        {...props}
+    />;
+}
 
 let formatAddCodeBreakpointDescription = function(bp) {
     switch (bp.point) {
@@ -1108,6 +1130,7 @@ class App extends React.Component {
             howToSearchObj: 'hmmm',
             hrToRemove: "xxx",
             hiToInsert: "okok",
+            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
 
@@ -1143,6 +1166,12 @@ class App extends React.Component {
         let hi = new HashInsert();
         hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
         let hashInsertBreakpoints = hi.getBreakpoints();
+
+
+        let hashClassSelf = hashClassConstructor();
+        let hashClassInsertAll = new HashClassInsertAll();
+        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
+        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let myhash = new MyHash();
 
@@ -1352,6 +1381,15 @@ EMPTY = EmptyValueClass()
               </SimpleCodeBlock>
               <p> This code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way. This means that the table could potentially shrink if most slots are filled with dummy elements. </p>
               TODO: nice component displaying the relationship between fill/used ?
+
+              <p> Let's say we want create a dict from the following pairs: </p>
+              <JsonInput value={this.state.hashClassOriginalPairs} onChange={(value) => this.setState({hashClassOriginalPairs: value})} />
+
+              <VisualizedCode
+                code={HASH_CLASS_SETITEM_CODE}
+                breakpoints={hashClassInsertAllBreakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashClassInsertAllVisualization} />
             
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>

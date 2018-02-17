@@ -20,9 +20,8 @@ class HashDictImplementation(BaseDictImpl):
 
         raise KeyError()
 
-    def insertdict_clean(self, key, value):
+    def __setitem__(self, key, value):
         hash_code = hash(key)
-
         idx = hash_code % len(self.slots)
         while self.slots[idx].key is not NULL and self.slots[idx].key is not DUMMY:
             if self.slots[idx].hash_code == hash_code and self.slots[idx].key == key:
@@ -30,11 +29,15 @@ class HashDictImplementation(BaseDictImpl):
 
             idx = (idx + 1) % len(self.slots)
 
-        fill_increased = self.slots[idx].key is NULL
+        if self.slots[idx].key is NULL or self.slots[idx].key is DUMMY:
+            self.used += 1
+        if self.slots[idx].key is NULL:
+            self.fill += 1
 
         self.slots[idx] = Slot(hash_code, key, value)
 
-        return fill_increased
+        if self.fill * 3 >= len(self.slots) * 2:
+            self.resize()
 
     def resize(self):
         old_slots = self.slots

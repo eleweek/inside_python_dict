@@ -196,9 +196,10 @@ let pyHash = function(o) {
 }
 
 class BreakpointFunction {
-    constructor(evals, converters) {
+    constructor(evals, converters, bpFuncs) {
         this._breakpoints = [];
         this._evals = evals;
+        this._bpFuncs = bpFuncs;
         this._converters = converters || {};
     }
 
@@ -208,25 +209,38 @@ class BreakpointFunction {
             _prev_bp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null
         }
 
-        for (let [key, value] of Object.entries(this)) {
-            if (key[0] != "_") {
-                if (value !== undefined) {
-                    bp[key] = _.cloneDeep(value);
-
-                    if (key in this._converters) {
-                        bp[key] = this._converters[key](bp[key]);
-                    }
-                }
-            }
-        }
-
         if (this._evals) {
             for (let [key, toEval] of Object.entries(this._evals)) {
                 bp[key] = eval(toEval);
             }
         }
 
-        this._breakpoints.push(bp);
+        for (let [key, value] of Object.entries(this)) {
+            if (key[0] != "_") {
+                if (value !== undefined) {
+                    bp[key] = _.cloneDeep(value);
+
+                }
+            }
+        }
+
+        if (this._bpFuncs) {
+            for (let [key, func] of Object.entries(this._bpFuncs)) {
+                bp[key] = func(bp);
+            }
+        }
+
+        for (let [key, value] of Object.entries(bp)) {
+            if (key in this._converters) {
+                bp[key] = this._converters[key](bp[key]);
+            }
+        }
+
+        this._breakpoints.push({...this._extraBpContext, ...bp});
+    }
+    
+    setExtraBpContext(extraBpContext) {
+        this._extraBpContext = extraBpContext;
     }
 
     getBreakpoints() {
@@ -312,11 +326,11 @@ class SimplifiedSearch extends BreakpointFunction {
 }
 
 class HashBreakpointFunction extends BreakpointFunction {
-    constructor(evals, converters) {
+    constructor(evals, converters, bpFuncs) {
         super(evals, converters || {
             'hashCode': hc => hc !== null ? hc.toString() : null,
             'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-        });
+        }, bpFuncs);
     }
 
     computeIdx(hashCodeBig, len) {
@@ -491,6 +505,190 @@ class HashResize extends HashBreakpointFunction {
     }
 };
 
+class Slot {
+    constructor(hashCode=null, key=null, value=null) {
+        this.hashCode = hashCode;
+        this.key = key;
+        this.value = value;
+    }
+}
+
+function findOptimalSize(used, quot=2) {
+    let newSize = 8;
+    while (newSize <= quot * used) {
+        newSize *= 2;
+    }
+
+    return newSize;
+}
+
+function hashClassConstructor() {
+    let self = {
+        slots: [],
+        used: 0,
+        fill: 0,
+    };
+
+    for (let i = 0; i < 8; ++i) {
+        self.slots.push(new Slot());
+    }
+
+    return self;
+}
+
+class HashClassResize extends HashBreakpointFunction {
+    constructor() {
+        super(null, {
+            'hashCode': hc => hc !== null ? hc.toString() : null,
+            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+        });
+    }
+
+    run(_self) {
+        this.self = _self;
+
+        this.oldSlots = this.self.slots;
+        this.addBP("assign-old-slots");
+        this.newSize = findOptimalSize(this.self.used);
+        this.addBP("compute-new-size");
+
+        this.self.slots = [];
+
+        for (let i = 0; i < this.newSize; ++i) {
+            this.self.slots.push(new Slot());
+        }
+        this.addBP("new-empty-slots");
+
+        this.self.fill = this.self.used;
+        this.addBP("assign-fill");
+
+        for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
+            this.addBP('for-loop');
+            this.addBP('check-skip-empty-dummy');
+            if (this.slot.key === null || this.slot.key === "DUMMY") {
+                this.addBP('continue');
+                continue;
+            }
+            this.idx = this.computeIdx(this.slot.hashCode, this.self.slots.length);
+            this.addBP('compute-idx');
+
+            while (true) {
+                this.addBP('check-collision');
+                if (this.self.slots[this.idx].key === null) {
+                    break;
+                }
+
+                this.idx = (this.idx + 1) % this.self.slots.length;
+                this.addBP('next-idx');
+            }
+
+            this.self.slots[this.idx] = new Slot(this.slot.hashCode, this.slot.key, this.slot.value);
+            this.addBP('assign-slot');
+        }
+        this.oldIdx = null;
+        this.idx = null;
+        this.addBP('done-no-return');
+
+        return this.self;
+    }
+};
+
+class HashClassBreakpointFunction extends HashBreakpointFunction {
+    constructor(evals, converters, bpFuncs) {
+        super(evals, {
+            hashCode: hc => hc !== null ? hc.toString() : null,
+            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+            ...converters
+        }, {
+            hashCodes: bp => bp.self.slots.map(s => s.hashCode),
+            keys: bp => bp.self.slots.map(s => s.key),
+            values: bp => bp.self.slots.map(s => s.value),
+            ...bpFuncs
+        });
+    }
+}
+
+class HashClassInsertAll extends HashBreakpointFunction {
+    run(_self, _pairs) {
+        this.self = _self;
+        this.pairs = _pairs;
+        let fromKeys = this.pairs.map(p => p[0]);
+        let fromValues = this.pairs.map(p => p[1]);
+        for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
+            console.log(this.oldIdx, this.oldKey, this.oldValue);
+            let hcsi = new HashClassSetItem();
+            hcsi.setExtraBpContext({
+                oldIdx: this.oldIdx,
+                fromKeys: fromKeys,
+                fromValues: fromValues,
+            });
+            this.self = hcsi.run(this.self, this.oldKey, this.oldValue);
+            this._breakpoints = [...this._breakpoints,...hcsi.getBreakpoints()]
+            console.log("-----------");
+            console.log("THIS._BREAKPOINTS");
+            console.log(this._breakpoints);
+        }
+    }
+}
+
+class HashClassSetItem extends HashClassBreakpointFunction {
+    run(_self, _key, _value) {
+        this.self = _self;
+        this.key = _key;
+        this.value = _value;
+
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-collision-with-dummy');
+            if (this.self.slots[this.idx].key === null || this.self.slots[this.idx].key === "DUMMY") {
+                break;
+            }
+
+            this.addBP('check-dup-hash');
+            if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
+                this.addBP('check-dup-key');
+                if (this.self.slots[this.idx].key == this.key) {
+                    this.addBP('check-dup-break');
+                    break;
+                }
+            }
+
+            this.idx = (this.idx + 1) % this.self.slots.length;
+            this.addBP('next-idx');
+        }
+
+        this.addBP('check-used-increased');
+        if (this.self.slots[this.idx].key === null ||
+            this.self.slots[this.idx].key === "DUMMY") {
+            this.addBP('inc-used');
+            this.self.used += 1;
+        }
+
+        this.addBP('check-fill-increased');
+        if (this.self.slots[this.idx].key === null) {
+            this.addBP('inc-fill');
+            this.self.fill += 1;
+        }
+
+        this.self.slots[this.idx] = new Slot(this.hashCode, this.key, this.value);
+        this.addBP('assign-slot');
+        this.addBP('check-resize');
+        if (this.self.fill * 3 >= this.self.slots.length * 2) {
+            let hashClassResize = new HashClassResize();
+            this.self = hashClassResize.run(this.self);
+            this.addBP('resize');
+        }
+        this.addBP("done-no-return");
+        return this.self;
+    }
+}
+
+
 class HashInsert extends HashBreakpointFunction {
     run(_hashCodes, _keys, _key) {
         this.hashCodes = _hashCodes;
@@ -513,7 +711,7 @@ class HashInsert extends HashBreakpointFunction {
             if (this.hashCodes[this.idx].eq(this.hashCode)) {
                 this.addBP('check-dup-key');
                 if (this.keys[this.idx] == this.key) {
-                    this.addBP('check-dup-return');
+                    this.addBP('check-dup-break');
                     break;
                 }
             }
@@ -521,7 +719,6 @@ class HashInsert extends HashBreakpointFunction {
             this.idx = (this.idx + 1) % this.keys.length;
             this.addBP('next-idx');
         }
-
         this.hashCodes[this.idx] = this.hashCode;
         this.keys[this.idx] = this.key;
 
@@ -544,7 +741,6 @@ class MyHash {
     }
 
     rehash(newCapacity) {
-        console.log(this.originalOrder);
         let newData = [];
 
         for (let i = 0; i < newCapacity; ++i) {
@@ -743,5 +939,5 @@ function simpleListSearch(l, key) {
 
 export {
     pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
-    HashRemoveOrSearch, HashResize, HashInsert
+    HashRemoveOrSearch, HashResize, HashInsert, HashClassResize, hashClassConstructor, HashClassSetItem, HashClassInsertAll
 }
