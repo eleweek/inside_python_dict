@@ -1,3 +1,5 @@
+var Big = require('big.js');
+
 class Int64 {
     constructor(jsNumInt32 = 0) {
         this.size = 64;

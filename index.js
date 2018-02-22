@@ -1,3 +1,9 @@
+require('popper.js');
+require('bootstrap');
+require('bootstrap/dist/css/bootstrap.css');
+
+var _ = require('lodash');
+
 var React = require('react');
 var ReactDOM = require('react-dom');
 import {pyHash, pyHashString, pyHashInt, MyHash, simpleListSearch, SimplifiedInsertAll, SimplifiedSearch, HashCreateNew,
