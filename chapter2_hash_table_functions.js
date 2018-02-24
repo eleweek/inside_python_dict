@@ -1,7 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 
-import {pyHashString, pyHashInt, HashCreateNew, HashRemoveOrSearch, HashResize, HashInsert} from './hash_impl.js';
+import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common.js';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks.js';
 import {JsonInput} from './inputs.js';
 
@@ -23,6 +23,66 @@ const HASH_CREATE_NEW_CODE = [
     ["", "", -1],
     ["    return hash_codes, keys", "return-lists", 1],
 ];
+
+class HashCreateNew extends HashBreakpointFunction {
+    run(_fromKeys) {
+        this.fromKeys = _fromKeys;
+
+        this.hashCodes = [];
+        this.keys = [];
+
+        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
+            this.hashCodes.push(null);
+        }
+        this.addBP("create-new-empty-hashes");
+
+        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
+            this.keys.push(null);
+        }
+        this.addBP("create-new-empty-keys");
+
+        for ([this.fromKeysIdx, this.key] of this.fromKeys.entries()) {
+            this.addBP('for-loop');
+
+            this.hashCode = pyHash(this.key);
+            this.addBP('compute-hash');
+
+            this.idx = this.computeIdx(this.hashCode, this.keys.length);
+            this.addBP('compute-idx');
+
+            while (true) {
+                this.addBP('check-collision');
+                if (this.keys[this.idx] === null) {
+                    break;
+                }
+
+                this.addBP('check-dup-hash');
+                if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                    this.addBP('check-dup-key');
+                    if (this.keys[this.idx] == this.key) {
+                        this.addBP('check-dup-break');
+                        break;
+                    }
+                }
+
+                this.idx = (this.idx + 1) % this.keys.length;
+                this.addBP('next-idx');
+            }
+
+            this.hashCodes[this.idx] = this.hashCode;
+            this.keys[this.idx] = this.key;
+            this.addBP('assign-elem');
+            this.idx = null;
+        }
+
+        this.fromKeysIdx = null;
+        this.key = null;
+
+        this.addBP('return-lists');
+        return [this.hashCodes, this.keys];
+    }
+}
+
 
 function HashCreateNewStateVisualization(props) {
     return <Tetris
@@ -177,6 +237,55 @@ const HASH_REMOVE_CODE = [
     ["    raise KeyError()", "throw-key-error", 1]
 ];
 
+class HashRemoveOrSearch extends HashBreakpointFunction {
+    run(_hashCodes, _keys, _key, isRemoveMode) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+        this.key = _key;
+
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode, this.keys.length);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-not-found');
+            if (this.keys[this.idx] === null) {
+                break;
+            }
+
+            this.addBP('check-hash');
+            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                this.addBP('check-key');
+                if (this.keys[this.idx] == this.key) {
+                    if (isRemoveMode) {
+                        this.keys[this.idx] = "DUMMY";
+                        this.addBP('assign-dummy');
+                        this.addBP('return');
+                        return;
+                    } else {
+                        this.addBP('return-true');
+                        return true;
+                    }
+                }
+            }
+
+            this.idx = (this.idx + 1) % this.keys.length;
+            this.addBP('next-idx');
+        }
+
+        if (isRemoveMode) {
+            this.addBP('throw-key-error');
+            return "KeyError()";
+        } else {
+            this.addBP('return-false');
+            return false;
+        }
+    }
+};
+
+
 const HASH_RESIZE_CODE = [
     ["def resize(hash_codes, keys):", "start-execution"],
     ["    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]", "create-new-empty-hashes"],
@@ -191,6 +300,66 @@ const HASH_RESIZE_CODE = [
     ["", ""],
     ["    return new_hash_codes, new_keys", "return-lists"],
 ];
+
+class HashResize extends HashBreakpointFunction {
+    constructor() {
+        super(null, {
+            'hashCode': hc => hc !== null ? hc.toString() : null,
+            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+            'newHashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+        });
+    }
+
+    run(_hashCodes, _keys) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+
+        this.newHashCodes = [];
+        this.newKeys = [];
+
+        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+            this.newHashCodes.push(null);
+        }
+        this.addBP("create-new-empty-hashes");
+
+        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+            this.newKeys.push(null);
+        }
+        this.addBP("create-new-empty-keys");
+
+        for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
+            this.addBP('for-loop');
+            this.addBP('check-skip-empty-dummy');
+            if (this.key === null || this.key == "DUMMY") {
+                this.addBP('continue');
+                continue;
+            }
+            this.idx = this.computeIdx(this.hashCode, this.newKeys.length);
+            this.addBP('compute-idx');
+
+            while (true) {
+                this.addBP('check-collision');
+                if (this.newKeys[this.idx] === null) {
+                    break;
+                }
+
+                this.idx = (this.idx + 1) % this.newKeys.length;
+                this.addBP('next-idx');
+            }
+
+            this.newHashCodes[this.idx] = this.hashCode;
+            this.addBP('assign-hash');
+
+            this.newKeys[this.idx] = this.key;
+            this.addBP('assign-key');
+        }
+        this.oldIdx = null;
+        this.key = null;
+        this.idx = null;
+        this.addBP('return-lists');
+        return [this.newHashCodes, this.newKeys];
+    }
+};
 
 
 let formatHashResize = function(bp) {
@@ -244,7 +413,6 @@ function HashResizeStateVisualization(props) {
     />;
 }
 
-
 const HASH_INSERT_CODE = [
     ["def insert(hash_codes, keys, key):", "start-execution"],
     ["    hash_code = hash(key)", "compute-hash"],
@@ -258,6 +426,43 @@ const HASH_INSERT_CODE = [
     ["", ""],
     ["    hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
 ];
+
+class HashInsert extends HashBreakpointFunction {
+    run(_hashCodes, _keys, _key) {
+        this.hashCodes = _hashCodes;
+        this.keys = _keys;
+        this.key = _key;
+
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode, this.keys.length);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-collision-with-dummy');
+            if (this.keys[this.idx] === null || this.keys[this.idx] === "DUMMY") {
+                break;
+            }
+
+            this.addBP('check-dup-hash');
+            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                this.addBP('check-dup-key');
+                if (this.keys[this.idx] == this.key) {
+                    this.addBP('check-dup-break');
+                    break;
+                }
+            }
+
+            this.idx = (this.idx + 1) % this.keys.length;
+            this.addBP('next-idx');
+        }
+        this.hashCodes[this.idx] = this.hashCode;
+        this.keys[this.idx] = this.key;
+
+        this.addBP('assign-elem');
+    }
+}
 
 class HashExamples extends React.Component {
     constructor(props) {

@@ -1,6 +1,6 @@
 var React = require('react');
 
-import {simpleListSearch, SimplifiedInsertAll, SimplifiedSearch} from './hash_impl.js';
+import {BreakpointFunction} from './hash_impl_common.js';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks.js';
 import {JsonInput} from './inputs.js';
 
@@ -13,6 +13,45 @@ const SIMPLE_LIST_SEARCH = [
     ["        idx += 1", "next-idx"],
     ["    return False", "found-nothing"]
 ];
+
+function simpleListSearch(l, key) {
+    let defaultBPInfo = {
+        type: 'breakpoint',
+        arg: key,
+        data: _.cloneDeep(l),
+        size: l.length,
+    };
+    let breakpoints = [];
+    let newBP = (point, idx, extraInfo) => {
+        return {...defaultBPInfo, ...{point: point, idx: idx, atIdx: l[idx]}, ...extraInfo};
+    };
+
+    let idx = 0;
+    breakpoints.push(newBP('start-from-zero', idx));
+
+    while (true) {
+        breakpoints.push(newBP('check-boundary', idx));
+        if (idx >= l.length) {
+            break;
+        }
+        if (l[idx] == key) {
+            breakpoints.push(newBP('check-found', idx, {'found': true}));
+            breakpoints.push(newBP('found-key', idx));
+
+            return breakpoints;
+        } else {
+            breakpoints.push(newBP('check-found', idx, {'found': false}));
+        }
+
+        idx += 1;
+        breakpoints.push(newBP('next-idx', idx));
+    }
+
+    breakpoints.push(newBP('found-nothing'));
+
+    return breakpoints;
+}
+
 
 let formatSimpleListSearchBreakpointDescription = function(bp) {
     switch (bp.point) {
@@ -52,6 +91,48 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
     ["        new_list[idx] = number", "assign-elem"],
     ["    return new_list", "return-created-list"],
 ];
+
+class SimplifiedInsertAll extends BreakpointFunction {
+    constructor() {
+        super({
+            'newListAtIdx': 'this.newList[this.newListIdx]'
+        });
+    }
+
+    run(_originalList) {
+        this.originalList = _originalList;
+        this.newList = [];
+
+        for (let i = 0; i < this.originalList.length * 2; ++i) {
+            this.newList.push(null);
+        }
+        this.addBP('create-new-list');
+
+        for ([this.originalListIdx, this.number] of this.originalList.entries()) {
+            this.addBP('for-loop');
+            this.newListIdx = this.number % this.newList.length;
+            this.addBP('compute-idx');
+            while (true) {
+                this.addBP('check-collision');
+                if (this.newList[this.newListIdx] === null) {
+                    break;
+                }
+
+                this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+                this.addBP('next-idx');
+            }
+            this.newList[this.newListIdx] = this.number;
+            this.addBP('assign-elem');
+        }
+        this.originalListIdx = null;
+        this.newListIdx = null;
+        this.number = null;
+
+        this.addBP('return-created-list');
+
+        return this.newList;
+    }
+}
 
 let formatSimplifiedInsertAllDescription = function(bp) {
     switch (bp.point) {
@@ -99,6 +180,41 @@ const SIMPLIFIED_SEARCH_CODE = [
     ["        idx = (idx + 1) % len(new_list)", "next-idx"],
     ["    return False", "found-nothing"],
 ];
+
+class SimplifiedSearch extends BreakpointFunction {
+    constructor() {
+        super({
+            'newListAtIdx': 'this.newList[this.newListIdx]'
+        });
+    }
+
+    run(_newList, _number) {
+        this.newList = _newList;
+        this.number = _number;
+
+        this.newListIdx = this.number % this.newList.length;
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-not-found');
+            if (this.newList[this.newListIdx] === null) {
+                break;
+            }
+            this.addBP('check-found');
+            if (this.newList[this.newListIdx] === this.number) {
+                this.addBP('found-key');
+                return true;
+            }
+
+            this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+            this.addBP('next-idx');
+        }
+
+        this.addBP('found-nothing');
+
+        return false;
+    }
+}
 
 let formatSimplifiedSearchDescription = function(bp) {
     switch (bp.point) {
