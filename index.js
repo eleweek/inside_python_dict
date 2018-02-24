@@ -1179,17 +1179,6 @@ class App extends React.Component {
         hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
-        let myhash = new MyHash();
-
-        myhash.addArray(this.state.exampleArray);
-        let exampleArrayHashVis = {
-            array: _.cloneDeep(myhash.data),  // TODO: better add some sort of reflection to MyHash? 
-        }
-
-        let howToAddInsertionHistory = myhash.add(this.state.howToAddObj);
-        let addBreakpoints = howToAddInsertionHistory.breakpoints;
-        let searchBreakpoints = myhash.has(this.state.howToSearchObj);
-
         return(
             <div>
               <h1> Inside python dict &mdash; an explorable explanation</h1>
@@ -1409,31 +1398,6 @@ EMPTY = EmptyValueClass()
               <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. The only thing we need to add is handling of values, which is not that difficult. </p>
               <h5> Python 3.2's dict </h5>
               <p> Let's see how this dict can be implemented. </p>
-
-              <h5> Old dev stuff</h5>
-              <p>
-                Let's say we want to add
-                <JsonInput inline={true} value={this.state.howToAddObj} onChange={(value) => this.setState({howToAddObj: value})} />
-                to the hashtable. 
-              </p>
-
-              <CrossFade>
-                  <InsertionHistory insertionHistory={howToAddInsertionHistory} key={JSON.stringify(howToAddInsertionHistory)}/>
-              </CrossFade>
-              <VisualizedCode
-                code={ADD_CODE}
-                breakpoints={addBreakpoints}
-                formatBpDesc={formatAddCodeBreakpointDescription}
-                stateVisualization={AddStateVisualization} />
-
-              <h5> How does searching in a hash table work?  </h5>
-              <p> In a similar fashion, we start at an expected slot and do linear probing until we hit an empty slot. However, while checking an occopied slot, we compare the key in it to the target key. If the key is equal to the target key, this means that we found it. However, if we find an empty slot without finding an occopied slot with our target key, then it means that the key is not in the table. </p>
-              <p> Let's say we want to find <JsonInput inline={true} value={this.state.howToSearchObj} onChange={(value) => this.setState({howToSearchObj: value})} /></p>
-              <VisualizedCode
-                code={SEARCH_CODE}
-                breakpoints={searchBreakpoints}
-                formatBpDesc={formatSearchCodeBreakpointDescription}
-                stateVisualization={TetrisSingleRowWrap(HashBoxesComponent)} />
           </div>)
     }
 }
