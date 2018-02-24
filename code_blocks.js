@@ -456,7 +456,7 @@ class VisualizedCode extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) {
             this.setState({
-                time: this.props.breakpoints.length - 1,
+                time: nextProps.breakpoints.length - 1,
             });
         }
     }
