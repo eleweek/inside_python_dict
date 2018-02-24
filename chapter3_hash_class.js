@@ -18,7 +18,7 @@ class HashClassBreakpointFunction extends HashBreakpointFunction {
     constructor(evals, converters, bpFuncs) {
         super(evals, {
             hashCode: hc => hc !== null ? hc.toString() : null,
-            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+            hashCodes: hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
             ...converters
         }, {
             hashCodes: bp => bp.self.slots.map(s => s.hashCode),
@@ -131,23 +131,40 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         this.addBP('check-resize');
         if (this.self.fill * 3 >= this.self.slots.length * 2) {
             let hashClassResize = new HashClassResize();
+            let _oldSelf = _.cloneDeep(this.self);
             this.self = hashClassResize.run(this.self);
+
+            this._resize = {
+                'oldSelf': _oldSelf,
+                'self': _.cloneDeep(this.self),
+                'breakpoints': hashClassResize.getBreakpoints(),
+            };
+
             this.addBP('resize');
         }
         this.addBP("done-no-return");
         return this.self;
     }
+
+    getResize() {
+        return this._resize !== undefined ? this._resize : null;
+    }
 }
 
 
 class HashClassInsertAll extends HashBreakpointFunction {
+    constructor() {
+        super();
+
+        this._resizes = [];
+    }
+
     run(_self, _pairs) {
         this.self = _self;
         this.pairs = _pairs;
         let fromKeys = this.pairs.map(p => p[0]);
         let fromValues = this.pairs.map(p => p[1]);
         for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
-            console.log(this.oldIdx, this.oldKey, this.oldValue);
             let hcsi = new HashClassSetItem();
             hcsi.setExtraBpContext({
                 oldIdx: this.oldIdx,
@@ -155,11 +172,15 @@ class HashClassInsertAll extends HashBreakpointFunction {
                 fromValues: fromValues,
             });
             this.self = hcsi.run(this.self, this.oldKey, this.oldValue);
+            if (hcsi.getResize()) {
+                this._resizes.push(hcsi.getResize());
+            }
             this._breakpoints = [...this._breakpoints,...hcsi.getBreakpoints()]
-            console.log("-----------");
-            console.log("THIS._BREAKPOINTS");
-            console.log(this._breakpoints);
         }
+    }
+
+    getResizes() {
+        return this._resizes;
     }
 }
 
@@ -169,15 +190,30 @@ function HashClassInsertAllVisualization(props) {
             [
                 [LineOfBoxesComponent, ["from_keys", "fromKeys", "oldIdx"]],
                 [LineOfBoxesComponent, ["from_values", "fromValues", "oldIdx"]],
-                [HashBoxesComponent, ["hash_codes", "hashCodes", "idx"]],
-                [HashBoxesComponent, ["keys", "keys", "idx"]],
-                [HashBoxesComponent, ["values", "values", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
             ]
         }
         {...props}
     />;
 }
 
+function HashClassResizeVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [HashBoxesComponent, ["oldSlots[*].hash", "oldHashCodes", "oldIdx"]],
+                [HashBoxesComponent, ["oldSlots[*].key", "oldKeys", "oldIdx"]],
+                [HashBoxesComponent, ["oldSlots[*].value", "oldValues", "oldIdx"]],
+                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
+            ]
+        }
+        {...props}
+    />;
+}
 
 const HASH_CLASS_RESIZE_CODE = [
     ["def resize(self):", "start-execution"],
@@ -196,11 +232,14 @@ const HASH_CLASS_RESIZE_CODE = [
     ["", "done-no-return"],
 ];
 
-class HashClassResize extends HashBreakpointFunction {
+class HashClassResize extends HashClassBreakpointFunction {
     constructor() {
         super(null, {
-            'hashCode': hc => hc !== null ? hc.toString() : null,
-            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+            oldHashCodes: hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
+        }, {
+            oldHashCodes: bp => bp.oldSlots.map(s => s.hashCode),
+            oldKeys: bp => bp.oldSlots.map(s => s.key),
+            oldValues: bp => bp.oldSlots.map(s => s.value),
         });
     }
 
@@ -270,6 +309,15 @@ class Chapter3_HashClass extends React.Component {
         hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
+        let resizes = hashClassInsertAll.getResizes();
+        let resize = null;
+        if (resizes.length > 0) {
+            resize = resizes[0];
+        }
+        console.log("infa");
+        console.log(resize);
+        console.log(resizes);
+
         return <div className="chapter3">
               <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
               <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table gets overflown. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
@@ -337,6 +385,14 @@ class Chapter3_HashClass extends React.Component {
                 breakpoints={hashClassInsertAllBreakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
+
+              <p> TODO: conditional here. </p>
+              <p> Let's look at the first resize in depth: </p>
+              <VisualizedCode
+                code={HASH_CLASS_RESIZE_CODE}
+                breakpoints={resize.breakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashClassResizeVisualization} />
         </div>
     }
 }
