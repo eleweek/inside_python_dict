@@ -1325,14 +1325,12 @@ EMPTY = EmptyValueClass()
 }
 
 
-class App extends React.Component {
+class Chapter3_HashClass extends React.Component {
     constructor() {
         super();
 
         this.state = {
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
-            hrToRemove: "xxx",
-            hiToInsert: "okok",
             hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
@@ -1343,11 +1341,7 @@ class App extends React.Component {
         hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
-        return(
-            <div>
-              <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <Chapter1_SimplifiedHash />
-              <Chapter2_HashTableFunctions />
+        return <div className="chapter3">
               <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
               <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table gets overflown. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) or our_dict.find(key). The <code>[]</code> looks nicer and allows us to mimic some parts of the interface of python dict. </p>
@@ -1415,6 +1409,19 @@ class App extends React.Component {
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
             
+        </div>
+    }
+}
+
+
+class App extends React.Component {
+    render() {
+        return(
+            <div>
+              <h1> Inside python dict &mdash; an explorable explanation</h1>
+              <Chapter1_SimplifiedHash />
+              <Chapter2_HashTableFunctions />
+              <Chapter3_HashClass />
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
               <p> However, the core idea is stayed the same. Python dict is internally is still a hash table. </p>
