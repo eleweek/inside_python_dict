@@ -1,5 +1,4 @@
 var React = require('react');
-var ReactDOM = require('react-dom');
 
 var low = require('lowlight');
 var rehype = require('rehype');
