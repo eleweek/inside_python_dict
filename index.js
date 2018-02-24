@@ -1123,7 +1123,7 @@ class CrossFade extends React.Component {
     }
 }
 
-class App extends React.Component {
+class Chapter1_SimplifiedHash extends React.Component {
     constructor() {
         super();
 
@@ -1131,12 +1131,6 @@ class App extends React.Component {
             exampleArrayNumbers: [14, 8, 19, 15, 13, 42, 46, 22],
             simpleSearchObj: 46,
             simplifiedSearchObj: 46,
-            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
-            howToAddObj: 'py',
-            howToSearchObj: 'hmmm',
-            hrToRemove: "xxx",
-            hiToInsert: "okok",
-            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
 
@@ -1152,36 +1146,7 @@ class App extends React.Component {
         ss.run(simplifiedInsertAllData, this.state.simplifiedSearchObj);
         let simplifiedSearchBreakpoints = ss.getBreakpoints();
 
-
-        let hcn = new HashCreateNew();
-        let [hcnHashCodes, hcnKeys] = hcn.run(this.state.exampleArray);
-        let hashCreateNewBreakpoints = hcn.getBreakpoints();
-
-        let hs = new HashRemoveOrSearch();
-        hs.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, false);
-        let hashSearchBreakpoints = hs.getBreakpoints();
-
-        let hr = new HashRemoveOrSearch();
-        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, true);
-        let hashRemoveBreakpoints = hr.getBreakpoints();
-
-        let hres = new HashResize();
-        hres.run(hcnHashCodes, hcnKeys);
-        let hashResizeBreakpoints = hres.getBreakpoints();
-
-        let hi = new HashInsert();
-        hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
-        let hashInsertBreakpoints = hi.getBreakpoints();
-
-
-        let hashClassSelf = hashClassConstructor();
-        let hashClassInsertAll = new HashClassInsertAll();
-        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
-        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
-
-        return(
-            <div>
-              <h1> Inside python dict &mdash; an explorable explanation</h1>
+        return <div className="chapter1">
               <h2> Chapter 1: searching in a list efficiently</h2>
               <p> Before we begin, here is a couple of notes. First, this is <strong>an explorable explanation</strong> of python dictionaries. This page is dynamic and interactive &mdash; you can plug your own data and see how the algorithms work on it. </p>
               <p> Second, this page discusses dict as it is implemented CPython &mdash; the "default" and most common implementation of python (if you are not sure what implementation you usually use, it is almost certainly CPython). Some other implementations are PyPy, Jython and IronPython. The way dict works in each of the implementation may be similar to CPython (in case of PyPy) or very different (in case of Jython). </p>
@@ -1232,6 +1197,55 @@ class App extends React.Component {
 
               <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dict internally uses hash table, albeit a more complicated variant. </p>
               <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm stop prematurely in many cases?). And perhaps most importantly, how do we handle objects other than integers - strings, tuples, floats? </p>
+        </div>;
+    }
+}
+
+class App extends React.Component {
+    constructor() {
+        super();
+
+        this.state = {
+            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
+            howToAddObj: 'py',
+            howToSearchObj: 'hmmm',
+            hrToRemove: "xxx",
+            hiToInsert: "okok",
+            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
+        }
+    }
+
+    render() {
+        let hcn = new HashCreateNew();
+        let [hcnHashCodes, hcnKeys] = hcn.run(this.state.exampleArray);
+        let hashCreateNewBreakpoints = hcn.getBreakpoints();
+
+        let hs = new HashRemoveOrSearch();
+        hs.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, false);
+        let hashSearchBreakpoints = hs.getBreakpoints();
+
+        let hr = new HashRemoveOrSearch();
+        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, true);
+        let hashRemoveBreakpoints = hr.getBreakpoints();
+
+        let hres = new HashResize();
+        hres.run(hcnHashCodes, hcnKeys);
+        let hashResizeBreakpoints = hres.getBreakpoints();
+
+        let hi = new HashInsert();
+        hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
+        let hashInsertBreakpoints = hi.getBreakpoints();
+
+
+        let hashClassSelf = hashClassConstructor();
+        let hashClassInsertAll = new HashClassInsertAll();
+        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
+        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
+
+        return(
+            <div>
+              <h1> Inside python dict &mdash; an explorable explanation</h1>
+              <Chapter1_SimplifiedHash />
               <h2> Chapter 2. Why hash tables are called hash tables? </h2>
               <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them. </p>
               <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
