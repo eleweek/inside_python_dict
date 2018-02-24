@@ -1201,17 +1201,15 @@ class Chapter1_SimplifiedHash extends React.Component {
     }
 }
 
-class App extends React.Component {
+
+class Chapter2_HashTableFunctions extends React.Component {
     constructor() {
         super();
 
         this.state = {
             exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
-            howToAddObj: 'py',
-            howToSearchObj: 'hmmm',
             hrToRemove: "xxx",
             hiToInsert: "okok",
-            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
 
@@ -1235,17 +1233,7 @@ class App extends React.Component {
         let hi = new HashInsert();
         hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
         let hashInsertBreakpoints = hi.getBreakpoints();
-
-
-        let hashClassSelf = hashClassConstructor();
-        let hashClassInsertAll = new HashClassInsertAll();
-        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
-        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
-
-        return(
-            <div>
-              <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <Chapter1_SimplifiedHash />
+        return <div className="chapter2">
               <h2> Chapter 2. Why hash tables are called hash tables? </h2>
               <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them. </p>
               <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
@@ -1332,8 +1320,35 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashInsertBreakpoints}
                 formatBpDesc={formatHashCreateNewAndInsert}
                 stateVisualization={HashNormalStateVisualization} />
-              
-              <h2> Putting it all together to make an almost-python-dict</h2>
+        </div>;
+    }
+}
+
+
+class App extends React.Component {
+    constructor() {
+        super();
+
+        this.state = {
+            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
+            hrToRemove: "xxx",
+            hiToInsert: "okok",
+            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
+        }
+    }
+
+    render() {
+        let hashClassSelf = hashClassConstructor();
+        let hashClassInsertAll = new HashClassInsertAll();
+        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
+        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
+
+        return(
+            <div>
+              <h1> Inside python dict &mdash; an explorable explanation</h1>
+              <Chapter1_SimplifiedHash />
+              <Chapter2_HashTableFunctions />
+              <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
               <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table gets overflown. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
               <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) or our_dict.find(key). The <code>[]</code> looks nicer and allows us to mimic some parts of the interface of python dict. </p>
               <p> To handle values we'd need yet another list (in addition to <code>hash_codes</code> and <code>keys</code>. Using another list would totally work. But let's actually bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
