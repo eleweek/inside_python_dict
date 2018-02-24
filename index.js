@@ -1413,15 +1413,9 @@ class Chapter3_HashClass extends React.Component {
     }
 }
 
-
-class App extends React.Component {
+class Chapter4_RealPythonDict extends React.Component {
     render() {
-        return(
-            <div>
-              <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <Chapter1_SimplifiedHash />
-              <Chapter2_HashTableFunctions />
-              <Chapter3_HashClass />
+        return <div className="chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). The implementation of dict evolved over time, there were major improvements made data organization in 3.3 and 3.4, and the dict became "ordered" in 3.6. The string hash function was changed in 3.4. </p>
               <p> However, the core idea is stayed the same. Python dict is internally is still a hash table. </p>
@@ -1434,6 +1428,20 @@ class App extends React.Component {
               <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. The only thing we need to add is handling of values, which is not that difficult. </p>
               <h5> Python 3.2's dict </h5>
               <p> Let's see how this dict can be implemented. </p>
+        </div>
+    }
+}
+
+
+class App extends React.Component {
+    render() {
+        return(
+            <div>
+              <h1> Inside python dict &mdash; an explorable explanation</h1>
+              <Chapter1_SimplifiedHash />
+              <Chapter2_HashTableFunctions />
+              <Chapter3_HashClass />
+              <Chapter4_RealPythonDict />
           </div>)
     }
 }
