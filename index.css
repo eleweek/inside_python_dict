@@ -130,6 +130,10 @@ div.slider-row {
     width: 100% !important;
 }
 
+.slider .slider-selection {
+    background-image: linear-gradient(to bottom,#e9e9e9 0,#e5e5e5 100%);
+}
+
 /* .slider.slider-horizontal * {
     transition-property: *;
     transition-duration: .5s;
