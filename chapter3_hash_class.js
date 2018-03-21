@@ -292,6 +292,20 @@ class HashClassResize extends HashClassBreakpointFunction {
     }
 };
 
+let HASH_CLASS_LOOKDICT = [
+    ["def lookdict(self, key):", "start-execution"],
+    ["    hash_code = hash(key)", "compute-hash"], 
+    ["    idx = hash_code % len(self.slots)", "compute-idx"],
+    ["    while self.slots[idx].key is not EMPTY:", "check-not-found"],
+    ["        if self.slots[idx].hash_code == hash_code and \\", "check-hash"],
+    ["           self.slots[idx].key == key:", ""],
+    ["            return idx", ""],
+    ["", ""],
+    ["        idx = (idx + 1) % len(self.slots)", ""],
+    ["", ""],
+    ["    raise KeyError()", ""],
+];
+
 
 class Chapter3_HashClass extends React.Component {
     constructor() {
