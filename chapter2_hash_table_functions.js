@@ -526,28 +526,25 @@ class Chapter2_HashTableFunctions extends React.Component {
         let hashInsertBreakpoints = hi.getBreakpoints();
         return <div className="chapter2">
               <h2> Chapter 2. Why hash tables are called hash tables? </h2>
-              <p> We've solved the simplified problem of efficiently searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them. </p>
+              <p> We have the solution for searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during search. </p>
               <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
-              <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single python function <code>hash()</code></p> 
+              <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single interface: python function <code>hash()</code>. This python function can take any python object as an input and call an appropriate implementation (if it exists). </p> 
               <HashExamples />
-              <p> As you can see in case of strings, hash() returns fairly unpredictable integers, as it should. One major exception is integers, you can notice that hash(x) == x for "short" integers. This fact may seem surprising for most people, however it is a delibirate design decision. </p>
+              <p> As you can see in case of strings, hash() returns fairly unpredictable integers, as it should. One major exception is integers, you can notice that hash(x) == x for "short" integers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
               <p> For long integers python uses a different algorithm. Try typing a really big number, for example TODO to see this. </p>
               
               <h5> Unhashable types </h5>
 
-              <p> Not all types are hashable. One major example is lists. If you call hash(["some", "values"]) you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash functions as for tuples? The answer is because lists are mutable and tuples are not. Mutability per se does not prevent us from defining a hash function. However mutating a list would change the list, and would change the value of hash function, and therefore we will not be able to retrieve back a mutated list! While it is possible to give a programmer freedom to use lists as keys, it would lead to many accidental bugs, so developers of python chose not to. </p>
+              <p> Not all types are hashable. One major example is lists. If you call hash(["some", "values"]) you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash function as for tuples? The answer is because lists are mutable and tuples are not. Mutability per se does not prevent us from defining a hash function. However mutating a list would change it, hash function would be change as well, and therefore we will not be able to retrieve back a mutated list if we use it as a key! Using lists as keys would lead to many accidental bugs, so developers of python chose not to allow this. </p>
 
               <h5> Using hash function in a hash table </h5>
-              <p> Recall that we started with a simple problem: just efficiently searching in a list of distinct numbers. Let's make this problem harder: now our hash table needs to support types other than integers, handle duplicates, support removing and adding keys (and therefore resizing). Let's leave values out of equation (TODO: better tem) for now. </p>
-              <p> (If you are thinking right now, "this is enough to build a python dict", you are correct! However, python dict uses a bit more complicated hash table with a different probing algorithm) </p>
+              <p> Recall that we started with a simple problem: just efficiently searching in a list of distinct numbers. Let's make this problem harder: now our hash table needs to support types other than integers, handle duplicates, support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
               <p> Let's say we have a mixed list of strings and integers now: </p>
               <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
 
-              <p> We're going to update our previous (trivial) hash table to make it work with any hashable objects, including strings. </p>
               <p> Hash tables are called hash tables, because they use hash functions and because they also "mix up" the order of input elements </p>.
 
               <h5> How does using hash function change insertion algorithm?  </h5>
-
               <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. </p> 
               <p> Another small change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
               <SimpleCodeBlock>{`
@@ -568,7 +565,7 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashCreateNewStateVisualization} />
 
               <h5> Searching </h5>
-              <p> The search algorithm isn't changed much. We just get the hash value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
+              <p> The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
               <VisualizedCode
                 code={HASH_SEARCH_CODE}
                 breakpoints={hashSearchBreakpoints}
@@ -576,8 +573,8 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashNormalStateVisualization} />
               
               <h5> Removing objects </h5>
-              <p> If we removed an object without a trace, it'd leave a hole, and this would certainly break the search algorithm. </p>
-              <p> The answer is that if we can't remove an object without a trace, we should leave a trace. When removing an object, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. So we do what essentially a search search for the object, and if we encounter it, we know that we need to keep probing. </p>
+              <p> If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. How do we remove a key?</p>
+              <p> The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. So we know we shouldn't stop probing during search. </p>
               <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
               <VisualizedCode
@@ -589,19 +586,19 @@ EMPTY = EmptyValueClass()
               <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table gets overflown with dummy objects? Actually, what happens if a table gets overflown with normal objects? </p>
               <h5>Resizing hash tables</h5>
               <p> How do we resize a hash table? Index of each element depends on the table size, so it may change with change of the size of a table. Moreover, because of linear probing, each index depends may depend on indexes of other objects (which also depend of the size of a table and indexes of other objects). This is a tangled mess. </p>
-              <p> There is a way to disentangle this Gordian Knot though. We can create a new larger table and re-insert all elements from the smaller table (skipping dummy placeholders). This may sound expensive. And it <em>is</em> expensive. But, the thing is, we don't have to resize the table on every operation. If we make the new table size 1.5x, 2x or even 4x of the size of the old table, we will do the resize operation rarely enough &mdash; and the heavy cost of it will "amortize" over many insertions/deletions. But more on that later. </p>
+              <p> There is a way to disentangle this Gordian Knot though. We can create a new larger table and re-insert all elements from the smaller table (skipping dummy placeholders). This may sound expensive. And it <em>is</em> expensive. But, the thing is, we don't have to resize the table after every operation. If we make the new table size 1.5x, 2x or even 4x of the size of the old table, we will do the resize operation rarely enough &mdash; and the heavy cost of it will "amortize" over many insertions/deletions. But more on this later. </p>
               <p> Now, let's see how we could resize the current table </p>
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
                 breakpoints={hashResizeBreakpoints}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
-              <p> There is still one more important question. Under what condition do we do a resizing? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, a typical hash table is resized when fill factor is around 2/3. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we also need to be able to shrink the table in case there are a lot of dummy placeholders. </p>
-              <p> To efficiently implement these things, we need to track fill factor and useful usage, so we will need fill/used counters. With the way the code is currently structured right now, this will be messy, because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
+              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, typically hash tables is resized when fill factor reaches 66%. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we may also need to shrink the table in case there are a lot of dummy placeholders. </p>
+              <p> To efficiently implement this, we need to track fill factor and useful usage, so we will need fill/used counters. With the current code structure tracking these counter would be messy because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
               
               <h5> One more trick for removing dummy objects </h5>
-              <p> The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. </p>
+              <p> Before we start tracking the counters, here is another cool trick for dummy objects. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. </p>
               <p> But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - we don't need to search for an empty slot. </p>
               <p> Let's say we want to insert
                 <JsonInput inline={true} value={this.state.hiToInsert} onChange={(value) => this.setState({hiToInsert: value})} /> after removing TODO
