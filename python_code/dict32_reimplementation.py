@@ -27,21 +27,27 @@ class PyDictReimplementation(BaseDictImpl):
 
         raise KeyError()
 
-    def insertdict_clean(self, key, value):
+    def insertdict(self, key, value):
         hash_code = hash(key)
         perturb = self.signed_to_unsigned(hash_code)
 
         idx = hash_code % len(self.slots)
-        while self.slots[idx].key is not NULL and self.slots[idx].key is not DUMMY:
+        target_idx = None
+        while self.slots[idx].key is not NULL:
             if self.slots[idx].key == hash_code and self.slots[idx].key == key:
+                target_idx = idx
                 break
+            if target_idx is None and self.slots[idx].key is DUMMY:
+                target_idx = idx
 
             idx = (idx * 5 + perturb + 1) % len(self.slots)
             perturb >>= self.PERTURB_SHIFT
 
-        fill_increased = self.slots[idx].key is NULL
+        if target_idx is None:
+            target_idx = idx
+        fill_increased = self.slots[target_idx].key is NULL
 
-        self.slots[idx] = Slot(hash_code, key, value)
+        self.slots[target_idx] = Slot(hash_code, key, value)
 
         return fill_increased
 

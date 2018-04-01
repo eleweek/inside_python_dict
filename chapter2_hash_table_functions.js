@@ -115,14 +115,6 @@ let formatHashCreateNewAndInsert = function(bp) {
             } else {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
-        case 'check-collision-with-dummy':
-            if (bp.keys[bp.idx] === null) {
-                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
-            } else if (bp.keys[bp.idx] === "DUMMY") {
-                return `The slot <code>${bp.idx}</code> is a dummy slot, so don't loop`;
-            }else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
-            }
         case 'check-dup-hash':
             if (bp.hashCodes[bp.idx] == bp.hashCode) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
@@ -418,7 +410,7 @@ const HASH_INSERT_CODE = [
     ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(keys)", "compute-idx"],
     ["", ""],     
-    ["    while keys[idx] is not EMPTY and keys[idx] is not DUMMY:", "check-collision-with-dummy"],
+    ["    while keys[idx] is not EMPTY:", "check-collision"],
     ["        if hash_codes[idx] == hash_code and\\", "check-dup-hash"],
     ["           keys[idx] == key:", "check-dup-key"],
     ["            break", "check-dup-break"],
@@ -440,7 +432,7 @@ class HashInsert extends HashBreakpointFunction {
         this.addBP('compute-idx');
 
         while (true) {
-            this.addBP('check-collision-with-dummy');
+            this.addBP('check-collision');
             if (this.keys[this.idx] === null || this.keys[this.idx] === "DUMMY") {
                 break;
             }
@@ -593,21 +585,11 @@ EMPTY = EmptyValueClass()
                 breakpoints={hashResizeBreakpoints}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
-              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 2/3 full. </p>
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, typically hash tables is resized when fill factor reaches 66%. How does the size change? Normally, the size of table is increased by a factor of 2 or 4. But we may also need to shrink the table in case there are a lot of dummy placeholders. </p>
-              <p> To efficiently implement this, we need to track fill factor and useful usage, so we will need fill/used counters. With the current code structure tracking these counter would be messy because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
-              
-              <h5> One more trick for removing dummy objects </h5>
-              <p> Before we start tracking the counters, here is another cool trick for dummy objects. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. </p>
-              <p> But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - we don't need to search for an empty slot. </p>
-              <p> Let's say we want to insert
-                <JsonInput inline={true} value={this.state.hiToInsert} onChange={(value) => this.setState({hiToInsert: value})} /> after removing TODO
-              </p>
-              <VisualizedCode
-                code={HASH_INSERT_CODE}
-                breakpoints={hashInsertBreakpoints}
-                formatBpDesc={formatHashCreateNewAndInsert}
-                stateVisualization={HashNormalStateVisualization} />
+              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 66% full. </p>
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, we can say that a hash table is resized when fill factor reaches 66%. By what factor should the size change? Normally, the size of table is increased by a factor of 2 or 4. But we may also need to shrink the table in case there are a lot of dummy placeholders. </p>
+              <p> To efficiently implement this, we need to track fill factor and useful usage, so we will need fill/used counters. With current code structure tracking these counter would be messy because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
+              <p> A separate insertion function would need to check for fill factor and do resizing. </p>
+              TODO: maybe insert HASH_INSERT_CODE here?
         </div>;
     }
 }

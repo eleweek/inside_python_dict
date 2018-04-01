@@ -71,9 +71,8 @@ const HASH_CLASS_SETITEM_CODE = [
     ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
-    ["    if self.slots[idx].key is NULL or self.slots[idx].key is DUMMY:", "check-used-increased"],
+    ["    if self.slots[idx].key is NULL:", "check-used-fill-increased"],
     ["        self.used += 1", "inc-used"],
-    ["    if self.slots[idx].key is NULL:", "check-fill-increased"],
     ["        self.fill += 1", "inc-fill"],
     ["", ""],
     ["    self.slots[idx] = Slot(hash_code, key, value)", "assign-slot"],
@@ -95,8 +94,8 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         this.addBP('compute-idx');
 
         while (true) {
-            this.addBP('check-collision-with-dummy');
-            if (this.self.slots[this.idx].key === null || this.self.slots[this.idx].key === "DUMMY") {
+            this.addBP('check-collision');
+            if (this.self.slots[this.idx].key === null) {
                 break;
             }
 
@@ -113,18 +112,26 @@ class HashClassSetItem extends HashClassBreakpointFunction {
             this.addBP('next-idx');
         }
 
-        this.addBP('check-used-increased');
+        this.addBP('check-used-fill-increased');
+        if (this.self.slots[this.idx].key === null) {
+            this.self.used += 1;
+            this.addBP('inc-used');
+            this.self.fill += 1;
+            this.addBP('inc-fill');
+        }
+
+        /* this.addBP('check-used-increased');
         if (this.self.slots[this.idx].key === null ||
             this.self.slots[this.idx].key === "DUMMY") {
-            this.addBP('inc-used');
             this.self.used += 1;
+            this.addBP('inc-used');
         }
 
         this.addBP('check-fill-increased');
         if (this.self.slots[this.idx].key === null) {
-            this.addBP('inc-fill');
             this.self.fill += 1;
-        }
+            this.addBP('inc-fill');
+        }*/
 
         this.self.slots[this.idx] = new Slot(this.hashCode, this.key, this.value);
         this.addBP('assign-slot');
@@ -400,13 +407,20 @@ class Chapter3_HashClass extends React.Component {
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
 
-              <p> TODO: conditional here. </p>
+              <p> TODO: conditional here: i.e. resize after step X. </p>
               <p> Let's look at the first resize in depth: </p>
               <VisualizedCode
                 code={HASH_CLASS_RESIZE_CODE}
                 breakpoints={resize.breakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassResizeVisualization} />
+             <p> Removing a key looks pretty much the same. <code>__delitem__</code> magic method is now used. And <code>self.used</code> is decremented. </p> 
+             TODO: delitem
+             
+             <p> We now have have a drop in replacement for python dict. In the next chapter we will discuss how python dict works internally. But before that, here is one last trick. </p> 
+             <h5> Recycling dummy keys. </h5>
+             <p> Dummy keys are used as placeholder. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - assuming the key does not exist in the dictionary. </p>
+            TODO: modified __setitem__
         </div>
     }
 }

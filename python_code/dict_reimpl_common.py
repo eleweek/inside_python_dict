@@ -40,12 +40,12 @@ class BaseDictImpl(object):
 
         for slot in old_slots:
             if slot.key is not NULL and slot.key is not DUMMY:
-                self.insertdict_clean(slot.key, slot.value)
+                self.insertdict(slot.key, slot.value)
 
         self.fill = self.used
 
     def __setitem__(self, key, value):
-        fill_increased = self.insertdict_clean(key, value)
+        fill_increased = self.insertdict(key, value)
         if fill_increased:
             self.fill += 1
         self.used += 1
