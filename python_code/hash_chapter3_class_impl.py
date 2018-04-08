@@ -36,20 +36,20 @@ class HashDictImplementation(BaseDictImpl):
         hash_code = hash(key)
         idx = hash_code % len(self.slots)
         target_idx = None
-        while self.slots[idx].key is not NULL:
-            if self.slots[idx].hash_code == hash_code and self.slots[idx].key == key:
-                target_idx = idx
+        while True:
+            if self.slots[idx].key is NULL or (self.slots[idx].hash_code == hash_code and self.slots[idx].key == key):
+                if target_idx is None:
+                    target_idx = idx
                 break
             if target_idx is None and self.slots[idx].key is DUMMY:
                 target_idx = idx
 
             idx = (idx + 1) % len(self.slots)
 
-        if target_idx is None:
-            target_idx = idx
+        if self.slots[target_idx].key is NULL:
             self.used += 1
             self.fill += 1
-        else:
+        elif self.slots[target_idx].key is DUMMY:
             self.used += 1
 
         self.slots[target_idx] = Slot(hash_code, key, value)
