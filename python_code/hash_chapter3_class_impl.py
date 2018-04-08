@@ -20,6 +20,18 @@ class HashDictImplementation(BaseDictImpl):
 
         raise KeyError()
 
+    def __getitem__(self, key):
+        idx = self.lookdict(key)
+
+        return self.slots[idx].value
+
+    def __delitem__(self, key):
+        idx = self.lookdict(key)
+
+        self.used -= 1
+        self.slots[idx].key = DUMMY
+        self.slots[idx].value = NULL
+
     def __setitem__(self, key, value):
         hash_code = hash(key)
         idx = hash_code % len(self.slots)

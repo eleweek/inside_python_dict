@@ -9,6 +9,27 @@ class PyDictReimplementation(BaseDictImpl):
     def __init__(self):
         BaseDictImpl.__init__(self)
 
+    def __setitem__(self, key, value):
+        fill_increased = self.insertdict(key, value)
+        if fill_increased:
+            self.fill += 1
+        self.used += 1
+
+        if self.fill * 3 >= len(self.slots) * 2:
+            self.resize()
+
+    def __delitem__(self, key):
+        idx = self.lookdict(key)
+
+        self.used -= 1
+        self.slots[idx].key = DUMMY
+        self.slots[idx].value = NULL
+
+    def __getitem__(self, key):
+        idx = self.lookdict(key)
+
+        return self.slots[idx].value
+
     @staticmethod
     def signed_to_unsigned(hash_code):
         return 2**64 + hash_code if hash_code < 0 else hash_code
@@ -53,7 +74,16 @@ class PyDictReimplementation(BaseDictImpl):
 
     def resize(self):
         # TODO: proper target size (it is sometimes 2, sometimes 4 -- based on used)
-        return self.base_resize(4)
+        quot = 4
+        old_slots = self.slots
+        new_size = self.find_optimal_size(quot)
+        self.slots = [Slot() for _ in range(new_size)]
+
+        for slot in old_slots:
+            if slot.key is not NULL and slot.key is not DUMMY:
+                self.insertdict(slot.key, slot.value)
+
+        self.fill = self.used
 
 
 def dump_py_reimpl_dict(d):
