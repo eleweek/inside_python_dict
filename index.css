@@ -143,3 +143,11 @@ div.slider-row {
 .tetris-row-label {
     margin-bottom: 5px;
 }
+
+.tetris-row {
+    display: flex;
+}
+
+.tetris-row-label-div {
+    width: 200px;
+}
