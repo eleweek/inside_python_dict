@@ -428,11 +428,16 @@ class TimeSlider extends React.Component {
     }
 
     render() {
+        let ticks = null;
+        if (this.props.maxTime < 30) {
+            ticks = _.range(this.props.maxTime + 1);
+        }
         return <ReactBootstrapSlider
             value={this.props.time}
             change={this.handleValueChange}
             min={0}
             max={this.props.maxTime}
+            ticks={ticks}
             step={1}
         />
     }
