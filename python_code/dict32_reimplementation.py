@@ -1,5 +1,6 @@
 from common import DUMMY, NULL
 from dict_reimpl_common import BaseDictImpl, Slot
+from operator import attrgetter
 
 
 class PyDictReimplementation(BaseDictImpl):
@@ -87,4 +88,6 @@ class PyDictReimplementation(BaseDictImpl):
 
 
 def dump_py_reimpl_dict(d):
-    return d.hashes, d.keys, d.values
+    def extract_fields(field_name):
+        return list(map(attrgetter(field_name), d.slots))
+    return extract_fields('hash_code'), extract_fields('key'), extract_fields('value')
