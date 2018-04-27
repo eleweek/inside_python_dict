@@ -4,6 +4,19 @@ from common import generate_random_string
 
 
 class MyHashTest(unittest.TestCase):
+    def test_handcrafted(self):
+        expected_len = 4
+        hashes, keys = create_new([42, 43])
+
+        self.assertEquals(len(hashes), expected_len)
+        self.assertEquals(len(keys), expected_len)
+        insert(hashes, keys, 42)
+        self.assertEquals(hashes[42 % expected_len], 42)
+        self.assertEquals(keys[42 % expected_len], 42)
+
+        self.assertEquals(hashes[43 % expected_len], 43)
+        self.assertEquals(keys[43 % expected_len], 43)
+
     def test_all(self):
         n = 10
         initial_keys = [generate_random_string() for _ in range(n)]
