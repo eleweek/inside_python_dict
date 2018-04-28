@@ -3,7 +3,7 @@ from dict32_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
 import random
 from common import NULL
 
-n_inserts = 1000
+n_inserts = 5000
 
 
 def verify_same():
@@ -28,11 +28,11 @@ def verify_same():
 
 
 SINGLE_REMOVE_CHANCE = 0.3
-MASS_REMOVE_CHANCE = 0.01
+MASS_REMOVE_CHANCE = 0.002
 MASS_REMOVE_COEFF = 0.8
 
 removed = set()
-key_range = range(300)
+key_range = range(5000)
 insert_count = 0
 d = {}
 dreimpl = PyDictReimplementation()
@@ -71,6 +71,11 @@ for i in range(n_inserts):
     value_to_insert = insert_count
     if key_to_insert not in d:
         print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
+        try:
+            dreimpl[key_to_insert]
+            assert False
+        except KeyError:
+            pass
     else:
         print("Replacing ({key}, {value1}) with ({key}, {value2})".format(key=key_to_insert, value1=d[key_to_insert], value2=value_to_insert))
     removed.discard(key_to_insert)
