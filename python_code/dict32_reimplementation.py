@@ -17,6 +17,7 @@ class PyDictReimplementation(BaseDictImpl):
         target_idx = None
         while self.slots[idx].key is not NULL:
             if self.slots[idx].key == hash_code and self.slots[idx].key == key:
+                target_idx = idx
                 break
             if target_idx is None and self.slots[idx].key is DUMMY:
                 target_idx = idx

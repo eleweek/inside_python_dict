@@ -3,7 +3,7 @@ import sys
 from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
 import random
-import datadiff
+from common import NULL
 
 n_inserts = int(sys.argv[1])
 
@@ -12,14 +12,20 @@ def verify_same():
     dump_do = dump_py_dict(dictobject(d))
     dump_reimpl = dump_py_reimpl_dict(dreimpl)
     if dump_do != dump_reimpl:
-        print("ORIG SIZE", len(dump_do[0]))
-        print("NEW SIZE", len(dump_reimpl[0]))
-        print("ORIG fill/used: ", dump_do[3], dump_do[4])
-        print("NEW fill/used: ", dump_reimpl[3], dump_reimpl[4])
-        print("ORIG  ", "\n".join(map(str, dump_do)))
-        print()
-        print("REIMPL", "\n".join(map(str, dump_reimpl)))
-        print(datadiff.diff(dump_do, dump_reimpl))
+        hashes_orig, keys_orig, values_orig, fill_orig, used_orig = dump_do
+        hashes_new, keys_new, values_new, fill_new, used_new = dump_reimpl
+        print("ORIG SIZE", len(hashes_orig))
+        print("NEW SIZE", len(hashes_new))
+        print("ORIG fill/used: ", fill_orig, used_orig)
+        print("NEW fill/used: ", fill_new, used_new)
+        if len(hashes_orig) == len(hashes_new):
+            size = len(hashes_orig)
+            for i in range(size):
+                if hashes_new[i] is not NULL or hashes_orig[i] is not NULL:
+                    print(i, " " * 3,
+                          hashes_new[i], keys_new[i], values_new[i], " " * 3,
+                          hashes_orig[i], keys_orig[i], values_orig[i])
+
     assert dump_do == dump_reimpl
 
 
@@ -53,10 +59,14 @@ for i in range(n_inserts):
             pass
 
     key_to_insert = random.choice(key_range)
-    print("Inserting ({}, {})".format(key_to_insert, insert_count))
+    value_to_insert = insert_count
+    if key_to_insert not in d:
+        print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
+    else:
+        print("Replacing ({key}, {value1}) with ({key}, {value2})".format(key=key_to_insert, value1=d[key_to_insert], value2=value_to_insert))
     removed.discard(key_to_insert)
-    d[key_to_insert] = insert_count
-    dreimpl[key_to_insert] = insert_count
+    d[key_to_insert] = value_to_insert
+    dreimpl[key_to_insert] = value_to_insert
     insert_count += 1
     print(d)
     verify_same()
