@@ -14,6 +14,8 @@ def verify_same():
     if dump_do != dump_reimpl:
         print("ORIG SIZE", len(dump_do[0]))
         print("NEW SIZE", len(dump_reimpl[0]))
+        print("ORIG fill/used: ", dump_do[3], dump_do[4])
+        print("NEW fill/used: ", dump_reimpl[3], dump_reimpl[4])
         print("ORIG  ", "\n".join(map(str, dump_do)))
         print()
         print("REIMPL", "\n".join(map(str, dump_reimpl)))
@@ -51,7 +53,7 @@ for i in range(n_inserts):
             pass
 
     key_to_insert = random.choice(key_range)
-    print ("Inserting ({}, {})".format(key_to_insert, insert_count))
+    print("Inserting ({}, {})".format(key_to_insert, insert_count))
     removed.discard(key_to_insert)
     d[key_to_insert] = insert_count
     dreimpl[key_to_insert] = insert_count

@@ -50,4 +50,4 @@ def dump_py_dict(do):
             hashes.append(do.ma_table[i].me_hash)
             values.append(get_object_field_or_null(do.ma_table[i], 'me_value'))
 
-    return hashes, keys, values
+    return hashes, keys, values, do.ma_fill, do.ma_used
