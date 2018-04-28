@@ -91,6 +91,12 @@ class MyHashTest(unittest.TestCase):
         for h in hashes:
             self.assertTrue(h != 12)
 
+        self.assertEquals(hashes[5], hash("aba"))
+        self.assertEquals(keys[5], "aba")
+
+        self.assertEquals(hashes[11], hash("abg"))
+        self.assertEquals(keys[11], "abg")
+
     def test_all(self):
         n = 10
         initial_keys = [generate_random_string() for _ in range(n)]
