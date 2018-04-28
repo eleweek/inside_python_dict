@@ -82,6 +82,7 @@ class PyDictReimplementation(BaseDictImpl):
                 idx = hash_code % len(self.slots)
                 while self.slots[idx].key is not NULL:
                     idx = (idx * 5 + perturb + 1) % len(self.slots)
+                    perturb >>= self.PERTURB_SHIFT
 
                 self.slots[idx] = Slot(hash_code, slot.key, slot.value)
 
