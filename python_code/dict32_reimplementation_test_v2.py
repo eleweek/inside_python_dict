@@ -1,11 +1,9 @@
-import sys
-
 from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
 import random
 from common import NULL
 
-n_inserts = int(sys.argv[1])
+n_inserts = 1000
 
 
 def verify_same():
@@ -29,16 +27,18 @@ def verify_same():
     assert dump_do == dump_reimpl
 
 
-REMOVE_CHANCE = 0.3
+SINGLE_REMOVE_CHANCE = 0.3
+MASS_REMOVE_CHANCE = 0.01
+MASS_REMOVE_COEFF = 0.8
 
 removed = set()
-key_range = range(100)
+key_range = range(300)
 insert_count = 0
 d = {}
 dreimpl = PyDictReimplementation()
 
 for i in range(n_inserts):
-    should_remove = (random.random() < REMOVE_CHANCE)
+    should_remove = (random.random() < SINGLE_REMOVE_CHANCE)
     if should_remove and d:
         to_remove = random.choice(list(d.keys()))
         print("Removing {}".format(to_remove))
@@ -47,6 +47,15 @@ for i in range(n_inserts):
         print(d)
         verify_same()
         removed.add(to_remove)
+
+    should_mass_remove = (random.random() < MASS_REMOVE_CHANCE)
+    if should_mass_remove and len(d) > 10:
+        to_remove_list = random.sample(list(d.keys()), int(MASS_REMOVE_COEFF * len(d)))
+        print("Mass-Removing {} elements".format(len(to_remove_list)))
+        for k in to_remove_list:
+            del d[k]
+            del dreimpl[k]
+            removed.add(k)
 
     for k in d.keys():
         assert d[k] == dreimpl[k]
