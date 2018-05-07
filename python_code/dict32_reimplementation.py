@@ -1,4 +1,4 @@
-from common import DUMMY, NULL
+from common import DUMMY, EMPTY
 from dict_reimpl_common import BaseDictImpl, Slot
 from operator import attrgetter
 
@@ -15,7 +15,7 @@ class PyDictReimplementation(BaseDictImpl):
         perturb = self.signed_to_unsigned(hash_code)
         idx = hash_code % len(self.slots)
         target_idx = None
-        while self.slots[idx].key is not NULL:
+        while self.slots[idx].key is not EMPTY:
             if self.slots[idx].key == hash_code and self.slots[idx].key == key:
                 target_idx = idx
                 break
@@ -28,7 +28,7 @@ class PyDictReimplementation(BaseDictImpl):
         if target_idx is None:
             target_idx = idx
 
-        if self.slots[target_idx].key is NULL:
+        if self.slots[target_idx].key is EMPTY:
             self.used += 1
             self.fill += 1
         elif self.slots[target_idx].key is DUMMY:
@@ -43,7 +43,7 @@ class PyDictReimplementation(BaseDictImpl):
 
         self.used -= 1
         self.slots[idx].key = DUMMY
-        self.slots[idx].value = NULL
+        self.slots[idx].value = EMPTY
 
     def __getitem__(self, key):
         idx = self.lookdict(key)
@@ -59,7 +59,7 @@ class PyDictReimplementation(BaseDictImpl):
         perturb = self.signed_to_unsigned(hash_code)
 
         idx = hash_code % len(self.slots)
-        while self.slots[idx].key is not NULL:
+        while self.slots[idx].key is not EMPTY:
             if self.slots[idx].hash_code == hash_code and self.slots[idx].key == key:
                 return idx
 
@@ -76,11 +76,11 @@ class PyDictReimplementation(BaseDictImpl):
         self.slots = [Slot() for _ in range(new_size)]
 
         for slot in old_slots:
-            if slot.key is not NULL and slot.key is not DUMMY:
+            if slot.key is not EMPTY and slot.key is not DUMMY:
                 hash_code = hash(slot.key)
                 perturb = self.signed_to_unsigned(hash_code)
                 idx = hash_code % len(self.slots)
-                while self.slots[idx].key is not NULL:
+                while self.slots[idx].key is not EMPTY:
                     idx = (idx * 5 + perturb + 1) % len(self.slots)
                     perturb >>= self.PERTURB_SHIFT
 

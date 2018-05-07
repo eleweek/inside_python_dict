@@ -1,8 +1,8 @@
-from common import NULL
+from common import EMPTY
 
 
 class Slot(object):
-    def __init__(self, hash_code=NULL, key=NULL, value=NULL):
+    def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
         self.hash_code = hash_code
         self.key = key
         self.value = value

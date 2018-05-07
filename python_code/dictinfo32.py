@@ -1,5 +1,5 @@
 from ctypes import Structure, c_ulong, POINTER, cast, py_object, c_long
-from common import get_object_field_or_null, NULL, DUMMY
+from common import get_object_field_or_null, EMPTY, DUMMY
 
 
 class PyDictEntry(Structure):
@@ -43,9 +43,9 @@ def dump_py_dict(do):
         keys.append(key if key is not dummy_internal else DUMMY)
 
     for i, key in enumerate(keys):
-        if key is NULL:
-            hashes.append(NULL)
-            values.append(NULL)
+        if key is EMPTY:
+            hashes.append(EMPTY)
+            values.append(EMPTY)
         else:
             hashes.append(do.ma_table[i].me_hash)
             values.append(get_object_field_or_null(do.ma_table[i], 'me_value'))

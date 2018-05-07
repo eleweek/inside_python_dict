@@ -2,12 +2,12 @@ import random
 import string
 
 
-class NullValueClass(object):
+class EmptyValueClass(object):
     def __str__(self):
-        return "NULL"
+        return "EMPTY"
 
     def __repr__(self):
-        return "<NULL>"
+        return "<EMPTY>"
 
 
 class DummyValueClass(object):
@@ -18,7 +18,7 @@ class DummyValueClass(object):
         return "<DUMMY>"
 
 
-NULL = NullValueClass()
+EMPTY = EmptyValueClass()
 DUMMY = DummyValueClass()
 
 
@@ -26,7 +26,7 @@ def get_object_field_or_null(obj, field_name):
     try:
         return getattr(obj, field_name)
     except ValueError:
-        return NULL
+        return EMPTY
 
 
 def get_object_field_or_none(obj, field_name):

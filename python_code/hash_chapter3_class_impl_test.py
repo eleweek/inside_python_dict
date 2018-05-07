@@ -1,5 +1,5 @@
 import unittest
-from common import DUMMY, NULL
+from common import DUMMY, EMPTY
 from hash_chapter3_class_impl import HashDictImplementation
 
 
@@ -31,7 +31,7 @@ class HashDictImplementationTest(unittest.TestCase):
             del d[1]
 
         del d[17]
-        assert_contains(1, 17, DUMMY, NULL)
+        assert_contains(1, 17, DUMMY, EMPTY)
 
         self.assertEqual(d.fill, 3)
         self.assertEqual(d.used, 2)

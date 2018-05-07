@@ -1,7 +1,7 @@
 from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_py_reimpl_dict
 import random
-from common import NULL
+from common import EMPTY
 
 n_inserts = 5000
 
@@ -19,7 +19,7 @@ def verify_same():
         if len(hashes_orig) == len(hashes_new):
             size = len(hashes_orig)
             for i in range(size):
-                if hashes_new[i] is not NULL or hashes_orig[i] is not NULL:
+                if hashes_new[i] is not EMPTY or hashes_orig[i] is not EMPTY:
                     print(i, " " * 3,
                           hashes_new[i], keys_new[i], values_new[i], " " * 3,
                           hashes_orig[i], keys_orig[i], values_orig[i])
