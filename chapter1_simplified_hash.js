@@ -310,7 +310,7 @@ class Chapter1_SimplifiedHash extends React.Component {
                 stateVisualization={SimplifiedInsertStateVisualization} />
 
               <p> To search for a number, we simply retrace all the steps necessary to insert it. So we start from the slot <code> number % len(new_list)</code> and do linear probing. We either end up finding the number or hitting an empty slot. The latter situation means that the number is not present. </p>
-              <p> Here is how the search process would look like: </p>
+              <p> Here is how the search process would look: </p>
 
               Let's say we want to search for <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
               <VisualizedCode
@@ -319,8 +319,8 @@ class Chapter1_SimplifiedHash extends React.Component {
                 formatBpDesc={formatSimplifiedSearchDescription}
                 stateVisualization={SimplifiedSearchStateVisualization} />
 
-              <p> Calculating an index based on the values of numbers and doing linear probing in case of collision is an incredibly powerful. If you understand this idea, you understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dict internally uses hash table, albeit a more complex variant. </p>
-              <p> We still haven't discussed adding more elements (what happens if the table gets overflown?); removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm stop prematurely in many cases?). And perhaps most importantly, how do we handle objects other than integers - strings, tuples, floats? </p>
+              <p> Calculating an index based on the values of numbers and doing linear probing in the case of a collision is incredibly powerful. If you understand this idea, you will understand 25% of what a python dict is. What we've just implemented is a super simple <strong>hash table</strong>. Python dict uses a hash table internally, albeit a more complex variant. </p>
+              <p> We still haven't discussed adding more elements (what happens if a table overflows?), removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling objects other than integers - strings, tuples, floats. </p>
         </div>;
     }
 }

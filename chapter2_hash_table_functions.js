@@ -517,28 +517,29 @@ class Chapter2_HashTableFunctions extends React.Component {
         hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
         let hashInsertBreakpoints = hi.getBreakpoints();
         return <div className="chapter2">
-              <h2> Chapter 2. Why hash tables are called hash tables? </h2>
-              <p> We have the solution for searching in a list of numbers. Can we use the same idea for non-integer objects? We can, if we find a way to turn objects into numbers. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects get turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, it is desirable to usually get distinct numbers for distinct objects for performance reasons. The transformation also needs to be completely predictable and determenistic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during search. </p>
-              <p> Functions that do this transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
+              <h2> Chapter 2. Why are hash tables called hash tables? </h2>
+              <p> Now that we have the solution for searching in a list of numbers, can we use this for non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects are turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, for performance reasons it is desirable to usually get distinct numbers for distinct objects. The transformation also needs to be completely predictable and deterministic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during a search. </p>
+              <p> Functions that do this kind of transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
               <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single interface: python function <code>hash()</code>. This python function can take any python object as an input and call an appropriate implementation (if it exists). </p> 
               <HashExamples />
-              <p> As you can see in case of strings, hash() returns fairly unpredictable integers, as it should. One major exception is integers, you can notice that hash(x) == x for "short" integers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
-              <p> For long integers python uses a different algorithm. Try typing a really big number, for example TODO to see this. </p>
+              <p> As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should. One major exception is integers, you can notice that <code>hash(x) == x</code> for small numbers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
+              <p> For large("long") integers, python uses a different algorithm. Try typing a really big number, for example TODO to see this. </p>
               
               <h5> Unhashable types </h5>
 
-              <p> Not all types are hashable. One major example is lists. If you call hash(["some", "values"]) you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash function as for tuples? The answer is because lists are mutable and tuples are not. Mutability per se does not prevent us from defining a hash function. However mutating a list would change it, hash function would be change as well, and therefore we will not be able to retrieve back a mutated list if we use it as a key! Using lists as keys would lead to many accidental bugs, so developers of python chose not to allow this. </p>
+              <p> Not all types are hashable. For example, for lists if you call <code>hash(["some", "values"])</code> you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash function as for tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not prevent us from defining a hash function. However changing a list would change the value of the hash function as well, and therefore we will not be able to find the mutated list! Hashing and using lists as keys in dicts would lead to many accidental bugs, so developers of python chose not to allow this. </p>
 
-              <h5> Using hash function in a hash table </h5>
-              <p> Recall that we started with a simple problem: just efficiently searching in a list of distinct numbers. Let's make this problem harder: now our hash table needs to support types other than integers, handle duplicates, support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
-              <p> Let's say we have a mixed list of strings and integers now: </p>
+              <h5> Using hash functions for hash tables </h5>
+              <p> Recall that we started with a simple problem: searching efficiently in a list of distinct numbers. Now, let's make this problem harder: our hash table needs to support types other than integers, handle duplicates and support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
+              <p> Let's say we have a mixed list of strings and integers: </p>
               <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
 
-              <p> Hash tables are called hash tables, because they use hash functions and because they also "mix up" the order of input elements </p>.
+              TODO: move the next sentence somewhere: 
+              <p> Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>
 
-              <h5> How does using hash function change insertion algorithm?  </h5>
-              <p> Obviously, we have to use <code>hash()</code> function to convert objects to numbers now. </p> 
-              <p> Another small change is that None is hashable too, so we need to use some other value as a placeholder for an empty slot. The cleanest way is to create a new type and use a value of this type. In python, this is quite simple: </p>
+              <h5> How does using hash functions change the insertion algorithm? </h5>
+              <p> Obviously, we have to use <code>hash()</code> function to convert objects into integers for indexing. </p> 
+              <p> Because <code>None</code> is hashable too, we will need to use some other value as a placeholder for an empty slot. The cleanest way to do this is to create a new type and use a value of this type. In python, this is quite simple: </p>
               <SimpleCodeBlock>{`
 class EmptyValueClass(object):
     pass
@@ -546,8 +547,8 @@ class EmptyValueClass(object):
 EMPTY = EmptyValueClass()
               `}</SimpleCodeBlock>
               <p> We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
-              <p> But here is one important but subtle thing: checking equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And we may end up doing several such comparisons when doing linear probing. </p>
-              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
+              <p> But here is one important and subtle thing: checking for equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And we may end up doing several equality checks when doing linear probing. </p>
+              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in the case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
               <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
               <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hash_codes</code> </p>
               <VisualizedCode
