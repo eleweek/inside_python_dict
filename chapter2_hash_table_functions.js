@@ -536,6 +536,7 @@ class Chapter2_HashTableFunctions extends React.Component {
 
               TODO: move the next sentence somewhere: 
               <p> Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>
+              TODO: explain that "hashes" is short for "hash function values"
 
               <h5> How does using hash functions change the insertion algorithm? </h5>
               <p> Obviously, we have to use <code>hash()</code> function to convert objects into integers for indexing. </p> 
@@ -547,10 +548,10 @@ class EmptyValueClass(object):
 EMPTY = EmptyValueClass()
               `}</SimpleCodeBlock>
               <p> We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
-              <p> But here is one important and subtle thing: checking for equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And we may end up doing several equality checks when doing linear probing. </p>
-              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in the case of arbitrary objects. We still get numbers from hash functions. So we can cache values of hash functions for keys and compare hashes before comparing actual keys. When comparing, there are two different outcomes. First, hashes are different; in this case, we can safely conclude that keys are different as well. Second, hashes are equal; in this case, there is still a possibility of two distinct keys having the same hash, so we have to compare the actual keys. </p>
-              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make algorithm faster.</p> 
-              <p> Now, let's see this algorithm in action. We'll use a separate list for caching values of hash functions called <code>hash_codes</code> </p>
+              <p> But here is one important and subtle thing: checking for equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And, we may end up doing several equality checks when doing linear probing. </p>
+              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in the case of arbitrary objects. We still get numbers from hash functions. So, we can cache these numbers and compare them before comparing actual objects. When comparing hashes, there are two different outcomes. First, the hashes are different; in this case, we can safely conclude that the objects are different as well. Second, the hashes are equal; in this case, there is still a possibility of two distinct objects having the same hash, so we have to compare the actual objects. </p>
+              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make the algorithm faster.</p> 
+              <p> Now, let's see this algorithm in action. We'll use a separate list called <code>hash_codes</code> for caching values of hash functions.</p>
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
                 breakpoints={hashCreateNewBreakpoints}
@@ -558,7 +559,7 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashCreateNewStateVisualization} />
 
               <h5> Searching </h5>
-              <p> The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and then we also do the comparing hashes optimization during linear probing. </p>
+              <p> The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and just like with the inserting algorithm, during linear probing we compare actual objects only when hashes are equal. </p>
               <VisualizedCode
                 code={HASH_SEARCH_CODE}
                 breakpoints={hashSearchBreakpoints}
@@ -566,8 +567,8 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashNormalStateVisualization} />
               
               <h5> Removing objects </h5>
-              <p> If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. How do we remove a key?</p>
-              <p> The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder. So we know we shouldn't stop probing during search. </p>
+              <p> If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. Then, how do we remove a key?</p>
+              <p> The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder that indicates we shouldn't stop probing during a search. </p>
               <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
               <VisualizedCode
@@ -576,20 +577,21 @@ EMPTY = EmptyValueClass()
                 formatBpDesc={formatHashRemoveSearch}
                 stateVisualization={HashNormalStateVisualization} />
               
-              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table gets overflown with dummy objects? Actually, what happens if a table gets overflown with normal objects? </p>
+              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table overflows with dummy objects? There is a way to clean them up. But first, let's see what happens if a table overflows with normal objects. </p>
               <h5>Resizing hash tables</h5>
-              <p> How do we resize a hash table? Index of each element depends on the table size, so it may change with change of the size of a table. Moreover, because of linear probing, each index depends may depend on indexes of other objects (which also depend of the size of a table and indexes of other objects). This is a tangled mess. </p>
-              <p> There is a way to disentangle this Gordian Knot though. We can create a new larger table and re-insert all elements from the smaller table (skipping dummy placeholders). This may sound expensive. And it <em>is</em> expensive. But, the thing is, we don't have to resize the table after every operation. If we make the new table size 1.5x, 2x or even 4x of the size of the old table, we will do the resize operation rarely enough &mdash; and the heavy cost of it will "amortize" over many insertions/deletions. But more on this later. </p>
+              <p> How do we resize a hash table? The index of each element depends on the table size, so it may change if the size of a table changes. Moreover, because of linear probing, each index may depend on the indexes of other objects (which, in turn, also depend on the size of a table and the indexes of other objects). This is a tangled mess. </p>
+              <p> There is a way to disentangle this Gordian Knot, however. We can create a new, bigger table and re-insert all the elements from the smaller table (skipping dummy placeholders). This may sound expensive. And, it <em>is</em> expensive. But, the thing is, we don't have to resize the table after every operation. If we make the new table size 1.5x, 2x or even 4x the size of the old table, we will do the resize operation rarely enough that the heavy cost of it will amortize (spread out) over many insertions/deletions. But, more on this later. </p>
               <p> Now, let's see how we could resize the current table </p>
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
                 breakpoints={hashResizeBreakpoints}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
-              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until table is nearly full, the performance severely degrades. If we do a resizing when the table is still sparse, we waste memory. Typically, hash table is resized when it is 66% full. </p>
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called <strong>fill factor</strong>. So, using the new terms, we can say that a hash table is resized when fill factor reaches 66%. By what factor should the size change? Normally, the size of table is increased by a factor of 2 or 4. But we may also need to shrink the table in case there are a lot of dummy placeholders. </p>
-              <p> To efficiently implement this, we need to track fill factor and useful usage, so we will need fill/used counters. With current code structure tracking these counter would be messy because we will need to pass these counter to and from every function. A much cleaner solution would be using classes. </p>
-              <p> A separate insertion function would need to check for fill factor and do resizing. </p>
+              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until a table is nearly full, the performance will severely degrade. If we resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized when it is around 66% full. </p>
+              TODO: load factor or fill factor?
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called the <strong>fill factor</strong>. So, using the new terms, we can say that a hash table is resized when the fill factor reaches 66%. By what factor should the size change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x, 4x discussed before</p>
+              <p> To implement this efficiently, we need to track the fill factor. So, we will need two counters for tracking fill and usage. With the current code structure, tracking these counters would be messy because we would need to pass these counters to and from every function. A much cleaner solution would be using classes. </p>
+              // TODO: remove this sentence? <p> A separate insertion function would need to check for fill factor and do resizing. </p>
               TODO: maybe insert HASH_INSERT_CODE here?
         </div>;
     }
