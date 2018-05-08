@@ -68,14 +68,17 @@ const HASH_CLASS_SETITEM_CODE = [
     ["    while self.slots[idx].key is not NULL and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"],
     ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
     ["           self.slots[idx].key == key:", "check-dup-key"],
+    ["            target_idx = idx", "check-dup-assign-target-idx"],
     ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
-    ["    if self.slots[idx].key is NULL:", "check-used-fill-increased"],
+    ["    if target_idx is None:", "check-target-idx-is-none"],
+    ["        target_idx = idx", "after-probing-assign-target-idx"],
+    ["    if self.slots[target_idx].key is NULL:", "check-used-fill-increased"],
     ["        self.used += 1", "inc-used"],
     ["        self.fill += 1", "inc-fill"],
     ["", ""],
-    ["    self.slots[idx] = Slot(hash_code, key, value)", "assign-slot"],
+    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot"],
     ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
     ["        self.resize()", "resize"],
     ["", "done-no-return"],
@@ -91,11 +94,12 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         this.addBP('compute-hash');
 
         this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+        this.target_idx = null;
         this.addBP('compute-idx');
 
         while (true) {
             this.addBP('check-collision');
-            if (this.self.slots[this.idx].key === null) {
+            if (this.self.slots[this.idx].key === null || this.self.slots[this.idx].key === "DUMMY") {
                 break;
             }
 
@@ -103,6 +107,8 @@ class HashClassSetItem extends HashClassBreakpointFunction {
             if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
                 this.addBP('check-dup-key');
                 if (this.self.slots[this.idx].key == this.key) {
+                    this.target_idx = this.idx;
+                    this.addBP("check-dup-assign-target-idx");
                     this.addBP('check-dup-break');
                     break;
                 }
@@ -112,6 +118,12 @@ class HashClassSetItem extends HashClassBreakpointFunction {
             this.addBP('next-idx');
         }
 
+        this.addBP('check-target-idx-is-none');
+        if (this.target_idx === null) { 
+            this.target_idx = this.idx;
+            this.addBP("after-probing-assign-target-idx");
+        }
+
         this.addBP('check-used-fill-increased');
         if (this.self.slots[this.idx].key === null) {
             this.self.used += 1;
@@ -119,19 +131,6 @@ class HashClassSetItem extends HashClassBreakpointFunction {
             this.self.fill += 1;
             this.addBP('inc-fill');
         }
-
-        /* this.addBP('check-used-increased');
-        if (this.self.slots[this.idx].key === null ||
-            this.self.slots[this.idx].key === "DUMMY") {
-            this.self.used += 1;
-            this.addBP('inc-used');
-        }
-
-        this.addBP('check-fill-increased');
-        if (this.self.slots[this.idx].key === null) {
-            this.self.fill += 1;
-            this.addBP('inc-fill');
-        }*/
 
         this.self.slots[this.idx] = new Slot(this.hashCode, this.key, this.value);
         this.addBP('assign-slot');
@@ -253,6 +252,8 @@ class HashClassResize extends HashClassBreakpointFunction {
     run(_self) {
         this.self = _self;
 
+        this.oldSlots = [];
+        this.addBP("start-execution");
         this.oldSlots = this.self.slots;
         this.addBP("assign-old-slots");
         this.newSize = findOptimalSize(this.self.used);
