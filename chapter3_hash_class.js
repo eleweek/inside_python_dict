@@ -65,7 +65,8 @@ const HASH_CLASS_SETITEM_CODE = [
     ["def __setitem__(self, key, value):", "start-execution"],
     ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    while self.slots[idx].key is not NULL and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"],
+    ["    target_idx = None", "target-idx-none"],
+    ["    while self.slots[idx].key is not EMPTY and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"],
     ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
     ["           self.slots[idx].key == key:", "check-dup-key"],
     ["            target_idx = idx", "check-dup-assign-target-idx"],
@@ -74,7 +75,7 @@ const HASH_CLASS_SETITEM_CODE = [
     ["", ""],
     ["    if target_idx is None:", "check-target-idx-is-none"],
     ["        target_idx = idx", "after-probing-assign-target-idx"],
-    ["    if self.slots[target_idx].key is NULL:", "check-used-fill-increased"],
+    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased"],
     ["        self.used += 1", "inc-used"],
     ["        self.fill += 1", "inc-fill"],
     ["", ""],
@@ -94,12 +95,13 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         this.addBP('compute-hash');
 
         this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
-        this.target_idx = null;
         this.addBP('compute-idx');
+        this.target_idx = null;
+        this.addBP('target-idx-none');
 
         while (true) {
             this.addBP('check-collision');
-            if (this.self.slots[this.idx].key === null || this.self.slots[this.idx].key === "DUMMY") {
+            if (this.self.slots[this.idx].key === null) {
                 break;
             }
 
@@ -119,7 +121,7 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         }
 
         this.addBP('check-target-idx-is-none');
-        if (this.target_idx === null) { 
+        if (this.target_idx === null) {
             this.target_idx = this.idx;
             this.addBP("after-probing-assign-target-idx");
         }
@@ -228,10 +230,10 @@ const HASH_CLASS_RESIZE_CODE = [
     ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
     ["    self.fill = self.used", "assign-fill"],
     ["    for slot in old_slots:", "for-loop"],
-    ["        if slot.key is not EMPTY and slot.key is not DUMMY:", "check-skip-empty-dummy"],
+    ["        if slot.key is not EMPTY:", "check-skip-empty-dummy"],
     ["              hash_code = hash(slot.key)", "compute-hash"],
     ["              idx = hash_code % len(self.slots)", "compute-idx"],
-    ["              while self.slots[idx].key is not NULL:", "check-collision"],
+    ["              while self.slots[idx].key is not EMPTY:", "check-collision"],
     ["                  idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
     ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
