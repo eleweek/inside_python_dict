@@ -160,6 +160,59 @@ class HashClassSetItem extends HashClassBreakpointFunction {
 }
 
 
+class HashClassLookdict extends HashClassBreakpointFunction {
+    run(_self, _key) {
+        this.self = _self;
+        this.key = _key;
+
+        this.addBP('start-execution-lookdict');
+        this.hashCode = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+        this.addBP('compute-idx');
+
+        while (true) {
+            this.addBP('check-not-found');
+            if (this.self.slots[this.idx].key === null) {
+                break;
+            }
+
+            this.addBP('check-dup-hash');
+            if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
+                this.addBP('check-dup-key');
+                if (this.self.slots[this.idx].key == this.key) {
+                    this.addBP('return-idx');
+                    return this.idx;
+                }
+            }
+
+            this.idx = (this.idx + 1) % this.self.slots.length;
+            this.addBP('next-idx');
+        }
+
+        this.addBP('raise');
+        return null;
+    }
+}
+
+class HashClassGetItem extends HashBreakpointFunction {
+    run(_self, _key) {
+        this.self = _self;
+        this.key = _key;
+        this.addBP("start-execution-getitem");
+
+        let hcld = new HashClassLookdict();
+        this.idx = hcld.run(this.self, this.key)
+        this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
+        if (this.idx !== null) {
+            // did not throw exception
+            this.addBP("return-value");
+            return this.self.slots[this.idx].value;
+        }
+    }
+}
+
 class HashClassInsertAll extends HashBreakpointFunction {
     constructor() {
         super();
@@ -185,11 +238,25 @@ class HashClassInsertAll extends HashBreakpointFunction {
             }
             this._breakpoints = [...this._breakpoints,...hcsi.getBreakpoints()]
         }
+        return this.self;
     }
 
     getResizes() {
         return this._resizes;
     }
+}
+
+function HashClassNormalStateVisualization(props) {
+    return <Tetris
+        lines={
+            [
+                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
+            ]
+        }
+        {...props}
+    />;
 }
 
 function HashClassInsertAllVisualization(props) {
@@ -303,18 +370,35 @@ class HashClassResize extends HashClassBreakpointFunction {
 };
 
 let HASH_CLASS_LOOKDICT = [
-    ["def lookdict(self, key):", "start-execution"],
+    ["def lookdict(self, key):", "start-execution-lookdict"],
     ["    hash_code = hash(key)", "compute-hash"], 
     ["    idx = hash_code % len(self.slots)", "compute-idx"],
     ["    while self.slots[idx].key is not EMPTY:", "check-not-found"],
     ["        if self.slots[idx].hash_code == hash_code and \\", "check-hash"],
-    ["           self.slots[idx].key == key:", ""],
-    ["            return idx", ""],
+    ["           self.slots[idx].key == key:", "check-key"],
+    ["            return idx", "return-idx"],
     ["", ""],
-    ["        idx = (idx + 1) % len(self.slots)", ""],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
-    ["    raise KeyError()", ""],
+    ["    raise KeyError()", "raise"],
 ];
+
+let HASH_CLASS_GETITEM = HASH_CLASS_LOOKDICT.concat([
+    ["def __getitem__(self, key):", "start-execution-getitem"],
+    ["    idx = self.lookdict(key)", ""],
+    ["", ""],
+    ["    return self.slots[idx].value", "return-value"],
+]);
+
+
+let HASH_CLASS_DELITEM = HASH_CLASS_LOOKDICT.concat([
+    ["def __delitem__(self, key):", "start-execution-delitem"],
+    ["    idx = self.lookdict(key)", ""],
+    ["", ""],
+    ["    self.used -= 1", "dec-used"],
+    ["    self.slots[idx].key = DUMMY", "replace-key-dummy"],
+    ["    self.slots[idx].value = EMPTY", "replace-value-empty"],
+]);
 
 
 class Chapter3_HashClass extends React.Component {
@@ -330,7 +414,7 @@ class Chapter3_HashClass extends React.Component {
     render() {
         let hashClassSelf = hashClassConstructor();
         let hashClassInsertAll = new HashClassInsertAll();
-        hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
+        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let resizes = hashClassInsertAll.getResizes();
@@ -338,6 +422,10 @@ class Chapter3_HashClass extends React.Component {
         if (resizes.length > 0) {
             resize = resizes[0];
         }
+        
+        let hashClassGetItem = new HashClassGetItem();
+        hashClassGetItem.run(hashClassSelf, 42);
+        let hashClassGetItemBreakpoints = hashClassGetItem.getBreakpoints();
         console.log("infa");
         console.log(resize);
         console.log(resizes);
@@ -419,6 +507,12 @@ class Chapter3_HashClass extends React.Component {
                 stateVisualization={HashClassResizeVisualization} />
              <p> Removing a key looks pretty much the same. <code>__delitem__</code> magic method is now used. And <code>self.used</code> is decremented. </p> 
              TODO: delitem
+             <p> Search is mostly the same </p>
+             <VisualizedCode
+               code={HASH_CLASS_GETITEM}
+               breakpoints={hashClassGetItemBreakpoints}
+               formatBpDesc={dummyFormat}
+               stateVisualization={HashClassNormalStateVisualization} />
              
              <p> We now have have a drop in replacement for python dict. In the next chapter we will discuss how python dict works internally. But before that, here is one last trick. </p> 
              <h5> Recycling dummy keys. </h5>
