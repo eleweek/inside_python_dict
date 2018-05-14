@@ -147,6 +147,7 @@ class BoxesBase {
     }
 
     removeBox(idx) {
+        // Just removes the elem, removing from array is done by changeTo()
         let $box = this.$boxDivs[idx];
         $box.addClass(this.REMOVED_CLASS);
         setTimeout(() => $box.remove(), this.GC_TIMEOUT);
@@ -200,13 +201,17 @@ class HashBoxes extends BoxesBase {
     changeTo(newValues) {
         this.startModifications(newValues.length)
         let diff = arraysDiff(this.boxValues, newValues);
+        let removedIndexes = []; // TODO: fix ugliness, properly handle duplicates
         for (let val of diff.removed) {
-            this.removeBox(this.findBoxIndex(val));
+            let i = this.findBoxIndex(val);
+            this.removeBox(i);
+            removedIndexes.push(i);
         }
 
         for (let [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
             if (oldVal === null && newVal !== null) {
                 this.removeBox(i);
+                removedIndexes.push(i);
             }
             if (oldVal !== null && newVal === null) {
                 this.addBox(i, null);
@@ -219,7 +224,8 @@ class HashBoxes extends BoxesBase {
         for (let [i, val] of newValues.entries()) {
             let existingBoxIdx = this.findBoxIndex(val);
             if (val !== null) {
-                if (existingBoxIdx === null) {
+                if (existingBoxIdx === null
+                    || removedIndexes.includes(existingBoxIdx) /* TODO: FIXME: this does not handle duplicate values properly */) {
                     this.addBox(i, val);
                 } else {
                     this.moveBox(existingBoxIdx, i);
