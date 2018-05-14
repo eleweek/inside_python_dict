@@ -71,11 +71,11 @@
 
 pre > code,
 span.code-explanation {
-    font-size: 13px !important;
+    font-size: 12px !important;
 }
 
 div.code-block {
-    line-height: 1.2;
+    line-height: 1.15;
     margin-bottom: 15px;
 }
 
