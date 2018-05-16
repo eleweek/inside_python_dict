@@ -494,7 +494,7 @@ class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
         }
-        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleTimeChangeDebounced = _.throttle(this.handleTimeChange.bind(this), 75);
     }
 
     handleTimeChange(time) {
@@ -519,7 +519,7 @@ class VisualizedCode extends React.Component {
             <div className="row slider-row">
               <div className="col-md-6 col-sm-12">
                 <TimeSlider
-                   handleTimeChange={this.handleTimeChange}
+                   handleTimeChange={this.handleTimeChangeDebounced}
                    time={this.state.time}
                    maxTime={this.props.breakpoints.length - 1}
                 />
