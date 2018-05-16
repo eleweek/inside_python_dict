@@ -37,6 +37,7 @@ class BoxesBase {
         this.boxSize = boxSize;
         this.boxValues = [];
         this.$boxDivs = [];
+        this.changeId = 1;
 
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
@@ -102,8 +103,48 @@ class BoxesBase {
         let endX = this._computeBoxXpos(idx);
         $box.css("transform", `translate(${endX}px, ${startY}px)`);
         if (startY != endY) {
+            let changeId = this.changeId;
+            $box.attr("data-change-id", changeId);
+            this.changeId++;
+            if ($box.attr('data-value') == 9) {
+                console.log("SETTING UP");
+                console.log("type");
+                console.log(type);
+                console.log("changeId");
+                console.log(changeId);
+                console.log($box);
+                console.log($box.attr('data-value'));
+                console.log("idx = ", idx);
+                console.log(endX);
+                console.log(endY);
+                console.log('data-change-id');
+                console.log($box.attr('data-change-id'));
+            }
             doubleRAF(() => {
-                $box.css("transform", `translate(${endX}px, ${endY}px)`);
+                if ($box.attr('data-value') == 9) {
+                    console.log("type");
+                    console.log(type);
+                    console.log("changeId");
+                    console.log(changeId);
+                    console.log($box);
+                    console.log($box.attr('data-value'));
+                    console.log("idx = ", idx);
+                    console.log(endX);
+                    console.log(endY);
+                    console.log('data-change-id');
+                    console.log($box.attr('data-change-id'));
+                }
+                if ($box.attr('data-change-id') == changeId) {
+                    if ($box.attr('data-value') == 9) {
+                        console.log("Changing");
+                        console.log($box);
+                        console.log($box.attr('data-value'));
+                        console.log("idx = ", idx);
+                        console.log(endX);
+                        console.log(endY);
+                    }
+                    $box.css("transform", `translate(${endX}px, ${endY}px)`);
+                }
             });
         }
         $box.attr('data-index', idx);
@@ -199,6 +240,8 @@ class HashBoxes extends BoxesBase {
     }
 
     changeTo(newValues) {
+        console.log("changeTo");
+        console.log(newValues);
         this.startModifications(newValues.length)
         let diff = arraysDiff(this.boxValues, newValues);
         let removedIndexes = []; // TODO: fix ugliness, properly handle duplicates
@@ -222,8 +265,8 @@ class HashBoxes extends BoxesBase {
         }
 
         for (let [i, val] of newValues.entries()) {
-            let existingBoxIdx = this.findBoxIndex(val);
             if (val !== null) {
+                let existingBoxIdx = this.findBoxIndex(val);
                 if (existingBoxIdx === null
                     || removedIndexes.includes(existingBoxIdx) /* TODO: FIXME: this does not handle duplicate values properly */) {
                     this.addBox(i, val);
@@ -361,21 +404,16 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
 
     let visibleBreakpoints = {};
     let pointToLevel = {};
-    console.log(props.code);
     for (let [line, bpPoint, level] of props.code) {
         if (line === "" || bpPoint === "") {
             continue;
         }
-        console.log(line, bpPoint, level);
         if (level === undefined) {
-            console.log("BREAK");
             pointToLevel = null;
             break;
         }
         pointToLevel[bpPoint] = level;
     }
-
-    console.log(pointToLevel);
 
     if (pointToLevel !== null) {
         for (let [time, bp] of props.breakpoints.entries()) {
