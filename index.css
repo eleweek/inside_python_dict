@@ -45,13 +45,20 @@
 }
 
 .active-box-selection {
-    border: solid 1px red;
     border-radius: 4px;
     background: rgba(0, 0, 0, 0);
     width: 40px;
     height: 40px;
     z-index: 100;
     position: absolute;
+}
+
+.active-box-selection-1 {
+    border: solid 1px red;
+}
+
+.active-box-selection-2 {
+    border: solid 1px blue;
 }
 
 .active-box-selection-animated {

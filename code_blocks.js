@@ -38,14 +38,13 @@ class BoxesBase {
         this.boxValues = [];
         this.$boxDivs = [];
         this.changeId = 1;
+        this.activeIdx1 = 0;
 
         this.updatedBoxValues = [];
         this.$updatedBoxDivs = [];
-        this.activeBox = null;
 
         this.JUST_ADDED_CLASS = 'box-just-added';
         this.REMOVED_CLASS = 'box-removed';
-        this.ACTIVE_CLASS = 'box-active';
         this.EMPTY = 'box-empty';
         this.FULL = 'box-full';
         this.GC_TIMEOUT = 2000;
@@ -64,9 +63,13 @@ class BoxesBase {
             this.$boxDivs.push($box);
         }
 
-        this.$activeBoxSelection = $('<div class="active-box-selection"></div>');
+        this.$activeBoxSelection = $('<div class="active-box-selection active-box-selection-1"></div>');
         this.$activeBoxSelection.css({top: 0, left: 0, visibility: 'hidden'});
         this.$element.append(this.$activeBoxSelection);
+
+        this.$activeBoxSelection2 = $('<div class="active-box-selection active-box-selection-2"></div>');
+        this.$activeBoxSelection2.css({top: 0, left: 0, visibility: 'hidden'});
+        this.$element.append(this.$activeBoxSelection2);
     }
 
     findBoxIndex(val) {
@@ -221,15 +224,29 @@ class BoxesBase {
     }
 
     removeAllActive() {
+        this.activeIdx1 = null;
         this.$activeBoxSelection.css({visibility: 'hidden'});
         this.$activeBoxSelection.removeClass('active-box-selection-animated');
+
+        this.$activeBoxSelection2.css({visibility: 'hidden'});
+        this.$activeBoxSelection2.removeClass('active-box-selection-animated');
     }
 
-    makeActive(idx) {
-        this.$activeBoxSelection.css({visibility: 'visible'});
-        this.$activeBoxSelection.css({transform: `translate(${this._computeBoxXpos(idx)}px, 0px)`});
+    makeActive(idx, numActive) {
+        numActive = numActive || 0;
+        if (numActive !== 0 && numActive !== 1) {
+            return;
+        }
+        if (numActive === 0) {
+            this.activeIdx1 = idx;
+        } else if (idx === this.activeIdx1) { // double selection is not supported
+            return;
+        }
+        let abs = numActive === 0 ? this.$activeBoxSelection : this.$activeBoxSelection2;
+        abs.css({visibility: 'visible'});
+        abs.css({transform: `translate(${this._computeBoxXpos(idx)}px, 0px)`});
         // enable animations in the future
-        this.$activeBoxSelection.addClass('active-box-selection-animated');
+        abs.addClass('active-box-selection-animated');
     }
 }
 
@@ -348,13 +365,16 @@ class BoxesWrapperComponent extends React.Component {
 
         this.boxes = new this.props.boxesClass(this.$el, 40);
         this.boxes.init(this.props.array);
-        this.changeActiveBox(this.props.idx);
+        this.changeActiveBoxes(this.props.idx, this.props.idx2);
     }
 
-    changeActiveBox(idx) {
+    changeActiveBoxes(idx, idx2) {
         this.boxes.removeAllActive();
         if (idx !== null && idx !== undefined) {
-            this.boxes.makeActive(idx);
+            this.boxes.makeActive(idx, 0);
+        }
+        if (idx2 !== null && idx2 !== undefined) {
+            this.boxes.makeActive(idx2, 1);
         }
     }
 
@@ -364,7 +384,7 @@ class BoxesWrapperComponent extends React.Component {
 
     componentWillUpdate(nextProps, nextState) {
         this.boxes.changeTo(nextProps.array);
-        this.changeActiveBox(nextProps.idx);
+        this.changeActiveBoxes(nextProps.idx, nextProps.idx2);
     }
 
     render() {
@@ -382,8 +402,8 @@ function LineOfBoxesComponent(props) {
 
 function Tetris(props) {
     let elems = [];
-    for (let [Component, [dataLabel, dataName, idxName]] of props.lines) {
-        elems.push(<div className="tetris-row"> <div className="tetris-row-label-div"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> </div> <Component array={props.bp[dataName]} idx={props.bp[idxName]} /> </div>);
+    for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
+        elems.push(<div className="tetris-row"> <div className="tetris-row-label-div"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> </div> <Component array={props.bp[dataName]} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} /> </div>);
     }
 
     return <div className="tetris"> {elems} </div>

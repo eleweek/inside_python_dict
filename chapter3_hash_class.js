@@ -311,9 +311,9 @@ function HashClassNormalStateVisualization(props) {
     return <Tetris
         lines={
             [
-                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
+                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx", "targetIdx"]],
+                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx", "targetIdx"]],
+                [HashBoxesComponent, ["self.slots[*].value", "values", "idx", "targetIdx"]],
             ]
         }
         {...props}
