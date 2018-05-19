@@ -61,15 +61,14 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-const HASH_CLASS_SETITEM_CODE = [
+const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ["def __setitem__(self, key, value):", "start-execution"],
     ["    hash_code = hash(key)", "compute-hash"],
     ["    idx = hash_code % len(self.slots)", "compute-idx"],
     ["    target_idx = None", "target-idx-none"],
-    ["    while self.slots[idx].key is not EMPTY and self.slots[idx].key is not DUMMY:", "check-collision-with-dummy"],
+    ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
     ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
     ["           self.slots[idx].key == key:", "check-dup-key"],
-    ["            target_idx = idx", "check-dup-assign-target-idx"],
     ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
@@ -85,8 +84,35 @@ const HASH_CLASS_SETITEM_CODE = [
     ["", "done-no-return"],
 ];
 
+const HASH_CLASS_SETITEM_RECYCLING_CODE = [
+    ["def __setitem__(self, key, value):", "start-execution"],
+    ["    hash_code = hash(key)", "compute-hash"],
+    ["    idx = hash_code % len(self.slots)", "compute-idx"],
+    ["    target_idx = None", "target-idx-none"],
+    ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
+    ["           self.slots[idx].key == key:", "check-dup-key"],
+    ["            break", "check-dup-break"],
+    ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle"],
+    ["            target_idx = idx", "set-target-idx-recycle"],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["", ""],
+    ["    if target_idx is None:", "check-target-idx-is-none"],
+    ["        target_idx = idx", "after-probing-assign-target-idx"],
+    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased"],
+    ["        self.used += 1", "inc-used"],
+    ["        self.fill += 1", "inc-fill"],
+    ["    elif self.slots[target_idx].key is DUMMY:", "check-recycle-used-increased"],
+    ["        self.used += 1", "inc-used-2"],
+    ["", ""],
+    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot"],
+    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
+    ["        self.resize()", "resize"],
+    ["", "done-no-return"],
+];
+
 class HashClassSetItem extends HashClassBreakpointFunction {
-    run(_self, _key, _value) {
+    run(_self, _key, _value, useRecycling) {
         this.self = _self;
         this.key = _key;
         this.value = _value;
@@ -96,7 +122,7 @@ class HashClassSetItem extends HashClassBreakpointFunction {
 
         this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
         this.addBP('compute-idx');
-        this.target_idx = null;
+        this.targetIdx = null;
         this.addBP('target-idx-none');
 
         while (true) {
@@ -109,10 +135,15 @@ class HashClassSetItem extends HashClassBreakpointFunction {
             if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
                 this.addBP('check-dup-key');
                 if (this.self.slots[this.idx].key == this.key) {
-                    this.target_idx = this.idx;
-                    this.addBP("check-dup-assign-target-idx");
                     this.addBP('check-dup-break');
                     break;
+                }
+            }
+
+            if (useRecycling) {
+                if (this.targetIdx === null && this.self.slots[this.idx].key === "DUMMY") {
+                    this.targetIdx = this.idx;
+                    this.addBP('set-target-idx-recycle');
                 }
             }
 
@@ -121,20 +152,28 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         }
 
         this.addBP('check-target-idx-is-none');
-        if (this.target_idx === null) {
-            this.target_idx = this.idx;
+        if (this.targetIdx === null) {
+            this.targetIdx = this.idx;
             this.addBP("after-probing-assign-target-idx");
         }
 
         this.addBP('check-used-fill-increased');
-        if (this.self.slots[this.idx].key === null) {
+        if (this.self.slots[this.targetIdx].key === null) {
             this.self.used += 1;
             this.addBP('inc-used');
             this.self.fill += 1;
             this.addBP('inc-fill');
+        } else {
+            if (useRecycling) {
+                this.addBP('check-recycle-used-increased');
+                if (this.self.slots[this.targetIdx].key === "DUMMY") {
+                    this.self.used += 1;
+                    this.addBP("inc-used-2");
+                }
+            }
         }
 
-        this.self.slots[this.idx] = new Slot(this.hashCode, this.key, this.value);
+        this.self.slots[this.targetIdx] = new Slot(this.hashCode, this.key, this.value);
         this.addBP('assign-slot');
         this.addBP('check-resize');
         if (this.self.fill * 3 >= this.self.slots.length * 2) {
@@ -196,7 +235,7 @@ class HashClassLookdict extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassGetItem extends HashBreakpointFunction {
+class HashClassGetItem extends HashClassBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -213,6 +252,28 @@ class HashClassGetItem extends HashBreakpointFunction {
     }
 }
 
+class HashClassDelItem extends HashClassBreakpointFunction {
+    run(_self, _key) {
+        this.self = _self;
+        this.key = _key;
+        this.addBP("start-execution-delitem");
+
+        let hcld = new HashClassLookdict();
+        this.idx = hcld.run(this.self, this.key)
+        this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
+        if (this.idx !== null) {
+            // did not throw exception
+            this.self.used -= 1;
+            this.addBP("dec-used");
+            this.self.slots[this.idx].key = "DUMMY";
+            this.addBP("replace-key-dummy");
+            this.self.slots[this.idx].value = null;
+            this.addBP("replace-value-empty");
+        }
+        return this.self;
+    }
+}
+
 class HashClassInsertAll extends HashBreakpointFunction {
     constructor() {
         super();
@@ -220,7 +281,7 @@ class HashClassInsertAll extends HashBreakpointFunction {
         this._resizes = [];
     }
 
-    run(_self, _pairs) {
+    run(_self, _pairs, useRecycling) {
         this.self = _self;
         this.pairs = _pairs;
         let fromKeys = this.pairs.map(p => p[0]);
@@ -232,7 +293,7 @@ class HashClassInsertAll extends HashBreakpointFunction {
                 fromKeys: fromKeys,
                 fromValues: fromValues,
             });
-            this.self = hcsi.run(this.self, this.oldKey, this.oldValue);
+            this.self = hcsi.run(this.self, this.oldKey, this.oldValue, useRecycling);
             if (hcsi.getResize()) {
                 this._resizes.push(hcsi.getResize());
             }
@@ -414,7 +475,7 @@ class Chapter3_HashClass extends React.Component {
     render() {
         let hashClassSelf = hashClassConstructor();
         let hashClassInsertAll = new HashClassInsertAll();
-        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs);
+        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let resizes = hashClassInsertAll.getResizes();
@@ -422,13 +483,18 @@ class Chapter3_HashClass extends React.Component {
         if (resizes.length > 0) {
             resize = resizes[0];
         }
+
+        let hashClassDelItem = new HashClassDelItem();
+        hashClassSelf = hashClassDelItem.run(hashClassSelf, "hello");
+        let hashClassDelItemBreakpoints = hashClassDelItem.getBreakpoints();
         
         let hashClassGetItem = new HashClassGetItem();
         hashClassGetItem.run(hashClassSelf, 42);
         let hashClassGetItemBreakpoints = hashClassGetItem.getBreakpoints();
-        console.log("infa");
-        console.log(resize);
-        console.log(resizes);
+
+        let hashClassSetItemRecycling = new HashClassSetItem();
+        hashClassSelf = hashClassSetItemRecycling.run(hashClassSelf, "recycling", 499, true);
+        let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
 
         return <div className="chapter3">
               <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
@@ -493,7 +559,7 @@ class Chapter3_HashClass extends React.Component {
               <JsonInput value={this.state.hashClassOriginalPairs} onChange={(value) => this.setState({hashClassOriginalPairs: value})} />
 
               <VisualizedCode
-                code={HASH_CLASS_SETITEM_CODE}
+                code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
                 breakpoints={hashClassInsertAllBreakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
@@ -506,7 +572,11 @@ class Chapter3_HashClass extends React.Component {
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassResizeVisualization} />
              <p> Removing a key looks pretty much the same. <code>__delitem__</code> magic method is now used. And <code>self.used</code> is decremented. </p> 
-             TODO: delitem
+             <VisualizedCode
+               code={HASH_CLASS_DELITEM}
+               breakpoints={hashClassDelItemBreakpoints}
+               formatBpDesc={dummyFormat}
+               stateVisualization={HashClassNormalStateVisualization} />
              <p> Search is mostly the same </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
@@ -517,7 +587,11 @@ class Chapter3_HashClass extends React.Component {
              <p> We now have have a drop in replacement for python dict. In the next chapter we will discuss how python dict works internally. But before that, here is one last trick. </p> 
              <h5> Recycling dummy keys. </h5>
              <p> Dummy keys are used as placeholder. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - assuming the key does not exist in the dictionary. </p>
-            TODO: modified __setitem__
+             <VisualizedCode
+               code={HASH_CLASS_SETITEM_RECYCLING_CODE}
+               breakpoints={hashClassSetItemRecyclingBreakpoints}
+               formatBpDesc={dummyFormat}
+               stateVisualization={HashClassNormalStateVisualization} />
         </div>
     }
 }

@@ -83,7 +83,6 @@ class HashDictImplementationSimpleSetItem(HashDictImplementation):
         while self.slots[idx].key is not EMPTY:
             if self.slots[idx].hash_code == hash_code and\
                self.slots[idx].key == key:
-                target_idx = idx
                 break
             idx = (idx + 1) % len(self.slots)
 
