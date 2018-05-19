@@ -11,6 +11,8 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
 
+import {MyErrorBoundary} from './util';
+
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(callback);
@@ -535,28 +537,30 @@ class VisualizedCode extends React.Component {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
 
-        return (<div className="visualized-code">
-            <div className="row slider-row">
-              <div className="col-md-6 col-sm-12">
-                <TimeSlider
-                   handleTimeChange={this.handleTimeChangeDebounced}
-                   time={this.state.time}
-                   maxTime={this.props.breakpoints.length - 1}
-                />
-              </div>
+        return <MyErrorBoundary>
+            <div className="visualized-code">
+                <div className="row slider-row">
+                  <div className="col-md-6 col-sm-12">
+                    <TimeSlider
+                       handleTimeChange={this.handleTimeChangeDebounced}
+                       time={this.state.time}
+                       maxTime={this.props.breakpoints.length - 1}
+                    />
+                  </div>
+                </div>
+                <div className="row code-block-row">
+                  <div className="col">
+                    <CodeBlockWithActiveLineAndAnnotations
+                        time={this.state.time}
+                        code={this.props.code}
+                        breakpoints={this.props.breakpoints}
+                        formatBpDesc={this.props.formatBpDesc}
+                    />
+                  </div>
+                </div>
+                <StateVisualization bp={bp} />
             </div>
-            <div className="row code-block-row">
-              <div className="col">
-                <CodeBlockWithActiveLineAndAnnotations
-                    time={this.state.time}
-                    code={this.props.code}
-                    breakpoints={this.props.breakpoints}
-                    formatBpDesc={this.props.formatBpDesc}
-                />
-              </div>
-            </div>
-            <StateVisualization bp={bp} />
-        </div>)
+        </MyErrorBoundary>
     }
 }
 

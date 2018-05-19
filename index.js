@@ -14,6 +14,7 @@ import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import CustomScroll from 'react-custom-scroll';
+import {MyErrorBoundary} from './util';
 
 function logViewportStats() {
     console.log("window: " + window.innerWidth + "x" + window.innerHeight);
@@ -32,13 +33,22 @@ class CrossFade extends React.Component {
 
 class App extends React.Component {
     render() {
+        console.log(MyErrorBoundary);
         return(
             <div>
               <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <Chapter1_SimplifiedHash />
-              <Chapter2_HashTableFunctions />
-              <Chapter3_HashClass />
-              <Chapter4_RealPythonDict />
+              <MyErrorBoundary>
+                <Chapter1_SimplifiedHash />
+              </MyErrorBoundary>
+              <MyErrorBoundary>
+                <Chapter2_HashTableFunctions />
+              </MyErrorBoundary>
+              <MyErrorBoundary>
+                <Chapter3_HashClass />
+              </MyErrorBoundary>
+              <MyErrorBoundary>
+                <Chapter4_RealPythonDict />
+              </MyErrorBoundary>
           </div>)
     }
 }

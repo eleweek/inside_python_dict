@@ -35,6 +35,7 @@
     "react-css-transition-replace": "^3.0.2",
     "react-custom-scroll": "^2.0.2",
     "react-dom": "^16.2.0",
+    "react-error-boundary": "^1.2.3",
     "rehype": "^5.0.1",
     "style-loader": "^0.19.1",
     "webpack": "^3.10.0",
