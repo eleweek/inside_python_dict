@@ -28,6 +28,12 @@ function renderPythonCode(codeString) {
         }).toString();
 }
 
+function dummyFormat(bp) {
+    /* return JSON.stringify(bp); */
+    return "";
+}
+
+
 function SimpleCodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} /></pre>
 }
@@ -566,5 +572,5 @@ class VisualizedCode extends React.Component {
 
 export {
     HashBoxesComponent, LineOfBoxesComponent, TetrisSingleRowWrap, Tetris,
-    SimpleCodeBlock, VisualizedCode
+    SimpleCodeBlock, VisualizedCode, dummyFormat
 }
