@@ -74,7 +74,7 @@ class PyDictReimplementation(BaseDictImpl):
         old_slots = self.slots
         new_size = self.find_optimal_size(quot)
         self.slots = [Slot() for _ in range(new_size)]
-
+        self.fill = self.used
         for slot in old_slots:
             if slot.key is not EMPTY and slot.key is not DUMMY:
                 hash_code = hash(slot.key)
@@ -85,8 +85,6 @@ class PyDictReimplementation(BaseDictImpl):
                     perturb >>= self.PERTURB_SHIFT
 
                 self.slots[idx] = Slot(hash_code, slot.key, slot.value)
-
-        self.fill = self.used
 
 
 def dump_py_reimpl_dict(d):

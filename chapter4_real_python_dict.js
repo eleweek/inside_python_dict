@@ -74,6 +74,57 @@ const DICT32_SETITEM = [
     ["", "done-no-return"],
 ];
 
+const DICT32_RESIZE_CODE = [
+    ["def resize(self):", "start-execution"],
+    ["    old_slots = self.slots", "assign-old-slots"],
+    ["    new_size = self.find_optimal_size(quot)", "compute-new-size"],
+    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
+    ["    self.fill = self.used", "assign-fill"],
+    ["    for slot in old_slots:", "for-loop"],
+    ["        if slot.key is not EMPTY:", "check-skip-empty-dummy"],
+    ["              hash_code = hash(slot.key)", "compute-hash"],
+    ["              perturb = self.signed_to_unsigned(hash_code)", "compute-perturb"],
+    ["              idx = hash_code % len(self.slots)", "compute-idx"],
+    ["              while self.slots[idx].key is not EMPTY:", "check-collision"],
+    ["                  idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx"],
+    ["                  perturb >>= self.PERTURB_SHIFT", "perturb-shift"],
+    ["", ""],
+    ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
+    ["", "done-no-return"],
+];
+
+let DICT32_LOOKDICT = [
+    ["def lookdict(self, key):", "start-execution-lookdict"],
+    ["    hash_code = hash(key)", "compute-hash"],
+    ["    idx = hash_code % len(self.slots)", "compute-idx"],
+    ["    perturb = self.signed_to_unsigned(hash_code)", "compute-perturb"],
+    ["    while self.slots[idx].key is not EMPTY:", "check-not-found"],
+    ["        if self.slots[idx].hash_code == hash_code and \\", "check-hash"],
+    ["           self.slots[idx].key == key:", "check-key"],
+    ["            return idx", "return-idx"],
+    ["", ""],
+    ["        idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx"],
+    ["        perturb >>= self.PERTURB_SHIFT", "perturb-shift"],
+    ["", ""],
+    ["    raise KeyError()", "raise"],
+];
+
+let DICT32_GETITEM = DICT32_LOOKDICT.concat([
+    ["def __getitem__(self, key):", "start-execution-getitem"],
+    ["    idx = self.lookdict(key)", ""],
+    ["", ""],
+    ["    return self.slots[idx].value", "return-value"],
+]);
+
+
+let DICT32_DELITEM = DICT32_LOOKDICT.concat([
+    ["def __delitem__(self, key):", "start-execution-delitem"],
+    ["    idx = self.lookdict(key)", ""],
+    ["", ""],
+    ["    self.used -= 1", "dec-used"],
+    ["    self.slots[idx].key = DUMMY", "replace-key-dummy"],
+    ["    self.slots[idx].value = EMPTY", "replace-value-empty"],
+]);
 
 class Chapter4_RealPythonDict extends React.Component {
     constructor() {
@@ -87,10 +138,24 @@ class Chapter4_RealPythonDict extends React.Component {
 
     render() {
         let dict32Self = hashClassConstructor();
-        let dict32InsertAll = new HashClassInsertAll();
+        let ia = new HashClassInsertAll();
         // TODO: 4 or 2 -- depends on dict size
-        dict32Self = dict32InsertAll.run(dict32Self, this.state.hashClassOriginalPairs, true, Dict32SetItem, Dict32Resize, 4);
-        let dict32InsertAllBreakpoints = dict32InsertAll.getBreakpoints();
+        dict32Self = ia.run(dict32Self, this.state.hashClassOriginalPairs, true, Dict32SetItem, Dict32Resize, 4);
+        let iaBreakpoints = ia.getBreakpoints();
+
+        let resizes = ia.getResizes();
+        let resize = null;
+        if (resizes.length > 0) {
+            resize = resizes[0];
+        }
+
+        let di = new HashClassDelItem();
+        dict32Self = di.run(dict32Self, "hello", Dict32Lookdict);
+        let diBreakpoints = di.getBreakpoints();
+        
+        let gi = new HashClassGetItem();
+        gi.run(dict32Self, 42, Dict32Lookdict);
+        let giBreakpoints = gi.getBreakpoints();
 
         return <div className="chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
@@ -108,9 +173,28 @@ class Chapter4_RealPythonDict extends React.Component {
               <p> Insert: </p>
               <VisualizedCode
                 code={DICT32_SETITEM}
-                breakpoints={dict32InsertAllBreakpoints}
+                breakpoints={iaBreakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
+              <p> Let's look at the first resize in depth: </p>
+              <VisualizedCode
+                code={DICT32_RESIZE_CODE}
+                breakpoints={resize.breakpoints}
+                formatBpDesc={dummyFormat}
+                stateVisualization={HashClassResizeVisualization} />
+
+             <p> Removing a key looks pretty much the same</p>
+             <VisualizedCode
+               code={DICT32_DELITEM}
+               breakpoints={diBreakpoints}
+               formatBpDesc={dummyFormat}
+               stateVisualization={HashClassNormalStateVisualization} />
+             <p> Search is mostly the same </p>
+             <VisualizedCode
+               code={DICT32_GETITEM}
+               breakpoints={giBreakpoints}
+               formatBpDesc={dummyFormat}
+               stateVisualization={HashClassNormalStateVisualization} />
         </div>;
     }
 }
