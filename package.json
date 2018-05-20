@@ -29,6 +29,7 @@
     "jquery": "^3.2.1",
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",
+    "npm": "^6.0.1",
     "popper.js": "^1.12.9",
     "react": "^16.2.0",
     "react-bootstrap-slider": "^2.1.3",
