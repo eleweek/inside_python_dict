@@ -4,7 +4,7 @@ import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 
 import {
     hashClassConstructor,
-    HashClassResize, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
+    HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
 } from './chapter3_and_4_common.js';
 
@@ -16,8 +16,8 @@ import {
 import {JsonInput} from './inputs.js';
 
 let chapter3Extend = (Base) => class extends Base {
-    computeIdxAndSave() {
-        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+    computeIdxAndSave(hashCode, len) {
+        this.idx = this.computeIdx(hashCode, len);
         this.addBP('compute-idx');
     }
 
@@ -29,6 +29,7 @@ let chapter3Extend = (Base) => class extends Base {
 
 class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
 class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
+class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ["def __setitem__(self, key, value):", "start-execution"],
@@ -142,7 +143,7 @@ class Chapter3_HashClass extends React.Component {
     render() {
         let hashClassSelf = hashClassConstructor();
         let hashClassInsertAll = new HashClassInsertAll();
-        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false, HashClassSetItem);
+        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false, HashClassSetItem, HashClassResize, 2);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let resizes = hashClassInsertAll.getResizes();
@@ -160,7 +161,7 @@ class Chapter3_HashClass extends React.Component {
         let hashClassGetItemBreakpoints = hashClassGetItem.getBreakpoints();
 
         let hashClassSetItemRecycling = new HashClassSetItem();
-        hashClassSelf = hashClassSetItemRecycling.run(hashClassSelf, "recycling", 499, true);
+        hashClassSelf = hashClassSetItemRecycling.run(hashClassSelf, "recycling", 499, true, HashClassResize, 2);
         let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
 
         return <div className="chapter3">

@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js/bignumber';
 
 import {
     hashClassConstructor,
-    HashClassResize, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
+    HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
 } from './chapter3_and_4_common.js';
 
@@ -21,10 +21,10 @@ function signedToUnsigned(num) {
 }
 
 let chapter4Extend = (Base) => class extends Base {
-    computeIdxAndSave() {
-        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+    computeIdxAndSave(hashCode, len) {
+        this.idx = this.computeIdx(hashCode, len);
         this.addBP('compute-idx');
-        this.perturb = signedToUnsigned(this.hashCode);
+        this.perturb = signedToUnsigned(hashCode);
         this.addBP('compute-perturb');
     }
 
@@ -38,6 +38,7 @@ let chapter4Extend = (Base) => class extends Base {
 
 class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
 class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
+class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
 
 const DICT32_SETITEM = [
 	/*["@staticmethod", ""],
@@ -87,7 +88,8 @@ class Chapter4_RealPythonDict extends React.Component {
     render() {
         let dict32Self = hashClassConstructor();
         let dict32InsertAll = new HashClassInsertAll();
-        dict32Self = dict32InsertAll.run(dict32Self, this.state.hashClassOriginalPairs, true, Dict32SetItem);
+        // TODO: 4 or 2 -- depends on dict size
+        dict32Self = dict32InsertAll.run(dict32Self, this.state.hashClassOriginalPairs, true, Dict32SetItem, Dict32Resize, 4);
         let dict32InsertAllBreakpoints = dict32InsertAll.getBreakpoints();
 
         return <div className="chapter4">
