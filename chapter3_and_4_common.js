@@ -70,6 +70,10 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
         while (true) {
             this.addBP('check-collision');
             if (this.self.slots[this.idx].key === null) {
+                if (useRecycling) {
+                    this.targetIdx = this.idx;
+                    this.addBP('set-target-idx-found');
+                }
                 break;
             }
 
@@ -139,20 +143,6 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
     }
 }
 
-let chapter3Extend = (Base) => class extends Base {
-    computeIdxAndSave() {
-        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
-        this.addBP('compute-idx');
-    }
-
-    nextIdxAndSave() {
-        this.idx = (this.idx + 1) % this.self.slots.length;
-        this.addBP('next-idx');
-    }
-}
-
-class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
-
 class HashClassLookdictBase extends HashClassBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
@@ -186,15 +176,13 @@ class HashClassLookdictBase extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
-
 class HashClassGetItem extends HashClassBreakpointFunction {
-    run(_self, _key) {
+    run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
         this.addBP("start-execution-getitem");
 
-        let hcld = new HashClassLookdict();
+        let hcld = new Lookdict();
         this.idx = hcld.run(this.self, this.key)
         this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
         if (this.idx !== null) {
@@ -206,12 +194,12 @@ class HashClassGetItem extends HashClassBreakpointFunction {
 }
 
 class HashClassDelItem extends HashClassBreakpointFunction {
-    run(_self, _key) {
+    run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
         this.addBP("start-execution-delitem");
 
-        let hcld = new HashClassLookdict();
+        let hcld = new Lookdict();
         this.idx = hcld.run(this.self, this.key)
         this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
         if (this.idx !== null) {
@@ -234,13 +222,13 @@ class HashClassInsertAll extends HashBreakpointFunction {
         this._resizes = [];
     }
 
-    run(_self, _pairs, useRecycling) {
+    run(_self, _pairs, useRecycling, SetItem) {
         this.self = _self;
         this.pairs = _pairs;
         let fromKeys = this.pairs.map(p => p[0]);
         let fromValues = this.pairs.map(p => p[1]);
         for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
-            let hcsi = new HashClassSetItem();
+            let hcsi = new SetItem();
             hcsi.setExtraBpContext({
                 oldIdx: this.oldIdx,
                 fromKeys: fromKeys,
@@ -368,6 +356,6 @@ class HashClassResize extends HashClassBreakpointFunction {
 
 export {
     HashClassBreakpointFunction, hashClassConstructor, Slot, findOptimalSize,
-    HashClassResize, HashClassSetItem, HashClassDelItem, HashClassGetItem, HashClassLookdict, HashClassInsertAll,
+    HashClassResize, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
 }

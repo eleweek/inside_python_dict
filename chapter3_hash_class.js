@@ -3,8 +3,8 @@ var React = require('react');
 import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 
 import {
-    HashClassBreakpointFunction, hashClassConstructor, Slot, findOptimalSize,
-    HashClassResize, HashClassSetItem, HashClassDelItem, HashClassGetItem, HashClassLookdict, HashClassInsertAll,
+    hashClassConstructor,
+    HashClassResize, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
 } from './chapter3_and_4_common.js';
 
@@ -14,6 +14,21 @@ import {
 } from './code_blocks.js';
 
 import {JsonInput} from './inputs.js';
+
+let chapter3Extend = (Base) => class extends Base {
+    computeIdxAndSave() {
+        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+        this.addBP('compute-idx');
+    }
+
+    nextIdxAndSave() {
+        this.idx = (this.idx + 1) % this.self.slots.length;
+        this.addBP('next-idx');
+    }
+}
+
+class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
+class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ["def __setitem__(self, key, value):", "start-execution"],
@@ -46,6 +61,7 @@ const HASH_CLASS_SETITEM_RECYCLING_CODE = [
     ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
     ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
     ["           self.slots[idx].key == key:", "check-dup-key"],
+    ["            target_idx = idx", "set-target-idx-found"],
     ["            break", "check-dup-break"],
     ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle"],
     ["            target_idx = idx", "set-target-idx-recycle"],
@@ -119,7 +135,6 @@ class Chapter3_HashClass extends React.Component {
         super();
 
         this.state = {
-            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
@@ -127,7 +142,7 @@ class Chapter3_HashClass extends React.Component {
     render() {
         let hashClassSelf = hashClassConstructor();
         let hashClassInsertAll = new HashClassInsertAll();
-        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false);
+        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false, HashClassSetItem);
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let resizes = hashClassInsertAll.getResizes();
@@ -137,11 +152,11 @@ class Chapter3_HashClass extends React.Component {
         }
 
         let hashClassDelItem = new HashClassDelItem();
-        hashClassSelf = hashClassDelItem.run(hashClassSelf, "hello");
+        hashClassSelf = hashClassDelItem.run(hashClassSelf, "hello", HashClassLookdict);
         let hashClassDelItemBreakpoints = hashClassDelItem.getBreakpoints();
         
         let hashClassGetItem = new HashClassGetItem();
-        hashClassGetItem.run(hashClassSelf, 42);
+        hashClassGetItem.run(hashClassSelf, 42, HashClassLookdict);
         let hashClassGetItemBreakpoints = hashClassGetItem.getBreakpoints();
 
         let hashClassSetItemRecycling = new HashClassSetItem();

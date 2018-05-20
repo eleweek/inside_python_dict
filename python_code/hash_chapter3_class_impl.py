@@ -38,6 +38,7 @@ class HashDictImplementation(BaseDictImpl):
         target_idx = None
         while self.slots[idx].key is not EMPTY:
             if self.slots[idx].hash_code == hash_code and self.slots[idx].key == key:
+                target_idx = idx
                 break
             if target_idx is None and self.slots[idx].key is DUMMY:
                 target_idx = idx

@@ -23,7 +23,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
-    "big.js": "^5.0.3",
+    "bignumber.js": "^7.1.0",
     "bootstrap": "^4.0.0",
     "css-loader": "^0.28.8",
     "jquery": "^3.2.1",

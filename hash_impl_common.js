@@ -1,5 +1,6 @@
 var _ = require('lodash');
-var Big = require('big.js');
+
+import BigNumber from 'bignumber.js/bignumber';
 
 class Int64 {
     constructor(jsNumInt32 = 0) {
@@ -190,9 +191,9 @@ let pyHashInt = function(n) {
 
 let pyHash = function(o) {
     if (typeof o === 'string') {
-        return Big(pyHashString(o));
+        return BigNumber(pyHashString(o));
     } else if (typeof o == 'number') {
-        return Big(pyHashInt(o));
+        return BigNumber(pyHashInt(o));
     } else {
         throw "pyHash called with an object of unknown type: " + o;
     }
