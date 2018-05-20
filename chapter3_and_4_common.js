@@ -54,7 +54,7 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-class HashClassSetItem extends HashClassBreakpointFunction {
+class HashClassSetItemBase extends HashClassBreakpointFunction {
     run(_self, _key, _value, useRecycling) {
         this.self = _self;
         this.key = _key;
@@ -63,8 +63,7 @@ class HashClassSetItem extends HashClassBreakpointFunction {
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
-        this.addBP('compute-idx');
+        this.computeIdxAndSave();
         this.targetIdx = null;
         this.addBP('target-idx-none');
 
@@ -89,9 +88,8 @@ class HashClassSetItem extends HashClassBreakpointFunction {
                     this.addBP('set-target-idx-recycle');
                 }
             }
-
-            this.idx = (this.idx + 1) % this.self.slots.length;
-            this.addBP('next-idx');
+            
+            this.nextIdxAndSave();
         }
 
         this.addBP('check-target-idx-is-none');
@@ -141,8 +139,21 @@ class HashClassSetItem extends HashClassBreakpointFunction {
     }
 }
 
+let chapter3Extend = (Base) => class extends Base {
+    computeIdxAndSave() {
+        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
+        this.addBP('compute-idx');
+    }
 
-class HashClassLookdict extends HashClassBreakpointFunction {
+    nextIdxAndSave() {
+        this.idx = (this.idx + 1) % this.self.slots.length;
+        this.addBP('next-idx');
+    }
+}
+
+class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
+
+class HashClassLookdictBase extends HashClassBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -150,9 +161,7 @@ class HashClassLookdict extends HashClassBreakpointFunction {
         this.addBP('start-execution-lookdict');
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
-
-        this.idx = this.computeIdx(this.hashCode, this.self.slots.length);
-        this.addBP('compute-idx');
+        this.computeIdxAndSave();
 
         while (true) {
             this.addBP('check-not-found');
@@ -169,14 +178,15 @@ class HashClassLookdict extends HashClassBreakpointFunction {
                 }
             }
 
-            this.idx = (this.idx + 1) % this.self.slots.length;
-            this.addBP('next-idx');
+            this.nextIdxAndSave();
         }
 
         this.addBP('raise');
         return null;
     }
 }
+
+class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
 
 class HashClassGetItem extends HashClassBreakpointFunction {
     run(_self, _key) {
