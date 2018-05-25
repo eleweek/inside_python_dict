@@ -167,8 +167,8 @@ class Chapter3_HashClass extends React.Component {
         return <div className="chapter3">
               <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
               <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table overflows. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
-              <p> This section assumes you have a basic understanding of how classes work in python and magic methods. Classes are going to be used to bundle data and functions together. And magic methods will be used for things like __getitem__ which allows us to implement [] for our own classes. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) or our_dict.find(key). The <code>[]</code> looks nicer and allows us to mimic some parts of the interface of python dict. </p>
-              <p> To handle values we'd need yet another list (in addition to <code>hash_codes</code> and <code>keys</code>. Using another list would totally work. But let's actually bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
+              <p> This section assumes you have a basic understanding of how classes work in python and <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a>. We will use classes to bundle data and functions together. And we will use magic methods to implement basics of python dict interface. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) (or even something our_dict.find(key)). The square brackets <code>[]</code> look nicer. </p>
+              <p> To handle values we could add another list (in addition to <code>hash_codes</code> and <code>keys</code>). This would totally work. Another alternative is to bbundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
               <SimpleCodeBlock>
 {`class Slot(object):
     def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
@@ -177,8 +177,10 @@ class Chapter3_HashClass extends React.Component {
         self.value = value
 `}
 			  </SimpleCodeBlock>
+              <p> This is similar to how slots are organized in CPython, so let's use this helper class. </p>
 
-              <p> Now, for our hash table we will use a class, and for each operation we will have a magic method. How do we initialize an empty hash table? We used to base the size on the original list. Now we know how to resize hash tables, so we can start from an empty table. The number shouldn't be too small and too big. Let's start with 8 (since that's what python does). Python hash table sizes are power of 2, so we will use power of 2 too. Technically, nothing prevents using "non-round" values. The only reason for using "round" powers of 2 is efficiency. Getting modulo by power of 2 can be implemented efficiently using bit operations. We will keep using modulo instead of bit ops for expressiveness. </p>
+              <p> Now, for our hash table we will use a class, and for each operation we will have a magic method. How do we initialize an empty hash table? We used to base the size on the original list. Since we now know how to resize tables, we can start with an empty table and grow. But what should be the initial size? The size shouldn't be too small and too big. Hash tables inside python dictionaries have size 8 when they are empty, so let's do this. Python hash table sizes are power of 2, so we will use power of 2 too. Technically, nothing prevents using "non-round" values. The only reason for using "round" powers of 2 is efficiency. Getting modulo by power of 2 can be implemented efficiently using bit operations. However, we will keep using modulo instead of bit ops for expressiveness. </p>
+              <p> You can see that we are already starting to imitate certain aspects of python dict. In this chapter, we will get pretty close to python dict, but we will not get fully there. The next chapter will be about real python dict. But for now, bear with me.</p>
               <p> Here is how our class is going to look like: </p>
               <SimpleCodeBlock>
 {`class AlmostDict(object):
@@ -191,14 +193,14 @@ class Chapter3_HashClass extends React.Component {
         # Allows us set value in a dict-like fashion
         # d = Dict()
         # d[1] = 2
-        <implementation here>
+        <implementation goes here>
 
     def __getitem__(self, key):
         # Allows us to get value from a ict, for example:
         # d = Dict()
         # d[1] = 2
         # d[1] == 2
-        <implementation here>
+        <implementation goes here>
 
     def __delitem__(self, key):
         # Allows us to use del in a dict-like fashion, for example:
@@ -206,11 +208,11 @@ class Chapter3_HashClass extends React.Component {
         # d[1] = 2
         # del d[1]
         # d[1] raises KeyError now
-        <implementation here>
+        <implementation goes here>
 `}
 			  </SimpleCodeBlock>
               <p> Each method is going to update <code>self.fill</code> and <code>self.used</code>, so the fill factor is tracked correctly. </p>
-              <p> When resizing a hash table, how do we find a new optimal size? There is no definitive answer. The size is increased by a power of 2, because we want to keep the size a power of 2. </p>
+              <p> When resizing a hash table, how do we find a new optimal size? Again, like it was mentioned, there is no definitive one-size-fits-all answer. We will double the size. </p>
               <SimpleCodeBlock>
 {`def find_optimal_size(self):
     new_size = 8
@@ -239,22 +241,25 @@ class Chapter3_HashClass extends React.Component {
                 breakpoints={resize.breakpoints}
                 formatBpDesc={dummyFormat}
                 stateVisualization={HashClassResizeVisualization} />
-             <p> Removing a key looks pretty much the same. <code>__delitem__</code> magic method is now used. And <code>self.used</code> is decremented. </p> 
+             <p> Code for removing and searching look pretty much the same, because in order to remove a key we need to find it first. This means that we can reorganize the code so removing and searching functions share a lot of code. We will call the common function <code>lookdict()</code>. </p>
+             <p> Other than that, removing a key will look pretty much the same. <code>__delitem__</code> magic method is now used for realness, so we can do <code> del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up finding the element and removing it. </p> 
              <VisualizedCode
                code={HASH_CLASS_DELITEM}
                breakpoints={hashClassDelItemBreakpoints}
                formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
-             <p> Search is mostly the same </p>
+             <p> After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks pretty much the same as <code>__delitem__</code> </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
                breakpoints={hashClassGetItemBreakpoints}
                formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
              
-             <p> We now have have a drop in replacement for python dict. In the next chapter we will discuss how python dict works internally. But before that, here is one last trick. </p> 
+             <p> So we now have have a replacement for python dict. In the next chapter we will discuss how python dict works internally. But move on to that, let's disccuss a cool trick for inserting new items. </p> 
              <h5> Recycling dummy keys. </h5>
-             <p> Dummy keys are used as placeholder. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, and it does not matter what exactly - dummy slot or any normal slot. But this gives us the following trick for inserting. If we end up hitting a dummy slot, we can safely replace with key that is being inserted - assuming the key does not exist in the dictionary. </p>
+             <p> Dummy keys are used as placeholder. The main purpose of the dummy object is preventing probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, be it a dummy slot or a normal slot. And this means if we end up hitting a dummy slot, we can safely replace with key that is being inserted - assuming the key does not exist in the dictionary. So we do a full look up, but we also save an index of a first dummy slot we encountered to <code>target_idx</code>. If we find that a key already exists, we save the index to <code>target_idx</code>. If we find neither a dummy slot, nor we find the key to be present, then we just insert it in the first empty slot - as we did before. </p>
+             <p> In the absence of dummy slots, the code works exactly the same. So even if we built the dict with a simpler version of <code>__setitem__</code>, it would look exactly the same. </p>
+             <p> However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (Can you come up with a key that would replace the dummy object?). </p>
              <VisualizedCode
                code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                breakpoints={hashClassSetItemRecyclingBreakpoints}
