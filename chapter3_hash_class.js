@@ -165,10 +165,12 @@ class Chapter3_HashClass extends React.Component {
         let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
 
         return <div className="chapter3">
-              <h2> Chapter 3. Putting it all together to make an almost-python-dict</h2>
-              <p> We now have all the building blocks available that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track <code>fill</code> and <code>used</code> values, so we know when a table overflows. And we will also handle values (in addition to keys). And we will make a class that supports all basic operations from <code>dict</code>. On the inside this class would work differently from actual python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
-              <p> This section assumes you have a basic understanding of how classes work in python and <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a>. We will use classes to bundle data and functions together. And we will use magic methods to implement basics of python dict interface. Magic methods are special methods for "overloading" operators. So we can write our_dict[key] instead of writing our_dict.__getitem__(key) (or even something our_dict.find(key)). The square brackets <code>[]</code> look nicer. </p>
-              <p> To handle values we could add another list (in addition to <code>hash_codes</code> and <code>keys</code>). This would totally work. Another alternative is to bbundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single class: </p>
+              TODO: check used grammar thing
+              TODO: check articles for python dict / the python dict / a python dict / the implementation of (a) python dict
+              <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
+              <p> We now have all the building blocks that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track the <code>fill</code> and <code>used</code> counters, so we know when a table overflows. We will also handle values (in addition to keys) and make a class that supports all basic operations from <code>dict</code>. On the inside, this class would work differently from the actual implementation of python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
+              <p> This section assumes you have a basic understanding of <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a> and how classes work in python. We will use classes to bundle data and functions together. Magic methods are special methods for "overloading" operators. So we can write <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets just look nicer. </p>
+              <p> To handle values we could add another list (in addition to <code>hash_codes</code> and <code>keys</code>). This would totally work. Another alternative is to bundle <code>hash_code</code>, <code>key</code>, <code>value</code> corresponding to each slot in a single object. In order to do this, we'll need to make a class: </p>
               <SimpleCodeBlock>
 {`class Slot(object):
     def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
@@ -177,9 +179,9 @@ class Chapter3_HashClass extends React.Component {
         self.value = value
 `}
 			  </SimpleCodeBlock>
-              <p> This is similar to how slots are organized in CPython, so let's use this helper class. </p>
+              <p> This is similar to how slots are organized in CPython. </p>
 
-              <p> Now, for our hash table we will use a class, and for each operation we will have a magic method. How do we initialize an empty hash table? We used to base the size on the original list. Since we now know how to resize tables, we can start with an empty table and grow. But what should be the initial size? The size shouldn't be too small and too big. Hash tables inside python dictionaries have size 8 when they are empty, so let's do this. Python hash table sizes are power of 2, so we will use power of 2 too. Technically, nothing prevents using "non-round" values. The only reason for using "round" powers of 2 is efficiency. Getting modulo by power of 2 can be implemented efficiently using bit operations. However, we will keep using modulo instead of bit ops for expressiveness. </p>
+              <p> How do we initialize an empty hash table? We used to base the size on the original list. Since we now know how to resize tables, we can start with an empty table and grow. But what should be the initial size? The size shouldn't be too small or too big. Hash tables inside python dictionaries are size 8 when they are empty, so let's make ours that size. Python hash table sizes are power of 2, so we will use power of 2 too. Technically, nothing prevents using "non-round" values. The only reason for using "round" powers of 2 is efficiency. Getting modulo by power of 2 can be implemented efficiently using bit operations. However, we will keep using modulo instead of bit ops for expressiveness. </p>
               <p> You can see that we are already starting to imitate certain aspects of python dict. In this chapter, we will get pretty close to python dict, but we will not get fully there. The next chapter will be about real python dict. But for now, bear with me.</p>
               <p> Here is how our class is going to look like: </p>
               <SimpleCodeBlock>
