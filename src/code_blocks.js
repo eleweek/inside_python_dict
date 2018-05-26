@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import * as React from 'react';
 
-import low from 'lowlight';
+import low from 'lowlight/lib/core';
 import rehype from 'rehype';
 import pythonHl from 'highlight.js/lib/languages/python';
 low.registerLanguage('python', pythonHl);
