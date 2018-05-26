@@ -53,7 +53,7 @@ class App extends React.Component {
     }
 }
 
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", function(event) {
     logViewportStats();
     /* TODO: properly apply stickyfill */
     /*let elements = $('.sticky-top');

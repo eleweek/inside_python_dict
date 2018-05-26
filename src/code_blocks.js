@@ -1,8 +1,12 @@
 import _ from 'lodash'
+import $ from 'jquery';
 import * as React from 'react';
 
 import low from 'lowlight/lib/core';
-import rehype from 'rehype';
+
+import unified from 'unified';
+import rehypestringify from 'rehype-stringify';
+
 import pythonHl from 'highlight.js/lib/languages/python';
 low.registerLanguage('python', pythonHl);
 
@@ -22,10 +26,11 @@ function doubleRAF(callback) {
 function renderPythonCode(codeString) {
     let lowAst = low.highlight('python', codeString).value;
 
-    return rehype().stringify({
-            type: 'root',
-            children: lowAst
-        }).toString();
+    const processor = unified().use(rehypestringify);
+    return processor.stringify({
+        type: 'root',
+        children: lowAst
+    });
 }
 
 function dummyFormat(bp) {
