@@ -1,6 +1,6 @@
 // require('popper.js');
 // require('bootstrap');
-import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
+import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
 
 import _ from 'lodash'
 
