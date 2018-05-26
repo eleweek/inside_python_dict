@@ -19,9 +19,6 @@
   },
   "homepage": "https://github.com/eleweek/inside_python_dict#readme",
   "dependencies": {
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "bignumber.js": "^7.2.1",
@@ -42,10 +39,15 @@
     "style-loader": "^0.19.1"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
     "babel-plugin-transform-es2015-destructuring": "^6.23.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "uglifyjs-webpack-plugin": "^1.2.5",
+    "unminified-webpack-plugin": "^2.0.0",
     "webpack": "^4.9.1",
+    "webpack-bundle-analyzer": "^2.13.1",
     "webpack-cli": "^2.1.4",
     "webpack-dev-server": "^3.1.4",
     "webpack-merge": "^4.1.2"

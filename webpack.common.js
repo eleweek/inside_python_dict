@@ -1,5 +1,7 @@
 const webpack = require('webpack'); 
 const path = require('path');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
 
 module.exports = {
   entry: './src/index.js',
@@ -38,6 +40,7 @@ module.exports = {
         jQuery: 'jquery',
         'window.jQuery': 'jquery',
         Popper: ['popper.js', 'default'],
-    })
+    }),
+    new BundleAnalyzerPlugin()
    ]
 };
