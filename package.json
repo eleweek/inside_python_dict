@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server --open --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
-    "bignumber.js": "^7.1.0",
+    "bignumber.js": "^7.2.1",
     "bootstrap": "^4.0.0",
     "css-loader": "^0.28.8",
     "jquery": "^3.2.1",
@@ -38,12 +39,14 @@
     "react-dom": "^16.2.0",
     "react-error-boundary": "^1.2.3",
     "rehype": "^5.0.1",
-    "style-loader": "^0.19.1",
-    "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.9.7"
+    "style-loader": "^0.19.1"
   },
   "devDependencies": {
     "babel-plugin-transform-es2015-destructuring": "^6.23.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0"
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "webpack": "^4.9.1",
+    "webpack-cli": "^2.1.4",
+    "webpack-dev-server": "^3.1.4",
+    "webpack-merge": "^4.1.2"
   }
 }

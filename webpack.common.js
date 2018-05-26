@@ -1,27 +1,33 @@
 const webpack = require('webpack'); 
+const path = require('path');
 
 module.exports = {
-  entry: './index',
+  entry: './src/index.js',
   output: {
-    filename: 'browser-bundle.js'
+    filename: 'browser-bundle.js',
+    path: path.resolve(__dirname, 'dist')
   },
   devtool: 'cheap-module-eval-source-map',
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'babel-loader',
-        query: {
-          presets: ['es2015', 'react']
+        use: {
+            loader: 'babel-loader',
+            query: {
+              presets: ['es2015', 'react']
+            }
         },
         exclude: /node_modules/
       }, {
         test: /\.css$/,
-        rules: [
-          {
-            test: /\.css$/,
-            use: ['style-loader', 'css-loader']
-          }
+        use: [
+            {
+                loader: 'style-loader'
+            },
+            {
+                loader: 'css-loader'
+            }
         ]
       }
     ]

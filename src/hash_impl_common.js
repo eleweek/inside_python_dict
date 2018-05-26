@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-import BigNumber from 'bignumber.js/bignumber';
+import {BigNumber} from 'bignumber.js';
 
 class Int64 {
     constructor(jsNumInt32 = 0) {
