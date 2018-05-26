@@ -1,4 +1,5 @@
-var React = require('react');
+import * as React from 'react';
+
 import {ErrorBoundary} from 'react-error-boundary';
 
 function MyFallbackComponent({componentStack, error}) {

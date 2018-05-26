@@ -1,4 +1,4 @@
-var React = require('react');
+import * as React from 'react';
 
 import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 

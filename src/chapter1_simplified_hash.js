@@ -1,4 +1,4 @@
-var React = require('react');
+import * as React from 'react';
 
 import {BreakpointFunction} from './hash_impl_common.js';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks.js';

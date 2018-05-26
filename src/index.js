@@ -1,11 +1,11 @@
-require('popper.js');
-require('bootstrap');
-require('bootstrap/dist/css/bootstrap.css');
+// require('popper.js');
+// require('bootstrap');
+import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
 
-var _ = require('lodash');
+import _ from 'lodash'
 
-var React = require('react');
-var ReactDOM = require('react-dom');
+import * as React from 'react';
+import ReactDOM from 'react-dom';
 
 import {Chapter1_SimplifiedHash} from './chapter1_simplified_hash.js';
 import {Chapter2_HashTableFunctions} from './chapter2_hash_table_functions.js';

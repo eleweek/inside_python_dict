@@ -1,10 +1,10 @@
-var _ = require('lodash');
-var React = require('react');
+import _ from 'lodash'
+import * as React from 'react';
 
-var low = require('lowlight');
-var rehype = require('rehype');
-var python = require('highlight.js/lib/languages/python');
-low.registerLanguage('python', python);
+import low from 'lowlight';
+import rehype from 'rehype';
+import pythonHl from 'highlight.js/lib/languages/python';
+low.registerLanguage('python', pythonHl);
 
 import HighLightJStyle from 'highlight.js/styles/default.css';
 

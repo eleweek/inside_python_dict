@@ -1,5 +1,4 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
+import * as React from 'react';
 
 import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common.js';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks.js';

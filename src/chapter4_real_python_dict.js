@@ -1,4 +1,4 @@
-var React = require('react');
+import * as React from 'react';
 
 import BigNumber from 'bignumber.js/bignumber';
 
