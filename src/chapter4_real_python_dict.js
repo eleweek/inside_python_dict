@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import BigNumber from 'bignumber.js/bignumber';
+import {BigNumber} from 'bignumber.js';
 
 import {
     hashClassConstructor,
