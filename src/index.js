@@ -11,7 +11,6 @@ import {Chapter3_HashClass} from './chapter3_hash_class.js';
 import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
-import CustomScroll from 'react-custom-scroll';
 import {MyErrorBoundary} from './util';
 
 function logViewportStats() {
