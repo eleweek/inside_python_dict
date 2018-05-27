@@ -2,8 +2,6 @@
 // require('bootstrap');
 import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
 
-import _ from 'lodash'
-
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 

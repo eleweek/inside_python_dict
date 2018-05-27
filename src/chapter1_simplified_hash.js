@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash'
 
 import {BreakpointFunction} from './hash_impl_common.js';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks.js';

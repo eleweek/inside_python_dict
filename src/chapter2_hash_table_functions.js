@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash'
 
 import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common.js';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks.js';
