@@ -159,9 +159,14 @@ class Chapter4_RealPythonDict extends React.Component {
 
         return <div className="chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
-              <p> Remember that this explanation is about dict in CPython (the most popular, "default", implementation of python), so there is no single dict implementation. But what about CPython? CPython is a single project, but there are multiple versions (2.7, 3.0, 3.2, 3.6, etc). And of course the implementation of dict evolved over time. Python dict stayed pretty much the same from version 2.7 up until version 3.2 . In 3.3, there were major changes to the internal structure of dicts (<a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved memory consumption in certain cases and "seed" for hash function was randomized, so you wouldn't get the same hash() for the same object if you relaunch the python interpreter (object hashes are still stable within the same "run"). In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>. In 3.6 <a href="https://bugs.python.org/issue27350">the dict internal structure became more compact and the dict became "ordered"</a>. </p>
-              <p> However, the core idea is stayed the same throughout all versions so far. </p>
-              <p> So let's start tackling major changes one by one. </p>
+              <p> Now it is (finally!) time to explore how the dict works in python! </p>
+              TODO: a few sentances about the chapter
+              <p> This explanation is about the dict in CPython (the most popular, "default", implementation of python). The implementation of dict in CPython has evolved over time. The dict stayed pretty much the same from version 2.7 to version 3.2 </p>
+              <p> In 3.3, however, there were major changes to the internal structure of dicts (<a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't get the same hash() for the same object if you relaunched the python interpreter (object hashes are still stable within the same "run").</p> 
+              <p> In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>. </p>
+              <p> In 3.6 <a href="https://bugs.python.org/issue27350">the dict internal structure became more compact and the dict became "ordered"</a>. </p>
+              <p> However, the core idea has stayed the same throughout all versions so far. </p>
+              <p> We will discuss the major changes one by one. </p>
               
               <h5> Probing algorithm</h5>
               <p> The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions. </p>
