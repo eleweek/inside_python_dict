@@ -39,6 +39,7 @@ const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
     ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
     ["           self.slots[idx].key == key:", "check-dup-key"],
+    ["            target_idx = idx", "set-target-idx-found"],
     ["            break", "check-dup-break"],
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],

@@ -71,10 +71,6 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
         while (true) {
             this.addBP('check-collision');
             if (this.self.slots[this.idx].key === null) {
-                if (useRecycling) {
-                    this.targetIdx = this.idx;
-                    this.addBP('set-target-idx-found');
-                }
                 break;
             }
 
@@ -82,6 +78,8 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
             if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
                 this.addBP('check-dup-key');
                 if (this.self.slots[this.idx].key == this.key) {
+                    this.targetIdx = this.idx;
+                    this.addBP('set-target-idx-found');
                     this.addBP('check-dup-break');
                     break;
                 }
@@ -185,7 +183,7 @@ class HashClassGetItem extends HashClassBreakpointFunction {
 
         let hcld = new Lookdict();
         this.idx = hcld.run(this.self, this.key)
-        this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
+        this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()]
         if (this.idx !== null) {
             // did not throw exception
             this.addBP("return-value");

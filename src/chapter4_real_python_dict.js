@@ -36,9 +36,10 @@ let chapter4Extend = (Base) => class extends Base {
     }
 }
 
-class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
-class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
-class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
+export {hashClassConstructor, HashClassGetItem, HashClassDelItem};
+export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
+export class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
+export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
 
 const DICT32_SETITEM = [
 	/*["@staticmethod", ""],

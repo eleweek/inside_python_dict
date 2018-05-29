@@ -87,7 +87,7 @@ class PyDictReimplementation(BaseDictImpl):
                 self.slots[idx] = Slot(hash_code, slot.key, slot.value)
 
 
-def dump_py_reimpl_dict(d):
+def dump_reimpl_dict(d):
     def extract_fields(field_name):
         return list(map(attrgetter(field_name), d.slots))
     return extract_fields('hash_code'), extract_fields('key'), extract_fields('value'), d.fill, d.used

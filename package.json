@@ -34,6 +34,7 @@
     "rehype": "^5.0.1"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-transform-es2015-destructuring": "^6.23.0",
@@ -42,7 +43,9 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.8",
+    "ignore-styles": "^5.0.1",
     "npm": "^6.0.1",
+    "split": "^1.0.1",
     "style-loader": "^0.19.1",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "unminified-webpack-plugin": "^2.0.0",
