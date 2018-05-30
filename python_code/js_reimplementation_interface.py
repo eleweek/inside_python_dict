@@ -1,6 +1,6 @@
 import socket
 import json
-from pprint import pprint
+# from pprint import pprint
 
 from common import DUMMY, EMPTY
 from dict_reimpl_common import Slot
@@ -82,10 +82,10 @@ class JsDictReimplementation(object):
             }
         }
 
-        pprint((">>", data, op, kwargs))
+        # pprint((">>", data, op, kwargs))
         self.sock.send(bytes(json.dumps(data) + "\n", 'UTF-8'))
         response = json.loads(self.sockfile.readline())
-        pprint(("<<", response))
+        # pprint(("<<", response))
 
         self.restore_slots(response["self"]["slots"])
         self.fill = response["self"]["fill"]

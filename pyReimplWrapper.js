@@ -61,7 +61,6 @@ function dumpPyDictState(self) {
 const server = net.createServer(c => {
     console.log('Client connected');
 
-
     c.on('end', () => {
         console.log('Client disconnected');
     });
@@ -69,7 +68,7 @@ const server = net.createServer(c => {
     c.pipe(split(JSON.parse)).on('data', (data) => {
         console.log("Received data");
         let self = restorePyDictState(data.self);
-        console.log(self);
+        // console.log(self);
         console.log(data.op, data.args.key, data.args.value)
         let isException = false;
         let result = null;
@@ -83,7 +82,6 @@ const server = net.createServer(c => {
                 let gi = new HashClassGetItem();
                 result = gi.run(self, data.args.key, Dict32Lookdict);
                 let giBreakpoints = gi.getBreakpoints();
-                console.log(giBreakpoints);
                 isException = (giBreakpoints[giBreakpoints.length - 1].point !== "return-value");
                 break;
             }
@@ -96,7 +94,6 @@ const server = net.createServer(c => {
                 let di = new HashClassDelItem();
                 self = di.run(self, data.args.key, Dict32Lookdict);
                 let diBreakpoints = di.getBreakpoints();
-                console.log(diBreakpoints);
                 isException = (diBreakpoints[diBreakpoints.length - 1].point !== "replace-value-empty");
                 break;
             }

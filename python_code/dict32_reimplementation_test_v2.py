@@ -1,5 +1,6 @@
 import random
-import sys
+import argparse
+
 
 from common import EMPTY
 from dictinfo32 import dictobject, dump_py_dict
@@ -31,7 +32,7 @@ def verify_same(d, dreimpl, dump_reimpl_func):
     assert dump_do == dump_reimpl
 
 
-def run(ReimplementationClass, dump_reimpl_func):
+def run(ReimplementationClass, dump_reimpl_func, extra_checks):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
@@ -63,15 +64,16 @@ def run(ReimplementationClass, dump_reimpl_func):
                 del dreimpl[k]
                 removed.add(k)
 
-        for k in d.keys():
-            assert d[k] == dreimpl[k]
+        if extra_checks:
+            for k in d.keys():
+                assert d[k] == dreimpl[k]
 
-        for r in removed:
-            try:
-                dreimpl[r]
-                assert False
-            except KeyError:
-                pass
+            for r in removed:
+                try:
+                    dreimpl[r]
+                    assert False
+                except KeyError:
+                    pass
 
         key_to_insert = random.choice(key_range)
         value_to_insert = insert_count
@@ -87,14 +89,19 @@ def run(ReimplementationClass, dump_reimpl_func):
         removed.discard(key_to_insert)
         d[key_to_insert] = value_to_insert
         dreimpl[key_to_insert] = value_to_insert
+        assert dreimpl[key_to_insert] == value_to_insert
         insert_count += 1
         print(d)
         verify_same(d, dreimpl, dump_reimpl_func)
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) == 2
-    if sys.argv[1] == "pyreimpl":
-        run(PyDictReimplementation, dump_reimpl_dict)
-    elif sys.argv[1] == "jsreimpl":
-        run(JsDictReimplementation, dump_reimpl_dict)
+    parser = argparse.ArgumentParser(description='Stress-test python dict reimplementation')
+    parser.add_argument('--reimplementation', dest='reimplementation', choices=["py", "js"], required=True)
+    parser.add_argument('--no-extra-getitem-checks', dest='extra_checks', action='store_false')
+    args = parser.parse_args()
+
+    if args.reimplementation == "py":
+        run(PyDictReimplementation, dump_reimpl_dict, extra_checks=args.extra_checks)
+    else:
+        run(JsDictReimplementation, dump_reimpl_dict, extra_checks=args.extra_checks)
