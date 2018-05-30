@@ -65,8 +65,11 @@ const server = net.createServer(c => {
         console.log('Client disconnected');
     });
 
-    c.pipe(split(JSON.parse)).on('data', (data) => {
-        console.log("Received data");
+    c.pipe(split()).on('data', (line) => {
+        console.log("Received line of length " + line.length);
+        if (!line)
+            return;
+        const data = JSON.parse(line);
         let self = restorePyDictState(data.self);
         // console.log(self);
         console.log(data.op, data.args.key, data.args.value)

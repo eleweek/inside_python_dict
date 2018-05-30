@@ -223,7 +223,6 @@ class BreakpointFunction {
             if (key[0] != "_") {
                 if (value !== undefined) {
                     bp[key] = _.cloneDeep(value);
-
                 }
             }
         }

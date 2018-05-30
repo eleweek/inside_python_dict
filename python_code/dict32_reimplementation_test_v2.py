@@ -7,8 +7,6 @@ from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_reimpl_dict
 from js_reimplementation_interface import JsDictReimplementation
 
-n_inserts = 5000
-
 
 def verify_same(d, dreimpl, dump_reimpl_func):
     dump_do = dump_py_dict(dictobject(d))
@@ -32,13 +30,13 @@ def verify_same(d, dreimpl, dump_reimpl_func):
     assert dump_do == dump_reimpl
 
 
-def run(ReimplementationClass, dump_reimpl_func, extra_checks):
+def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
 
     removed = set()
-    key_range = range(5000)
+    key_range = range(n_inserts)
     insert_count = 0
     d = {}
     dreimpl = ReimplementationClass()
@@ -97,11 +95,20 @@ def run(ReimplementationClass, dump_reimpl_func, extra_checks):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Stress-test python dict reimplementation')
-    parser.add_argument('--reimplementation', dest='reimplementation', choices=["py", "js"], required=True)
+    parser.add_argument('--reimplementation', choices=["py", "js"], required=True)
     parser.add_argument('--no-extra-getitem-checks', dest='extra_checks', action='store_false')
+    parser.add_argument('--num-inserts',  type=int, default=500)
+    parser.add_argument('--forever', action='store_true')
     args = parser.parse_args()
 
-    if args.reimplementation == "py":
-        run(PyDictReimplementation, dump_reimpl_dict, extra_checks=args.extra_checks)
+    def test_iteration():
+        if args.reimplementation == "py":
+            run(PyDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks)
+        else:
+            run(JsDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks)
+
+    if args.forever:
+        while True:
+            test_iteration()
     else:
-        run(JsDictReimplementation, dump_reimpl_dict, extra_checks=args.extra_checks)
+        test_iteration()

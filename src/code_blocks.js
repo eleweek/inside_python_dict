@@ -537,7 +537,11 @@ class VisualizedCode extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) {
+        // FIXME: commented out to speed up execution,
+        // there might be a better way to compare objects
+       
+        /* if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) { */
+        if (!nextProps.breakpoints.length != this.props.breakpoints.length) {
             this.setState({
                 time: nextProps.breakpoints.length - 1,
             });
