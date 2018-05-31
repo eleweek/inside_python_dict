@@ -496,12 +496,7 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
 
 
 class TimeSlider extends React.Component {
-    constructor() {
-        super();
-        this.handleValueChange = this.handleValueChange.bind(this);
-    }
-
-    handleValueChange(e) {
+    handleValueChange = e => {
         this.props.handleTimeChange(e.target.value);
     }
 
@@ -528,10 +523,10 @@ class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
         }
-        this.handleTimeChangeDebounced = _.throttle(this.handleTimeChange.bind(this), 75);
+        this.handleTimeChangeDebounced = _.throttle(this.handleTimeChange, 75);
     }
 
-    handleTimeChange(time) {
+    handleTimeChange = time => {
         this.setState({
             time: time
         });
