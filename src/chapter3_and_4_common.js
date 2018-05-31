@@ -8,19 +8,21 @@ import {
 
 import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 
-class HashClassBreakpointFunction extends HashBreakpointFunction {
-    constructor(evals, converters, bpFuncs) {
-        super(evals, {
-            hashCode: hc => hc !== null ? hc.toString() : null,
-            hashCodes: hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-            ...converters
-        }, {
-            hashCodes: bp => bp.self.slots.map(s => s.hashCode),
-            keys: bp => bp.self.slots.map(s => s.key),
-            values: bp => bp.self.slots.map(s => s.value),
-            ...bpFuncs
-        });
+
+function postBpTransform(bp) {
+    let cloned = _.cloneDeep(bp);
+    const mapHashes = s => s.hashCode != null ? s.hashCode.toString() : null;
+
+    cloned.hashCodes = bp.self.slots.map(mapHashes)
+    cloned.keys = bp.self.slots.map(s => s.key)
+    cloned.values = bp.self.slots.map(s => s.value)
+    if (bp.oldSlots) {
+        cloned.oldHashCodes = bp.oldSlots.map(mapHashes);
+        cloned.oldKeys = bp.oldSlots.map(s => s.key);
+        cloned.oldValues = bp.oldSlots.map(s => s.value);
     }
+
+    return cloned;
 }
 
 
@@ -55,7 +57,7 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-class HashClassSetItemBase extends HashClassBreakpointFunction {
+class HashClassSetItemBase extends HashBreakpointFunction {
     run(_self, _key, _value, useRecycling, Resize, optimalSizeQuot) {
         this.self = _self;
         this.key = _key;
@@ -142,7 +144,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassLookdictBase extends HashClassBreakpointFunction {
+class HashClassLookdictBase extends HashBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -175,7 +177,7 @@ class HashClassLookdictBase extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassGetItem extends HashClassBreakpointFunction {
+class HashClassGetItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -192,7 +194,7 @@ class HashClassGetItem extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassDelItem extends HashClassBreakpointFunction {
+class HashClassDelItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -256,6 +258,7 @@ function HashClassNormalStateVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx", "targetIdx"]],
             ]
         }
+        bpTransform={postBpTransform}
         {...props}
     />;
 }
@@ -271,6 +274,7 @@ function HashClassInsertAllVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
             ]
         }
+        bpTransform={postBpTransform}
         {...props}
     />;
 }
@@ -287,21 +291,12 @@ function HashClassResizeVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
             ]
         }
+        bpTransform={postBpTransform}
         {...props}
     />;
 }
 
-class HashClassResizeBase extends HashClassBreakpointFunction {
-    constructor() {
-        super(null, {
-            oldHashCodes: hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-        }, {
-            oldHashCodes: bp => bp.oldSlots.map(s => s.hashCode),
-            oldKeys: bp => bp.oldSlots.map(s => s.key),
-            oldValues: bp => bp.oldSlots.map(s => s.value),
-        });
-    }
-
+class HashClassResizeBase extends HashBreakpointFunction {
     run(_self, optimalSizeQuot) {
         this.self = _self;
 
@@ -352,7 +347,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
 };
 
 export {
-    HashClassBreakpointFunction, hashClassConstructor, Slot, findOptimalSize,
+    hashClassConstructor, Slot, findOptimalSize,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
 }
