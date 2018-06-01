@@ -6,13 +6,13 @@ import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, V
 import {JsonInput} from './inputs.js';
 
 const SIMPLE_LIST_SEARCH = [
-    ["def has_key(l, key):", ""],
-    ["    idx = 0", "start-from-zero"],
-    ["    while idx < len(l):", "check-boundary"],
-    ["        if l[idx].key == key:", "check-found"],
-    ["            return True", "found-key"],
-    ["        idx += 1", "next-idx"],
-    ["    return False", "found-nothing"]
+    ["def has_key(l, key):", "", 0],
+    ["    idx = 0", "start-from-zero", 1],
+    ["    while idx < len(l):", "check-boundary", 2],
+    ["        if l[idx].key == key:", "check-found", 2],
+    ["            return True", "found-key", 2],
+    ["        idx += 1", "next-idx", 1],
+    ["    return False", "found-nothing", 1]
 ];
 
 function simpleListSearch(l, key) {
@@ -82,15 +82,15 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
 const SimpleListSearchStateVisualization = TetrisSingleRowWrap(LineOfBoxesComponent, "simple_list");
 
 const SIMPLIFIED_INSERT_ALL_CODE = [
-    ["def build_insert_all(original_list):", "start-execution"],
-    ["    new_list = [None for i in range(2 * len(original_list))]", "create-new-list"],
+    ["def build_insert_all(original_list):", "start-execution", 0],
+    ["    new_list = [None for i in range(2 * len(original_list))]", "create-new-list", 1],
     ["", ""],
-    ["    for number in original_list:", "for-loop"],
-    ["        idx = number % len(new_list)", "compute-idx"],
-    ["        while new_list[idx] is not None:", "check-collision"],
-    ["            idx = (idx + 1) % len(new_list)", "next-idx"],
-    ["        new_list[idx] = number", "assign-elem"],
-    ["    return new_list", "return-created-list"],
+    ["    for number in original_list:", "for-loop", 2],
+    ["        idx = number % len(new_list)", "compute-idx", 2],
+    ["        while new_list[idx] is not None:", "check-collision", 3],
+    ["            idx = (idx + 1) % len(new_list)", "next-idx", 3],
+    ["        new_list[idx] = number", "assign-elem", 2],
+    ["    return new_list", "return-created-list", 1],
 ];
 
 class SimplifiedInsertAll extends BreakpointFunction {
@@ -173,13 +173,13 @@ function SimplifiedInsertStateVisualization(props) {
 }
 
 const SIMPLIFIED_SEARCH_CODE = [
-    ["def has_number(new_list, number):", "start-execution"],
-    ["    idx = number % len(new_list)", "compute-idx"],
-    ["    while new_list[idx] is not None:", "check-not-found"],
-    ["        if new_list[idx] == number:", "check-found"],
-    ["            return True", "found-key"],
-    ["        idx = (idx + 1) % len(new_list)", "next-idx"],
-    ["    return False", "found-nothing"],
+    ["def has_number(new_list, number):", "start-execution", 0],
+    ["    idx = number % len(new_list)", "compute-idx", 1],
+    ["    while new_list[idx] is not None:", "check-not-found", 2],
+    ["        if new_list[idx] == number:", "check-found", 2],
+    ["            return True", "found-key", 2],
+    ["        idx = (idx + 1) % len(new_list)", "next-idx", 2],
+    ["    return False", "found-nothing", 1],
 ];
 
 class SimplifiedSearch extends BreakpointFunction {
