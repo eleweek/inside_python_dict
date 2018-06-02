@@ -25,6 +25,64 @@ function postBpTransform(bp) {
     return cloned;
 }
 
+function formatHashClassLookdictRelated(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+        case 'compute-perturb':
+            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+        case 'perturb-shift':
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
+        case 'check-not-found':
+            if (bp.self.slots[bp.idx].key === null) {
+                return `The slot <code>${bp.idx}</code> is empty, no more slots to check`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied, so check it`;
+            }
+        case 'check-hash': {
+            const slotHash = bp.self.slots[bp.idx].hashCode;
+            if (slotHash.toString() /*FIXME toString */ === bp.hashCode) {
+                return `<code>${slotHash} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
+            } else {
+                return `<code>${slotHash} != ${bp.hashCode}</code>, so the slot definitely contains a different key`;
+            }
+        }
+        case 'check-key': {
+            const slotKey = bp.self.slots[bp.idx].key;
+            if (slotKey== bp.key) {
+                return `<code>${slotKey} == ${bp.key}</code>, so the key is found`;
+            } else {
+                return `<code>${slotKey} != ${bp.key}</code>, so there is a different key with the same hash`;
+            }
+        }
+        case 'return-idx':
+            return `Return current index, <code>${bp.idx}</code>`;
+        case 'raise':
+            return `Throw an exception, because no key was found`;
+        /* __delitem__ */
+        case 'dec-used':
+            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${bp.self.used}`;
+        case 'replace-key-dummy':
+            return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
+        case 'replace-value-empty':
+            return `Replace value at <code>${bp.idx}</code> with EMPTY`;
+        /* __getitem__ */
+        case 'return-value':
+            return `Return <code>${bp.slots[idx].value}</code>`;
+        /* misc common */
+        case 'start-execution-lookdict':
+        case 'start-execution-getitem':
+        case 'start-execution-delitem':
+            return '';
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
 function formatHashClassSetItemAndCreate(bp) {
     switch (bp.point) {
         case 'compute-hash':
@@ -43,7 +101,7 @@ function formatHashClassSetItemAndCreate(bp) {
             }
         case 'check-dup-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
-            if (slotHash === bp.hashCode) {
+            if (slotHash.toString() /*FIXME toString */=== bp.hashCode) {
                 return `<code>${slotHash} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `<code>${slotHash} != ${bp.hashCode}</code>, so there is a collision with a different key`;
@@ -255,9 +313,9 @@ class HashClassLookdictBase extends HashBreakpointFunction {
                 break;
             }
 
-            this.addBP('check-dup-hash');
+            this.addBP('check-hash');
             if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
-                this.addBP('check-dup-key');
+                this.addBP('check-key');
                 if (this.self.slots[this.idx].key == this.key) {
                     this.addBP('return-idx');
                     return this.idx;
@@ -445,5 +503,5 @@ export {
     hashClassConstructor, Slot, findOptimalSize,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated
 }

@@ -6,7 +6,7 @@ import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated
 } from './chapter3_and_4_common.js';
 
 import {
@@ -102,35 +102,35 @@ const HASH_CLASS_RESIZE_CODE = [
 ];
 
 let HASH_CLASS_LOOKDICT = [
-    ["def lookdict(self, key):", "start-execution-lookdict"],
-    ["    hash_code = hash(key)", "compute-hash"], 
-    ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    while self.slots[idx].key is not EMPTY:", "check-not-found"],
-    ["        if self.slots[idx].hash_code == hash_code and \\", "check-hash"],
-    ["           self.slots[idx].key == key:", "check-key"],
-    ["            return idx", "return-idx"],
+    ["def lookdict(self, key):", "start-execution-lookdict", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1], 
+    ["    idx = hash_code % len(self.slots)", "compute-idx", 1],
+    ["    while self.slots[idx].key is not EMPTY:", "check-not-found", 2],
+    ["        if self.slots[idx].hash_code == hash_code and \\", "check-hash", 2],
+    ["           self.slots[idx].key == key:", "check-key", 2],
+    ["            return idx", "return-idx", 3],
     ["", ""],
-    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx", 1],
     ["", ""],
-    ["    raise KeyError()", "raise"],
+    ["    raise KeyError()", "raise", 1],
     ["", ""],
 ];
 
 let HASH_CLASS_GETITEM = HASH_CLASS_LOOKDICT.concat([
-    ["def __getitem__(self, key):", "start-execution-getitem"],
-    ["    idx = self.lookdict(key)", ""],
+    ["def __getitem__(self, key):", "start-execution-getitem", 0],
+    ["    idx = self.lookdict(key)", "", 1],
     ["", ""],
-    ["    return self.slots[idx].value", "return-value"],
+    ["    return self.slots[idx].value", "return-value", 1],
 ]);
 
 
 let HASH_CLASS_DELITEM = HASH_CLASS_LOOKDICT.concat([
-    ["def __delitem__(self, key):", "start-execution-delitem"],
-    ["    idx = self.lookdict(key)", ""],
+    ["def __delitem__(self, key):", "start-execution-delitem", 0],
+    ["    idx = self.lookdict(key)", "", 1],
     ["", ""],
-    ["    self.used -= 1", "dec-used"],
-    ["    self.slots[idx].key = DUMMY", "replace-key-dummy"],
-    ["    self.slots[idx].value = EMPTY", "replace-value-empty"],
+    ["    self.used -= 1", "dec-used", 1],
+    ["    self.slots[idx].key = DUMMY", "replace-key-dummy", 1],
+    ["    self.slots[idx].value = EMPTY", "replace-value-empty", 1],
 ]);
 
 
@@ -251,13 +251,13 @@ class Chapter3_HashClass extends React.Component {
              <VisualizedCode
                code={HASH_CLASS_DELITEM}
                breakpoints={hashClassDelItemBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={formatHashClassLookdictRelated}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks pretty much the same as <code>__delitem__</code> </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
                breakpoints={hashClassGetItemBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={formatHashClassLookdictRelated}
                stateVisualization={HashClassNormalStateVisualization} />
              
              <p> So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss a cool trick for inserting new items. </p> 
