@@ -5,7 +5,8 @@ import {BigNumber} from 'bignumber.js';
 import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
-    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
+    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
+    formatHashClassSetItemAndCreate
 } from './chapter3_and_4_common.js';
 
 import {
@@ -46,33 +47,33 @@ const DICT32_SETITEM = [
 	["def signed_to_unsigned(hash_code):", ""],
 	["    return 2**64 + hash_code if hash_code < 0 else hash_code", ""],
     ["", ""],*/
-    ["def __setitem__(self, key, value):", "start-execution"],
-    ["    hash_code = hash(key)", "compute-hash"],
-    ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    perturb = self.signed_to_unsigned(hash_code)", "compute-perturb"],
-    ["    target_idx = None", "target-idx-none"],
-    ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
-    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
-    ["           self.slots[idx].key == key:", "check-dup-key"],
-    ["            target_idx = idx", "set-target-idx-found"],
-    ["            break", "check-dup-break"],
-    ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle"],
-    ["            target_idx = idx", "set-target-idx-recycle"],
-    ["        idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx"],
-    ["        perturb >>= self.PERTURB_SHIFT", "perturb-shift"],
+    ["def __setitem__(self, key, value):", "start-execution", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1],
+    ["    idx = hash_code % len(self.slots)", "compute-idx", 1],
+    ["    perturb = self.signed_to_unsigned(hash_code)", "compute-perturb", 1],
+    ["    target_idx = None", "target-idx-none", 1],
+    ["    while self.slots[idx].key is not EMPTY:", "check-collision", 2],
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash", 2],
+    ["           self.slots[idx].key == key:", "check-dup-key", 2],
+    ["            target_idx = idx", "set-target-idx-found", 2],
+    ["            break", "check-dup-break", 2],
+    ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle", 2],
+    ["            target_idx = idx", "set-target-idx-recycle", 2],
+    ["        idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx", 2],
+    ["        perturb >>= self.PERTURB_SHIFT", "perturb-shift", 2],
+    ["", "", 1],
+    ["    if target_idx is None:", "check-target-idx-is-none", 1],
+    ["        target_idx = idx", "after-probing-assign-target-idx", 1],
+    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased", 1],
+    ["        self.used += 1", "inc-used", 1],
+    ["        self.fill += 1", "inc-fill", 1],
+    ["    elif self.slots[target_idx].key is DUMMY:", "check-recycle-used-increased", 1],
+    ["        self.used += 1", "inc-used-2", 1],
     ["", ""],
-    ["    if target_idx is None:", "check-target-idx-is-none"],
-    ["        target_idx = idx", "after-probing-assign-target-idx"],
-    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased"],
-    ["        self.used += 1", "inc-used"],
-    ["        self.fill += 1", "inc-fill"],
-    ["    elif self.slots[target_idx].key is DUMMY:", "check-recycle-used-increased"],
-    ["        self.used += 1", "inc-used-2"],
-    ["", ""],
-    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot"],
-    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
-    ["        self.resize()", "resize"],
-    ["", "done-no-return"],
+    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot", 1],
+    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize", 1],
+    ["        self.resize()", "resize", 1],
+    ["", "done-no-return", 0],
 ];
 
 const DICT32_RESIZE_CODE = [
@@ -108,6 +109,7 @@ let DICT32_LOOKDICT = [
     ["        perturb >>= self.PERTURB_SHIFT", "perturb-shift"],
     ["", ""],
     ["    raise KeyError()", "raise"],
+    ["", ""],
 ];
 
 let DICT32_GETITEM = DICT32_LOOKDICT.concat([
@@ -180,7 +182,7 @@ class Chapter4_RealPythonDict extends React.Component {
               <VisualizedCode
                 code={DICT32_SETITEM}
                 breakpoints={iaBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashClassSetItemAndCreate}
                 stateVisualization={HashClassInsertAllVisualization} />
               <p> Let's look at the first resize in depth: </p>
               <VisualizedCode

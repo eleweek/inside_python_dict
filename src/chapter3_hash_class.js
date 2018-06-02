@@ -5,7 +5,8 @@ import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
-    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
+    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
+    formatHashClassSetItemAndCreate
 } from './chapter3_and_4_common.js';
 
 import {
@@ -32,55 +33,55 @@ class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
 class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
-    ["def __setitem__(self, key, value):", "start-execution"],
-    ["    hash_code = hash(key)", "compute-hash"],
-    ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    target_idx = None", "target-idx-none"],
-    ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
-    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
-    ["           self.slots[idx].key == key:", "check-dup-key"],
-    ["            target_idx = idx", "set-target-idx-found"],
-    ["            break", "check-dup-break"],
-    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["def __setitem__(self, key, value):", "start-execution", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1],
+    ["    idx = hash_code % len(self.slots)", "compute-idx", 1],
+    ["    target_idx = None", "target-idx-none", 1],
+    ["    while self.slots[idx].key is not EMPTY:", "check-collision", 2],
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash", 2],
+    ["           self.slots[idx].key == key:", "check-dup-key", 2],
+    ["            target_idx = idx", "set-target-idx-found", 2],
+    ["            break", "check-dup-break", 2],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx", 2],
     ["", ""],
-    ["    if target_idx is None:", "check-target-idx-is-none"],
-    ["        target_idx = idx", "after-probing-assign-target-idx"],
-    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased"],
-    ["        self.used += 1", "inc-used"],
-    ["        self.fill += 1", "inc-fill"],
+    ["    if target_idx is None:", "check-target-idx-is-none", 1],
+    ["        target_idx = idx", "after-probing-assign-target-idx", 1],
+    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased", 1],
+    ["        self.used += 1", "inc-used", 1],
+    ["        self.fill += 1", "inc-fill", 1],
     ["", ""],
-    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot"],
-    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
-    ["        self.resize()", "resize"],
-    ["", "done-no-return"],
+    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot", 1],
+    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize", 1],
+    ["        self.resize()", "resize", 1],
+    ["", "done-no-return", 0],
 ];
 
 const HASH_CLASS_SETITEM_RECYCLING_CODE = [
-    ["def __setitem__(self, key, value):", "start-execution"],
-    ["    hash_code = hash(key)", "compute-hash"],
-    ["    idx = hash_code % len(self.slots)", "compute-idx"],
-    ["    target_idx = None", "target-idx-none"],
-    ["    while self.slots[idx].key is not EMPTY:", "check-collision"],
-    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash"],
-    ["           self.slots[idx].key == key:", "check-dup-key"],
-    ["            target_idx = idx", "set-target-idx-found"],
-    ["            break", "check-dup-break"],
-    ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle"],
-    ["            target_idx = idx", "set-target-idx-recycle"],
-    ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["def __setitem__(self, key, value):", "start-execution", 0],
+    ["    hash_code = hash(key)", "compute-hash", 1],
+    ["    idx = hash_code % len(self.slots)", "compute-idx", 1],
+    ["    target_idx = None", "target-idx-none", 1],
+    ["    while self.slots[idx].key is not EMPTY:", "check-collision", 2],
+    ["        if self.slots[idx].hash_code == hash_code and\\", "check-dup-hash", 2],
+    ["           self.slots[idx].key == key:", "check-dup-key", 2],
+    ["            target_idx = idx", "set-target-idx-found", 2],
+    ["            break", "check-dup-break", 2],
+    ["        if target_idx is None and self.slots[idx].key is DUMMY:", "check-should-recycle", 2],
+    ["            target_idx = idx", "set-target-idx-recycle", 2],
+    ["        idx = (idx + 1) % len(self.slots)", "next-idx", 2],
     ["", ""],
-    ["    if target_idx is None:", "check-target-idx-is-none"],
-    ["        target_idx = idx", "after-probing-assign-target-idx"],
-    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased"],
-    ["        self.used += 1", "inc-used"],
-    ["        self.fill += 1", "inc-fill"],
-    ["    elif self.slots[target_idx].key is DUMMY:", "check-recycle-used-increased"],
-    ["        self.used += 1", "inc-used-2"],
+    ["    if target_idx is None:", "check-target-idx-is-none", 1],
+    ["        target_idx = idx", "after-probing-assign-target-idx", 1],
+    ["    if self.slots[target_idx].key is EMPTY:", "check-used-fill-increased", 1],
+    ["        self.used += 1", "inc-used", 1],
+    ["        self.fill += 1", "inc-fill", 1],
+    ["    elif self.slots[target_idx].key is DUMMY:", "check-recycle-used-increased", 1],
+    ["        self.used += 1", "inc-used-2", 1],
     ["", ""],
-    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot"],
-    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize"],
-    ["        self.resize()", "resize"],
-    ["", "done-no-return"],
+    ["    self.slots[target_idx] = Slot(hash_code, key, value)", "assign-slot", 1],
+    ["    if self.fill * 3 >= len(self.slots) * 2:", "check-resize", 1],
+    ["        self.resize()", "resize", 1],
+    ["", "done-no-return", 0],
 ];
 
 const HASH_CLASS_RESIZE_CODE = [
@@ -112,6 +113,7 @@ let HASH_CLASS_LOOKDICT = [
     ["        idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
     ["    raise KeyError()", "raise"],
+    ["", ""],
 ];
 
 let HASH_CLASS_GETITEM = HASH_CLASS_LOOKDICT.concat([
@@ -234,7 +236,7 @@ class Chapter3_HashClass extends React.Component {
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
                 breakpoints={hashClassInsertAllBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashClassSetItemAndCreate}
                 stateVisualization={HashClassInsertAllVisualization} />
 
               <p> TODO: conditional here: i.e. resize after step X. </p>
@@ -268,7 +270,7 @@ class Chapter3_HashClass extends React.Component {
              <VisualizedCode
                code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                breakpoints={hashClassSetItemRecyclingBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={formatHashClassSetItemAndCreate}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>
     }

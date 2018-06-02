@@ -25,6 +25,101 @@ function postBpTransform(bp) {
     return cloned;
 }
 
+function formatHashClassSetItemAndCreate(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+        case 'compute-perturb':
+            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'target-idx-none':
+            return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
+        case 'check-collision':
+            if (bp.self.slots[bp.idx].key === null) {
+                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+            }
+        case 'check-dup-hash': {
+            const slotHash = bp.self.slots[bp.idx].hashCode;
+            if (slotHash === bp.hashCode) {
+                return `<code>${slotHash} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
+            } else {
+                return `<code>${slotHash} != ${bp.hashCode}</code>, so there is a collision with a different key`;
+            }
+        }
+        case 'check-dup-key': {
+            const slotKey = bp.self.slots[bp.idx].key;
+            if (slotKey === bp.key) {
+                return `<code>${slotKey} == ${bp.key}</code>, so the key is already present in the table`;
+            } else {
+                return `<code>${slotKey} != ${bp.key}</code>, so there is a collision`;
+            }
+        }
+        case 'check-should-recycle': {
+            const slotKey = bp.self.slots[bp.idx].key;
+            if (bp.targetIdx != null) {
+                return `<code>target_idx == ${bp.targetIdx}</code> - we have already found a dummy slot that we may replace`;
+            } else if (key != "DUMMY") {
+                return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${slotKey}, i.e. not dummy</code>`;
+            } else {
+                return `We found the first dummy slot,`;
+            }
+        }
+        case 'set-target-idx-recycle':
+            return `So save its index`;
+        case 'set-target-idx-found':
+            return `We will put the value in the slot <code>${bp.targetIdx}</code>`
+        case 'check-dup-break':
+            return "Because the key is found, stop"
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+        case 'perturb-shift':
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
+        case 'check-target-idx-is-none':
+            if (bp.idx == null) {
+                return `<code>target_idx is None</code>, and this means that we haven't found nor dummy slot neither existing slot`;
+            } else {
+                return `<code>target_idx is not None</code>, and this means we already know where to put the item`;
+            }
+        case 'after-probing-assign-target-idx':
+            return `So we'll put the item in the current slot (<code>${bp.idx}</code>), which is empty`;
+        case 'check-used-fill-increased':
+            return "If we're putting the item in an empty slot " + (bp.self.slots[bp.targetIdx].key == null ? "(and we are)" : "(and we aren't)");
+        case 'inc-used':
+        case 'inc-used-2':
+            return `Then we need to increment used, which makes it <code>${bp.self.used}</code>`;
+        case 'inc-fill':
+            return `and increment fill, which makes it <code>${bp.self.fill}</code>`;
+        case 'check-recycle-used-increased':
+            return `If we're putting the item in dummy slot ` + (bp.self.slots[bp.targetIdx].key == "DUMMY" ? "(and we are)" : "(and we aren't)");
+        case 'assign-slot':
+            return `Put the item in the slot <code>${bp.targetIdx}</code>`;
+        case 'check-resize': {
+            const fillQ = bp.self.fill * 3;
+            const sizeQ = bp.self.slots.length * 2;
+            let compStr;
+            let noRunResizeStr = ""; 
+            if (fillQ > sizeQ) {
+                compStr = "is greater than"
+            } else if (fillQ === sizeQ) {
+                compStr = "is equals to";
+            } else {
+                compStr = "is less than";
+                noRunResizeStr = ", so no need to run <code>resize()</code>";
+            }
+
+            return `<code> ${bp.self.fill} * 3</code> (== <code>${fillQ}</code>) ` + compStr + ` <code>${bp.self.slots.length} * 2</code> (== ${sizeQ})` + noRunResizeStr;
+        }
+        case 'resize':
+            return "Do a resize";
+        case 'done-no-return':
+            return "";
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
 
 function hashClassConstructor() {
     let self = {
@@ -349,5 +444,6 @@ class HashClassResizeBase extends HashBreakpointFunction {
 export {
     hashClassConstructor, Slot, findOptimalSize,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
-    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization
+    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
+    formatHashClassSetItemAndCreate
 }

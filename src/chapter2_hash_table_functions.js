@@ -97,7 +97,7 @@ function HashCreateNewStateVisualization(props) {
     />;
 }
 
-let formatHashCreateNewAndInsert = function(bp) {
+function formatHashCreateNewAndInsert(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create new list of size <code>${bp.hashCodes.length}</code> for hash codes`;
@@ -128,13 +128,13 @@ let formatHashCreateNewAndInsert = function(bp) {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
             }
         case 'check-dup-break':
-            return "Because the key is found, break"
+            return "Because the key is found, stop"
         case 'check-dup-return':
-            return "Because the key is found, break"
+            return "Because the key is found, stop"
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
         case 'assign-elem':
-            if (bp._prev_bp.keys[bp.idx] === null) {
+            if (bp._prevBp.keys[bp.idx] === null) {
                 return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
             } else {
                 return `${bp.key} and its hash <code>${bp.hashCode}</code> is already in slot, overwriting it anyway`;
@@ -159,7 +159,7 @@ const HASH_SEARCH_CODE = [
 ];
 
 
-let formatHashRemoveSearch = function(bp) {
+function formatHashRemoveSearch(bp) {
     switch (bp.point) {
         case 'compute-hash':
             return `Compute hash code: <code>${bp.hashCode}</code>`;
@@ -354,7 +354,7 @@ class HashResize extends HashBreakpointFunction {
 };
 
 
-let formatHashResize = function(bp) {
+function formatHashResize(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create new list of size ${bp.newHashCodes.length} for hash codes`;
