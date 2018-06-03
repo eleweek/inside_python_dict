@@ -27,16 +27,6 @@ function postBpTransform(bp) {
 
 function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
-        case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
-        case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
-        case 'compute-perturb':
-            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
-        case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
-        case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
         case 'check-not-found':
             if (bp.self.slots[bp.idx].key === null) {
                 return `The slot <code>${bp.idx}</code> is empty, no more slots to check`;
@@ -78,23 +68,11 @@ function formatHashClassLookdictRelated(bp) {
         case 'start-execution-getitem':
         case 'start-execution-delitem':
             return '';
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
 function formatHashClassSetItemAndCreate(bp) {
     switch (bp.point) {
-        case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
-        case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
-        case 'compute-perturb':
-            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
-        case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
-        case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
         case 'target-idx-none':
             return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
         case 'check-collision':
@@ -174,23 +152,11 @@ function formatHashClassSetItemAndCreate(bp) {
             return "Do a resize";
         case 'done-no-return':
             return "";
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
 function formatHashClassResize(bp) {
     switch (bp.point) {
-        case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
-        case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
-        case 'compute-perturb':
-            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
-        case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
-        case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
         case 'assign-old-slots':
             return "Copy reference to slots (no actual copying is done)"
         case 'assign-fill':
@@ -226,8 +192,6 @@ function formatHashClassResize(bp) {
         case 'done-no-return':
         case 'start-execution':
             return '';
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 

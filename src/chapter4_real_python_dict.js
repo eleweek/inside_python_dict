@@ -42,6 +42,21 @@ export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
 export class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
 export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
 
+function formatDict32IdxRelatedBp(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+        case 'compute-perturb':
+            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+        case 'perturb-shift':
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
+    }
+}
+
 const DICT32_SETITEM = [
 	/*["@staticmethod", ""],
 	["def signed_to_unsigned(hash_code):", ""],
@@ -181,26 +196,26 @@ class Chapter4_RealPythonDict extends React.Component {
               <VisualizedCode
                 code={DICT32_SETITEM}
                 breakpoints={iaBreakpoints}
-                formatBpDesc={formatHashClassSetItemAndCreate}
+                formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                 stateVisualization={HashClassInsertAllVisualization} />
               <p> Let's look at the first resize in depth: </p>
               <VisualizedCode
                 code={DICT32_RESIZE_CODE}
                 breakpoints={resize.breakpoints}
-                formatBpDesc={formatHashClassResize}
+                formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                 stateVisualization={HashClassResizeVisualization} />
 
              <p> Removing a key looks pretty much the same</p>
              <VisualizedCode
                code={DICT32_DELITEM}
                breakpoints={diBreakpoints}
-               formatBpDesc={formatHashClassLookdictRelated}
+               formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> Search is mostly the same </p>
              <VisualizedCode
                code={DICT32_GETITEM}
                breakpoints={giBreakpoints}
-               formatBpDesc={formatHashClassLookdictRelated}
+               formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>;
     }

@@ -141,8 +141,6 @@ function formatHashCreateNewAndInsert(bp) {
             }
         case 'return-lists':
             return `The hash table is built, return the lists`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
@@ -196,8 +194,6 @@ function formatHashRemoveSearch(bp) {
             return `So return true`;
         case 'return-false':
             return `So return false`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
@@ -386,8 +382,6 @@ function formatHashResize(bp) {
             return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
         case 'return-lists':
             return `The hash table has been rebuilt, return the lists`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 

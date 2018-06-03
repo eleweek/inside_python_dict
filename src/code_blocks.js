@@ -478,9 +478,24 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
         }
 
         if (bpPoint in visibleBreakpoints) {
-            let formattedBpDesc = props.formatBpDesc(visibleBreakpoints[bpPoint]);
-            if (formattedBpDesc) {
-                explanation = `<span class="code-explanation"> ~ ${formattedBpDesc}</span>`
+            const bpType = visibleBreakpoints[bpPoint];
+            let desc = null;
+            if (typeof props.formatBpDesc === "function") {
+                desc = props.formatBpDesc(bpType);
+            } else {
+                for (const formatBpDesc of props.formatBpDesc) {
+                    desc = formatBpDesc(bpType);
+                    if (desc != null)
+                        break;
+                }
+            }
+
+            if (desc == null) {
+                throw new Error("Unknown bp type: " + bp.point);
+            }
+
+            if (desc) {
+                explanation = `<span class="code-explanation"> ~ ${desc}</span>`
             }
         }
 

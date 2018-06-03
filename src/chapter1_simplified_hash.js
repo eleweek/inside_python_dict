@@ -74,8 +74,6 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
             return `The searched key <code>${bp.arg}</code> is not found, so return <code>False</code>`;
         case 'next-idx':
             return `Go to next idx: <code>${bp.idx}</code>`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
@@ -155,8 +153,6 @@ let formatSimplifiedInsertAllDescription = function(bp) {
             return `Put <code>${bp.number}</code> in the empty slot <code>${bp.newListIdx}</code>`;
         case 'return-created-list':
             return `Return created list`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
@@ -242,8 +238,6 @@ let formatSimplifiedSearchDescription = function(bp) {
             return `Keep retracing probing steps, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'return-created-list':
             return `Return created list`;
-        default:
-            throw "Unknown bp type: " + bp.point;
     }
 }
 
