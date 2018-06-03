@@ -77,14 +77,13 @@ class PyDictReimplementation(BaseDictImpl):
         self.fill = self.used
         for slot in old_slots:
             if slot.key is not EMPTY and slot.key is not DUMMY:
-                hash_code = hash(slot.key)
-                perturb = self.signed_to_unsigned(hash_code)
-                idx = hash_code % len(self.slots)
+                perturb = self.signed_to_unsigned(slot.hash_code)
+                idx = slot.hash_code % len(self.slots)
                 while self.slots[idx].key is not EMPTY:
                     idx = (idx * 5 + perturb + 1) % len(self.slots)
                     perturb >>= self.PERTURB_SHIFT
 
-                self.slots[idx] = Slot(hash_code, slot.key, slot.value)
+                self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)
 
 
 def dump_reimpl_dict(d):

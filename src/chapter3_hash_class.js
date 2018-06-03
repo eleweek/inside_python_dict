@@ -92,12 +92,11 @@ const HASH_CLASS_RESIZE_CODE = [
     ["    self.fill = self.used", "assign-fill"],
     ["    for slot in old_slots:", "for-loop"],
     ["        if slot.key is not EMPTY:", "check-skip-empty-dummy"],
-    ["              hash_code = hash(slot.key)", "compute-hash"],
-    ["              idx = hash_code % len(self.slots)", "compute-idx"],
+    ["              idx = slot.hash_code % len(self.slots)", "compute-idx"],
     ["              while self.slots[idx].key is not EMPTY:", "check-collision"],
     ["                  idx = (idx + 1) % len(self.slots)", "next-idx"],
     ["", ""],
-    ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
+    ["              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)", "assign-slot"],
     ["", "done-no-return"],
 ];
 
@@ -236,7 +235,7 @@ class Chapter3_HashClass extends React.Component {
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
                 breakpoints={hashClassInsertAllBreakpoints}
-                formatBpDesc={formatHashClassSetItemAndCreate}
+                formatBpDesc={dummyFormat}
                 stateVisualization={HashClassInsertAllVisualization} />
 
               <p> TODO: conditional here: i.e. resize after step X. </p>
@@ -251,13 +250,13 @@ class Chapter3_HashClass extends React.Component {
              <VisualizedCode
                code={HASH_CLASS_DELITEM}
                breakpoints={hashClassDelItemBreakpoints}
-               formatBpDesc={formatHashClassLookdictRelated}
+               formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks pretty much the same as <code>__delitem__</code> </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
                breakpoints={hashClassGetItemBreakpoints}
-               formatBpDesc={formatHashClassLookdictRelated}
+               formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
              
              <p> So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss a cool trick for inserting new items. </p> 
@@ -270,7 +269,7 @@ class Chapter3_HashClass extends React.Component {
              <VisualizedCode
                code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                breakpoints={hashClassSetItemRecyclingBreakpoints}
-               formatBpDesc={formatHashClassSetItemAndCreate}
+               formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>
     }

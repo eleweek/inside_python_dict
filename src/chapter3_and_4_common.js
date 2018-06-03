@@ -72,7 +72,7 @@ function formatHashClassLookdictRelated(bp) {
             return `Replace value at <code>${bp.idx}</code> with EMPTY`;
         /* __getitem__ */
         case 'return-value':
-            return `Return <code>${bp.slots[idx].value}</code>`;
+            return `Return <code>${bp.self.slots[bp.idx].value}</code>`;
         /* misc common */
         case 'start-execution-lookdict':
         case 'start-execution-getitem':
@@ -91,6 +91,10 @@ function formatHashClassSetItemAndCreate(bp) {
             return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
             return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+        case 'perturb-shift':
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
         case 'target-idx-none':
             return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
         case 'check-collision':
@@ -131,10 +135,6 @@ function formatHashClassSetItemAndCreate(bp) {
             return `We will put the value in the slot <code>${bp.targetIdx}</code>`
         case 'check-dup-break':
             return "Because the key is found, stop"
-        case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
-        case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
         case 'check-target-idx-is-none':
             if (bp.idx == null) {
                 return `<code>target_idx is None</code>, and this means that we haven't found nor dummy slot neither existing slot`;
@@ -174,6 +174,58 @@ function formatHashClassSetItemAndCreate(bp) {
             return "Do a resize";
         case 'done-no-return':
             return "";
+        default:
+            throw "Unknown bp type: " + bp.point;
+    }
+}
+
+function formatHashClassResize(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+        case 'compute-perturb':
+            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+        case 'perturb-shift':
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
+        case 'assign-old-slots':
+            return "Copy reference to slots (no actual copying is done)"
+        case 'assign-fill':
+            return `Set fill to <code>${bp.self.used}</code>, because we know we'll be filtering out any removed "dummy" slots`;
+        case 'compute-new-size':
+            return `Compute an optimal size: <code>${bp.newSize}</code>. TODO: explain calculation`;
+        case 'new-empty-slots':
+            return `Create new list of empty slots of size <code>${bp.self.slots.length}</code>`
+        case 'for-loop': {
+            const {key, hashCode} = bp.oldSlots[bp.oldIdx];
+            return `[${bp.oldIdx + 1}/${bp.oldSlots.length}] The current key to insert is <code>${key === null ? "EMPTY" : key}</code>, its hash is <code>${hashCode === null ? "EMPTY" : hashCode}</code>`;
+        }
+        case 'check-skip-empty-dummy': {
+            const slotKey = bp.oldSlots[bp.oldIdx].key;
+            if (slotKey === null) {
+                return `The current slot is empty`;
+            } else if (slotKey == "DUMMY") {
+                return `The current slot contains DUMMY placeholder`;
+            } else {
+                return `The current slot is a normal slot containing an item`;
+            }
+        }
+        case 'continue': /* FIXME not currently used */
+            return 'So skip it';
+        case 'check-collision':
+            if (bp.self.slots[bp.idx].key === null) {
+                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+            } else {
+                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+            }
+        case 'assign-slot':
+            return `Put the item in the empty slot ${bp.idx}`;
+        case 'done-no-return':
+        case 'start-execution':
+            return '';
         default:
             throw "Unknown bp type: " + bp.point;
     }
@@ -471,6 +523,11 @@ class HashClassResizeBase extends HashBreakpointFunction {
         this.addBP("assign-fill");
 
         for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
+            /* For consistency with other functions, add these names */
+            this.hashCode = this.slot.hashCode;
+            this.key = this.slot.key;
+            this.value = this.slot.value;
+
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
             if (this.slot.key === null || this.slot.key === "DUMMY") {
@@ -503,5 +560,5 @@ export {
     hashClassConstructor, Slot, findOptimalSize,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
 }

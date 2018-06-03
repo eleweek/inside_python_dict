@@ -6,11 +6,11 @@ import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
 } from './chapter3_and_4_common.js';
 
 import {
-    VisualizedCode, dummyFormat
+    VisualizedCode
 } from './code_blocks.js';
 
 function signedToUnsigned(num) {
@@ -77,21 +77,20 @@ const DICT32_SETITEM = [
 ];
 
 const DICT32_RESIZE_CODE = [
-    ["def resize(self):", "start-execution"],
-    ["    old_slots = self.slots", "assign-old-slots"],
-    ["    new_size = self.find_optimal_size(quot)", "compute-new-size"],
-    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
-    ["    self.fill = self.used", "assign-fill"],
-    ["    for slot in old_slots:", "for-loop"],
-    ["        if slot.key is not EMPTY:", "check-skip-empty-dummy"],
-    ["              hash_code = hash(slot.key)", "compute-hash"],
-    ["              perturb = self.signed_to_unsigned(hash_code)", "compute-perturb"],
-    ["              idx = hash_code % len(self.slots)", "compute-idx"],
-    ["              while self.slots[idx].key is not EMPTY:", "check-collision"],
-    ["                  idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx"],
-    ["                  perturb >>= self.PERTURB_SHIFT", "perturb-shift"],
+    ["def resize(self):", "start-execution", 0],
+    ["    old_slots = self.slots", "assign-old-slots", 1],
+    ["    new_size = self.find_optimal_size(quot)", "compute-new-size", 1],
+    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots", 1],
+    ["    self.fill = self.used", "assign-fill", 1],
+    ["    for slot in old_slots:", "for-loop", 2],
+    ["        if slot.key is not EMPTY and slot.key is not DUMMY:", "check-skip-empty-dummy", 2],
+    ["              idx = slot.hash_code % len(self.slots)", "compute-idx", 2],
+    ["              perturb = self.signed_to_unsigned(slot.hash_code)", "compute-perturb", 2],
+    ["              while self.slots[idx].key is not EMPTY:", "check-collision", 3],
+    ["                  idx = (idx * 5 + perturb + 1) % len(self.slots)", "next-idx", 3],
+    ["                  perturb >>= self.PERTURB_SHIFT", "perturb-shift", 3],
     ["", ""],
-    ["              self.slots[idx] = Slot(hash_code, slot.key, slot.value)", "assign-slot"],
+    ["              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)", "assign-slot", 2],
     ["", "done-no-return"],
 ];
 
@@ -188,7 +187,7 @@ class Chapter4_RealPythonDict extends React.Component {
               <VisualizedCode
                 code={DICT32_RESIZE_CODE}
                 breakpoints={resize.breakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={formatHashClassResize}
                 stateVisualization={HashClassResizeVisualization} />
 
              <p> Removing a key looks pretty much the same</p>

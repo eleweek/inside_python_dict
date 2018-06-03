@@ -66,12 +66,11 @@ class HashDictImplementation(BaseDictImpl):
 
         for slot in old_slots:
             if slot.key is not EMPTY and slot.key is not DUMMY:
-                hash_code = hash(slot.key)
-                idx = hash_code % len(self.slots)
+                idx = slot.hash_code % len(self.slots)
                 while self.slots[idx].key is not EMPTY:
                     idx = (idx + 1) % len(self.slots)
 
-                self.slots[idx] = Slot(hash_code, slot.key, slot.value)
+                self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)
 
         self.fill = self.used
 
