@@ -96,19 +96,19 @@ const HASH_CLASS_SETITEM_RECYCLING_CODE = [
 ];
 
 const HASH_CLASS_RESIZE_CODE = [
-    ["def resize(self):", "start-execution"],
-    ["    old_slots = self.slots", "assign-old-slots"],
-    ["    new_size = self.find_optimal_size(quot)", "compute-new-size"],
-    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots"],
-    ["    self.fill = self.used", "assign-fill"],
-    ["    for slot in old_slots:", "for-loop"],
-    ["        if slot.key is not EMPTY:", "check-skip-empty-dummy"],
-    ["              idx = slot.hash_code % len(self.slots)", "compute-idx"],
-    ["              while self.slots[idx].key is not EMPTY:", "check-collision"],
-    ["                  idx = (idx + 1) % len(self.slots)", "next-idx"],
+    ["def resize(self):", "start-execution", 0],
+    ["    old_slots = self.slots", "assign-old-slots", 1],
+    ["    new_size = self.find_optimal_size(quot)", "compute-new-size", 1],
+    ["    self.slots = [Slot() for _ in range(new_size)]", "new-empty-slots", 1],
+    ["    self.fill = self.used", "assign-fill", 1],
+    ["    for slot in old_slots:", "for-loop", 2],
+    ["        if slot.key is not EMPTY:", "check-skip-empty-dummy", 2],
+    ["              idx = slot.hash_code % len(self.slots)", "compute-idx", 2],
+    ["              while self.slots[idx].key is not EMPTY:", "check-collision", 3],
+    ["                  idx = (idx + 1) % len(self.slots)", "next-idx", 3],
     ["", ""],
-    ["              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)", "assign-slot"],
-    ["", "done-no-return"],
+    ["              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)", "assign-slot", 2],
+    ["", "done-no-return", 0],
 ];
 
 let HASH_CLASS_LOOKDICT = [
