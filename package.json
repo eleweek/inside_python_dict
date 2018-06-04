@@ -42,6 +42,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "css-loader": "^0.28.8",
     "ignore-styles": "^5.0.1",
     "npm": "^6.0.1",

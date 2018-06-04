@@ -16,8 +16,8 @@ module.exports = {
         test: /\.js$/,
         use: {
             loader: 'babel-loader',
+            /* presets come from .babelrc */
             options: {
-              presets: ['stage-2', 'react'],
               plugins: ['lodash']
             }
         },
