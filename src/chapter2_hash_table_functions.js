@@ -135,9 +135,9 @@ function formatHashCreateNewAndInsert(bp) {
             return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
         case 'assign-elem':
             if (bp._prevBp.keys[bp.idx] === null) {
-                return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
+                return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot <code>${bp.idx}</code>`;
             } else {
-                return `${bp.key} and its hash <code>${bp.hashCode}</code> is already in slot, overwriting it anyway`;
+                return `<code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> is already in slot, overwriting it anyway`;
             }
         case 'return-lists':
             return `The hash table is built, return the lists`;
