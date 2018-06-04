@@ -275,18 +275,18 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
 
 
 const HASH_RESIZE_CODE = [
-    ["def resize(hash_codes, keys):", "start-execution"],
-    ["    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]", "create-new-empty-hashes"],
-    ["    new_keys = [EMPTY for i in range(len(keys) * 2)]", "create-new-empty-keys"],
-    ["    for hash_code, key in zip(hash_codes, keys):", "for-loop"],
-    ["        if key is EMPTY or key is DUMMY:", "check-skip-empty-dummy"],
-    ["            continue", "continue"],
-    ["        idx = hash_code % len(new_keys)", "compute-idx"],
-    ["        while new_hash_codes[idx] is not EMPTY:", "check-collision"],
-    ["            idx = (idx + 1) % len(new_keys)", "next-idx"],
-    ["        new_hash_codes[idx], new_keys[idx] = hash_code, key", "assign-elem"],
+    ["def resize(hash_codes, keys):", "start-execution", 0],
+    ["    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]", "create-new-empty-hashes", 1],
+    ["    new_keys = [EMPTY for i in range(len(keys) * 2)]", "create-new-empty-keys", 1],
+    ["    for hash_code, key in zip(hash_codes, keys):", "for-loop", 2],
+    ["        if key is EMPTY or key is DUMMY:", "check-skip-empty-dummy", 2],
+    ["            continue", "continue", 3],
+    ["        idx = hash_code % len(new_keys)", "compute-idx", 2],
+    ["        while new_hash_codes[idx] is not EMPTY:", "check-collision", 3],
+    ["            idx = (idx + 1) % len(new_keys)", "next-idx", 3],
+    ["        new_hash_codes[idx], new_keys[idx] = hash_code, key", "assign-elem", 2],
     ["", ""],
-    ["    return new_hash_codes, new_keys", "return-lists"],
+    ["    return new_hash_codes, new_keys", "return-lists", 1],
 ];
 
 class HashResize extends HashBreakpointFunction {
@@ -336,10 +336,8 @@ class HashResize extends HashBreakpointFunction {
             }
 
             this.newHashCodes[this.idx] = this.hashCode;
-            this.addBP('assign-hash');
-
             this.newKeys[this.idx] = this.key;
-            this.addBP('assign-key');
+            this.addBP('assign-elem');
         }
         this.oldIdx = null;
         this.key = null;
@@ -353,11 +351,11 @@ class HashResize extends HashBreakpointFunction {
 function formatHashResize(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
-            return `Create new list of size ${bp.newHashCodes.length} for hash codes`;
+            return `Create new list of size <code>${bp.newHashCodes.length}</code> for hash codes`;
         case 'create-new-empty-keys':
-            return `Create new list of size ${bp.newKeys.length} for keys`;
+            return `Create new list of size <code>${bp.newKeys.length}</code> for keys`;
         case 'for-loop':
-            return `The current key to insert is <code>${bp.key === null ? "EMPTY" : bp.key}</code>, its hash is <code>${bp.hashCode === null ? "EMPTY" : bp.hashCode}</code>`;
+            return `[${bp.oldIdx + 1}/${bp.keys.length}] The current key to insert is <code>${bp.key === null ? "EMPTY" : bp.key}</code>, its hash is <code>${bp.hashCode === null ? "EMPTY" : bp.hashCode}</code>`;
         case 'compute-idx':
             return `Compute starting slot index: ${bp.hashCode} % ${bp.newKeys.length} == ${bp.idx}`;
         case 'check-skip-empty-dummy':
@@ -371,7 +369,7 @@ function formatHashResize(bp) {
         case 'continue':
             return 'So skip it';
         case 'check-collision':
-            if (bp.keys[bp.idx] === null) {
+            if (bp.newKeys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
