@@ -6,7 +6,7 @@ import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
 } from './chapter3_and_4_common.js';
 
 import {
@@ -31,6 +31,17 @@ let chapter3Extend = (Base) => class extends Base {
 class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
 class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
 class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
+
+function formatHashClassChapter3IdxRelatedBp(bp) {
+    switch (bp.point) {
+        case 'compute-hash':
+            return `Compute hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+        case 'next-idx':
+            return `Keep probing, the next slot will be <code> (${bp._prevBp.idx} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+    }
+}
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ["def __setitem__(self, key, value):", "start-execution", 0],
@@ -235,7 +246,7 @@ class Chapter3_HashClass extends React.Component {
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
                 breakpoints={hashClassInsertAllBreakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                 stateVisualization={HashClassInsertAllVisualization} />
 
               <p> TODO: conditional here: i.e. resize after step X. </p>
@@ -243,20 +254,20 @@ class Chapter3_HashClass extends React.Component {
               <VisualizedCode
                 code={HASH_CLASS_RESIZE_CODE}
                 breakpoints={resize.breakpoints}
-                formatBpDesc={dummyFormat}
+                formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
                 stateVisualization={HashClassResizeVisualization} />
              <p> The code for removing and searching is pretty much the same, because, in order to remove an element we need to find it first. This means that we can reorganize the code so that the removing and searching functions share much of the same code. We will call the common function <code>lookdict()</code>. </p>
              <p> Other than that, removing a key will look pretty much the same. <code>__delitem__</code> magic method is now used for realism, so we can do <code> del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up finding the element and removing it. </p> 
              <VisualizedCode
                code={HASH_CLASS_DELITEM}
                breakpoints={hashClassDelItemBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks pretty much the same as <code>__delitem__</code> </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
                breakpoints={hashClassGetItemBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
              
              <p> So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss a cool trick for inserting new items. </p> 
@@ -269,7 +280,7 @@ class Chapter3_HashClass extends React.Component {
              <VisualizedCode
                code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                breakpoints={hashClassSetItemRecyclingBreakpoints}
-               formatBpDesc={dummyFormat}
+               formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>
     }

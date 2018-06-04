@@ -101,7 +101,7 @@ function formatHashClassSetItemAndCreate(bp) {
             const slotKey = bp.self.slots[bp.idx].key;
             if (bp.targetIdx != null) {
                 return `<code>target_idx == ${bp.targetIdx}</code> - we have already found a dummy slot that we may replace`;
-            } else if (key != "DUMMY") {
+            } else if (slotKey != "DUMMY") {
                 return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${slotKey}, i.e. not dummy</code>`;
             } else {
                 return `We found the first dummy slot,`;
@@ -257,6 +257,7 @@ class HashClassSetItemBase extends HashBreakpointFunction {
             }
 
             if (useRecycling) {
+                this.addBP('check-should-recycle');
                 if (this.targetIdx === null && this.self.slots[this.idx].key === "DUMMY") {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-recycle');

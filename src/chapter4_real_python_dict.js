@@ -51,9 +51,9 @@ function formatDict32IdxRelatedBp(bp) {
         case 'compute-perturb':
             return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length} == ${bp.idx}</code>`;
+            return `Keep probing, the next slot will be <code> (${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5 == ${bp.perturb}</code>`
+            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${bp.perturb}</code>`
     }
 }
 
