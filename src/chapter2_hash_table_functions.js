@@ -24,7 +24,13 @@ const HASH_CREATE_NEW_CODE = [
     ["    return hash_codes, keys", "return-lists", 1],
 ];
 
-class HashCreateNew extends HashBreakpointFunction {
+class Chapter2BreakpointFunction extends HashBreakpointFunction {
+    constructor(converters, rarelyUpdatedFields=[]) {
+        super(converters, ["hashCodes", "keys", ...rarelyUpdatedFields])
+    }
+}
+
+class HashCreateNew extends Chapter2BreakpointFunction {
     run(_fromKeys) {
         this.fromKeys = _fromKeys;
 
@@ -71,7 +77,7 @@ class HashCreateNew extends HashBreakpointFunction {
 
             this.hashCodes[this.idx] = this.hashCode;
             this.keys[this.idx] = this.key;
-            this.addBP('assign-elem');
+            this.addBP('assign-elem', true);
             this.idx = null;
         }
 
@@ -225,7 +231,7 @@ const HASH_REMOVE_CODE = [
     ["    raise KeyError()", "throw-key-error", 1]
 ];
 
-class HashRemoveOrSearch extends HashBreakpointFunction {
+class HashRemoveOrSearch extends Chapter2BreakpointFunction {
     run(_hashCodes, _keys, _key, isRemoveMode) {
         this.hashCodes = _hashCodes;
         this.keys = _keys;
@@ -289,11 +295,11 @@ const HASH_RESIZE_CODE = [
     ["    return new_hash_codes, new_keys", "return-lists", 1],
 ];
 
-class HashResize extends HashBreakpointFunction {
+class HashResize extends Chapter2BreakpointFunction {
     constructor() {
         super({
             'newHashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-        });
+        }, ["newHashCodes"]);
     }
 
     run(_hashCodes, _keys) {
@@ -306,12 +312,12 @@ class HashResize extends HashBreakpointFunction {
         for (let i = 0; i < this.hashCodes.length * 2; ++i) {
             this.newHashCodes.push(null);
         }
-        this.addBP("create-new-empty-hashes");
+        this.addBP("create-new-empty-hashes", true);
 
         for (let i = 0; i < this.hashCodes.length * 2; ++i) {
             this.newKeys.push(null);
         }
-        this.addBP("create-new-empty-keys");
+        this.addBP("create-new-empty-keys", true);
 
         for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
             this.addBP('for-loop');
@@ -335,7 +341,7 @@ class HashResize extends HashBreakpointFunction {
 
             this.newHashCodes[this.idx] = this.hashCode;
             this.newKeys[this.idx] = this.key;
-            this.addBP('assign-elem');
+            this.addBP('assign-elem', true);
         }
         this.oldIdx = null;
         this.key = null;
@@ -409,7 +415,7 @@ const HASH_INSERT_CODE = [
     ["    hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
 ];
 
-class HashInsert extends HashBreakpointFunction {
+class HashInsert extends Chapter2BreakpointFunction {
     run(_hashCodes, _keys, _key) {
         this.hashCodes = _hashCodes;
         this.keys = _keys;
@@ -442,7 +448,7 @@ class HashInsert extends HashBreakpointFunction {
         this.hashCodes[this.idx] = this.hashCode;
         this.keys[this.idx] = this.key;
 
-        this.addBP('assign-elem');
+        this.addBP('assign-elem', true);
     }
 }
 

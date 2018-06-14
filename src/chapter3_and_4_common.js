@@ -511,7 +511,7 @@ class HashClassResizeBase extends HashBreakpointFunction {
             }
 
             this.self.slots[this.idx] = new Slot(this.slot.hashCode, this.slot.key, this.slot.value);
-            this.addBP('assign-slot');
+            this.addBP('assign-slot', true);
         }
         this.oldIdx = null;
         this.idx = null;

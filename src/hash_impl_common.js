@@ -200,34 +200,25 @@ let pyHash = function(o) {
 }
 
 class BreakpointFunction {
-    constructor(converters) {
+    constructor(converters={}, rarelyUpdatedFields) {
         this._breakpoints = [];
-        this._converters = converters || {};
+        this._converters = converters;
+        this._rarelyUpdatedFields = new Set(rarelyUpdatedFields);
     }
 
-    addBP(point) {
+    addBP(point, updateRarelyUpdatedFields=false) {
         let bp = {
             point: point,
             _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null
         }
 
-        if (this._evals) {
-            for (let [key, toEval] of Object.entries(this._evals)) {
-                bp[key] = eval(toEval);
-            }
-        }
-
         for (let [key, value] of Object.entries(this)) {
-            if (key[0] != "_") {
-                if (value !== undefined) {
+            if (key[0] != "_" && value !== undefined) {
+                if (!updateRarelyUpdatedFields || !this._rarelyUpdatedFields.has(key) || this._breakpoints.length == 0) {
                     bp[key] = _.cloneDeep(value);
+                } else {
+                    bp[key] = this._breakpoints[this._breakpoints.length - 1][key];
                 }
-            }
-        }
-
-        if (this._bpFuncs) {
-            for (let [key, func] of Object.entries(this._bpFuncs)) {
-                bp[key] = func(bp);
             }
         }
 

@@ -91,7 +91,14 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
     ["    return new_list", "return-created-list", 1],
 ];
 
-class SimplifiedInsertAll extends BreakpointFunction {
+class NewListCachingBreakpointFunction extends BreakpointFunction {
+    constructor(converters) {
+        super(converters, ["newList"]);
+    }
+}
+
+class SimplifiedInsertAll extends NewListCachingBreakpointFunction {
+
     run(_originalList) {
         this.originalList = _originalList;
         this.newList = [];
@@ -99,7 +106,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
         for (let i = 0; i < this.originalList.length * 2; ++i) {
             this.newList.push(null);
         }
-        this.addBP('create-new-list');
+        this.addBP('create-new-list', true);
 
         for ([this.originalListIdx, this.number] of this.originalList.entries()) {
             this.addBP('for-loop');
@@ -115,7 +122,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
                 this.addBP('next-idx');
             }
             this.newList[this.newListIdx] = this.number;
-            this.addBP('assign-elem');
+            this.addBP('assign-elem', true);
         }
         this.originalListIdx = null;
         this.newListIdx = null;
@@ -172,7 +179,7 @@ const SIMPLIFIED_SEARCH_CODE = [
     ["    return False", "found-nothing", 1],
 ];
 
-class SimplifiedSearch extends BreakpointFunction {
+class SimplifiedSearch extends NewListCachingBreakpointFunction {
     run(_newList, _number) {
         this.newList = _newList;
         this.number = _number;
