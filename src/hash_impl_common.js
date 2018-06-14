@@ -200,10 +200,8 @@ let pyHash = function(o) {
 }
 
 class BreakpointFunction {
-    constructor(evals, converters, bpFuncs) {
+    constructor(converters) {
         this._breakpoints = [];
-        this._evals = evals;
-        this._bpFuncs = bpFuncs;
         this._converters = converters || {};
     }
 
@@ -252,11 +250,12 @@ class BreakpointFunction {
 }
 
 class HashBreakpointFunction extends BreakpointFunction {
-    constructor(evals, converters, bpFuncs) {
-        super(evals, converters || {
+    constructor(converters) {
+        super({
             'hashCode': hc => hc !== null ? hc.toString() : null,
             'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-        }, bpFuncs);
+            ...converters
+        });
     }
 
     computeIdx(hashCodeBig, len) {

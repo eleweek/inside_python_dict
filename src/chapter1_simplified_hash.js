@@ -92,12 +92,6 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 ];
 
 class SimplifiedInsertAll extends BreakpointFunction {
-    constructor() {
-        super({
-            'newListAtIdx': 'this.newList[this.newListIdx]'
-        });
-    }
-
     run(_originalList) {
         this.originalList = _originalList;
         this.newList = [];
@@ -142,10 +136,10 @@ let formatSimplifiedInsertAllDescription = function(bp) {
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-collision':
-            if (bp.newListAtIdx === null) {
+            if (bp.newList[bp.newListIdx] === null) {
                 return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `Collision in the slot <code>${bp.newListIdx}</code> with the number <code>${bp.newListAtIdx}</code>`;
+                return `Collision in the slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList[bp.newListIdx]}</code>`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code>`;
@@ -179,12 +173,6 @@ const SIMPLIFIED_SEARCH_CODE = [
 ];
 
 class SimplifiedSearch extends BreakpointFunction {
-    constructor() {
-        super({
-            'newListAtIdx': 'this.newList[this.newListIdx]'
-        });
-    }
-
     run(_newList, _number) {
         this.newList = _newList;
         this.number = _number;
@@ -218,17 +206,17 @@ let formatSimplifiedSearchDescription = function(bp) {
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
         case 'check-not-found':
-            if (bp.newListAtIdx === null) {
+            if (bp.newList[bp.newListIdx] === null) {
                 return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `The slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newListAtIdx}</code>`;
+                return `The slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList[bp.newListIdx]}</code>`;
             }
         case 'check-found':
-            let found = (bp.newListAtIdx === bp.number);
+            let found = (bp.newList[bp.newListIdx] === bp.number);
             if (found) {
-                return `The number is found: <code>${bp.newListAtIdx} == ${bp.number}</code>`;
+                return `The number is found: <code>${bp.newList[bp.newListIdx]} == ${bp.number}</code>`;
             } else {
-                return `The number is not found yet: <code>${bp.newListAtIdx} != ${bp.number}</code>`;
+                return `The number is not found yet: <code>${bp.newList[bp.newListIdx]} != ${bp.number}</code>`;
             }
         case 'found-key':
             return "Simply return true";
