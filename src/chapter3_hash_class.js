@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash'
 
 import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 
@@ -151,6 +152,11 @@ class Chapter3_HashClass extends React.Component {
         this.state = {
             hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
+        this.handleInputChangeDebounced = _.debounce(this.handleInputChange, 50);
+    }
+
+    handleInputChange = value => {
+        this.setState({hashClassOriginalPairs: value})
     }
 
     render() {
@@ -241,7 +247,7 @@ class Chapter3_HashClass extends React.Component {
               TODO: nice component displaying the relationship between fill/used ?
 
               <p> Let's say we want to create an almost-dict from the following pairs: </p>
-              <JsonInput value={this.state.hashClassOriginalPairs} onChange={(value) => this.setState({hashClassOriginalPairs: value})} />
+              <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChangeDebounced} />
 
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}

@@ -9,6 +9,13 @@ import {
 import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
 
 
+class HashClassBreakpointFunction extends HashBreakpointFunction {
+    constructor(converters, rarelyUpdatedFields={}) {
+        super(converters, {"self": "slots", ...rarelyUpdatedFields})
+    }
+}
+
+
 function postBpTransform(bp) {
     let cloned = _.cloneDeep(bp);
     const mapHashes = s => s.hashCode != null ? s.hashCode.toString() : null;
@@ -226,7 +233,7 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-class HashClassSetItemBase extends HashBreakpointFunction {
+class HashClassSetItemBase extends HashClassBreakpointFunction {
     run(_self, _key, _value, useRecycling, Resize, optimalSizeQuot) {
         this.self = _self;
         this.key = _key;
@@ -290,7 +297,7 @@ class HashClassSetItemBase extends HashBreakpointFunction {
         }
 
         this.self.slots[this.targetIdx] = new Slot(this.hashCode, this.key, this.value);
-        this.addBP('assign-slot');
+        this.addBP('assign-slot', true);
         this.addBP('check-resize');
         if (this.self.fill * 3 >= this.self.slots.length * 2) {
             let hashClassResize = new Resize();
@@ -303,7 +310,7 @@ class HashClassSetItemBase extends HashBreakpointFunction {
                 'breakpoints': hashClassResize.getBreakpoints(),
             };
 
-            this.addBP('resize');
+            this.addBP('resize', true);
         }
         this.addBP("done-no-return");
         return this.self;
@@ -314,7 +321,7 @@ class HashClassSetItemBase extends HashBreakpointFunction {
     }
 }
 
-class HashClassLookdictBase extends HashBreakpointFunction {
+class HashClassLookdictBase extends HashClassBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -347,7 +354,7 @@ class HashClassLookdictBase extends HashBreakpointFunction {
     }
 }
 
-class HashClassGetItem extends HashBreakpointFunction {
+class HashClassGetItem extends HashClassBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -364,7 +371,7 @@ class HashClassGetItem extends HashBreakpointFunction {
     }
 }
 
-class HashClassDelItem extends HashBreakpointFunction {
+class HashClassDelItem extends HashClassBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -386,7 +393,7 @@ class HashClassDelItem extends HashBreakpointFunction {
     }
 }
 
-class HashClassInsertAll extends HashBreakpointFunction {
+class HashClassInsertAll extends HashClassBreakpointFunction {
     constructor() {
         super();
 
@@ -466,14 +473,18 @@ function HashClassResizeVisualization(props) {
     />;
 }
 
-class HashClassResizeBase extends HashBreakpointFunction {
+class HashClassResizeBase extends HashClassBreakpointFunction {
+    constructor(converters) {
+        super(converters, {"oldSlots": ""});
+    }
+
     run(_self, optimalSizeQuot) {
         this.self = _self;
 
         this.oldSlots = [];
         this.addBP("start-execution");
         this.oldSlots = this.self.slots;
-        this.addBP("assign-old-slots");
+        this.addBP("assign-old-slots", true);
         this.newSize = findOptimalSize(this.self.used, optimalSizeQuot);
         this.addBP("compute-new-size");
 
@@ -482,7 +493,7 @@ class HashClassResizeBase extends HashBreakpointFunction {
         for (let i = 0; i < this.newSize; ++i) {
             this.self.slots.push(new Slot());
         }
-        this.addBP("new-empty-slots");
+        this.addBP("new-empty-slots", true);
 
         this.self.fill = this.self.used;
         this.addBP("assign-fill");
