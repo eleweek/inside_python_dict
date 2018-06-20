@@ -30,7 +30,7 @@ let chapter4Extend = (Base) => class extends Base {
     }
 
     nextIdxAndSave() {
-        this.idx = +BigNumber(5 * this.idx + 1).plus(this.perturb).mod(this.self.slots.length).toString();
+        this.idx = +BigNumber(5 * this.idx + 1).plus(this.perturb).mod(this.self.get("slots").size).toString();
         this.addBP('next-idx');
         this.perturb = this.perturb.idiv(BigNumber(2).pow(5)); // >>= 5
         this.addBP('perturb-shift');

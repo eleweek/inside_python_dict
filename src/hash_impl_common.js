@@ -200,20 +200,12 @@ let pyHash = function(o) {
 }
 
 class BreakpointFunction {
-    constructor(converters={}, rarelyUpdatedFields={}) {
+    constructor(converters={}) {
         this._breakpoints = [];
         this._converters = converters;
-        if (Array.isArray(rarelyUpdatedFields)) {
-            this._rarelyUpdatedFields = {};
-            for (let field of rarelyUpdatedFields) {
-                this._rarelyUpdatedFields[field] = "";
-            }
-        } else {
-            this._rarelyUpdatedFields = rarelyUpdatedFields;
-        }
     }
 
-    addBP(point, updateRarelyUpdatedFields=false) {
+    addBP(point) {
         let bp = {
             point: point,
             _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null
@@ -221,23 +213,7 @@ class BreakpointFunction {
 
         for (let [key, value] of Object.entries(this)) {
             if (key[0] != "_" && value !== undefined) {
-                if (!updateRarelyUpdatedFields || !(key in this._rarelyUpdatedFields) || this._breakpoints.length == 0 || value == null) {
-                    bp[key] = _.cloneDeep(value);
-                } else {
-                    const rareSubKey = this._rarelyUpdatedFields[key];
-                    console.log("RSK: " + rareSubKey);
-                    if (!rareSubKey) {
-                        bp[key] = this._breakpoints[this._breakpoints.length - 1][key];
-                    } else {
-                        bp[key] = {};
-                        bp[key][rareSubKey] = this._breakpoints[this._breakpoints.length - 1][key][rareSubKey];
-                        for (let [subkey, subvalue] of Object.entries(value)) {
-                            if (subkey != rareSubKey) {
-                                bp[key][subkey] = _.cloneDeep(subvalue);
-                            }
-                        }
-                    }
-                }
+                bp[key] = value;
             }
         }
 

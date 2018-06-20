@@ -18,16 +18,21 @@ class HashClassBreakpointFunction extends HashBreakpointFunction {
 
 
 function postBpTransform(bp) {
-    let cloned = _.cloneDeep(bp);
+    let cloned = _.clone(bp);
     const mapHashes = s => s.hashCode != null ? s.hashCode.toString() : null;
 
-    cloned.hashCodes = bp.self.slots.map(mapHashes)
-    cloned.keys = bp.self.slots.map(s => s.key)
-    cloned.values = bp.self.slots.map(s => s.value)
+    cloned.self = cloned.self.toJS();
+    console.log("postBpTransform");
+    console.log(cloned.self);
+    cloned.hashCodes = cloned.self.slots.map(mapHashes)
+    cloned.keys = cloned.self.slots.map(s => s.key)
+    cloned.values = cloned.self.slots.map(s => s.value)
+
     if (bp.oldSlots) {
-        cloned.oldHashCodes = bp.oldSlots.map(mapHashes);
-        cloned.oldKeys = bp.oldSlots.map(s => s.key);
-        cloned.oldValues = bp.oldSlots.map(s => s.value);
+        cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : cloned.oldSlots;
+        cloned.oldHashCodes = cloned.oldSlots.map(mapHashes);
+        cloned.oldKeys = cloned.oldSlots.map(s => s.key);
+        cloned.oldValues = cloned.oldSlots.map(s => s.value);
     }
 
     return cloned;
@@ -204,15 +209,16 @@ function formatHashClassResize(bp) {
 }
 
 function hashClassConstructor() {
-    let self = {
-        slots: [],
+    let slotsTemp = [];
+    for (let i = 0; i < 8; ++i) {
+        slotsTemp.push(new Slot());
+    }
+
+    let self = Map({
+        slots: new List(slotsTemp),
         used: 0,
         fill: 0,
-    };
-
-    for (let i = 0; i < 8; ++i) {
-        self.slots.push(new Slot());
-    }
+    });
 
     return self;
 }
@@ -237,20 +243,20 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.computeIdxAndSave(this.hashCode, this.self.slots.length);
+        this.computeIdxAndSave(this.hashCode, this.self.get("slots").size);
         this.targetIdx = null;
         this.addBP('target-idx-none');
 
         while (true) {
             this.addBP('check-collision');
-            if (this.self.slots[this.idx].key === null) {
+            if (this.self.get("slots").get(this.idx).key === null) {
                 break;
             }
 
             this.addBP('check-dup-hash');
-            if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
+            if (this.self.get("slots").get(this.idx).hashCode.eq(this.hashCode)) {
                 this.addBP('check-dup-key');
-                if (this.self.slots[this.idx].key == this.key) {
+                if (this.self.get("slots").get(this.idx).key == this.key) {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-found');
                     this.addBP('check-dup-break');
@@ -260,7 +266,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
 
             if (useRecycling) {
                 this.addBP('check-should-recycle');
-                if (this.targetIdx === null && this.self.slots[this.idx].key === "DUMMY") {
+                if (this.targetIdx === null && this.self.get("slots").get(this.idx).key === "DUMMY") {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-recycle');
                 }
@@ -276,32 +282,46 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
         }
 
         this.addBP('check-used-fill-increased');
-        if (this.self.slots[this.targetIdx].key === null) {
-            this.self.used += 1;
+        if (this.self.get("slots").get(this.targetIdx).key === null) {
+            this.self = this.self.set(
+                "used",
+                this.self.get("used") + 1
+            );
             this.addBP('inc-used');
-            this.self.fill += 1;
+
+            this.self = this.self.set(
+                "fill",
+                this.self.get("fill") + 1
+            );
             this.addBP('inc-fill');
         } else {
             if (useRecycling) {
                 this.addBP('check-recycle-used-increased');
-                if (this.self.slots[this.targetIdx].key === "DUMMY") {
-                    this.self.used += 1;
+                if (this.self.get("slots").get(this.targetIdx).key === "DUMMY") {
+                    this.self = this.self.set(
+                        "used",
+                        this.self.get("used") + 1
+                    );
                     this.addBP("inc-used-2");
                 }
             }
         }
 
-        this.self.slots[this.targetIdx] = new Slot({hashCode: this.hashCode, key: this.key, value: this.value});
+        this.self = this.self.setIn(
+            ["slots", this.targetIdx],
+            new Slot({hashCode: this.hashCode, key: this.key, value: this.value})
+        );
+
         this.addBP('assign-slot', true);
         this.addBP('check-resize');
-        if (this.self.fill * 3 >= this.self.slots.length * 2) {
+        if (this.self.get("fill") * 3 >= this.self.get("slots").size * 2) {
             let hashClassResize = new Resize();
-            let _oldSelf = _.cloneDeep(this.self);
+            let _oldSelf = this.self;
             this.self = hashClassResize.run(this.self, optimalSizeQuot);
 
             this._resize = {
                 'oldSelf': _oldSelf,
-                'self': _.cloneDeep(this.self),
+                'self': this.self,
                 'breakpoints': hashClassResize.getBreakpoints(),
             };
 
@@ -324,18 +344,18 @@ class HashClassLookdictBase extends HashClassBreakpointFunction {
         this.addBP('start-execution-lookdict');
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
-        this.computeIdxAndSave(this.hashCode, this.self.slots.length);
+        this.computeIdxAndSave(this.hashCode, this.self.get("slots").size);
 
         while (true) {
             this.addBP('check-not-found');
-            if (this.self.slots[this.idx].key === null) {
+            if (this.self.get("slots").get(this.idx).key === null) {
                 break;
             }
 
             this.addBP('check-hash');
-            if (this.self.slots[this.idx].hashCode.eq(this.hashCode)) {
+            if (this.self.get("slots").get(this.idx).hashCode.eq(this.hashCode)) {
                 this.addBP('check-key');
-                if (this.self.slots[this.idx].key == this.key) {
+                if (this.self.get("slots").get(this.idx).key == this.key) {
                     this.addBP('return-idx');
                     return this.idx;
                 }
@@ -361,7 +381,7 @@ class HashClassGetItem extends HashClassBreakpointFunction {
         if (this.idx !== null) {
             // did not throw exception
             this.addBP("return-value");
-            return this.self.slots[this.idx].value;
+            return this.self.get("slots").get(this.idx).value;
         }
     }
 }
@@ -379,9 +399,9 @@ class HashClassDelItem extends HashClassBreakpointFunction {
             // did not throw exception
             this.self.used -= 1;
             this.addBP("dec-used");
-            this.self.slots[this.idx] = this.self.slots[this.idx].set("key", "DUMMY");
+            this.self = this.self.setIn(["slots", this.idx, "key"], "DUMMY");
             this.addBP("replace-key-dummy");
-            this.self.slots[this.idx] = this.self.slots[this.idx].set("value", null);
+            this.self = this.self.setIn(["slots", this.idx, "value"], null);
             this.addBP("replace-value-empty");
         }
         return this.self;
@@ -476,24 +496,28 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
     run(_self, optimalSizeQuot) {
         this.self = _self;
 
-        this.oldSlots = [];
+        this.oldSlots = new List();
         this.addBP("start-execution");
-        this.oldSlots = this.self.slots;
+        this.oldSlots = this.self.get("slots");
         this.addBP("assign-old-slots", true);
-        this.newSize = findOptimalSize(this.self.used, optimalSizeQuot);
+        this.newSize = findOptimalSize(this.self.get("used"), optimalSizeQuot);
         this.addBP("compute-new-size");
 
-        this.self.slots = [];
+        let slotsTemp = [];
 
         for (let i = 0; i < this.newSize; ++i) {
-            this.self.slots.push(new Slot());
+            slotsTemp.push(new Slot());
         }
+        this.self = this.self.set("slots", new List(slotsTemp));
         this.addBP("new-empty-slots", true);
 
-        this.self.fill = this.self.used;
+        this.self = this.self.set("fill", this.self.get("used"));
         this.addBP("assign-fill");
 
         for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
+            console.log("RESIZE oldSlots");
+            console.log(this.oldIdx);
+            console.log(this.slot);
             /* For consistency with other functions, add these names */
             this.hashCode = this.slot.hashCode;
             this.key = this.slot.key;
@@ -505,18 +529,23 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
                 this.addBP('continue');
                 continue;
             }
-            this.computeIdxAndSave(this.slot.hashCode, this.self.slots.length);
+            this.computeIdxAndSave(this.slot.hashCode, this.self.get("slots").size);
 
             while (true) {
                 this.addBP('check-collision');
-                if (this.self.slots[this.idx].key === null) {
+                if (this.self.get("slots").get(this.idx).key === null) {
                     break;
                 }
 
                 this.nextIdxAndSave();
             }
 
-            this.self.slots[this.idx] = this.slot;
+            this.self = this.self.setIn(
+                ["slots", this.idx],
+                this.slot
+            );
+            console.log("SETTING");
+            console.log(this.self.get("slots").toJS());
             this.addBP('assign-slot', true);
         }
         this.oldIdx = null;
