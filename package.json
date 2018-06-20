@@ -22,6 +22,7 @@
     "babel-plugin-lodash": "^3.3.2",
     "bignumber.js": "^7.2.1",
     "bootstrap": "^4.0.0",
+    "immutable": "^3.8.2",
     "jquery": "^3.2.1",
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",

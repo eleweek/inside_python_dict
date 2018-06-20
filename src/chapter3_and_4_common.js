@@ -1,5 +1,6 @@
 import * as React from 'react';
 import _ from 'lodash'
+import {Map, List, Record} from 'immutable';
 
 import {
     HashBoxesComponent, LineOfBoxesComponent, Tetris,
@@ -216,13 +217,7 @@ function hashClassConstructor() {
     return self;
 }
 
-class Slot {
-    constructor(hashCode=null, key=null, value=null) {
-        this.hashCode = hashCode;
-        this.key = key;
-        this.value = value;
-    }
-}
+const Slot = Record({hashCode: null, key: null, value: null});
 
 function findOptimalSize(used, quot=2) {
     let newSize = 8;
@@ -296,7 +291,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
             }
         }
 
-        this.self.slots[this.targetIdx] = new Slot(this.hashCode, this.key, this.value);
+        this.self.slots[this.targetIdx] = new Slot({hashCode: this.hashCode, key: this.key, value: this.value});
         this.addBP('assign-slot', true);
         this.addBP('check-resize');
         if (this.self.fill * 3 >= this.self.slots.length * 2) {
@@ -384,9 +379,9 @@ class HashClassDelItem extends HashClassBreakpointFunction {
             // did not throw exception
             this.self.used -= 1;
             this.addBP("dec-used");
-            this.self.slots[this.idx].key = "DUMMY";
+            this.self.slots[this.idx] = this.self.slots[this.idx].set("key", "DUMMY");
             this.addBP("replace-key-dummy");
-            this.self.slots[this.idx].value = null;
+            this.self.slots[this.idx] = this.self.slots[this.idx].set("value", null);
             this.addBP("replace-value-empty");
         }
         return this.self;
@@ -521,7 +516,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
                 this.nextIdxAndSave();
             }
 
-            this.self.slots[this.idx] = new Slot(this.slot.hashCode, this.slot.key, this.slot.value);
+            this.self.slots[this.idx] = this.slot;
             this.addBP('assign-slot', true);
         }
         this.oldIdx = null;
