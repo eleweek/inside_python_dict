@@ -7,7 +7,7 @@ import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
 } from './chapter3_and_4_common.js';
 
 import {
@@ -253,33 +253,30 @@ class Chapter3_HashClass extends React.Component {
 
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
-                breakpoints={hashClassInsertAllBreakpoints}
-                //formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
-                formatBpDesc={dummyFormat}
+                breakpoints={hashClassInsertAllBreakpoints.map(postBpTransform)}
+                formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                 stateVisualization={HashClassInsertAllVisualization} />
 
               <p> TODO: conditional here: i.e. resize after step X. </p>
               <p> Let's look at the first resize in depth: </p>
               <VisualizedCode
                 code={HASH_CLASS_RESIZE_CODE}
-                breakpoints={resize.breakpoints}
-                // formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
-                formatBpDesc={dummyFormat}
+                breakpoints={resize.breakpoints.map(postBpTransform)}
+                formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
                 stateVisualization={HashClassResizeVisualization} />
              <p> The code for removing and searching is pretty much the same, because, in order to remove an element we need to find it first. This means that we can reorganize the code so that the removing and searching functions share much of the same code. We will call the common function <code>lookdict()</code>. </p>
              <p> Other than that, removing a key will look pretty much the same. <code>__delitem__</code> magic method is now used for realism, so we can do <code> del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up finding the element and removing it. </p> 
              <VisualizedCode
                code={HASH_CLASS_DELITEM}
-               breakpoints={hashClassDelItemBreakpoints}
-               // formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
+               breakpoints={hashClassDelItemBreakpoints.map(postBpTransform)}
+               formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                formatBpDesc={dummyFormat}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks pretty much the same as <code>__delitem__</code> </p>
              <VisualizedCode
                code={HASH_CLASS_GETITEM}
-               breakpoints={hashClassGetItemBreakpoints}
-               // formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
-               formatBpDesc={dummyFormat}
+               breakpoints={hashClassGetItemBreakpoints.map(postBpTransform)}
+               formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
              
              <p> So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss a cool trick for inserting new items. </p> 
@@ -291,9 +288,8 @@ class Chapter3_HashClass extends React.Component {
              <p> However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (TODO: add some sort of preface | Can you come up with an item that would replace the dummy object?). </p>
              <VisualizedCode
                code={HASH_CLASS_SETITEM_RECYCLING_CODE}
-               breakpoints={hashClassSetItemRecyclingBreakpoints}
-               // formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
-               formatBpDesc={dummyFormat}
+               breakpoints={hashClassSetItemRecyclingBreakpoints.map(postBpTransform)}
+               formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>
     }

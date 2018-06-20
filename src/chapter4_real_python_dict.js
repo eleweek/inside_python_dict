@@ -6,7 +6,7 @@ import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
 } from './chapter3_and_4_common.js';
 
 import {
@@ -195,26 +195,26 @@ class Chapter4_RealPythonDict extends React.Component {
               <p> Insert: </p>
               <VisualizedCode
                 code={DICT32_SETITEM}
-                breakpoints={iaBreakpoints}
+                breakpoints={iaBreakpoints.map(postBpTransform)}
                 formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                 stateVisualization={HashClassInsertAllVisualization} />
               <p> Let's look at the first resize in depth: </p>
               <VisualizedCode
                 code={DICT32_RESIZE_CODE}
-                breakpoints={resize.breakpoints}
+                breakpoints={resize.breakpoints.map(postBpTransform)}
                 formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                 stateVisualization={HashClassResizeVisualization} />
 
              <p> Removing a key looks pretty much the same</p>
              <VisualizedCode
                code={DICT32_DELITEM}
-               breakpoints={diBreakpoints}
+               breakpoints={diBreakpoints.map(postBpTransform)}
                formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
              <p> Search is mostly the same </p>
              <VisualizedCode
                code={DICT32_GETITEM}
-               breakpoints={giBreakpoints}
+               breakpoints={giBreakpoints.map(postBpTransform)}
                formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
         </div>;

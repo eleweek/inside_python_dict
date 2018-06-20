@@ -312,7 +312,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
             new Slot({hashCode: this.hashCode, key: this.key, value: this.value})
         );
 
-        this.addBP('assign-slot', true);
+        this.addBP('assign-slot');
         this.addBP('check-resize');
         if (this.self.get("fill") * 3 >= this.self.get("slots").size * 2) {
             let hashClassResize = new Resize();
@@ -325,7 +325,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
                 'breakpoints': hashClassResize.getBreakpoints(),
             };
 
-            this.addBP('resize', true);
+            this.addBP('resize');
         }
         this.addBP("done-no-return");
         return this.self;
@@ -450,7 +450,6 @@ function HashClassNormalStateVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx", "targetIdx"]],
             ]
         }
-        bpTransform={postBpTransform}
         {...props}
     />;
 }
@@ -466,7 +465,6 @@ function HashClassInsertAllVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
             ]
         }
-        bpTransform={postBpTransform}
         {...props}
     />;
 }
@@ -483,7 +481,6 @@ function HashClassResizeVisualization(props) {
                 [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
             ]
         }
-        bpTransform={postBpTransform}
         {...props}
     />;
 }
@@ -499,7 +496,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
         this.oldSlots = new List();
         this.addBP("start-execution");
         this.oldSlots = this.self.get("slots");
-        this.addBP("assign-old-slots", true);
+        this.addBP("assign-old-slots");
         this.newSize = findOptimalSize(this.self.get("used"), optimalSizeQuot);
         this.addBP("compute-new-size");
 
@@ -509,7 +506,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
             slotsTemp.push(new Slot());
         }
         this.self = this.self.set("slots", new List(slotsTemp));
-        this.addBP("new-empty-slots", true);
+        this.addBP("new-empty-slots");
 
         this.self = this.self.set("fill", this.self.get("used"));
         this.addBP("assign-fill");
@@ -546,7 +543,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
             );
             console.log("SETTING");
             console.log(this.self.get("slots").toJS());
-            this.addBP('assign-slot', true);
+            this.addBP('assign-slot');
         }
         this.oldIdx = null;
         this.idx = null;
@@ -560,5 +557,5 @@ export {
     hashClassConstructor, Slot, findOptimalSize,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize
+    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
 }

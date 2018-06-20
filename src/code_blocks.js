@@ -415,9 +415,9 @@ function LineOfBoxesComponent(props) {
 
 function Tetris(props) {
     let elems = [];
-    let transformedBp = props.bpTransform ? props.bpTransform(props.bp) : props.bp;
+    const transformedBp = props.bp;
     for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
-        elems.push(<div className="tetris-row"> <div className="tetris-row-label-div"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> </div> <Component array={transformedBp[dataName]} idx={transformedBp[idxName]} idx2={transformedBp[idx2Name]} /> </div>);
+        elems.push(<div className="tetris-row"> <div className="tetris-row-label-div"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> </div> <Component array={props.bp[dataName]} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} /> </div>);
     }
 
     return <div className="tetris"> {elems} </div>
