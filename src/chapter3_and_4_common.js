@@ -22,8 +22,6 @@ function postBpTransform(bp) {
     const mapHashes = s => s.hashCode != null ? s.hashCode.toString() : null;
 
     cloned.self = cloned.self.toJS();
-    console.log("postBpTransform");
-    console.log(cloned.self);
     cloned.hashCodes = cloned.self.slots.map(mapHashes)
     cloned.keys = cloned.self.slots.map(s => s.key)
     cloned.values = cloned.self.slots.map(s => s.value)
@@ -512,9 +510,6 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
         this.addBP("assign-fill");
 
         for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
-            console.log("RESIZE oldSlots");
-            console.log(this.oldIdx);
-            console.log(this.slot);
             /* For consistency with other functions, add these names */
             this.hashCode = this.slot.hashCode;
             this.key = this.slot.key;
@@ -541,8 +536,6 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
                 ["slots", this.idx],
                 this.slot
             );
-            console.log("SETTING");
-            console.log(this.self.get("slots").toJS());
             this.addBP('assign-slot');
         }
         this.oldIdx = null;

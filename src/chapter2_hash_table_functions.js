@@ -1,9 +1,24 @@
 import * as React from 'react';
 import _ from 'lodash'
 
+import {List} from 'immutable';
 import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common.js';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks.js';
 import {JsonInput} from './inputs.js';
+
+function postBpTransform(bp) {
+    let cloned = _.clone(bp);
+    const mapHashes = hc => hc != null ? hc.toString() : null;
+
+    cloned.hashCodes = cloned.hashCodes.toJS().map(mapHashes)
+    cloned.keys = cloned.keys.toJS();
+
+    if (bp.fromkeys) {
+        cloned.fromkeys = cloned.fromKeys.toJS();
+    }
+
+    return cloned;
+}
 
 const HASH_CREATE_NEW_CODE = [
     ["def create_new(from_keys):", "start-execution", 0],
@@ -32,18 +47,18 @@ class Chapter2BreakpointFunction extends HashBreakpointFunction {
 
 class HashCreateNew extends Chapter2BreakpointFunction {
     run(_fromKeys) {
-        this.fromKeys = _fromKeys;
+        this.fromKeys = new List(_fromKeys);
 
-        this.hashCodes = [];
-        this.keys = [];
+        this.hashCodes = new List()
+        this.keys = new List();
 
-        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
-            this.hashCodes.push(null);
+        for (let i = 0; i < this.fromKeys.size * 2; ++i) {
+            this.hashCodes = this.hashCodes.push(null);
         }
         this.addBP("create-new-empty-hashes");
 
-        for (let i = 0; i < this.fromKeys.length * 2; ++i) {
-            this.keys.push(null);
+        for (let i = 0; i < this.fromKeys.size * 2; ++i) {
+            this.keys = this.keys.push(null);
         }
         this.addBP("create-new-empty-keys");
 
@@ -53,31 +68,39 @@ class HashCreateNew extends Chapter2BreakpointFunction {
             this.hashCode = pyHash(this.key);
             this.addBP('compute-hash');
 
-            this.idx = this.computeIdx(this.hashCode, this.keys.length);
+            this.idx = this.computeIdx(this.hashCode, this.keys.size);
+            console.log("computeIdx");
+            console.log(this.hashCode);
+            console.log(this.keys.size);
+            console.log(this.idx);
             this.addBP('compute-idx');
 
             while (true) {
                 this.addBP('check-collision');
-                if (this.keys[this.idx] === null) {
+                if (this.keys.get(this.idx) === null) {
                     break;
                 }
 
+                console.log("FFFF");
+                console.log(this.keys.toJS());
+                console.log(this.hashCodes.toJS());
+                console.log(this.idx);
                 this.addBP('check-dup-hash');
-                if (this.hashCodes[this.idx].eq(this.hashCode)) {
+                if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                     this.addBP('check-dup-key');
-                    if (this.keys[this.idx] == this.key) {
+                    if (this.keys.get(this.idx) == this.key) {
                         this.addBP('check-dup-break');
                         break;
                     }
                 }
 
-                this.idx = (this.idx + 1) % this.keys.length;
+                this.idx = (this.idx + 1) % this.keys.size;
                 this.addBP('next-idx');
             }
 
-            this.hashCodes[this.idx] = this.hashCode;
-            this.keys[this.idx] = this.key;
-            this.addBP('assign-elem', true);
+            this.hashCodes = this.hashCodes.set(this.idx, this.hashCode);
+            this.keys = this.keys.set(this.idx, this.key);
+            this.addBP('assign-elem');
             this.idx = null;
         }
 
@@ -233,28 +256,28 @@ const HASH_REMOVE_CODE = [
 
 class HashRemoveOrSearch extends Chapter2BreakpointFunction {
     run(_hashCodes, _keys, _key, isRemoveMode) {
-        this.hashCodes = _hashCodes;
-        this.keys = _keys;
+        this.hashCodes = new List(_hashCodes);
+        this.keys = new List(_keys);
         this.key = _key;
 
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.idx = this.computeIdx(this.hashCode, this.keys.length);
+        this.idx = this.computeIdx(this.hashCode, this.keys.size);
         this.addBP('compute-idx');
 
         while (true) {
             this.addBP('check-not-found');
-            if (this.keys[this.idx] === null) {
+            if (this.keys.get(this.idx) === null) {
                 break;
             }
 
             this.addBP('check-hash');
-            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+            if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-key');
-                if (this.keys[this.idx] == this.key) {
+                if (this.keys.get(this.idx) == this.key) {
                     if (isRemoveMode) {
-                        this.keys[this.idx] = "DUMMY";
+                        this.keys = this.keys.set(this.idx, "DUMMY");
                         this.addBP('assign-dummy');
                         this.addBP('return');
                         return;
@@ -265,7 +288,7 @@ class HashRemoveOrSearch extends Chapter2BreakpointFunction {
                 }
             }
 
-            this.idx = (this.idx + 1) % this.keys.length;
+            this.idx = (this.idx + 1) % this.keys.size;
             this.addBP('next-idx');
         }
 
@@ -306,18 +329,18 @@ class HashResize extends Chapter2BreakpointFunction {
         this.hashCodes = _hashCodes;
         this.keys = _keys;
 
-        this.newHashCodes = [];
-        this.newKeys = [];
+        this.newHashCodes = new List();
+        this.newKeys = new List();
 
         for (let i = 0; i < this.hashCodes.length * 2; ++i) {
-            this.newHashCodes.push(null);
+            this.newHashCodes = this.newHashCodes.push(null);
         }
-        this.addBP("create-new-empty-hashes", true);
+        this.addBP("create-new-empty-hashes");
 
         for (let i = 0; i < this.hashCodes.length * 2; ++i) {
-            this.newKeys.push(null);
+            this.newKeys = this.newKeys.push(null);
         }
-        this.addBP("create-new-empty-keys", true);
+        this.addBP("create-new-empty-keys");
 
         for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
             this.addBP('for-loop');
@@ -331,17 +354,17 @@ class HashResize extends Chapter2BreakpointFunction {
 
             while (true) {
                 this.addBP('check-collision');
-                if (this.newKeys[this.idx] === null) {
+                if (this.newKeys.get(this.idx) === null) {
                     break;
                 }
 
-                this.idx = (this.idx + 1) % this.newKeys.length;
+                this.idx = (this.idx + 1) % this.newKeys.size;
                 this.addBP('next-idx');
             }
 
-            this.newHashCodes[this.idx] = this.hashCode;
-            this.newKeys[this.idx] = this.key;
-            this.addBP('assign-elem', true);
+            this.newHashCodes = this.newHashCodes.set(this.idx, this.hashCode);
+            this.newKeys = this.newKeys.set(this.idx, this.key);
+            this.addBP('assign-elem');
         }
         this.oldIdx = null;
         this.key = null;
@@ -417,38 +440,38 @@ const HASH_INSERT_CODE = [
 
 class HashInsert extends Chapter2BreakpointFunction {
     run(_hashCodes, _keys, _key) {
-        this.hashCodes = _hashCodes;
-        this.keys = _keys;
+        this.hashCodes = new List(_hashCodes);
+        this.keys = new List(_keys);
         this.key = _key;
 
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.idx = this.computeIdx(this.hashCode, this.keys.length);
+        this.idx = this.computeIdx(this.hashCode, this.keys.size);
         this.addBP('compute-idx');
 
         while (true) {
             this.addBP('check-collision');
-            if (this.keys[this.idx] === null || this.keys[this.idx] === "DUMMY") {
+            if (this.keys.get(this.idx) === null || this.keys.get(this.idx) === "DUMMY") {
                 break;
             }
 
             this.addBP('check-dup-hash');
-            if (this.hashCodes[this.idx].eq(this.hashCode)) {
+            if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-dup-key');
-                if (this.keys[this.idx] == this.key) {
+                if (this.keys.get(this.idx) == this.key) {
                     this.addBP('check-dup-break');
                     break;
                 }
             }
 
-            this.idx = (this.idx + 1) % this.keys.length;
+            this.idx = (this.idx + 1) % this.keys.size;
             this.addBP('next-idx');
         }
-        this.hashCodes[this.idx] = this.hashCode;
-        this.keys[this.idx] = this.key;
+        this.hashCodes = this.hashCodes.set(this.idx, this.hashCode);
+        this.keys = this.keys.set(this.idx, this.key);
 
-        this.addBP('assign-elem', true);
+        this.addBP('assign-elem');
     }
 }
 
@@ -550,7 +573,7 @@ EMPTY = EmptyValueClass()
               <p> Now, let's see this algorithm in action. We'll use a separate list called <code>hash_codes</code> for caching values of hash functions.</p>
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
-                breakpoints={hashCreateNewBreakpoints}
+                breakpoints={hashCreateNewBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatHashCreateNewAndInsert}
                 stateVisualization={HashCreateNewStateVisualization} />
 
@@ -558,7 +581,7 @@ EMPTY = EmptyValueClass()
               <p> The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and just like with the inserting algorithm, during linear probing we compare actual objects only when hashes are equal. </p>
               <VisualizedCode
                 code={HASH_SEARCH_CODE}
-                breakpoints={hashSearchBreakpoints}
+                breakpoints={hashSearchBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatHashRemoveSearch}
                 stateVisualization={HashNormalStateVisualization} />
               
@@ -569,7 +592,7 @@ EMPTY = EmptyValueClass()
 
               <VisualizedCode
                 code={HASH_REMOVE_CODE}
-                breakpoints={hashRemoveBreakpoints}
+                breakpoints={hashRemoveBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatHashRemoveSearch}
                 stateVisualization={HashNormalStateVisualization} />
               
@@ -580,7 +603,7 @@ EMPTY = EmptyValueClass()
               <p> Now, let's see how we could resize the current table </p>
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
-                breakpoints={hashResizeBreakpoints}
+                breakpoints={hashResizeBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
               <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until a table is nearly full, the performance will severely degrade. If we resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized when it is around 66% full. </p>
