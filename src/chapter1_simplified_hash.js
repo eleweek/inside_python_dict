@@ -1,5 +1,6 @@
 import * as React from 'react';
 import _ from 'lodash'
+import {List} from 'immutable';
 
 import {BreakpointFunction} from './hash_impl_common.js';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks.js';
@@ -14,6 +15,17 @@ const SIMPLE_LIST_SEARCH = [
     ["        idx += 1", "next-idx", 1],
     ["    return False", "found-nothing", 1]
 ];
+
+function postBpTransform(bp) {
+    let cloned = _.clone(bp);
+    cloned.newList = cloned.newList.toJS();
+
+    if (bp.originalList) {
+        cloned.originalList = cloned.originalList.toJS();
+    }
+
+    return cloned;
+}
 
 function simpleListSearch(l, key) {
     let defaultBPInfo = {
@@ -100,28 +112,28 @@ class NewListCachingBreakpointFunction extends BreakpointFunction {
 class SimplifiedInsertAll extends NewListCachingBreakpointFunction {
 
     run(_originalList) {
-        this.originalList = _originalList;
-        this.newList = [];
+        this.originalList = new List(_originalList);
+        this.newList = new List();
 
-        for (let i = 0; i < this.originalList.length * 2; ++i) {
-            this.newList.push(null);
+        for (let i = 0; i < this.originalList.size * 2; ++i) {
+            this.newList = this.newList.push(null);
         }
         this.addBP('create-new-list', true);
 
         for ([this.originalListIdx, this.number] of this.originalList.entries()) {
             this.addBP('for-loop');
-            this.newListIdx = this.number % this.newList.length;
+            this.newListIdx = this.number % this.newList.size;
             this.addBP('compute-idx');
             while (true) {
                 this.addBP('check-collision');
-                if (this.newList[this.newListIdx] === null) {
+                if (this.newList.get(this.newListIdx) === null) {
                     break;
                 }
 
-                this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+                this.newListIdx = (this.newListIdx + 1) % this.newList.size;
                 this.addBP('next-idx');
             }
-            this.newList[this.newListIdx] = this.number;
+            this.newList = this.newList.set(this.newListIdx, this.number);
             this.addBP('assign-elem', true);
         }
         this.originalListIdx = null;
@@ -181,24 +193,24 @@ const SIMPLIFIED_SEARCH_CODE = [
 
 class SimplifiedSearch extends NewListCachingBreakpointFunction {
     run(_newList, _number) {
-        this.newList = _newList;
+        this.newList = new List(_newList);
         this.number = _number;
 
-        this.newListIdx = this.number % this.newList.length;
+        this.newListIdx = this.number % this.newList.size;
         this.addBP('compute-idx');
 
         while (true) {
             this.addBP('check-not-found');
-            if (this.newList[this.newListIdx] === null) {
+            if (this.newList.get(this.newListIdx) === null) {
                 break;
             }
             this.addBP('check-found');
-            if (this.newList[this.newListIdx] === this.number) {
+            if (this.newList.get(this.newListIdx) === this.number) {
                 this.addBP('found-key');
                 return true;
             }
 
-            this.newListIdx = (this.newListIdx + 1) % this.newList.length;
+            this.newListIdx = (this.newListIdx + 1) % this.newList.size;
             this.addBP('next-idx');
         }
 
@@ -295,7 +307,7 @@ class Chapter1_SimplifiedHash extends React.Component {
               <p> Let's transform the original list using this method (when reading this code, remember that <code>original_list</code> is a list of <em>distinct numbers</em>, so we don't need to handle duplicates just yet.</p>
               <VisualizedCode
                 code={SIMPLIFIED_INSERT_ALL_CODE}
-                breakpoints={simplifiedInsertAllBreakpoints}
+                breakpoints={simplifiedInsertAllBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatSimplifiedInsertAllDescription}
                 stateVisualization={SimplifiedInsertStateVisualization} />
 
@@ -305,7 +317,7 @@ class Chapter1_SimplifiedHash extends React.Component {
               Let's say we want to search for <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
               <VisualizedCode
                 code={SIMPLIFIED_SEARCH_CODE}
-                breakpoints={simplifiedSearchBreakpoints}
+                breakpoints={simplifiedSearchBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatSimplifiedSearchDescription}
                 stateVisualization={SimplifiedSearchStateVisualization} />
 
