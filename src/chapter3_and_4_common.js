@@ -395,7 +395,7 @@ class HashClassDelItem extends HashClassBreakpointFunction {
         this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
         if (this.idx !== null) {
             // did not throw exception
-            this.self.used -= 1;
+            this.self = this.self.set("used", this.self.get("used") - 1);
             this.addBP("dec-used");
             this.self = this.self.setIn(["slots", this.idx, "key"], "DUMMY");
             this.addBP("replace-key-dummy");

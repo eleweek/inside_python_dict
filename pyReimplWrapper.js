@@ -4,11 +4,13 @@ import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
 import {hashClassConstructor, Dict32SetItem, Dict32Lookdict, Dict32Resize, HashClassGetItem, HashClassDelItem} from './src/chapter4_real_python_dict'; 
+import {Slot} from './src/chapter3_and_4_common';
+import {List} from 'immutable';
 
 function restorePyDictState(state) {
     let self = hashClassConstructor();
     if (state.slots != null) {
-        self.slots = state.slots.map(slot => {
+        self = self.set("slots", new List(state.slots.map(slot => {
             let key;
             if (slot.key === null || typeof slot.key === "number" || typeof slot.key === "string") {
                 key = slot.key;
@@ -18,17 +20,17 @@ function restorePyDictState(state) {
                 throw new Error(`Unknown key ${JSON.stringify(slot.key)}`);
             }
 
-            return {
+            return Slot({
                 hashCode: new BigNumber(slot.hashCode),
                 key: key,
                 value: slot.value,
-            }
-        });
+            })
+        })));
     } else {
-        self.slots = null;
+        self = self.set("slots", null);
     }
-    self.used = state.used;
-    self.fill = state.fill;
+    self = self.set("used", state.used);
+    self = self.set("fill", state.fill);
 
     return self;
 }
@@ -36,7 +38,7 @@ function restorePyDictState(state) {
 function dumpPyDictState(self) {
     let data = {};
 
-    data.slots = self.slots.map(slot => {
+    data.slots = self.get("slots").toJS().map(slot => {
         let key;
         if (slot.key === "DUMMY") {
             key = {
@@ -52,8 +54,8 @@ function dumpPyDictState(self) {
             value: slot.value,
         }
     });
-    data.used = self.used;
-    data.fill = self.fill;
+    data.used = self.get("used");
+    data.fill = self.get("fill");
 
     return data;
 }
