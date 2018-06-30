@@ -87,7 +87,7 @@ class HashCreateNew extends Chapter2BreakpointFunction {
                 this.addBP('check-dup-hash');
                 if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                     this.addBP('check-dup-key');
-                    if (this.keys.get(this.idx) == this.key) {
+                    if (this.keys.get(this.idx) === this.key) {
                         this.addBP('check-dup-break');
                         break;
                     }
@@ -144,13 +144,13 @@ function formatHashCreateNewAndInsert(bp) {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
         case 'check-dup-hash':
-            if (bp.hashCodes[bp.idx] == bp.hashCode) {
+            if (bp.hashCodes[bp.idx] === bp.hashCode) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `<code>${bp.hashCodes[bp.idx]} != ${bp.hashCode}</code>, so there is a collision with a different key`;
             }
         case 'check-dup-key':
-            if (bp.keys[bp.idx] == bp.key) {
+            if (bp.keys[bp.idx] === bp.key) {
                 return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is already present in the table`;
             } else {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
@@ -198,13 +198,13 @@ function formatHashRemoveSearch(bp) {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied, so check it`;
             }
         case 'check-hash':
-            if (bp.hashCodes[bp.idx] == bp.hashCode) {
+            if (bp.hashCodes[bp.idx] === bp.hashCode) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
             } else {
                 return `<code>${bp.hashCodes[bp.idx]} != ${bp.hashCode}</code>, so the slot definitely contains a different key`;
             }
         case 'check-key':
-            if (bp.keys[bp.idx] == bp.key) {
+            if (bp.keys[bp.idx] === bp.key) {
                 return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is found`;
             } else {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a different key with the same hash`;
@@ -274,7 +274,7 @@ class HashRemoveOrSearch extends Chapter2BreakpointFunction {
             this.addBP('check-hash');
             if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-key');
-                if (this.keys.get(this.idx) == this.key) {
+                if (this.keys.get(this.idx) === this.key) {
                     if (isRemoveMode) {
                         this.keys = this.keys.set(this.idx, "DUMMY");
                         this.addBP('assign-dummy');
@@ -344,7 +344,7 @@ class HashResize extends Chapter2BreakpointFunction {
         for ([this.oldIdx, [this.hashCode, this.key]] of this.hashCodes.zip(this.keys).entries()) {
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
-            if (this.key === null || this.key == "DUMMY") {
+            if (this.key === null || this.key === "DUMMY") {
                 this.addBP('continue');
                 continue;
             }
@@ -387,7 +387,7 @@ function formatHashResize(bp) {
         case 'check-skip-empty-dummy':
             if (bp.keys[bp.oldIdx] === null) {
                 return `The current slot is empty`;
-            } else if (bp.keys[bp.oldIdx] == "DUMMY") {
+            } else if (bp.keys[bp.oldIdx] === "DUMMY") {
                 return `The current slot contains DUMMY placeholder`;
             } else {
                 return `The current slot is occupied by a non-removed key`;
@@ -458,7 +458,7 @@ class HashInsert extends Chapter2BreakpointFunction {
             this.addBP('check-dup-hash');
             if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-dup-key');
-                if (this.keys.get(this.idx) == this.key) {
+                if (this.keys.get(this.idx) === this.key) {
                     this.addBP('check-dup-break');
                     break;
                 }

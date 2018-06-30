@@ -48,7 +48,7 @@ function simpleListSearch(l, key) {
         if (idx >= l.length) {
             break;
         }
-        if (l[idx] == key) {
+        if (l[idx] === key) {
             breakpoints.push(newBP('check-found', idx, {'found': true}));
             breakpoints.push(newBP('found-key', idx));
 
@@ -76,10 +76,10 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
         case 'check-boundary':
             return (bp.idx < bp.size
                     ? `<code>${bp.idx} < ${bp.size}</code>, so some elements are not processed`
-                    : `<code>${bp.idx} == ${bp.size}</code>, so all elements are processed`);
+                    : `<code>${bp.idx} === ${bp.size}</code>, so all elements are processed`);
         case 'check-found':
             return (bp.found
-                    ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the searched key is found`
+                    ? `<code>${bp.atIdx} === ${bp.arg}</code> &mdash; the searched key is found`
                     : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the searched key is not found so far`);
         case 'found-key':
             return `The searched key <code>${bp.arg}</code> is found, so return <code>True</code>`
