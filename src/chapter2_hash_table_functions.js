@@ -2,7 +2,7 @@ import * as React from 'react';
 import _ from 'lodash'
 
 import {List} from 'immutable';
-import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common';
+import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {JsonInput} from './inputs';
 import {MySticky} from './util';
@@ -276,7 +276,7 @@ class HashRemoveOrSearch extends Chapter2BreakpointFunction {
                 this.addBP('check-key');
                 if (this.keys.get(this.idx) === this.key) {
                     if (isRemoveMode) {
-                        this.keys = this.keys.set(this.idx, "DUMMY");
+                        this.keys = this.keys.set(this.idx, DUMMY);
                         this.addBP('assign-dummy');
                         this.addBP('return');
                         return;
@@ -344,7 +344,7 @@ class HashResize extends Chapter2BreakpointFunction {
         for ([this.oldIdx, [this.hashCode, this.key]] of this.hashCodes.zip(this.keys).entries()) {
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
-            if (this.key === null || this.key === "DUMMY") {
+            if (this.key === null || this.key === DUMMY) {
                 this.addBP('continue');
                 continue;
             }
@@ -387,7 +387,7 @@ function formatHashResize(bp) {
         case 'check-skip-empty-dummy':
             if (bp.keys[bp.oldIdx] === null) {
                 return `The current slot is empty`;
-            } else if (bp.keys[bp.oldIdx] === "DUMMY") {
+            } else if (bp.keys[bp.oldIdx] === DUMMY) {
                 return `The current slot contains DUMMY placeholder`;
             } else {
                 return `The current slot is occupied by a non-removed key`;
@@ -451,7 +451,7 @@ class HashInsert extends Chapter2BreakpointFunction {
 
         while (true) {
             this.addBP('check-collision');
-            if (this.keys.get(this.idx) === null || this.keys.get(this.idx) === "DUMMY") {
+            if (this.keys.get(this.idx) === null || this.keys.get(this.idx) === DUMMY) {
                 break;
             }
 

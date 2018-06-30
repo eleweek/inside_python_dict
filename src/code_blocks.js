@@ -109,9 +109,9 @@ class BoxesBase {
         // TODO: Refactor?
         let startY = 0;
         let endY = 0;
-        if (type == "added") {
+        if (type === "added") {
             startY = -this.boxSize;
-        } else if (type == "removed") {
+        } else if (type === "removed") {
             endY = -this.boxSize;
         }
         $box.css({top: 0, left: 0});
@@ -122,43 +122,8 @@ class BoxesBase {
             let changeId = this.changeId;
             $box.attr("data-change-id", changeId);
             this.changeId++;
-            if ($box.attr('data-value') == 9) {
-                console.log("SETTING UP");
-                console.log("type");
-                console.log(type);
-                console.log("changeId");
-                console.log(changeId);
-                console.log($box);
-                console.log($box.attr('data-value'));
-                console.log("idx = ", idx);
-                console.log(endX);
-                console.log(endY);
-                console.log('data-change-id');
-                console.log($box.attr('data-change-id'));
-            }
             doubleRAF(() => {
-                if ($box.attr('data-value') == 9) {
-                    console.log("type");
-                    console.log(type);
-                    console.log("changeId");
-                    console.log(changeId);
-                    console.log($box);
-                    console.log($box.attr('data-value'));
-                    console.log("idx = ", idx);
-                    console.log(endX);
-                    console.log(endY);
-                    console.log('data-change-id');
-                    console.log($box.attr('data-change-id'));
-                }
                 if ($box.attr('data-change-id') == changeId) {
-                    if ($box.attr('data-value') == 9) {
-                        console.log("Changing");
-                        console.log($box);
-                        console.log($box.attr('data-value'));
-                        console.log("idx = ", idx);
-                        console.log(endX);
-                        console.log(endY);
-                    }
                     $box.css("transform", `translate(${endX}px, ${endY}px)`);
                 }
             });
@@ -180,9 +145,13 @@ class BoxesBase {
         // TODO: unhardcode class names?
         let $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
-            $box.html('<span class="box-content">' + shortenValue(value) + '</span>');
-            $box.attr('data-value', value);
+            console.log(value.toString());
+            console.log("Box content");
+            console.log(shortenValue(value.toString()));
+            $box.html('<span class="box-content">' + shortenValue(value.toString()) + '</span>');
+            $box.attr('data-value', value.toString());
             $box.addClass(this.FULL);
+            console.log($box);
         } else {
             $box.addClass(this.EMPTY);
         }
@@ -383,10 +352,10 @@ class BoxesWrapperComponent extends React.Component {
 
     changeActiveBoxes(idx, idx2) {
         this.boxes.removeAllActive();
-        if (idx !== null && idx !== undefined) {
+        if (idx != null) {
             this.boxes.makeActive(idx, 0);
         }
-        if (idx2 !== null && idx2 !== undefined) {
+        if (idx2 != null) {
             this.boxes.makeActive(idx2, 1);
         }
     }
@@ -473,7 +442,7 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
     for (let [line, bpPoint] of props.code) {
         let className = activeBp.point;
         let explanation = "";
-        if (bpPoint == activeBp.point) {
+        if (bpPoint === activeBp.point) {
             className += " code-highlight";
         }
 

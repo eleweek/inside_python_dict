@@ -7,8 +7,7 @@ import {
     SimpleCodeBlock, VisualizedCode, dummyFormat
 } from './code_blocks';
 
-import {HashBreakpointFunction, pyHash} from './hash_impl_common';
-
+import {HashBreakpointFunction, pyHash, DUMMY} from './hash_impl_common';
 
 class HashClassBreakpointFunction extends HashBreakpointFunction {
     constructor(converters, rarelyUpdatedFields={}) {
@@ -112,7 +111,7 @@ function formatHashClassSetItemAndCreate(bp) {
             const slotKey = bp.self.slots[bp.idx].key;
             if (bp.targetIdx !== null) {
                 return `<code>target_idx == ${bp.targetIdx}</code> - we have already found a dummy slot that we may replace`;
-            } else if (slotKey !== "DUMMY") {
+            } else if (slotKey !== DUMMY) {
                 return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${slotKey}, i.e. not dummy</code>`;
             } else {
                 return `We found the first dummy slot,`;
@@ -140,7 +139,7 @@ function formatHashClassSetItemAndCreate(bp) {
         case 'inc-fill':
             return `and increment fill, which makes it <code>${bp.self.fill}</code>`;
         case 'check-recycle-used-increased':
-            return `If we're putting the item in dummy slot ` + (bp.self.slots[bp.targetIdx].key === "DUMMY" ? "(and we are)" : "(and we aren't)");
+            return `If we're putting the item in dummy slot ` + (bp.self.slots[bp.targetIdx].key === DUMMY ? "(and we are)" : "(and we aren't)");
         case 'assign-slot':
             return `Put the item in the slot <code>${bp.targetIdx}</code>`;
         case 'check-resize': {
@@ -184,7 +183,7 @@ function formatHashClassResize(bp) {
             const slotKey = bp.oldSlots[bp.oldIdx].key;
             if (slotKey === null) {
                 return `The current slot is empty`;
-            } else if (slotKey === "DUMMY") {
+            } else if (slotKey === DUMMY) {
                 return `The current slot contains DUMMY placeholder`;
             } else {
                 return `The current slot is a normal slot containing an item`;
@@ -264,7 +263,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
 
             if (useRecycling) {
                 this.addBP('check-should-recycle');
-                if (this.targetIdx === null && this.self.get("slots").get(this.idx).key === "DUMMY") {
+                if (this.targetIdx === null && this.self.get("slots").get(this.idx).key === DUMMY) {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-recycle');
                 }
@@ -295,7 +294,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
         } else {
             if (useRecycling) {
                 this.addBP('check-recycle-used-increased');
-                if (this.self.get("slots").get(this.targetIdx).key === "DUMMY") {
+                if (this.self.get("slots").get(this.targetIdx).key === DUMMY) {
                     this.self = this.self.set(
                         "used",
                         this.self.get("used") + 1
@@ -397,7 +396,7 @@ class HashClassDelItem extends HashClassBreakpointFunction {
             // did not throw exception
             this.self = this.self.set("used", this.self.get("used") - 1);
             this.addBP("dec-used");
-            this.self = this.self.setIn(["slots", this.idx, "key"], "DUMMY");
+            this.self = this.self.setIn(["slots", this.idx, "key"], DUMMY);
             this.addBP("replace-key-dummy");
             this.self = this.self.setIn(["slots", this.idx, "value"], null);
             this.addBP("replace-value-empty");
@@ -517,7 +516,7 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
 
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
-            if (this.slot.key === null || this.slot.key === "DUMMY") {
+            if (this.slot.key === null || this.slot.key === DUMMY) {
                 this.addBP('continue');
                 continue;
             }

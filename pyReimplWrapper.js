@@ -3,6 +3,7 @@ const split = require('split');
 import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
+import {DUMMY} from './src/hash_impl_common'; 
 import {hashClassConstructor, Dict32SetItem, Dict32Lookdict, Dict32Resize, HashClassGetItem, HashClassDelItem} from './src/chapter4_real_python_dict'; 
 import {Slot} from './src/chapter3_and_4_common';
 import {List} from 'immutable';
@@ -14,8 +15,8 @@ function restorePyDictState(state) {
             let key;
             if (slot.key === null || typeof slot.key === "number" || typeof slot.key === "string") {
                 key = slot.key;
-            } else if (typeof slot.key === "object" && slot.key.type == "DUMMY") {
-                key = "DUMMY"; 
+            } else if (typeof slot.key === "object" && slot.key.type === "DUMMY") {
+                key = DUMMY; 
             } else {
                 throw new Error(`Unknown key ${JSON.stringify(slot.key)}`);
             }
@@ -40,7 +41,7 @@ function dumpPyDictState(self) {
 
     data.slots = self.get("slots").toJS().map(slot => {
         let key;
-        if (slot.key === "DUMMY") {
+        if (slot.key === DUMMY) {
             key = {
                 type: "DUMMY",
             }

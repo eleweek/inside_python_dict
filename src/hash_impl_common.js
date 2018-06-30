@@ -249,6 +249,22 @@ class HashBreakpointFunction extends BreakpointFunction {
     }
 }
 
+class DummyClass {
+    toString() {
+        return "DUMMY";
+    }
+}
+
+class EmptyClass {
+    toString() {
+        return "EMPTY";
+    }
+}
+
+const DUMMY = new DummyClass();
+const EMPTY = new EmptyClass();
+
+
 export {
-    pyHash, pyHashString, pyHashInt, BreakpointFunction, HashBreakpointFunction
+    pyHash, pyHashString, pyHashInt, BreakpointFunction, HashBreakpointFunction, DUMMY, EMPTY
 }
