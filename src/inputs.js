@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash'
 
 class JsonInput extends React.Component {
     constructor(props) {
@@ -8,6 +9,7 @@ class JsonInput extends React.Component {
         this.state = {
             value: JSON.stringify(this.props.value)
         }
+        this.propsOnChangeDebounced = _.debounce(this.propsOnChange, 50);
     }
 
     handleChange = event => {
@@ -16,11 +18,16 @@ class JsonInput extends React.Component {
                 value: event.target.value
             })
             let value = JSON.parse(event.target.value);
-            this.props.onChange(value);
+            console.log("Calling onChangeDebounced");
+            this.propsOnChangeDebounced(value);
         } catch (e) {
             // TODO: add error?
             return;
         }
+    }
+
+    propsOnChange = value => {
+        this.props.onChange(value);
     }
 
     render() {

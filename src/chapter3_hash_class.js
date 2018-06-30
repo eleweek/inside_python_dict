@@ -153,7 +153,6 @@ class Chapter3_HashClass extends React.Component {
         this.state = {
             hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
-        this.handleInputChangeDebounced = _.debounce(this.handleInputChange, 50);
     }
 
     handleInputChange = value => {
@@ -249,7 +248,7 @@ class Chapter3_HashClass extends React.Component {
 
               <p> Let's say we want to create an almost-dict from the following pairs: </p>
               <MySticky bottomBoundary=".chapter3">
-                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChangeDebounced} />
+                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChange} />
               </MySticky>
 
               <VisualizedCode

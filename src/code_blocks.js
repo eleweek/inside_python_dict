@@ -145,13 +145,9 @@ class BoxesBase {
         // TODO: unhardcode class names?
         let $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
         if (value !== null) {
-            console.log(value.toString());
-            console.log("Box content");
-            console.log(shortenValue(value.toString()));
             $box.html('<span class="box-content">' + shortenValue(value.toString()) + '</span>');
             $box.attr('data-value', value.toString());
             $box.addClass(this.FULL);
-            console.log($box);
         } else {
             $box.addClass(this.EMPTY);
         }

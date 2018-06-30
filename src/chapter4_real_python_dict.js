@@ -13,6 +13,9 @@ import {
     VisualizedCode
 } from './code_blocks';
 
+import {JsonInput} from './inputs';
+import {MySticky} from './util';
+
 function signedToUnsigned(num) {
 	if (num.lt(0)) {
         return num.plus(BigNumber(2).pow(64));
@@ -148,9 +151,12 @@ class Chapter4_RealPythonDict extends React.Component {
         super();
 
         this.state = {
-            exampleArray: ["abde","cdef","world","hmmm","hello","xxx","ya","hello,world!","well","meh"],
             hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
+    }
+
+    handleInputChange = value => {
+        this.setState({hashClassOriginalPairs: value})
     }
 
     render() {
@@ -192,6 +198,11 @@ class Chapter4_RealPythonDict extends React.Component {
               <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. The only thing we need to add is handling of values, which is not that difficult. </p>
               <h5> Python 3.2's dict </h5>
               <p> Let's see how this dict can be implemented. </p>
+
+              <p> Let's say we want to create a python dict from the followin pairs: </p>
+              <MySticky bottomBoundary=".chapter4">
+                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChange} />
+              </MySticky>
               <p> Insert: </p>
               <VisualizedCode
                 code={DICT32_SETITEM}
