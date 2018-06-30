@@ -7,7 +7,7 @@ h1,h2,h3,h4,h5,h6 {
   font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
 }
 
-code {
+code, .json-input {
   font-family: "Roboto Mono", monospace;
   font-display: optional;
 }
@@ -16,6 +16,10 @@ p,a,li,blockquote {
   font-family: "Roboto", "Helvetica", sans-serif;
   font-display: optional;
   font-weight: 400;
+}
+
+.json-input {
+    font-size: 14px;
 }
 
 .array-vis,

@@ -24,7 +24,7 @@ class JsonInput extends React.Component {
     }
 
     render() {
-        let className = this.props.inline ? "form-control fc-inline" : "form-control";
+        let className = this.props.inline ? "json-input form-control fc-inline" : "json-input form-control";
         return <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />;
     }
 }
