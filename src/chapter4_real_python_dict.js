@@ -177,7 +177,7 @@ class Chapter4_RealPythonDict extends React.Component {
         return <div className="chapter chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Now it is (finally!) time to explore how the dict works in python! </p>
-              TODO: a few sentances about the chapter
+              <p> TODO: a few sentences about the chapter </p>
               <p> This explanation is about the dict in CPython (the most popular, "default", implementation of python). The implementation of dict in CPython has evolved over time. The dict stayed pretty much the same from version 2.7 to version 3.2 </p>
               <p> In 3.3, however, there were major changes to the internal structure of dicts (<a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't get the same hash() for the same object if you relaunched the python interpreter (object hashes are still stable within the same "run").</p> 
               <p> In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>. </p>
@@ -188,7 +188,7 @@ class Chapter4_RealPythonDict extends React.Component {
               <h5> Probing algorithm</h5>
               <p> The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions. </p>
               <p> It is also fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys this "clump" is prone to growing. Large "clumps" are detrimental of performance. There is a nice metaphor by Robert Lafore: it's like the crowd that gathers when someone faints at the shopping mall. The first arrivals come because they saw the victim fall; later arrivals gather because they wondered what everyone else was looking at. The larger the crowd grows, the more people are attracted to it. <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing"> From: stackoverflow. </a> </p>
-              TODO 
+              <p> TODO </p>
               <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. The only thing we need to add is handling of values, which is not that difficult. </p>
               <h5> Python 3.2's dict </h5>
               <p> Let's see how this dict can be implemented. </p>

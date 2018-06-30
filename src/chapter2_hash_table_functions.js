@@ -539,7 +539,7 @@ class Chapter2_HashTableFunctions extends React.Component {
         return <div className="chapter chapter2">
               <h2> Chapter 2. Why are hash tables called hash tables? </h2>
               <p> Now that we have the solution for searching in a list of numbers, can we use this for non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects are turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, for performance reasons it is desirable to usually get distinct numbers for distinct objects. The transformation also needs to be completely predictable and deterministic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during a search. </p>
-              <p> Functions that do this kind of transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
+              <p> Functions that do this kind of transformation are called <em>hash functions</em>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
               <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single interface: python function <code>hash()</code>. This python function can take any python object as an input and call an appropriate implementation (if it exists). </p> 
               <HashExamples />
               <p> As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should. One major exception is integers, you can notice that <code>hash(x) == x</code> for small numbers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
@@ -610,11 +610,11 @@ EMPTY = EmptyValueClass()
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
               <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until a table is nearly full, the performance will severely degrade. If we resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized when it is around 66% full. </p>
-              TODO: load factor or fill factor?
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <strong>fill</strong>. The ratio between fill and table size is called the <strong>fill factor</strong>. So, using the new terms, we can say that a hash table is resized when the fill factor reaches 66%. By what factor should the size change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x, 4x discussed before</p>
+              <p> TODO: load factor or fill factor?</p>
+              <p> The number of non-empty slots (including dummy/tombstone slots) is called <em>fill</em>. The ratio between fill and table size is called the <em>fill factor</em>. So, using the new terms, we can say that a hash table is resized when the fill factor reaches 66%. By what factor should the size change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x, 4x discussed before</p>
               <p> To implement this efficiently, we need to track the fill factor. So, we will need two counters for tracking fill and usage. With the current code structure, tracking these counters would be messy because we would need to pass these counters to and from every function. A much cleaner solution would be using classes. </p>
               // TODO: remove this sentence? <p> A separate insertion function would need to check for fill factor and do resizing. </p>
-              TODO: maybe insert HASH_INSERT_CODE here?
+              <p> TODO: maybe insert HASH_INSERT_CODE here?</p>
         </div>;
     }
 }

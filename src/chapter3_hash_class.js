@@ -187,8 +187,8 @@ class Chapter3_HashClass extends React.Component {
         let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
 
         return <div className="chapter chapter3">
-              TODO: check used grammar thing
-              TODO: check articles for python dict / the python dict / a python dict / the implementation of (a) python dict
+              <p> TODO: check used grammar thing </p>
+              <p> TODO: check articles for python dict / the python dict / a python dict / the implementation of (a) python dict </p>
               <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
               <p> We now have all the building blocks that allow us to make <em>something like a python dict</em>. In this section, we'll make functions track the <code>fill</code> and <code>used</code> counters, so we know when a table overflows. We will also handle values (in addition to keys) and make a class that supports all basic operations from <code>dict</code>. On the inside, this class would work differently from the actual implementation of python dict. In the following chapter we will turn this code into python 3.2's version of dict by making changes to the probing algorithm. </p>
               <p> This section assumes you have a basic understanding of <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a> and how classes work in python. We will use classes to bundle data and functions together. Magic methods are special methods for "overloading" operators. So we can write <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets just look nicer. </p>
@@ -247,7 +247,7 @@ class Chapter3_HashClass extends React.Component {
 `}
               </SimpleCodeBlock>
               <p> This code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way. This means that the table could potentially shrink if most slots are filled with dummy placeholders. </p>
-              TODO: nice component displaying the relationship between fill/used ?
+              <p> TODO: nice component displaying the relationship between fill/used ?</p>
 
               <p> Let's say we want to create an almost-dict from the following pairs: </p>
               <MySticky bottomBoundary=".chapter3">
@@ -284,8 +284,8 @@ class Chapter3_HashClass extends React.Component {
              
              <p> So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss a cool trick for inserting new items. </p> 
              <h5> Recycling dummy keys. </h5> 
-             TODO: check dummy keys / dummy elements / dummy slots terminology
-             TODO: inserting a key / inserting an element / inserting a pair / inserting an item
+             <p> TODO: check dummy keys / dummy elements / dummy slots terminology</p>
+             <p>TODO: inserting a key / inserting an element / inserting a pair / inserting an item</p>
              <p> Dummy keys are used as placeholders. The main purpose of a dummy slot is to prevent a probing algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by something, be it a dummy slot or a normal slot. This means that while inserting an item, if we end up hitting a dummy slot, we can put the item in that dummy slot (assuming the key does not exist elsewhere in the dictionary). So, we still need to do a full look up, but we will also save an index of the first dummy slot to <code>target_idx</code> (if we encounter it). If we find that a key already exists, we save the index to <code>target_idx</code>. If we find neither a dummy slot, nor the key, then we just insert it in the first empty slot - as we did before. </p>
              <p> In the absence of dummy slots, the code works exactly the same. So, even though we built the table with a simpler version of <code>__setitem__</code>, it would look exactly the same. </p>
              <p> However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (TODO: add some sort of preface | Can you come up with an item that would replace the dummy object?). </p>
