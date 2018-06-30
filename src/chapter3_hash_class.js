@@ -1,21 +1,22 @@
 import * as React from 'react';
 import _ from 'lodash'
 
-import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
+import {HashBreakpointFunction, pyHash} from './hash_impl_common';
 
 import {
     hashClassConstructor,
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
     formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
-} from './chapter3_and_4_common.js';
+} from './chapter3_and_4_common';
 
 import {
     HashBoxesComponent, LineOfBoxesComponent, Tetris,
     SimpleCodeBlock, VisualizedCode, dummyFormat
-} from './code_blocks.js';
+} from './code_blocks';
 
-import {JsonInput} from './inputs.js';
+import {JsonInput} from './inputs';
+import {MySticky} from './util';
 
 let chapter3Extend = (Base) => class extends Base {
     computeIdxAndSave(hashCode, len) {
@@ -185,7 +186,7 @@ class Chapter3_HashClass extends React.Component {
         hashClassSelf = hashClassSetItemRecycling.run(hashClassSelf, "recycling", 499, true, HashClassResize, 2);
         let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
 
-        return <div className="chapter3">
+        return <div className="chapter chapter3">
               TODO: check used grammar thing
               TODO: check articles for python dict / the python dict / a python dict / the implementation of (a) python dict
               <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
@@ -249,7 +250,9 @@ class Chapter3_HashClass extends React.Component {
               TODO: nice component displaying the relationship between fill/used ?
 
               <p> Let's say we want to create an almost-dict from the following pairs: </p>
-              <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChangeDebounced} />
+              <MySticky bottomBoundary=".chapter3">
+                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChangeDebounced} />
+              </MySticky>
 
               <VisualizedCode
                 code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
@@ -291,7 +294,7 @@ class Chapter3_HashClass extends React.Component {
                breakpoints={hashClassSetItemRecyclingBreakpoints.map(postBpTransform)}
                formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
-        </div>
+        </div>;
     }
 }
 

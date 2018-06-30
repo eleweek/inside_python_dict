@@ -7,11 +7,11 @@ import {
     HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
     HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
     formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
-} from './chapter3_and_4_common.js';
+} from './chapter3_and_4_common';
 
 import {
     VisualizedCode
-} from './code_blocks.js';
+} from './code_blocks';
 
 function signedToUnsigned(num) {
 	if (num.lt(0)) {
@@ -174,7 +174,7 @@ class Chapter4_RealPythonDict extends React.Component {
         gi.run(dict32Self, 42, Dict32Lookdict);
         let giBreakpoints = gi.getBreakpoints();
 
-        return <div className="chapter4">
+        return <div className="chapter chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
               <p> Now it is (finally!) time to explore how the dict works in python! </p>
               TODO: a few sentances about the chapter

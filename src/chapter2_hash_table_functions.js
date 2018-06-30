@@ -2,9 +2,10 @@ import * as React from 'react';
 import _ from 'lodash'
 
 import {List} from 'immutable';
-import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common.js';
-import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks.js';
-import {JsonInput} from './inputs.js';
+import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction} from './hash_impl_common';
+import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
+import {JsonInput} from './inputs';
+import {MySticky} from './util';
 
 function postBpTransform(bp) {
     let cloned = _.clone(bp);
@@ -535,7 +536,7 @@ class Chapter2_HashTableFunctions extends React.Component {
         let hi = new HashInsert();
         hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
         let hashInsertBreakpoints = hi.getBreakpoints();
-        return <div className="chapter2">
+        return <div className="chapter chapter2">
               <h2> Chapter 2. Why are hash tables called hash tables? </h2>
               <p> Now that we have the solution for searching in a list of numbers, can we use this for non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects are turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, for performance reasons it is desirable to usually get distinct numbers for distinct objects. The transformation also needs to be completely predictable and deterministic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during a search. </p>
               <p> Functions that do this kind of transformation are called <strong>hash functions</strong>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
@@ -551,7 +552,9 @@ class Chapter2_HashTableFunctions extends React.Component {
               <h5> Using hash functions for hash tables </h5>
               <p> Recall that we started with a simple problem: searching efficiently in a list of distinct numbers. Now, let's make this problem harder: our hash table needs to support types other than integers, handle duplicates and support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
               <p> Let's say we have a mixed list of strings and integers: </p>
-              <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
+              <MySticky bottomBoundary=".chapter2">
+                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
+              </MySticky>
 
               TODO: move the next sentence somewhere: 
               <p> Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>

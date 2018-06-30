@@ -5,9 +5,9 @@ import {Map, List, Record} from 'immutable';
 import {
     HashBoxesComponent, LineOfBoxesComponent, Tetris,
     SimpleCodeBlock, VisualizedCode, dummyFormat
-} from './code_blocks.js';
+} from './code_blocks';
 
-import {HashBreakpointFunction, pyHash} from './hash_impl_common.js';
+import {HashBreakpointFunction, pyHash} from './hash_impl_common';
 
 
 class HashClassBreakpointFunction extends HashBreakpointFunction {

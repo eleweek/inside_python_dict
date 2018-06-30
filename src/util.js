@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import {ErrorBoundary} from 'react-error-boundary';
+import Sticky from 'react-stickynode';
 
 function MyFallbackComponent({componentStack, error}) {
   return <div style={{backgroundColor: "pink"}}>
@@ -20,3 +21,9 @@ export function MyErrorBoundary(props) {
       {props.children}
     </ErrorBoundary>
 };
+
+export function MySticky(props) {
+    return <Sticky innerZ={10} bottomBoundary={props.bottomBoundary}>
+        {props.children}
+    </Sticky>;
+}
