@@ -1,3 +1,23 @@
+/* TODO: integrate with webpack? e.g. google-fonts-webpack-plugin */
+@import url(https://fonts.googleapis.com/css?family=Montserrat:700|Roboto:400,400italic,700|Roboto+Mono:400,700);
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
+}
+
+code {
+  font-family: "Roboto Mono", monospace;
+  font-display: optional;
+}
+
+p,a,li,blockquote {
+  font-family: "Roboto", "Helvetica", sans-serif;
+  font-display: optional;
+  font-weight: 400;
+}
+
 .array-vis,
 .hash-vis {
     width: 100%;
