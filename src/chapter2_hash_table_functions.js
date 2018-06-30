@@ -14,8 +14,14 @@ function postBpTransform(bp) {
     cloned.hashCodes = cloned.hashCodes.toJS().map(mapHashes)
     cloned.keys = cloned.keys.toJS();
 
-    if (bp.fromkeys) {
-        cloned.fromkeys = cloned.fromKeys.toJS();
+    if (bp.fromKeys) {
+        cloned.fromKeys = cloned.fromKeys.toJS();
+    }
+    if (bp.newHashCodes) {
+        cloned.newHashCodes = cloned.newHashCodes.toJS();
+    }
+    if (bp.newKeys) {
+        cloned.newKeys = cloned.newKeys.toJS();
     }
 
     return cloned;
@@ -70,10 +76,6 @@ class HashCreateNew extends Chapter2BreakpointFunction {
             this.addBP('compute-hash');
 
             this.idx = this.computeIdx(this.hashCode, this.keys.size);
-            console.log("computeIdx");
-            console.log(this.hashCode);
-            console.log(this.keys.size);
-            console.log(this.idx);
             this.addBP('compute-idx');
 
             while (true) {
@@ -82,10 +84,6 @@ class HashCreateNew extends Chapter2BreakpointFunction {
                     break;
                 }
 
-                console.log("FFFF");
-                console.log(this.keys.toJS());
-                console.log(this.hashCodes.toJS());
-                console.log(this.idx);
                 this.addBP('check-dup-hash');
                 if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                     this.addBP('check-dup-key');
@@ -333,24 +331,24 @@ class HashResize extends Chapter2BreakpointFunction {
         this.newHashCodes = new List();
         this.newKeys = new List();
 
-        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+        for (let i = 0; i < this.hashCodes.size * 2; ++i) {
             this.newHashCodes = this.newHashCodes.push(null);
         }
         this.addBP("create-new-empty-hashes");
 
-        for (let i = 0; i < this.hashCodes.length * 2; ++i) {
+        for (let i = 0; i < this.hashCodes.size * 2; ++i) {
             this.newKeys = this.newKeys.push(null);
         }
         this.addBP("create-new-empty-keys");
 
-        for ([this.oldIdx, [this.hashCode, this.key]] of _.zip(this.hashCodes, this.keys).entries()) {
+        for ([this.oldIdx, [this.hashCode, this.key]] of this.hashCodes.zip(this.keys).entries()) {
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
             if (this.key === null || this.key == "DUMMY") {
                 this.addBP('continue');
                 continue;
             }
-            this.idx = this.computeIdx(this.hashCode, this.newKeys.length);
+            this.idx = this.computeIdx(this.hashCode, this.newKeys.size);
             this.addBP('compute-idx');
 
             while (true) {
@@ -556,9 +554,9 @@ class Chapter2_HashTableFunctions extends React.Component {
                 <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </MySticky>
 
-              TODO: move the next sentence somewhere: 
+              <p> TODO: move the next sentence somewhere: </p>
               <p> Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>
-              TODO: explain that "hashes" is short for "hash function values"
+              <p> TODO: explain that "hashes" is short for "hash function values" </p>
 
               <h5> How does using hash functions change the insertion algorithm? </h5>
               <p> Obviously, we have to use <code>hash()</code> function to convert objects into integers for indexing. </p> 

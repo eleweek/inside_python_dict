@@ -39,8 +39,6 @@ function formatHashClassChapter3IdxRelatedBp(bp) {
         case 'compute-hash':
             return `Compute hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            console.log("BP = ");
-            console.log(bp);
             return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code> (${bp._prevBp.idx} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
