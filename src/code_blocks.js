@@ -305,7 +305,7 @@ function Box(props) {
     let key;
     if (value != null) {
         classes.push("box-full");
-        content = <span class="box-content">{shortenObj(value.toString())}</span>;
+        content = <span className="box-content">{shortenObj(value.toString())}</span>;
         key = value.toString(); // TODO
     } else {
         classes.push("box-empty");
@@ -313,8 +313,12 @@ function Box(props) {
     }
     return (
         <Transition
+          mountOnEnter={true}
+          unmountOnExit={true}
+          appear={true}
           timeout={1000}
           onEnter={reflow}
+          onEntering={reflow}
           {...transitionProps}
         >
             {
@@ -322,9 +326,9 @@ function Box(props) {
                     let y = 0;
                     console.log(state);
                     switch (state) {
-                        case 'entering':
-                            y = -BOX_SIZE;
+                        case 'unmounted': // TODO distinguish between exiting and entering?
                             classes.push("box-just-added");
+                            y = -BOX_SIZE;
                         case 'exiting':
                             y = -BOX_SIZE;
                             classes.push("box-removed");
@@ -335,7 +339,7 @@ function Box(props) {
                     let style = {
                         transform: `translate(${x}px, ${y}px)`
                     };
-                    return <div key={key} style={style} className={classNames(classes)}>
+                    return <div style={style} className={classNames(classes)}>
                       {content}
                     </div>;
 
@@ -349,7 +353,13 @@ class HashBoxesComponent extends React.Component {
     render() {
         let boxes = [];
         for (let [i, value] of this.props.array.entries()) {
-            boxes.push(<Box idx={i} value={value} />);
+            let key;
+            if (value != null) {
+                key = value.toString(); // TODO
+            } else {
+                key = `empty-${i}`
+            }
+            boxes.push(<Box idx={i} value={value} key={key} />);
         }
 
         return <div className="clearfix hash-vis"><TransitionGroup component={null} appear={true}>{boxes}</TransitionGroup></div>;
