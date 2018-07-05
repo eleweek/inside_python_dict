@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import classNames from 'classnames';
 import $ from 'jquery';
 import * as React from 'react';
 
@@ -14,6 +15,10 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 
 import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
+import {
+    Transition,
+    TransitionGroup,
+} from 'react-transition-group';
 
 import {MyErrorBoundary} from './util';
 
@@ -21,6 +26,10 @@ function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(callback);
     });
+}
+
+function reflow(node) {
+    node.scrollTop;
 }
 
 function renderPythonCode(codeString) {
@@ -132,7 +141,7 @@ class BoxesBase {
     }
 
     makeNewBox(value) {
-        let shortenValue = function(value) {
+        let shortenValue = (value) => {
             // TODO: better way + add hover
             let s = value.toString();
             if (s.length <= 13) {
@@ -156,6 +165,8 @@ class BoxesBase {
     }
 
     addBox(idx, value) {
+        console.log("addBox");
+        console.log(value);
         let $box = this.makeNewBox(value);
 
         this.$updatedBoxDivs[idx] = $box;
@@ -275,6 +286,76 @@ class HashBoxes extends BoxesBase {
     }
 }
 
+const BOX_SIZE = 40;
+
+function Box(props) {
+    let shortenObj = value => {
+        // TODO: better way + add hover
+        let s = value.toString();
+        if (s.length <= 13) {
+            return s;
+        }
+
+        return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 5, s.length - 1);
+    }
+
+    const {value, idx, ...transitionProps} = props;
+    let classes = ["box", "box-animated"];
+    let content;
+    let key;
+    if (value != null) {
+        classes.push("box-full");
+        content = <span class="box-content">{shortenObj(value.toString())}</span>;
+        key = value.toString(); // TODO
+    } else {
+        classes.push("box-empty");
+        key = `empty-${idx}`
+    }
+    return (
+        <Transition
+          timeout={1000}
+          onEnter={reflow}
+          {...transitionProps}
+        >
+            {
+                state => {
+                    let y = 0;
+                    console.log(state);
+                    switch (state) {
+                        case 'entering':
+                            y = -BOX_SIZE;
+                            classes.push("box-just-added");
+                        case 'exiting':
+                            y = -BOX_SIZE;
+                            classes.push("box-removed");
+                        default:
+                            break;
+                    }
+                    let x = (2 + BOX_SIZE) * idx;
+                    let style = {
+                        transform: `translate(${x}px, ${y}px)`
+                    };
+                    return <div key={key} style={style} className={classNames(classes)}>
+                      {content}
+                    </div>;
+
+                }
+            }
+        </Transition>
+    );
+}
+
+class HashBoxesComponent extends React.Component {
+    render() {
+        let boxes = [];
+        for (let [i, value] of this.props.array.entries()) {
+            boxes.push(<Box idx={i} value={value} />);
+        }
+
+        return <div className="clearfix hash-vis"><TransitionGroup component={null} appear={true}>{boxes}</TransitionGroup></div>;
+    }
+}
+
 
 class LineOfBoxes extends BoxesBase {
     constructor(element, boxSize) {
@@ -370,7 +451,7 @@ class BoxesWrapperComponent extends React.Component {
     }
 }
 
-function HashBoxesComponent(props) {
+function HashBoxesComponentOld(props) {
     return <BoxesWrapperComponent boxesClass={HashBoxes} {...props} />
 }
 
