@@ -20,6 +20,11 @@ import {
     TransitionGroup,
 } from 'react-transition-group';
 
+import addClass from 'dom-helpers/class/addClass';
+import removeClass from 'dom-helpers/class/removeClass';
+import style from 'dom-helpers/style';
+
+
 import {MyErrorBoundary} from './util';
 
 function doubleRAF(callback) {
@@ -29,7 +34,7 @@ function doubleRAF(callback) {
 }
 
 function reflow(node) {
-    node.scrollTop;
+    node && node.scrollTop;
 }
 
 function renderPythonCode(codeString) {
@@ -288,8 +293,8 @@ class HashBoxes extends BoxesBase {
 
 const BOX_SIZE = 40;
 
-function Box(props) {
-    let shortenObj = value => {
+class Box extends React.Component {
+    shortenObj(value) {
         // TODO: better way + add hover
         let s = value.toString();
         if (s.length <= 13) {
@@ -299,54 +304,81 @@ function Box(props) {
         return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 5, s.length - 1);
     }
 
-    const {value, idx, ...transitionProps} = props;
-    let classes = ["box", "box-animated"];
-    let content;
-    let key;
-    if (value != null) {
-        classes.push("box-full");
-        content = <span className="box-content">{shortenObj(value.toString())}</span>;
-        key = value.toString(); // TODO
-    } else {
-        classes.push("box-empty");
-        key = `empty-${idx}`
+    computeX() {
+        return (2 + BOX_SIZE) * this.props.idx;
     }
-    return (
-        <Transition
-          mountOnEnter={true}
-          unmountOnExit={true}
-          appear={true}
-          timeout={1000}
-          onEnter={reflow}
-          onEntering={reflow}
-          {...transitionProps}
-        >
-            {
-                state => {
-                    let y = 0;
-                    console.log(state);
-                    switch (state) {
-                        case 'unmounted': // TODO distinguish between exiting and entering?
-                            classes.push("box-just-added");
-                            y = -BOX_SIZE;
-                        case 'exiting':
-                            y = -BOX_SIZE;
-                            classes.push("box-removed");
-                        default:
-                            break;
-                    }
-                    let x = (2 + BOX_SIZE) * idx;
-                    let style = {
-                        transform: `translate(${x}px, ${y}px)`
-                    };
-                    return <div style={style} className={classNames(classes)}>
-                      {content}
-                    </div>;
 
+    computeTransformProperty(y) {
+        let x = this.computeX();
+        return `translate(${x}px, ${y}px)`
+    }
+
+    onEnter = (node, appearing) => {
+        console.log("onEnter", appearing, this.props.idx);
+        removeClass(node, "box-animated");
+        //if (appearing) {
+        addClass(node, "box-just-added");
+        style(node, 'transform', this.computeTransformProperty(this.props.value != null ? -BOX_SIZE : 0));
+        reflow(node);
+        addClass(node, "box-animated");
+        reflow(node);
+        //}
+        //reflow(node);
+    }
+
+    onEntering = (node, appearing) => {
+        console.log("onEntering", appearing, this.props.idx);
+        reflow(node);
+            //if (appearing) {
+                removeClass(node, "box-just-added");
+                style(node, 'transform', this.computeTransformProperty(0));
+            //}
+            // TODO: maybe it makes sense to force reflow at the TransitionGroup level? can this be done?
+        reflow(node);
+    }
+
+    render() {
+        const {value, idx, ...transitionProps} = this.props;
+        let classes = ["box", "box-animated"];
+        let content;
+        let key;
+        if (value != null) {
+            classes.push("box-full");
+            content = <span className="box-content">{this.shortenObj(value.toString())}</span>;
+            key = value.toString(); // TODO
+        } else {
+            classes.push("box-empty");
+            key = `empty-${idx}`
+        }
+        return (
+            <Transition
+              mountOnEnter={true}
+              unmountOnExit={true}
+              appear={true}
+              timeout={1000}
+              onEnter={this.onEnter}
+              onEntering={this.onEntering}
+              {...transitionProps}
+            >
+                {
+                    state => {
+                        let y = 0;
+                        switch (state) {
+                            case 'exiting':
+                                y = -BOX_SIZE;
+                                classes.push("box-removed");
+                            default:
+                                break;
+                        }
+                        return <div style={{transform: this.computeTransformProperty(y)}} className={classNames(classes)}>
+                          {content}
+                        </div>;
+
+                    }
                 }
-            }
-        </Transition>
-    );
+            </Transition>
+        );
+    }
 }
 
 class HashBoxesComponent extends React.Component {
