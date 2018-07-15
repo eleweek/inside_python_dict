@@ -15,10 +15,6 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 
 import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
 import ReactBootstrapSlider from 'react-bootstrap-slider';
-import {
-    Transition,
-    TransitionGroup,
-} from 'react-transition-group';
 
 import addClass from 'dom-helpers/class/addClass';
 import removeClass from 'dom-helpers/class/removeClass';
@@ -313,32 +309,8 @@ class Box extends React.Component {
         return `translate(${x}px, ${y}px)`
     }
 
-    onEnter = (node, appearing) => {
-        console.log("onEnter", appearing, this.props.idx);
-        removeClass(node, "box-animated");
-        //if (appearing) {
-        addClass(node, "box-just-added");
-        style(node, 'transform', this.computeTransformProperty(this.props.value != null ? -BOX_SIZE : 0));
-        reflow(node);
-        addClass(node, "box-animated");
-        reflow(node);
-        //}
-        //reflow(node);
-    }
-
-    onEntering = (node, appearing) => {
-        console.log("onEntering", appearing, this.props.idx);
-        reflow(node);
-            //if (appearing) {
-                removeClass(node, "box-just-added");
-                style(node, 'transform', this.computeTransformProperty(0));
-            //}
-            // TODO: maybe it makes sense to force reflow at the TransitionGroup level? can this be done?
-        reflow(node);
-    }
-
     render() {
-        const {value, idx, ...transitionProps} = this.props;
+        const {value, idx, status} = this.props;
         let classes = ["box", "box-animated"];
         let content;
         let key;
@@ -350,51 +322,131 @@ class Box extends React.Component {
             classes.push("box-empty");
             key = `empty-${idx}`
         }
-        return (
-            <Transition
-              mountOnEnter={true}
-              unmountOnExit={true}
-              appear={true}
-              timeout={1000}
-              onEnter={this.onEnter}
-              onEntering={this.onEntering}
-              {...transitionProps}
-            >
-                {
-                    state => {
-                        let y = 0;
-                        switch (state) {
-                            case 'exiting':
-                                y = -BOX_SIZE;
-                                classes.push("box-removed");
-                            default:
-                                break;
-                        }
-                        return <div style={{transform: this.computeTransformProperty(y)}} className={classNames(classes)}>
-                          {content}
-                        </div>;
 
-                    }
-                }
-            </Transition>
-        );
+        let y;
+
+        switch (status) {
+            case 'removing':
+                classes.push("box-removed");
+                y = (value != null ? -BOX_SIZE : 0);
+                break;
+            case 'created':
+                classes.push("box-just-added");
+                y = (value != null ? -BOX_SIZE : 0);
+                break;
+            case 'adding':
+                y = 0;
+                break;
+        }
+
+        return <div style={{transform: this.computeTransformProperty(y)}} className={classNames(classes)}>
+            {content}
+        </div>;
     }
 }
 
 class HashBoxesComponent extends React.Component {
-    render() {
-        let boxes = [];
-        for (let [i, value] of this.props.array.entries()) {
-            let key;
-            if (value != null) {
-                key = value.toString(); // TODO
-            } else {
-                key = `empty-${i}`
+    constructor() {
+        super();
+        this.state = {
+            status: {},
+            keyToProps: {},
+            needProcessCreatedAfterRender: false,
+            firstRender: true,
+        }
+        this.ref = React.createRef();
+    }
+
+    static getDerivedStateFromProps(
+        nextProps,
+        state
+    ) {
+        if (!state.firstRender) {
+            let newStatus = _.cloneDeep(state.status);
+            let newKeyToProps = _.cloneDeep(state.keyToProps);
+
+            const nextArray = nextProps.array;
+            let nextArrayKeys = new Set();
+            for (let [idx, value] of nextArray.entries()) {
+                const key = HashBoxesComponent.getBoxKey(idx, value);
+                nextArrayKeys.add(key);
+                newKeyToProps[key] = {idx, value};
             }
-            boxes.push(<Box idx={i} value={value} key={key} />);
+
+            let needProcessCreatedAfterRender = false;
+
+            for (let key of nextArrayKeys) {
+                if (!(key in state.status)) {
+                    newStatus[key] = 'created';
+                    needProcessCreatedAfterRender = true;
+                } else {
+                    newStatus[key] = 'adding';
+                }
+            }
+
+            for (let key in state.status) {
+                if (!nextArrayKeys.has(key)) {
+                    newStatus[key] = 'removing';
+                }
+            }
+
+            return {
+                firstRender: false,
+                status: newStatus,
+                keyToProps: newKeyToProps,
+                needProcessCreatedAfterRender: needProcessCreatedAfterRender,
+            }
+        } else {
+            let newStatus = {};
+            let newKeyToProps = {};
+            for (let [idx, value] of nextProps.array.entries()) {
+                const key = HashBoxesComponent.getBoxKey(idx, value);
+                newStatus[key] = 'adding';
+                newKeyToProps[key] = {idx, value};
+            }
+
+            return {
+                firstRender: false,
+                status: newStatus,
+                keyToProps: newKeyToProps,
+                needProcessCreatedAfterRender: false,
+            }
+        }
+    }
+
+    static getBoxKey(idx, value) {
+        if (value != null) {
+            return value.toString(); // TODO
+        } else {
+            return `empty-${idx}`;
+        }
+    }
+
+    render() {
+        console.log("vis render()");
+        console.log(this.state);
+        let boxes = [];
+        for (let [key, status] of Object.entries(this.state.status)) {
+            boxes.push(<Box {...this.state.keyToProps[key]} key={key} status={this.state.status[key]} />);
         }
 
-        return <div className="clearfix hash-vis"><TransitionGroup component={null} appear={true}>{boxes}</TransitionGroup></div>;
+        return <div className="clearfix hash-vis">{boxes}</div>;
+    }
+
+    componentDidUpdate() {
+        if (this.state.needProcessCreatedAfterRender) {
+            const node = this.ref.current;
+            reflow(node);
+
+            let newStatus = _.cloneDeep(this.state.status);
+            for (let [key, status] of Object.entries(newStatus)) {
+                if (status === 'created') {
+                    newStatus[key] = 'adding';
+                }
+            }
+
+            this.setState({status: newStatus});
+        }
     }
 }
 
