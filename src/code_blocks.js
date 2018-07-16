@@ -395,10 +395,15 @@ class HashBoxesComponent extends React.Component {
                 newKeyModId[key] = modificationId;
             }
 
+            let needGarbageCollection = false;
             for (let key in state.status) {
+                const status = newStatus[key];
                 if (!nextArrayKeys.has(key)) {
-                    newStatus[key] = 'removing';
-                    newKeyModId[key] = modificationId;
+                    if (status !== 'removing') {
+                        newStatus[key] = 'removing';
+                        newKeyModId[key] = modificationId;
+                        needGarbageCollection = true;
+                    }
                 }
             }
 
@@ -408,6 +413,7 @@ class HashBoxesComponent extends React.Component {
                 keyProps: newKeyProps,
                 keyModId: newKeyModId,
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
+                needGarbageCollection: needGarbageCollection,
                 modificationId: modificationId,
             }
         } else {
@@ -427,6 +433,7 @@ class HashBoxesComponent extends React.Component {
                 keyProps: newKeyProps,
                 keyModId: newKeyModId,
                 needProcessCreatedAfterRender: false,
+                needGarbageCollection: false,
                 modificationId: modificationId,
             }
         }
@@ -442,7 +449,7 @@ class HashBoxesComponent extends React.Component {
                 }
             }
 
-            console.log("removing");
+            console.log(`garbage collecting older than ${targetModId}`);
             console.log(removed);
 
             if (removed.length > 0) {
@@ -453,7 +460,7 @@ class HashBoxesComponent extends React.Component {
                     delete keyModId[key];
                 }
 
-                return {status, keyProps, keyModId};
+                return {status, keyProps, keyModId, needGarbageCollection: false};
             } else {
                 return state;
             }
@@ -470,15 +477,16 @@ class HashBoxesComponent extends React.Component {
 
     render() {
         let boxes = [];
-        let needGarbageCollectRemoved = false;
         for (let [key, status] of Object.entries(this.state.status)) {
-            needGarbageCollectRemoved |= (status === 'removing');
             boxes.push(<Box {...this.state.keyProps[key]} key={key} status={status} />);
         }
 
-        if (needGarbageCollectRemoved) {
+        if (this.state.needGarbageCollection) {
+            console.log("Scheduling garbage collection");
+            console.log(this.state);
+            const currentModificationId = this.state.modificationId;
             setTimeout(
-                () => this.garbageCollectAfterAnimationDone(this.state.modificationId),
+                () => this.garbageCollectAfterAnimationDone(currentModificationId),
                 HashBoxesComponent.ANIMATION_DURATION_TIMEOUT
             );
         }
@@ -597,10 +605,6 @@ class BoxesWrapperComponent extends React.Component {
     render() {
         return <div className="clearfix hash-vis" ref={el => this.el = el} />;
     }
-}
-
-function HashBoxesComponentOld(props) {
-    return <BoxesWrapperComponent boxesClass={HashBoxes} {...props} />
 }
 
 function LineOfBoxesComponent(props) {
