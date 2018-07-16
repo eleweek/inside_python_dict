@@ -346,13 +346,20 @@ class Box extends React.Component {
 }
 
 class HashBoxesComponent extends React.Component {
+    // Use slightly lower number than the actual 1000
+    // Because it seems to produce less "stupid" looking results
+    static ANIMATION_DURATION_TIMEOUT = 900;
+
     constructor() {
         super();
+
         this.state = {
             status: {},
-            keyToProps: {},
+            keyModId: {},
+            keyProps: {},
             needProcessCreatedAfterRender: false,
             firstRender: true,
+            modificationId: 0,
         }
         this.ref = React.createRef();
     }
@@ -361,16 +368,19 @@ class HashBoxesComponent extends React.Component {
         nextProps,
         state
     ) {
+        const modificationId = state.modificationId + 1;
+
         if (!state.firstRender) {
             let newStatus = _.cloneDeep(state.status);
-            let newKeyToProps = _.cloneDeep(state.keyToProps);
+            let newKeyProps = _.cloneDeep(state.keyProps);
+            let newKeyModId = _.cloneDeep(state.keyModId);
 
             const nextArray = nextProps.array;
             let nextArrayKeys = new Set();
             for (let [idx, value] of nextArray.entries()) {
                 const key = HashBoxesComponent.getBoxKey(idx, value);
                 nextArrayKeys.add(key);
-                newKeyToProps[key] = {idx, value};
+                newKeyProps[key] = {idx, value};
             }
 
             let needProcessCreatedAfterRender = false;
@@ -382,36 +392,72 @@ class HashBoxesComponent extends React.Component {
                 } else {
                     newStatus[key] = 'adding';
                 }
+                newKeyModId[key] = modificationId;
             }
 
             for (let key in state.status) {
                 if (!nextArrayKeys.has(key)) {
                     newStatus[key] = 'removing';
+                    newKeyModId[key] = modificationId;
                 }
             }
 
             return {
                 firstRender: false,
                 status: newStatus,
-                keyToProps: newKeyToProps,
+                keyProps: newKeyProps,
+                keyModId: newKeyModId,
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
+                modificationId: modificationId,
             }
         } else {
             let newStatus = {};
-            let newKeyToProps = {};
+            let newKeyProps = {};
+            let newKeyModId = {};
             for (let [idx, value] of nextProps.array.entries()) {
                 const key = HashBoxesComponent.getBoxKey(idx, value);
                 newStatus[key] = 'adding';
-                newKeyToProps[key] = {idx, value};
+                newKeyModId[key] = modificationId;
+                newKeyProps[key] = {idx, value};
             }
 
             return {
                 firstRender: false,
                 status: newStatus,
-                keyToProps: newKeyToProps,
+                keyProps: newKeyProps,
+                keyModId: newKeyModId,
                 needProcessCreatedAfterRender: false,
+                modificationId: modificationId,
             }
         }
+    }
+
+    garbageCollectAfterAnimationDone(targetModId) {
+        this.setState(state => {
+            const removed = [];
+
+            for (const [key, modId] of Object.entries(state.keyModId)) {
+                if (state.status[key] === 'removing' && modId <= targetModId) {
+                    removed.push(key);
+                }
+            }
+
+            console.log("removing");
+            console.log(removed);
+
+            if (removed.length > 0) {
+                let {status, keyProps, keyModId} = _.cloneDeep(state);
+                for (const key of removed) {
+                    delete status[key];
+                    delete keyProps[key];
+                    delete keyModId[key];
+                }
+
+                return {status, keyProps, keyModId};
+            } else {
+                return state;
+            }
+        })
     }
 
     static getBoxKey(idx, value) {
@@ -423,11 +469,18 @@ class HashBoxesComponent extends React.Component {
     }
 
     render() {
-        console.log("vis render()");
-        console.log(this.state);
         let boxes = [];
+        let needGarbageCollectRemoved = false;
         for (let [key, status] of Object.entries(this.state.status)) {
-            boxes.push(<Box {...this.state.keyToProps[key]} key={key} status={this.state.status[key]} />);
+            needGarbageCollectRemoved |= (status === 'removing');
+            boxes.push(<Box {...this.state.keyProps[key]} key={key} status={status} />);
+        }
+
+        if (needGarbageCollectRemoved) {
+            setTimeout(
+                () => this.garbageCollectAfterAnimationDone(this.state.modificationId),
+                HashBoxesComponent.ANIMATION_DURATION_TIMEOUT
+            );
         }
 
         return <div className="clearfix hash-vis">{boxes}</div>;
@@ -438,14 +491,15 @@ class HashBoxesComponent extends React.Component {
             const node = this.ref.current;
             reflow(node);
 
-            let newStatus = _.cloneDeep(this.state.status);
-            for (let [key, status] of Object.entries(newStatus)) {
-                if (status === 'created') {
-                    newStatus[key] = 'adding';
+            this.setState(state => {
+                let newStatus = _.cloneDeep(state.status);
+                for (let [key, status] of Object.entries(newStatus)) {
+                    if (status === 'created') {
+                        newStatus[key] = 'adding';
+                    }
                 }
-            }
-
-            this.setState({status: newStatus});
+                return {status: newStatus};
+            });
         }
     }
 }
