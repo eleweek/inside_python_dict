@@ -356,7 +356,7 @@ class HashBoxesComponent extends React.Component {
         this.state = {
             status: {},
             keyModId: {},
-            keyProps: {},
+            keyBox: {},
             needProcessCreatedAfterRender: false,
             firstRender: true,
             modificationId: 0,
@@ -372,36 +372,45 @@ class HashBoxesComponent extends React.Component {
 
         if (!state.firstRender) {
             let newStatus = _.cloneDeep(state.status);
-            let newKeyProps = _.cloneDeep(state.keyProps);
             let newKeyModId = _.cloneDeep(state.keyModId);
+            let keyToIdxVal = {};
+            let newKeyBox = {};
+            for (let key in state.keyBox) {
+                newKeyBox[key] = React.cloneElement(state.keyBox[key]);
+            }
 
             const nextArray = nextProps.array;
             let nextArrayKeys = new Set();
             for (let [idx, value] of nextArray.entries()) {
                 const key = HashBoxesComponent.getBoxKey(idx, value);
                 nextArrayKeys.add(key);
-                newKeyProps[key] = {idx, value};
+                keyToIdxVal[key] = {idx, value};
             }
 
             let needProcessCreatedAfterRender = false;
 
             for (let key of nextArrayKeys) {
+                let status;
                 if (!(key in state.status)) {
-                    newStatus[key] = 'created';
+                    status = 'created';
                     needProcessCreatedAfterRender = true;
+                    newKeyBox[key] = <Box {...keyToIdxVal[key]} status={status} key={key} />;
                 } else {
-                    newStatus[key] = 'adding';
+                    status = 'adding';
+                    newKeyBox[key] = React.cloneElement(state.keyBox[key], {...keyToIdxVal[key], status});
                 }
+                newStatus[key] = status;
                 newKeyModId[key] = modificationId;
             }
 
             let needGarbageCollection = false;
-            for (let key in state.status) {
+            for (let key in state.keyBox) {
                 const status = newStatus[key];
                 if (!nextArrayKeys.has(key)) {
                     if (status !== 'removing') {
                         newStatus[key] = 'removing';
                         newKeyModId[key] = modificationId;
+                        newKeyBox[key] = React.cloneElement(state.keyBox[key], {status: 'removing'});
                         needGarbageCollection = true;
                     }
                 }
@@ -410,7 +419,7 @@ class HashBoxesComponent extends React.Component {
             return {
                 firstRender: false,
                 status: newStatus,
-                keyProps: newKeyProps,
+                keyBox: newKeyBox,
                 keyModId: newKeyModId,
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
                 needGarbageCollection: needGarbageCollection,
@@ -418,19 +427,19 @@ class HashBoxesComponent extends React.Component {
             }
         } else {
             let newStatus = {};
-            let newKeyProps = {};
             let newKeyModId = {};
+            let newKeyBox = {};
             for (let [idx, value] of nextProps.array.entries()) {
                 const key = HashBoxesComponent.getBoxKey(idx, value);
                 newStatus[key] = 'adding';
                 newKeyModId[key] = modificationId;
-                newKeyProps[key] = {idx, value};
+                newKeyBox[key] = <Box idx={idx} value={value} key={key} status={'adding'} />;
             }
 
             return {
                 firstRender: false,
                 status: newStatus,
-                keyProps: newKeyProps,
+                keyBox: newKeyBox,
                 keyModId: newKeyModId,
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
@@ -453,14 +462,14 @@ class HashBoxesComponent extends React.Component {
             console.log(removed);
 
             if (removed.length > 0) {
-                let {status, keyProps, keyModId} = _.cloneDeep(state);
+                let {status, keyBox, keyModId} = _.cloneDeep(state);
                 for (const key of removed) {
                     delete status[key];
-                    delete keyProps[key];
                     delete keyModId[key];
+                    delete keyBox[key];
                 }
 
-                return {status, keyProps, keyModId, needGarbageCollection: false};
+                return {status, keyBox, keyModId, needGarbageCollection: false};
             } else {
                 return state;
             }
@@ -476,11 +485,6 @@ class HashBoxesComponent extends React.Component {
     }
 
     render() {
-        let boxes = [];
-        for (let [key, status] of Object.entries(this.state.status)) {
-            boxes.push(<Box {...this.state.keyProps[key]} key={key} status={status} />);
-        }
-
         if (this.state.needGarbageCollection) {
             console.log("Scheduling garbage collection");
             console.log(this.state);
@@ -491,7 +495,7 @@ class HashBoxesComponent extends React.Component {
             );
         }
 
-        return <div className="clearfix hash-vis">{boxes}</div>;
+        return <div className="clearfix hash-vis">{Object.values(this.state.keyBox)}</div>;
     }
 
     componentDidUpdate() {
