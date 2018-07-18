@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import classNames from 'classnames';
-import $ from 'jquery';
 import * as React from 'react';
 
 import low from 'lowlight/lib/core';
@@ -51,240 +50,6 @@ function dummyFormat(bp) {
 
 function SimpleCodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} /></pre>
-}
-
-class BoxesBase {
-    constructor(element, boxSize) {
-        this.$element = $(element);
-        // TODO: compute box size?
-        this.boxSize = boxSize;
-        this.boxValues = [];
-        this.$boxDivs = [];
-        this.changeId = 1;
-        this.activeIdx1 = 0;
-
-        this.updatedBoxValues = [];
-        this.$updatedBoxDivs = [];
-
-        this.JUST_ADDED_CLASS = 'box-just-added';
-        this.REMOVED_CLASS = 'box-removed';
-        this.EMPTY = 'box-empty';
-        this.FULL = 'box-full';
-        this.GC_TIMEOUT = 2000;
-    }
-
-    init(values) {
-        this.boxValues = [];
-
-        for (let [i, value] of values.entries()) {
-            let $box = this.makeNewBox(value);
-            $box.removeClass(this.JUST_ADDED_CLASS);
-            this._setBoxIdxAndPos($box, i);
-            this.$element.append($box);
-
-            this.boxValues.push(value);
-            this.$boxDivs.push($box);
-        }
-
-        this.$activeBoxSelection = $('<div class="active-box-selection active-box-selection-1"></div>');
-        this.$activeBoxSelection.css({top: 0, left: 0, visibility: 'hidden'});
-        this.$element.append(this.$activeBoxSelection);
-
-        this.$activeBoxSelection2 = $('<div class="active-box-selection active-box-selection-2"></div>');
-        this.$activeBoxSelection2.css({top: 0, left: 0, visibility: 'hidden'});
-        this.$element.append(this.$activeBoxSelection2);
-    }
-
-    findBoxIndex(val) {
-        if (val === null)
-            return null
-
-        // TODO: store a map from value to box
-        for (let [i, boxVal] of this.boxValues.entries()) {
-            if (boxVal === val) {
-                return i;
-            }
-        }
-
-        return null;
-    }
-
-    _computeBoxXpos(idx) {
-        return idx * (2 + this.boxSize)
-    }
-
-    _setBoxIdxAndPos($box, idx, type) {
-        // Kind of shitty way of launching animations...
-        // This function was a simple setter originally
-        // TODO: Refactor?
-        let startY = 0;
-        let endY = 0;
-        if (type === "added") {
-            startY = -this.boxSize;
-        } else if (type === "removed") {
-            endY = -this.boxSize;
-        }
-        $box.css({top: 0, left: 0});
-        // $box.css({top: startY, left: idx * this.boxSize});
-        let endX = this._computeBoxXpos(idx);
-        $box.css("transform", `translate(${endX}px, ${startY}px)`);
-        if (startY != endY) {
-            let changeId = this.changeId;
-            $box.attr("data-change-id", changeId);
-            this.changeId++;
-            doubleRAF(() => {
-                if ($box.attr('data-change-id') == changeId) {
-                    $box.css("transform", `translate(${endX}px, ${endY}px)`);
-                }
-            });
-        }
-        $box.attr('data-index', idx);
-    }
-
-    makeNewBox(value) {
-        let shortenValue = (value) => {
-            // TODO: better way + add hover
-            let s = value.toString();
-            if (s.length <= 13) {
-                return s;
-            }
-
-            return s.substring(0, 4) + "&#8943;" + s.substring(s.length - 5, s.length - 1);
-        }
-
-        // TODO: unhardcode class names?
-        let $box = $(`<div class="box box-animated ${this.JUST_ADDED_CLASS}"></div>`);
-        if (value !== null) {
-            $box.html('<span class="box-content">' + shortenValue(value.toString()) + '</span>');
-            $box.attr('data-value', value.toString());
-            $box.addClass(this.FULL);
-        } else {
-            $box.addClass(this.EMPTY);
-        }
-
-        return $box;
-    }
-
-    addBox(idx, value) {
-        console.log("addBox");
-        console.log(value);
-        let $box = this.makeNewBox(value);
-
-        this.$updatedBoxDivs[idx] = $box;
-        this.updatedBoxValues[idx] = value;
-
-        this.$element.append($box);
-        this._setBoxIdxAndPos($box, idx, (value !== null ? "added" : "empty-added"));
-        doubleRAF(() => {
-            $box.removeClass(this.JUST_ADDED_CLASS);
-        });
-    }
-
-    removeBox(idx) {
-        // Just removes the elem, removing from array is done by changeTo()
-        let $box = this.$boxDivs[idx];
-        $box.addClass(this.REMOVED_CLASS);
-        setTimeout(() => $box.remove(), this.GC_TIMEOUT);
-        this._setBoxIdxAndPos($box, idx, (this.boxValues[idx] !== null ? "removed" : "empty-removed"));
-    }
-
-    moveBox(fromIdx, toIdx) {
-        let $box = this.$boxDivs[fromIdx];
-        if (fromIdx != toIdx) {
-            this._setBoxIdxAndPos($box, toIdx);
-        }
-        this.$updatedBoxDivs[toIdx] = $box;
-        this.updatedBoxValues[toIdx] = this.boxValues[fromIdx];
-    }
-
-    startModifications(numBoxes) {
-        // this.resetZIndex();
-        this.updatedBoxValues = [];
-        this.$updatedBoxDivs = [];
-
-        for (let i = 0; i < numBoxes; ++i) {
-            this.updatedBoxValues.push(null);
-            this.$updatedBoxDivs.push(null);
-        }
-    }
-
-    doneModifications() {
-        this.boxValues = this.updatedBoxValues;
-        this.$boxDivs = this.$updatedBoxDivs;
-    }
-
-    removeAllActive() {
-        this.activeIdx1 = null;
-        this.$activeBoxSelection.css({visibility: 'hidden'});
-        this.$activeBoxSelection.removeClass('active-box-selection-animated');
-
-        this.$activeBoxSelection2.css({visibility: 'hidden'});
-        this.$activeBoxSelection2.removeClass('active-box-selection-animated');
-    }
-
-    makeActive(idx, numActive) {
-        numActive = numActive || 0;
-        if (numActive !== 0 && numActive !== 1) {
-            return;
-        }
-        if (numActive === 0) {
-            this.activeIdx1 = idx;
-        } else if (idx === this.activeIdx1) { // double selection is not supported
-            return;
-        }
-        let abs = numActive === 0 ? this.$activeBoxSelection : this.$activeBoxSelection2;
-        abs.css({visibility: 'visible'});
-        abs.css({transform: `translate(${this._computeBoxXpos(idx)}px, 0px)`});
-        // enable animations in the future
-        abs.addClass('active-box-selection-animated');
-    }
-}
-
-
-class HashBoxes extends BoxesBase {
-    constructor(element, boxSize) {
-        super(element, boxSize);
-    }
-
-    changeTo(newValues) {
-        console.log("changeTo");
-        console.log(newValues);
-        this.startModifications(newValues.length)
-        let diff = arraysDiff(this.boxValues, newValues);
-        let removedIndexes = []; // TODO: fix ugliness, properly handle duplicates
-        for (let val of diff.removed) {
-            let i = this.findBoxIndex(val);
-            this.removeBox(i);
-            removedIndexes.push(i);
-        }
-
-        for (let [i, [oldVal, newVal]] of _.zip(this.boxValues, newValues).entries()) {
-            if (oldVal === null && newVal !== null) {
-                this.removeBox(i);
-                removedIndexes.push(i);
-            }
-            if (oldVal !== null && newVal === null) {
-                this.addBox(i, null);
-            }
-            if (oldVal === null && newVal === null) {
-                this.moveBox(i, i);
-            }
-        }
-
-        for (let [i, val] of newValues.entries()) {
-            if (val !== null) {
-                let existingBoxIdx = this.findBoxIndex(val);
-                if (existingBoxIdx === null
-                    || removedIndexes.includes(existingBoxIdx) /* TODO: FIXME: this does not handle duplicate values properly */) {
-                    this.addBox(i, val);
-                } else {
-                    this.moveBox(existingBoxIdx, i);
-                }
-            }
-        }
-
-        this.doneModifications();
-    }
 }
 
 const BOX_SIZE = 40;
@@ -371,7 +136,7 @@ class Box extends React.Component {
     }
 }
 
-class HashBoxesComponent extends React.Component {
+class BaseBoxesComponent extends React.Component {
     // Use slightly lower number than the actual 1000
     // Because it seems to produce less "stupid" looking results
     static ANIMATION_DURATION_TIMEOUT = 900;
@@ -413,10 +178,10 @@ class HashBoxesComponent extends React.Component {
             }
 
             const nextArray = nextProps.array;
-            let nextArrayKeys = new Set();
+            let nextArrayKeys = nextProps.getBoxKeys(nextArray);
+            let nextArrayKeysSet = new Set(nextArrayKeys);
             for (let [idx, value] of nextArray.entries()) {
-                const key = HashBoxesComponent.getBoxKey(idx, value);
-                nextArrayKeys.add(key);
+                const key = nextArrayKeys[idx];
                 keyToIdxVal[key] = {idx, value};
             }
 
@@ -439,7 +204,7 @@ class HashBoxesComponent extends React.Component {
             let needGarbageCollection = false;
             for (let key in state.keyBox) {
                 const status = newStatus[key];
-                if (!nextArrayKeys.has(key)) {
+                if (!nextArrayKeysSet.has(key)) {
                     if (status !== 'removing') {
                         newStatus[key] = 'removing';
                         newKeyModId[key] = modificationId;
@@ -462,8 +227,9 @@ class HashBoxesComponent extends React.Component {
             let newStatus = {};
             let newKeyModId = {};
             let newKeyBox = {};
+            let arrayBoxKeys = nextProps.getBoxKeys(nextProps.array);
             for (let [idx, value] of nextProps.array.entries()) {
-                const key = HashBoxesComponent.getBoxKey(idx, value);
+                const key = arrayBoxKeys[idx];
                 newStatus[key] = 'adding';
                 newKeyModId[key] = modificationId;
                 newKeyBox[key] = <Box idx={idx} value={value} key={key} status={'adding'} />;
@@ -491,6 +257,7 @@ class HashBoxesComponent extends React.Component {
         const getOrModSelection = (selection, extraClassName, idx, status) => {
             console.log("SELECTION");
             console.log(state);
+            console.log(nextProps);
             console.log(selection);
             console.log(idx);
             console.log(status);
@@ -580,14 +347,6 @@ class HashBoxesComponent extends React.Component {
         })
     }
 
-    static getBoxKey(idx, value) {
-        if (value != null) {
-            return value.toString(); // TODO
-        } else {
-            return `empty-${idx}`;
-        }
-    }
-
     render() {
         if (this.state.needGarbageCollection) {
             console.log("Scheduling garbage collection");
@@ -630,105 +389,6 @@ class HashBoxesComponent extends React.Component {
             });
         }
     }
-}
-
-
-class LineOfBoxes extends BoxesBase {
-    constructor(element, boxSize) {
-        super(element, boxSize);
-    }
-
-    changeTo(newValues) {
-        let diff = arraysDiff(this.boxValues, newValues);
-
-        this.startModifications(newValues.length);
-        for (let val of diff.removed) {
-            this.removeBox(this.findBoxIndex(val));
-        }
-
-        for (let [i, val] of newValues.entries()) {
-            let existingBoxIdx = this.findBoxIndex(val);
-            if (existingBoxIdx === null) {
-                this.addBox(i, val);
-            } else {
-                this.moveBox(existingBoxIdx, i);
-            }
-        }
-        this.doneModifications();
-    }
-}
-
-function arraysDiff(arrayFrom, arrayTo)
-{
-    // TODO: O(n + m) algo instead of O(nm)
-    let remaining = [];
-    let removed = [];
-    let added = [];
-
-    for (let af of arrayFrom) {
-        if (af === null) {
-            continue;
-        }
-
-        if (arrayTo.includes(af)) {
-            remaining.push(af);
-        } else {
-            removed.push(af);
-        }
-    }
-
-    for (let at of arrayTo) {
-        if (at === null) {
-            continue;
-        }
-
-        if (arrayTo.includes(at) && !remaining.includes(at)) {
-            added.push(at);
-        }
-    }
-
-    return {
-        remaining: remaining,
-        removed: removed,
-        added: added,
-    }
-}
-
-class BoxesWrapperComponent extends React.Component {
-    componentDidMount() {
-        this.$el = $(this.el);
-
-        this.boxes = new this.props.boxesClass(this.$el, 40);
-        this.boxes.init(this.props.array);
-        this.changeActiveBoxes(this.props.idx, this.props.idx2);
-    }
-
-    changeActiveBoxes(idx, idx2) {
-        this.boxes.removeAllActive();
-        if (idx != null) {
-            this.boxes.makeActive(idx, 0);
-        }
-        if (idx2 != null) {
-            this.boxes.makeActive(idx2, 1);
-        }
-    }
-
-    componentWillUnmount() {
-        this.$el.html('');
-    }
-
-    componentWillUpdate(nextProps, nextState) {
-        this.boxes.changeTo(nextProps.array);
-        this.changeActiveBoxes(nextProps.idx, nextProps.idx2);
-    }
-
-    render() {
-        return <div className="clearfix hash-vis" ref={el => this.el = el} />;
-    }
-}
-
-function LineOfBoxesComponent(props) {
-    return <BoxesWrapperComponent boxesClass={LineOfBoxes} {...props} />
 }
 
 function Tetris(props) {
@@ -907,6 +567,50 @@ class VisualizedCode extends React.Component {
         </MyErrorBoundary>
     }
 }
+
+// TODO: properly support keys coming from other rows
+class HashBoxesComponent extends React.Component {
+    static getBoxKeys(array) {
+        return array.map((value, idx) => {
+            if (value != null) {
+                return value.toString(); // TODO something other than toString
+            } else {
+                return `empty-${idx}`;
+            }
+        });
+    }
+
+    render() {
+        return <BaseBoxesComponent {...this.props} getBoxKeys={HashBoxesComponent.getBoxKeys} />;
+    }
+}
+
+
+class LineOfBoxesComponent extends React.Component {
+    static getBoxKeys(array) {
+        let counter = {};
+        let keys = []
+        // Does not support nulls/"empty"
+        for (let [idx, value] of array.entries()) {
+            const keyPart = value.toString(); // TODO!
+            if (!(value in counter)) {
+                counter[value] = 0
+            } else {
+                counter[value]++;
+            }
+
+            const key = `${keyPart}-${counter[value]}`;
+            keys.push(key);
+        }
+
+        return keys;
+    }
+
+    render() {
+        return <BaseBoxesComponent {...this.props} getBoxKeys={LineOfBoxesComponent.getBoxKeys} />;
+    }
+}
+
 
 export {
     HashBoxesComponent, LineOfBoxesComponent, TetrisSingleRowWrap, Tetris,
