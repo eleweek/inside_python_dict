@@ -1,6 +1,13 @@
 /* TODO: integrate with webpack? e.g. google-fonts-webpack-plugin */
 @import url(https://fonts.googleapis.com/css?family=Montserrat:700|Roboto:400,400italic,700|Roboto+Mono:400,700);
 
+/* FROM: https://stackoverflow.com/questions/12502234/how-to-prevent-webkit-text-rendering-change-during-css-transition */
+@media screen and (-webkit-min-device-pixel-ratio: 2) {
+    body {
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+}
+
 h1,h2,h3,h4,h5,h6 {
   font-family: "Montserrat", sans-serif;
   font-weight: 700;
