@@ -348,13 +348,15 @@ class BaseBoxesComponent extends React.Component {
     }
 
     render() {
+        console.log("BaseBoxesComponent.render()")
+        console.log(this.state);
         if (this.state.needGarbageCollection) {
             console.log("Scheduling garbage collection");
             console.log(this.state);
             const currentModificationId = this.state.modificationId;
             setTimeout(
                 () => this.garbageCollectAfterAnimationDone(currentModificationId),
-                HashBoxesComponent.ANIMATION_DURATION_TIMEOUT
+                BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
             );
         }
 
