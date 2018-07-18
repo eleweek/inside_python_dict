@@ -289,6 +289,41 @@ class HashBoxes extends BoxesBase {
 
 const BOX_SIZE = 40;
 
+function computeBoxX(idx) {
+    return (2 + BOX_SIZE) * idx;
+}
+
+function computeBoxTransformProperty(idx, y) {
+    let x = computeBoxX(idx);
+    return `translate(${x}px, ${y}px)`
+}
+
+
+function ActiveBoxSelection(props) {
+    const animatedClass = "active-box-selection-animated";
+    let classes = ["active-box-selection", props.extraClassName, animatedClass];
+
+    let visibility;
+    switch (props.status) {
+        case 'removing':
+            visibility = 'hidden';
+            break;
+        case 'created':
+            visibility = 'hidden';
+            break;
+        case 'adding':
+            visibility = 'visible';
+            break;
+    }
+    console.log("ActiveBoxSelection");
+    console.log(visibility);
+    const style = {
+        visibility: visibility,
+        transform: props.idx != null ? computeBoxTransformProperty(props.idx, 0) : 0,
+    }
+    return <div className={classNames(classes)} style={style}/>;
+}
+
 class Box extends React.Component {
     shortenObj(value) {
         // TODO: better way + add hover
@@ -298,15 +333,6 @@ class Box extends React.Component {
         }
 
         return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 5, s.length - 1);
-    }
-
-    computeX() {
-        return (2 + BOX_SIZE) * this.props.idx;
-    }
-
-    computeTransformProperty(y) {
-        let x = this.computeX();
-        return `translate(${x}px, ${y}px)`
     }
 
     render() {
@@ -339,7 +365,7 @@ class Box extends React.Component {
                 break;
         }
 
-        return <div style={{transform: this.computeTransformProperty(y)}} className={classNames(classes)}>
+        return <div style={{transform: computeBoxTransformProperty(this.props.idx, y)}} className={classNames(classes)}>
             {content}
         </div>;
     }
@@ -357,6 +383,12 @@ class HashBoxesComponent extends React.Component {
             status: {},
             keyModId: {},
             keyBox: {},
+            activeBoxSelection1: null,
+            activeBoxSelection1status: null,
+            activeBoxSelection2: null,
+            activeBoxSelection2status: null,
+            lastIdx: null,
+            lastIdx2: null,
             needProcessCreatedAfterRender: false,
             firstRender: true,
             modificationId: 0,
@@ -370,6 +402,7 @@ class HashBoxesComponent extends React.Component {
     ) {
         const modificationId = state.modificationId + 1;
 
+        let newState;
         if (!state.firstRender) {
             let newStatus = _.cloneDeep(state.status);
             let newKeyModId = _.cloneDeep(state.keyModId);
@@ -416,7 +449,7 @@ class HashBoxesComponent extends React.Component {
                 }
             }
 
-            return {
+            newState = {
                 firstRender: false,
                 status: newStatus,
                 keyBox: newKeyBox,
@@ -436,7 +469,7 @@ class HashBoxesComponent extends React.Component {
                 newKeyBox[key] = <Box idx={idx} value={value} key={key} status={'adding'} />;
             }
 
-            return {
+            newState = {
                 firstRender: false,
                 status: newStatus,
                 keyBox: newKeyBox,
@@ -446,6 +479,77 @@ class HashBoxesComponent extends React.Component {
                 modificationId: modificationId,
             }
         }
+
+        let activeBoxSelection1 = state.activeBoxSelection1;
+        let activeBoxSelection2 = state.activeBoxSelection2;
+
+        let activeBoxSelection1status = state.activeBoxSelection1status;
+        let activeBoxSelection2status = state.activeBoxSelection2status;
+
+        // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
+        // FIXME: probably better to get rid of created/removing/adding statuses here
+        const getOrModSelection = (selection, extraClassName, idx, status) => {
+            console.log("SELECTION");
+            console.log(state);
+            console.log(selection);
+            console.log(idx);
+            console.log(status);
+            if (!selection) {
+                status = "created";
+            } else if (idx == null) {
+                status = "removing";
+            } else if (status === "created" || idx != null) {
+                status = "adding";
+            }
+
+            if (!selection) {
+                return [
+                    <ActiveBoxSelection key={extraClassName} extraClassName={extraClassName} idx={idx} status={status} />,
+                    status
+                ];
+            } else {
+                return [
+                    React.cloneElement(selection, {idx, status}),
+                    status
+                ];
+            }
+        }
+        if (activeBoxSelection1 || nextProps.idx) {
+            [activeBoxSelection1, activeBoxSelection1status] = getOrModSelection(
+                activeBoxSelection1,
+                'active-box-selection-1',
+                nextProps.idx != null ? nextProps.idx : state.lastIdx,
+                activeBoxSelection1status
+            );
+        }
+
+        if (activeBoxSelection2 || nextProps.idx2) {
+            [activeBoxSelection2, activeBoxSelection2status] = getOrModSelection(
+                activeBoxSelection2,
+                'active-box-selection-2',
+                nextProps.idx2 != null ? nextProps.idx2 : state.lastIdx2,
+                activeBoxSelection1status
+            );
+        }
+
+        if (nextProps.idx) {
+            newState.lastIdx = nextProps.idx;
+        } else {
+            newState.lastIdx = state.lastIdx;
+        }
+
+        if (nextProps.idx2) {
+            newState.lastIdx2 = nextProps.idx2;
+        } else {
+            newState.lastIdx2 = state.lastIdx2;
+        }
+
+        newState.activeBoxSelection1status = activeBoxSelection1status;
+        newState.activeBoxSelection2status = activeBoxSelection2status;
+        newState.activeBoxSelection1 = activeBoxSelection1;
+        newState.activeBoxSelection2 = activeBoxSelection2;
+
+        return newState;
     }
 
     garbageCollectAfterAnimationDone(targetModId) {
@@ -495,7 +599,19 @@ class HashBoxesComponent extends React.Component {
             );
         }
 
-        return <div className="clearfix hash-vis">{Object.values(this.state.keyBox)}</div>;
+        const boxes = [];
+        for (let key in this.state.keyBox) {
+            boxes.push(this.state.keyBox[key]);
+        }
+
+        if (this.state.activeBoxSelection1) {
+            boxes.push(this.state.activeBoxSelection1);
+        }
+        if (this.state.activeBoxSelection2) {
+            boxes.push(this.state.activeBoxSelection2);
+        }
+
+        return <div className="clearfix hash-vis">{boxes}</div>;
     }
 
     componentDidUpdate() {
