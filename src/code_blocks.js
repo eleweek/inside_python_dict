@@ -193,7 +193,7 @@ class BaseBoxesComponent extends React.Component {
                 let status;
                 if (!(key in state.status)) {
                     status = 'created';
-                    console.log("Creating", key);
+                    // console.log("Creating", key);
                     needProcessCreatedAfterRender = true;
                     newKeyBox[key] = <Box {...keyToIdxVal[key]} status={status} key={key} />;
                 } else {
@@ -326,9 +326,9 @@ class BaseBoxesComponent extends React.Component {
                 }
             }
 
-            console.log(`garbage collecting older than ${targetModId}`);
+            /*console.log(`garbage collecting older than ${targetModId}`);
             console.log(removed);
-
+            */
             if (removed.length > 0) {
                 let {status, keyBox, keyModId} = _.cloneDeep(state);
                 for (const key of removed) {
@@ -345,11 +345,11 @@ class BaseBoxesComponent extends React.Component {
     }
 
     render() {
-        console.log("BaseBoxesComponent.render()")
-        console.log(this.state);
+        /*console.log("BaseBoxesComponent.render()")
+        console.log(this.state);*/
         if (this.state.needGarbageCollection) {
-            console.log("Scheduling garbage collection");
-            console.log(this.state);
+            /*console.log("Scheduling garbage collection");
+            console.log(this.state);*/
             const currentModificationId = this.state.modificationId;
             setTimeout(
                 () => this.garbageCollectAfterAnimationDone(currentModificationId),
