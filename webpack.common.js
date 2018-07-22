@@ -1,7 +1,31 @@
 const webpack = require('webpack'); 
 const path = require('path');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+extractCSS = ({ include, exclude, use = [] }) => {
+  // Output extracted CSS to a file
+  const plugin = new MiniCssExtractPlugin({
+    filename: "dist/bundle.css",
+  });
+
+  return {
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          include,
+          exclude,
+
+          use: [
+            MiniCssExtractPlugin.loader,
+          ].concat(use),
+        },
+      ],
+    },
+    plugins: [plugin],
+  };
+};
 
 module.exports = {
   entry: './src/index.js',
@@ -25,12 +49,8 @@ module.exports = {
       }, {
         test: /\.css$/,
         use: [
-            {
-                loader: 'style-loader'
-            },
-            {
-                loader: 'css-loader'
-            }
+            MiniCssExtractPlugin.loader,
+            'css-loader'
         ]
       }
     ]
@@ -39,6 +59,7 @@ module.exports = {
     /*new webpack.ProvidePlugin({
         Popper: ['popper.js', 'default'],
     }),*/
+    new MiniCssExtractPlugin({filename: 'bundle.css'}),
     new BundleAnalyzerPlugin()
    ]
 };

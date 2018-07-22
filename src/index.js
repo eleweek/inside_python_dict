@@ -1,6 +1,7 @@
 // require('popper.js');
 // require('bootstrap');
 import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
+import indexCss from './index.css';
 
 import * as React from 'react';
 import ReactDOM from 'react-dom';
