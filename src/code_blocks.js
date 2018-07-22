@@ -12,7 +12,7 @@ low.registerLanguage('python', pythonHl);
 
 import HighLightJStyle from 'highlight.js/styles/default.css';
 
-import Slider, { Range } from 'rc-slider';
+import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
 import addClass from 'dom-helpers/class/addClass';
