@@ -2,29 +2,24 @@ const webpack = require('webpack');
 const path = require('path');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {RawSource} = require("webpack-sources");
+const {exec} = require('child_process');
 
-extractCSS = ({ include, exclude, use = [] }) => {
-  // Output extracted CSS to a file
-  const plugin = new MiniCssExtractPlugin({
-    filename: "dist/bundle.css",
-  });
 
-  return {
-    module: {
-      rules: [
-        {
-          test: /\.css$/,
-          include,
-          exclude,
-
-          use: [
-            MiniCssExtractPlugin.loader,
-          ].concat(use),
-        },
-      ],
-    },
-    plugins: [plugin],
-  };
+class HackySSR {
+    constructor(options) {
+        this.options = options;
+    }
+    apply(compiler) {
+        const name = "index.html";
+        compiler.plugin("emit", (compilation, cb) => {
+            exec("npx babel-node ssr.js", function(error, stdout, stderr) {
+                compilation.assets[name] = new RawSource(stdout);
+                cb();
+            });
+        });
+    }
 };
 
 module.exports = {
@@ -59,7 +54,9 @@ module.exports = {
     /*new webpack.ProvidePlugin({
         Popper: ['popper.js', 'default'],
     }),*/
+    new CleanWebpackPlugin(["dist"]),
     new MiniCssExtractPlugin({filename: 'bundle.css'}),
-    new BundleAnalyzerPlugin()
+    new BundleAnalyzerPlugin(),
+    new HackySSR()
    ]
 };

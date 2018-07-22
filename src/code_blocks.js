@@ -15,11 +15,6 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
-import addClass from 'dom-helpers/class/addClass';
-import removeClass from 'dom-helpers/class/removeClass';
-import style from 'dom-helpers/style';
-
-
 import {MyErrorBoundary} from './util';
 
 function doubleRAF(callback) {

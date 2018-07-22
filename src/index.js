@@ -29,7 +29,7 @@ class CrossFade extends React.Component {
     }
 }
 
-class App extends React.Component {
+export class App extends React.Component {
     render() {
         console.log(MyErrorBoundary);
         return(
@@ -51,14 +51,16 @@ class App extends React.Component {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function(event) {
-    logViewportStats();
-    /* TODO: properly apply stickyfill */
-    /*let elements = $('.sticky-top');
-    Stickyfill.add(elements);*/
+if (typeof window !== 'undefined') {
+    document.addEventListener("DOMContentLoaded", function(event) {
+        logViewportStats();
+        /* TODO: properly apply stickyfill */
+        /*let elements = $('.sticky-top');
+        Stickyfill.add(elements);*/
 
-    ReactDOM.render(
-      <App />,
-      document.getElementById('root')
-    );
-});
+        ReactDOM.hydrate(
+          <App />,
+          document.getElementById('root')
+        );
+    });
+}
