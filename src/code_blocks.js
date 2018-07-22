@@ -12,8 +12,8 @@ low.registerLanguage('python', pythonHl);
 
 import HighLightJStyle from 'highlight.js/styles/default.css';
 
-import BootstrapSlider from 'bootstrap-slider/dist/css/bootstrap-slider.min.css';
-import ReactBootstrapSlider from 'react-bootstrap-slider';
+import Slider, { Range } from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 import addClass from 'dom-helpers/class/addClass';
 import removeClass from 'dom-helpers/class/removeClass';
@@ -491,25 +491,39 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
 
 
 class TimeSlider extends React.Component {
-    handleValueChange = e => {
-        this.props.handleTimeChange(e.target.value);
+    handleValueChange = value => {
+        this.props.handleTimeChange(value);
     }
 
     render() {
-        let ticks = null;
+        let marks = {};
         if (this.props.maxTime < 30) {
-            ticks = _.range(this.props.maxTime + 1);
+            for (let i of _.range(this.props.maxTime + 1)) {
+                marks[i] = "";
+            }
         }
-        return <ReactBootstrapSlider
-            value={this.props.time}
-            change={this.handleValueChange}
-            min={0}
-            max={this.props.maxTime}
-            ticks={ticks}
-            step={1}
-        />
+        return <Slider
+                marks={marks}
+                onChange={this.handleValueChange}
+                min={0}
+                max={this.props.maxTime}
+                value={this.props.time}
+                dotStyle={{
+                    top: -2,
+                    height: 14,
+                    width: 14,
+                }}
+                handleStyle={{
+                    height: 20,
+                    width: 20,
+                    marginTop: -6,
+                }}
+                railStyle={{ height: 10 }}
+                trackStyle={{
+                    height: 10,
+                }}
+               />;
     }
-
 }
 
 class VisualizedCode extends React.Component {
