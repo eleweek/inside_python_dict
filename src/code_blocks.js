@@ -29,6 +29,10 @@ function doubleRAF(callback) {
 }
 
 function reflow(node) {
+    if (!node) {
+        console.error("Not reflowing non-existant node!");
+        return;
+    }
     node && node.scrollTop;
 }
 
@@ -80,8 +84,6 @@ function ActiveBoxSelection(props) {
             visibility = 'visible';
             break;
     }
-    console.log("ActiveBoxSelection");
-    console.log(visibility);
     const style = {
         visibility: visibility,
         transform: props.idx != null ? computeBoxTransformProperty(props.idx, 0) : 0,
@@ -191,6 +193,7 @@ class BaseBoxesComponent extends React.Component {
                 let status;
                 if (!(key in state.status)) {
                     status = 'created';
+                    console.log("Creating", key);
                     needProcessCreatedAfterRender = true;
                     newKeyBox[key] = <Box {...keyToIdxVal[key]} status={status} key={key} />;
                 } else {
@@ -255,12 +258,6 @@ class BaseBoxesComponent extends React.Component {
         // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
         // FIXME: probably better to get rid of created/removing/adding statuses here
         const getOrModSelection = (selection, extraClassName, idx, status) => {
-            console.log("SELECTION");
-            console.log(state);
-            console.log(nextProps);
-            console.log(selection);
-            console.log(idx);
-            console.log(status);
             if (!selection) {
                 status = "created";
             } else if (idx == null) {
@@ -372,7 +369,7 @@ class BaseBoxesComponent extends React.Component {
             boxes.push(this.state.activeBoxSelection2);
         }
 
-        return <div className="clearfix hash-vis">{boxes}</div>;
+        return <div className="clearfix hash-vis" ref={this.ref}>{boxes}</div>;
     }
 
     componentDidUpdate() {
