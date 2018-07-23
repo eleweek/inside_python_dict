@@ -54,9 +54,6 @@ export class App extends React.Component {
 if (typeof window !== 'undefined') {
     document.addEventListener("DOMContentLoaded", function(event) {
         logViewportStats();
-        /* TODO: properly apply stickyfill */
-        /*let elements = $('.sticky-top');
-        Stickyfill.add(elements);*/
 
         ReactDOM.hydrate(
           <App />,

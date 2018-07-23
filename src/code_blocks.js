@@ -252,7 +252,7 @@ class BaseBoxesComponent extends React.Component {
 
         // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
         // FIXME: probably better to get rid of created/removing/adding statuses here
-        const getOrModSelection = (selection, extraClassName, idx, status) => {
+        const getOrModSelection = (selection, extraClassName, oldIdx, idx, status) => {
             if (!selection) {
                 status = "created";
             } else if (idx == null) {
@@ -263,7 +263,7 @@ class BaseBoxesComponent extends React.Component {
 
             if (!selection) {
                 return [
-                    <ActiveBoxSelection key={extraClassName} extraClassName={extraClassName} idx={idx} status={status} />,
+                    <ActiveBoxSelection key={extraClassName} extraClassName={extraClassName} idx={idx != null ? idx : oldIdx} status={status} />,
                     status
                 ];
             } else {
@@ -277,7 +277,8 @@ class BaseBoxesComponent extends React.Component {
             [activeBoxSelection1, activeBoxSelection1status] = getOrModSelection(
                 activeBoxSelection1,
                 'active-box-selection-1',
-                nextProps.idx != null ? nextProps.idx : state.lastIdx,
+                state.lastIdx,
+                nextProps.idx,
                 activeBoxSelection1status
             );
         }
@@ -286,7 +287,8 @@ class BaseBoxesComponent extends React.Component {
             [activeBoxSelection2, activeBoxSelection2status] = getOrModSelection(
                 activeBoxSelection2,
                 'active-box-selection-2',
-                nextProps.idx2 != null ? nextProps.idx2 : state.lastIdx2,
+                state.lastIdx2,
+                nextProps.idx2,
                 activeBoxSelection1status
             );
         }
