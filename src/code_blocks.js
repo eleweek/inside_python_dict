@@ -271,7 +271,7 @@ class BaseBoxesComponent extends React.Component {
                 ];
             }
         }
-        if (activeBoxSelection1 || nextProps.idx) {
+        if (activeBoxSelection1 || nextProps.idx != null) {
             [activeBoxSelection1, activeBoxSelection1status] = getOrModSelection(
                 activeBoxSelection1,
                 'active-box-selection-1',
@@ -281,7 +281,7 @@ class BaseBoxesComponent extends React.Component {
             );
         }
 
-        if (activeBoxSelection2 || nextProps.idx2) {
+        if (activeBoxSelection2 || nextProps.idx2 != null) {
             [activeBoxSelection2, activeBoxSelection2status] = getOrModSelection(
                 activeBoxSelection2,
                 'active-box-selection-2',
@@ -341,7 +341,8 @@ class BaseBoxesComponent extends React.Component {
 
     render() {
         /*console.log("BaseBoxesComponent.render()")
-        console.log(this.state);*/
+        console.log(this.state);
+        console.log(this.props);*/
         if (this.state.needGarbageCollection) {
             /*console.log("Scheduling garbage collection");
             console.log(this.state);*/
