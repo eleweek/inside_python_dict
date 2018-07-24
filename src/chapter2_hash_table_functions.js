@@ -100,7 +100,6 @@ class HashCreateNew extends Chapter2BreakpointFunction {
             this.hashCodes = this.hashCodes.set(this.idx, this.hashCode);
             this.keys = this.keys.set(this.idx, this.key);
             this.addBP('assign-elem');
-            this.idx = null;
         }
 
         this.fromKeysIdx = null;
@@ -365,9 +364,6 @@ class HashResize extends Chapter2BreakpointFunction {
             this.newKeys = this.newKeys.set(this.idx, this.key);
             this.addBP('assign-elem');
         }
-        this.oldIdx = null;
-        this.key = null;
-        this.idx = null;
         this.addBP('return-lists');
         return [this.newHashCodes, this.newKeys];
     }

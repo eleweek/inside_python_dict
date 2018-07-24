@@ -253,9 +253,7 @@ class BaseBoxesComponent extends React.Component {
         // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
         // FIXME: probably better to get rid of created/removing/adding statuses here
         const getOrModSelection = (selection, extraClassName, oldIdx, idx, status) => {
-            if (!selection) {
-                status = "created";
-            } else if (idx == null) {
+            if (idx == null) {
                 status = "removing";
             } else if (status === "created" || idx != null) {
                 status = "adding";

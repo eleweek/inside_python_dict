@@ -537,8 +537,6 @@ class HashClassResizeBase extends HashClassBreakpointFunction {
             );
             this.addBP('assign-slot');
         }
-        this.oldIdx = null;
-        this.idx = null;
         this.addBP('done-no-return');
 
         return this.self;
