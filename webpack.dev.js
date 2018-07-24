@@ -6,5 +6,5 @@ module.exports = merge(common, {
   devtool: 'cheap-module-eval-source-map',
   devServer: {
     contentBase: './dist'
-  }
+  },
 });

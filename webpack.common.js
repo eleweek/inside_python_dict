@@ -1,10 +1,10 @@
 const webpack = require('webpack'); 
 const path = require('path');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const {RawSource} = require("webpack-sources");
 const {exec} = require('child_process');
+const fs = require('fs');
 
 
 class HackySSR {
@@ -13,12 +13,21 @@ class HackySSR {
     }
     apply(compiler) {
         const name = "index.html";
-        compiler.plugin("emit", (compilation, cb) => {
-            exec("npx babel-node ssr.js", function(error, stdout, stderr) {
-                compilation.assets[name] = new RawSource(stdout);
-                cb();
+        if (compiler.options.mode === "development") { 
+            compiler.plugin("emit", (compilation, cb) => {
+                fs.readFile('src/index.html', 'utf8', function (err, file) {
+                    compilation.assets[name] = new RawSource(file);
+                    cb();
+                });
             });
-        });
+        } else {
+            compiler.plugin("emit", (compilation, cb) => {
+                exec("npx babel-node ssr.js", function(error, stdout, stderr) {
+                    compilation.assets[name] = new RawSource(stdout);
+                    cb();
+                });
+            });
+        } 
     }
 };
 
@@ -56,7 +65,6 @@ module.exports = {
     }),*/
     new CleanWebpackPlugin(["dist"]),
     new MiniCssExtractPlugin({filename: 'bundle.css'}),
-    new BundleAnalyzerPlugin(),
     new HackySSR()
    ]
 };

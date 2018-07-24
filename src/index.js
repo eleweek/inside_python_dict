@@ -54,10 +54,13 @@ export class App extends React.Component {
 if (typeof window !== 'undefined') {
     document.addEventListener("DOMContentLoaded", function(event) {
         logViewportStats();
+        const root = document.getElementById('root');
+        const isSSR = root.hasChildNodes();
 
-        ReactDOM.hydrate(
-          <App />,
-          document.getElementById('root')
-        );
+        if (isSSR) {
+            ReactDOM.hydrate(<App />, root);
+        } else {
+            ReactDOM.render(<App />, root);
+        }
     });
 }
