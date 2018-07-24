@@ -1,6 +1,8 @@
 import * as React from 'react';
 import _ from 'lodash'
 
+import AutosizeInput from 'react-input-autosize';
+
 class JsonInput extends React.Component {
     constructor(props) {
         super(props);
@@ -31,8 +33,18 @@ class JsonInput extends React.Component {
     }
 
     render() {
-        let className = this.props.inline ? "json-input form-control fc-inline" : "json-input form-control";
-        return <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />;
+        if (this.props.autogrowing) {
+            return <AutosizeInput
+                    minWidth={140}
+                    type="text"
+                    className="json-input"
+                    value={this.state.value}
+                    onChange={this.handleChange}
+                />;
+        } else {
+            let className = this.props.inline ? "json-input form-control fc-inline" : "json-input form-control";
+            return <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />;
+        }
     }
 }
 

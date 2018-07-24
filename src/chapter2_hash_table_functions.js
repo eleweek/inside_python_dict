@@ -487,17 +487,17 @@ class HashExamples extends React.Component {
         return <div> 
             <p>
                 Strings:
-                hash(<JsonInput inline={true} value={this.state.string} onChange={(value) => this.setState({string: value})} />) = <code>{pyHashString(this.state.string)}</code>
+                <code>hash(</code><JsonInput autogrowing={true} value={this.state.string} onChange={(value) => this.setState({string: value})} /><code>)</code> = <code>{pyHashString(this.state.string)}</code>
             </p>
             <p>
                 Integers:
-                hash(<JsonInput inline={true} value={this.state.integer} onChange={(value) => this.setState({integer: value})} />) = <code>{pyHashInt(this.state.integer)}</code>
+                <code>hash(</code><JsonInput autogrowing={true} value={this.state.integer} onChange={(value) => this.setState({integer: value})} /><code>)</code> = <code>{pyHashInt(this.state.integer)}</code>
             </p>
             <p>
-                Floats: hash(42.5) = <code>1426259968</code>
+                Floats: <code>hash(42.5)</code> = <code>1426259968</code>
             </p>
             <p>
-                Tuples: hash(("Hello", 42)) = <code>4421265786515608844</code>
+                Tuples: <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
             </p>
         </div>
     }
