@@ -156,7 +156,7 @@ function formatHashClassSetItemAndCreate(bp) {
                 noRunResizeStr = ", so no need to run <code>resize()</code>";
             }
 
-            return `<code> ${bp.self.fill} * 3</code> (== <code>${fillQ}</code>) ` + compStr + ` <code>${bp.self.slots.length} * 2</code> (== ${sizeQ})` + noRunResizeStr;
+            return `<code> ${bp.self.fill} * 3</code> (== <code>${fillQ}</code>) ` + compStr + ` <code>${bp.self.slots.length} * 2</code> (== <code>${sizeQ}</code>)` + noRunResizeStr;
         }
         case 'resize':
             return "Do a resize";
