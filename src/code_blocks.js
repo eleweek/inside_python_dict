@@ -15,6 +15,10 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
+import 'react-perfect-scrollbar/dist/css/styles.css';
+import PerfectScrollbar from 'react-perfect-scrollbar'
+
+
 import {MyErrorBoundary} from './util';
 
 function doubleRAF(callback) {
@@ -479,7 +483,9 @@ function CodeBlockWithActiveLineAndAnnotations(props) {
         formattedLine += explanation + "<br>";
         lines.push(formattedLine);
     }
-    return <div className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />;
+    return <PerfectScrollbar>
+        <div style={{height: "300px"}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+    </PerfectScrollbar>
 }
 
 

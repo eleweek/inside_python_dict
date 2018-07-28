@@ -33,6 +33,7 @@
     "react-dom": "^16.4.1",
     "react-error-boundary": "^1.2.3",
     "react-input-autosize": "^2.2.1",
+    "react-perfect-scrollbar": "^1.1.1",
     "react-stickynode": "^2.0.1",
     "react-transition-group": "^2.4.0",
     "rehype": "^5.0.1"
