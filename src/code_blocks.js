@@ -408,84 +408,125 @@ function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     }
 }
 
-function CodeBlockWithActiveLineAndAnnotations(props) {
-    let lines = [];
-    let maxLen = _.max(props.code.map(([line, bpPoint]) => line.length));
-    let activeBp = props.breakpoints[props.time];
+// TODO: parts of this function may be optimized/memoized
+class CodeBlockWithActiveLineAndAnnotations extends React.Component {
+    HEIGHT = 300;
 
-    let visibleBreakpoints = {};
-    let pointToLevel = {};
-    for (let [line, bpPoint, level] of props.code) {
-        if (line === "" || bpPoint === "") {
-            continue;
-        }
-        if (level === undefined) {
-            pointToLevel = null;
-            break;
-        }
-        pointToLevel[bpPoint] = level;
+    constructor() {
+        super();
+        this.scrollRef = null;
     }
 
-    if (pointToLevel !== null) {
-        for (let [time, bp] of props.breakpoints.entries()) {
-            if (time > props.time) {
+    setScrollRef = ref => {
+        this.scrollRef = ref;
+    }
+
+    render() {
+        let lines = [];
+        let maxLen = _.max(this.props.code.map(([line, bpPoint]) => line.length));
+        let activeBp = this.props.breakpoints[this.props.time];
+
+        let visibleBreakpoints = {};
+        let pointToLevel = {};
+        for (let [line, bpPoint, level] of this.props.code) {
+            if (line === "" || bpPoint === "") {
+                continue;
+            }
+            if (level === undefined) {
+                pointToLevel = null;
                 break;
             }
+            pointToLevel[bpPoint] = level;
+        }
 
-            if (bp.point in visibleBreakpoints) {
-                let level = pointToLevel[bp.point];
-                for (let visibleBpPoint in visibleBreakpoints) {
-                    if (pointToLevel[visibleBpPoint] >= level) {
-                        delete visibleBreakpoints[visibleBpPoint];
+        if (pointToLevel !== null) {
+            for (let [time, bp] of this.props.breakpoints.entries()) {
+                if (time > this.props.time) {
+                    break;
+                }
+
+                if (bp.point in visibleBreakpoints) {
+                    let level = pointToLevel[bp.point];
+                    for (let visibleBpPoint in visibleBreakpoints) {
+                        if (pointToLevel[visibleBpPoint] >= level) {
+                            delete visibleBreakpoints[visibleBpPoint];
+                        }
                     }
                 }
+
+                visibleBreakpoints[bp.point] = bp;
+            }
+        } else {
+            visibleBreakpoints[activeBp.point] = activeBp;
+        }
+
+        for (let [line, bpPoint] of this.props.code) {
+            let className = activeBp.point;
+            let explanation = "";
+            if (bpPoint === activeBp.point) {
+                className += " code-highlight";
             }
 
-            visibleBreakpoints[bp.point] = bp;
-        }
-    } else {
-        visibleBreakpoints[activeBp.point] = activeBp;
-    }
+            if (bpPoint in visibleBreakpoints) {
+                const bpType = visibleBreakpoints[bpPoint];
+                let desc = null;
+                if (typeof this.props.formatBpDesc === "function") {
+                    desc = this.props.formatBpDesc(bpType);
+                } else {
+                    for (const formatBpDesc of this.props.formatBpDesc) {
+                        desc = formatBpDesc(bpType);
+                        if (desc != null)
+                            break;
+                    }
+                }
 
-    for (let [line, bpPoint] of props.code) {
-        let className = activeBp.point;
-        let explanation = "";
-        if (bpPoint === activeBp.point) {
-            className += " code-highlight";
-        }
+                if (desc == null) {
+                    throw new Error("Unknown bp type: " + bp.point);
+                }
 
-        if (bpPoint in visibleBreakpoints) {
-            const bpType = visibleBreakpoints[bpPoint];
-            let desc = null;
-            if (typeof props.formatBpDesc === "function") {
-                desc = props.formatBpDesc(bpType);
-            } else {
-                for (const formatBpDesc of props.formatBpDesc) {
-                    desc = formatBpDesc(bpType);
-                    if (desc != null)
-                        break;
+                if (desc) {
+                    explanation = `<span class="code-explanation"> ~ ${desc}</span>`
                 }
             }
 
-            if (desc == null) {
-                throw new Error("Unknown bp type: " + bp.point);
-            }
+            let paddedLine = _.padEnd(line, maxLen);
+            let htCodeHtml = renderPythonCode(paddedLine);
 
-            if (desc) {
-                explanation = `<span class="code-explanation"> ~ ${desc}</span>`
+            let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
+            formattedLine += explanation + "<br>";
+            lines.push(formattedLine);
+        }
+
+        return <PerfectScrollbar containerRef={this.setScrollRef}>
+            <div style={{height: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+        </PerfectScrollbar>
+    }
+
+    // TODO: same behaviour on componentDidMount() ?
+    componentDidUpdate() {
+        const node = this.scrollRef;
+        const totalLines = this.props.code.length;
+        let activeLine = 0;
+
+        // TODO: remove copy&paste
+        let activeBp = this.props.breakpoints[this.props.time];
+        for (let [i, [_, bpPoint]] of this.props.code.entries()) {
+            if (bpPoint === activeBp.point) {
+                activeLine  = i;
             }
         }
 
-        let paddedLine = _.padEnd(line, maxLen);
-        let htCodeHtml = renderPythonCode(paddedLine);
+        const scrollHeight = node.scrollHeight;
+        const scrollTop = node.scrollTop;
 
-        let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
-        formattedLine += explanation + "<br>";
-        lines.push(formattedLine);
+        const scrollBottom = scrollTop + this.HEIGHT;
+
+        const activeLinePos = activeLine / totalLines * scrollHeight;
+        if (activeLinePos > scrollTop && activeLinePos < scrollBottom) {
+            return;
+        }
+        node.scrollTop = activeLinePos - this.HEIGHT / 2;
     }
-    return <PerfectScrollbar>
-        <div style={{height: "300px"}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
-    </PerfectScrollbar>
 }
 
 
