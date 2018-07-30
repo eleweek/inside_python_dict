@@ -18,6 +18,8 @@ import 'rc-slider/assets/index.css';
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import PerfectScrollbar from 'react-perfect-scrollbar'
 
+import {spring, Motion} from 'react-motion';
+
 
 import {MyErrorBoundary} from './util';
 
@@ -408,6 +410,41 @@ function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     }
 }
 
+/* From: https://medium.com/@tkh44/animate-scroll-position-with-react-motion-dcc9b8aa01cf */
+class ScrollSink extends React.Component {
+    componentDidUpdate(prevProps) {
+        if (!this.props.node) {
+            return;
+        }
+
+        if (prevProps.scrollTop !== this.props.scrollTop) {
+            this.props.node.scrollTop = this.props.scrollTop
+        }
+    }
+
+    render () {
+        return null
+    }
+}
+
+
+class MotionScroll extends React.Component {
+    renderScrollSink = (currentStyles) => {
+        return (
+            <ScrollSink scrollTop={currentStyles.scrollTop} node={this.props.node} />
+        )
+    }
+
+    render() {
+        const {scrollTop, node} = this.props;
+        return (
+            <Motion style={{scrollTop: spring(scrollTop, {stiffness: 50, damping: 10})}}>
+                {this.renderScrollSink}
+            </Motion>
+        );
+    }
+}
+
 // TODO: parts of this function may be optimized/memoized
 class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     HEIGHT = 300;
@@ -415,6 +452,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     constructor() {
         super();
         this.scrollRef = null;
+        this.state = {
+            scrollTopTarget: 0,
+        }
     }
 
     setScrollRef = ref => {
@@ -499,6 +539,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 
         return <PerfectScrollbar containerRef={this.setScrollRef}>
             <div style={{height: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+            <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
     }
 
@@ -525,7 +566,13 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         if (activeLinePos > scrollTop && activeLinePos < scrollBottom) {
             return;
         }
-        node.scrollTop = activeLinePos - this.HEIGHT / 2;
+
+        const scrollTopTarget = activeLinePos - this.HEIGHT / 2;
+        if (this.state.scrollTopTarget != scrollTopTarget) {
+            this.setState({
+                scrollTopTarget: scrollTopTarget,
+            });
+        }
     }
 }
 
