@@ -15,7 +15,7 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
-import 'react-perfect-scrollbar/dist/css/styles.css';
+import './perfect-scrollbar-mod.css';
 import PerfectScrollbar from 'react-perfect-scrollbar'
 
 import {spring, Motion} from 'react-motion';

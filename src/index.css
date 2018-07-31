@@ -19,15 +19,6 @@ code, .json-input {
   font-display: optional;
 }
 
-.ps__rail-y {
-  left: 0px;
-  right: auto; /* If using `left`, there shouldn't be a `right`. */
-}
-.ps__thumb-y {
-  left: 2px;
-  right: auto; /* If using `left`, there shouldn't be a `right`. */
-}
-
 p,a,li,blockquote {
   font-family: "Roboto", "Helvetica", sans-serif;
   font-display: optional;
