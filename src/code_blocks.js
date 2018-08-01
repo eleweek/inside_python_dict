@@ -455,6 +455,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         this.state = {
             scrollTopTarget: 0,
         }
+        this.psRef = React.createRef();
     }
 
     setScrollRef = ref => {
@@ -537,10 +538,14 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             lines.push(formattedLine);
         }
 
-        return <PerfectScrollbar containerRef={this.setScrollRef}>
+        return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef}>
             <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
             <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
+    }
+
+    componentDidMount() {
+        window.requestAnimationFrame(() => this.psRef.current.updateScroll());
     }
 
     // TODO: same behaviour on componentDidMount() ?
