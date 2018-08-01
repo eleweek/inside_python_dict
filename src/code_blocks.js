@@ -538,7 +538,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         }
 
         return <PerfectScrollbar containerRef={this.setScrollRef}>
-            <div style={{height: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
             <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
     }
