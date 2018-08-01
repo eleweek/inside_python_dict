@@ -32,22 +32,21 @@ class CrossFade extends React.Component {
 export class App extends React.Component {
     render() {
         console.log(MyErrorBoundary);
-        return(
-            <div>
-              <h1> Inside python dict &mdash; an explorable explanation</h1>
-              <MyErrorBoundary>
-                <Chapter1_SimplifiedHash />
-              </MyErrorBoundary>
-              <MyErrorBoundary>
-                <Chapter2_HashTableFunctions />
-              </MyErrorBoundary>
-              <MyErrorBoundary>
-                <Chapter3_HashClass />
-              </MyErrorBoundary>
-              <MyErrorBoundary>
-                <Chapter4_RealPythonDict />
-              </MyErrorBoundary>
-          </div>)
+        return(<div className="app-container container-fluid">
+                  <h1> Inside python dict &mdash; an explorable explanation</h1>
+                  <MyErrorBoundary>
+                    <Chapter1_SimplifiedHash />
+                  </MyErrorBoundary>
+                  <MyErrorBoundary>
+                    <Chapter2_HashTableFunctions />
+                  </MyErrorBoundary>
+                  <MyErrorBoundary>
+                    <Chapter3_HashClass />
+                  </MyErrorBoundary>
+                  <MyErrorBoundary>
+                    <Chapter4_RealPythonDict />
+                  </MyErrorBoundary>
+                </div>)
     }
 }
 
