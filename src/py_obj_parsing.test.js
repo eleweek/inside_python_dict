@@ -1,4 +1,4 @@
-import {parsePyString, parsePyNumber, parsePyDict} from './py_obj_parsing';
+import {parsePyString, parsePyNumber, parsePyDict, parseList} from './py_obj_parsing';
 
 test('Parsing empty strings', () => {
     expect(parsePyString('""')).toEqual("");
@@ -18,10 +18,17 @@ test('Parsing non-empty strings', () => {
 
     expect(parsePyString('"aba caba"')).toEqual("aba caba");
     expect(parsePyString("'aba caba'")).toEqual("aba caba");
+
+    expect(parsePyString('"aba caba  "')).toEqual("aba caba  ");
+    expect(parsePyString("'  aba caba'")).toEqual("  aba caba");
+    expect(parsePyString("'  aba caba  '")).toEqual("  aba caba  ");
+    expect(parsePyString("'aba caba  '")).toEqual("aba caba  ");
+
     expect(parsePyString("\"'''\"")).toEqual("'''");
     expect(() => parsePyString("aba caba")).toThrowError(/Expected.*quot.*0/)
     expect(() => parsePyString("'aba caba")).toThrowError(/EOL/)
 });
+
 
 test('Parsing regular numbers', () => {
     expect(parsePyNumber('0')).toEqual(0);
@@ -70,7 +77,11 @@ test('Parsing numbers: reject non-numbers', () => {
     expect(() => parsePyNumber("  a bababba")).toThrowError(/Invalid syntax/)
     expect(() => parsePyNumber("123abc")).toThrowError(/Invalid syntax/)
     expect(() => parsePyNumber("   123a ")).toThrowError(/Invalid syntax/)
+
+    // Techically, a number in python, but isn't considered one by the parser right now
+    expect(() => parsePyNumber("--1")).toThrowError(/Invalid number/)
 });
+
 
 test('Parsing dicts: empty dict', () => {
     expect(parsePyDict("{}")).toEqual({});
@@ -125,4 +136,48 @@ test('Parsing dicts: malformed dicts', () => {
     expect(() => parsePyDict("{'a':5")).toThrowError(/abrupt/);
     expect(() => parsePyDict("{'a',5")).toThrowError(/Expected.*:/);
     expect(() => parsePyDict("{'a':5e}")).toThrowError(/Floats/);
+});
+
+
+test('Parsing lists: empty list', () => {
+    expect(parseList("[]")).toEqual([]);
+    expect(parseList("[        ]")).toEqual([]);
+    expect(parseList("          [        ]")).toEqual([]);
+    expect(parseList("          [        ]              ")).toEqual([]);
+    expect(parseList("[        ]              ")).toEqual([]);
+    expect(parseList("[]       ")).toEqual([]);
+    expect(parseList("         []       ")).toEqual([]);
+});
+
+test('Parsing lists: just ints', () => {
+    expect(parseList(" [1,2,  2,  3,4,     5,6,7   ]")).toEqual([1, 2, 2, 3, 4, 5, 6, 7]);
+    expect(parseList("[   1,2,2,  3,4,   5,6,7]")).toEqual([1,2, 2,3, 4,5, 6,7]);
+
+    expect(parseList("[1,2]")).toEqual([1,2]);
+    expect(parseList("  [1,2]")).toEqual([1,2]);
+    expect(parseList("  [1,2]   ")).toEqual([1,2]);
+    expect(parseList("[1,2]   ")).toEqual([1,2]);
+});
+
+test('Parsing lists: just strings', () => {
+    expect(parseList(" ['a','b',  'b',  'c','d',     'e','f','g'   ]")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
+    expect(parseList("[   'a',\"b\",\"b\",  'c','d',   'e','f','g']")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
+});
+
+test('Parsing lists: mixed strings and ints', () => {
+    expect(parseList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual(['a',2, 3,'c', 'd', 4, 5,'g']);
+});
+
+test('Parsing lists: mixed strings and ints with repeated values', () => {
+    expect(parseList(" ['a',2,  3,  'c','d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, 3, 'c', 'd', 4, 5,'g', 'a', 'b', 5, 'f']);
+});
+
+test('Parsing lists: malformed lists', () => {
+    // TODO: more of this?
+    expect(() => parseList(" [")).toThrowError(/abrupt/);
+    expect(() => parseList(" [     ")).toThrowError(/abrupt/);
+    expect(() => parseList(" ]     ")).toThrowError(/Expected.*\[/);
+    expect(() => parseList("a")).toThrowError(/Expected.*\[/);
+    expect(() => parseList("['a',5")).toThrowError(/abrupt/);
+    expect(() => parseList("['a',5e]")).toThrowError(/Floats/);
 });

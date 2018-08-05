@@ -93,6 +93,27 @@ class PyObjParser {
         return res;
     }
 
+    parseList() {
+        const allowedSeparatorsForNumbers=",]";
+        const c = this.current();
+
+        this.consumeWS("[");
+        let res = [];
+        this.skipWhitespace();
+        while (this.current() !== "]") {
+            if (this.current() == null) {
+                this.throwErr("List literal ended abruptly - no closing ]");
+            }
+            let val = this.parseStringOrNumber(allowedSeparatorsForNumbers);
+            res.push(val);
+            this.skipWhitespace();
+            if (this.current() === ",")
+                this.consume(",");
+        }
+        this.consumeWS("]");
+        return res;
+    }
+
     parseNumber(allowedSeparators="") {
         this.skipWhitespace();
         if (this.current() == null) {
@@ -166,4 +187,9 @@ export function parsePyNumber(s) {
 export function parsePyDict(s) {
     let parser = new PyObjParser(s);
     return parser.parseDict();
+}
+
+export function parseList(s) {
+    let parser = new PyObjParser(s);
+    return parser.parseList();
 }
