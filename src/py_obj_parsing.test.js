@@ -29,6 +29,12 @@ test('Parsing non-empty strings', () => {
     expect(() => parsePyString("'aba caba")).toThrowError(/EOL/)
 });
 
+test('Parsing escaped strings', () => {
+    expect(parsePyString('"\\\\"')).toEqual("\\");
+    expect(parsePyString('"\\\\ \\\""')).toEqual("\\ \"");
+    expect(() => parsePyString('"\\n"')).toThrow(/escape sequences/);
+    expect(() => parsePyString('"ababab\\"')).toThrow(/EOL/);
+});
 
 test('Parsing regular numbers', () => {
     expect(parsePyNumber('0')).toEqual(0);

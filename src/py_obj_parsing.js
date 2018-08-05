@@ -38,7 +38,7 @@ class PyObjParser {
     consume(expectedChar) {
         const c = this.current();
         if (c == null) {
-            this.throwErr(`EOL, whereas expected ${c}`);
+            this.throwErr(`Encountered unexpected EOL, expected ${expectedChar}`);
         }
 
         if (c !== expectedChar) {
@@ -166,11 +166,21 @@ class PyObjParser {
         this.consume(quote);
 
         const originalPos = this.pos;
+        let res = [];
         while (this.current() != null && this.current() !== quote) {
-            this.pos++;
+            if (this.current() === "\\") {
+                if (this.next() !== "\\" && this.next() !== '"') {
+                    this.throwErr("The only supported escape sequences are for \\\\ and \\\"");
+                }
+                res.push(this.next());
+                this.pos += 2;
+            } else {
+                res.push(this.current());
+                this.pos++;
+            }
         }
         this.consume(quote);
-        return this.s.slice(originalPos, this.pos - 1);
+        return res.join("");
     }
 }
 
