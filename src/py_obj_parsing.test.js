@@ -1,4 +1,4 @@
-import {parsePyString, parsePyNumber, parsePyDict, parseList} from './py_obj_parsing';
+import {parsePyString, parsePyNumber, parsePyDict, parseList, dumpPyList, dumpPyDict} from './py_obj_parsing';
 
 test('Parsing empty strings', () => {
     expect(parsePyString('""')).toEqual("");
@@ -88,48 +88,40 @@ test('Parsing numbers: reject non-numbers', () => {
     expect(() => parsePyNumber("--1")).toThrowError(/Invalid number/)
 });
 
-
 test('Parsing dicts: empty dict', () => {
-    expect(parsePyDict("{}")).toEqual({});
-    expect(parsePyDict("{        }")).toEqual({});
-    expect(parsePyDict("          {        }")).toEqual({});
-    expect(parsePyDict("          {        }              ")).toEqual({});
-    expect(parsePyDict("{        }              ")).toEqual({});
-    expect(parsePyDict("{}       ")).toEqual({});
-    expect(parsePyDict("         {}       ")).toEqual({});
-});
-
-test('Parsing dicts: empty dict', () => {
-    expect(parsePyDict("{}")).toEqual({});
-    expect(parsePyDict("{        }")).toEqual({});
-    expect(parsePyDict("          {        }")).toEqual({});
-    expect(parsePyDict("          {        }              ")).toEqual({});
-    expect(parsePyDict("{        }              ")).toEqual({});
-    expect(parsePyDict("{}       ")).toEqual({});
-    expect(parsePyDict("         {}       ")).toEqual({});
+    const empty = new Map();
+    expect(parsePyDict("{}")).toEqual(empty);
+    expect(parsePyDict("{        }")).toEqual(empty);
+    expect(parsePyDict("          {        }")).toEqual(empty);
+    expect(parsePyDict("          {        }              ")).toEqual(empty);
+    expect(parsePyDict("{        }              ")).toEqual(empty);
+    expect(parsePyDict("{}       ")).toEqual(empty);
+    expect(parsePyDict("         {}       ")).toEqual(empty);
 });
 
 test('Parsing dicts: just ints', () => {
-    expect(parsePyDict(" {1:2,  2:  3,4:     5,6:7   }")).toEqual({1:2, 2:3, 4:5, 6:7});
-    expect(parsePyDict("{   1:2,2:  3,4:   5,6:7}")).toEqual({1:2, 2:3, 4:5, 6:7});
+    expect(parsePyDict(" {1:2,  2:  3,4:     5,6:7   }")).toEqual(new Map([[1, 2], [2, 3], [4, 5], [6, 7]]));
+    expect(parsePyDict("{   1:2,2:  3,4:   5,6:7}")).toEqual(new Map([[1, 2], [2, 3], [4, 5], [6, 7]]));
 
-    expect(parsePyDict("{1:2}")).toEqual({1:2});
-    expect(parsePyDict("  {1:2}")).toEqual({1:2});
-    expect(parsePyDict("  {1:2}   ")).toEqual({1:2});
-    expect(parsePyDict("{1:2}   ")).toEqual({1:2});
+    const m12 = new Map([[1,2]]);
+    expect(parsePyDict("{1:2}")).toEqual(m12);
+    expect(parsePyDict("  {1:2}")).toEqual(m12);
+    expect(parsePyDict("  {1:2}   ")).toEqual(m12);
+    expect(parsePyDict("{1:2}   ")).toEqual(m12);
 });
 
 test('Parsing dicts: just strings', () => {
-    expect(parsePyDict(" {'a':'b',  'b':  'c','d':     'e','f':'g'   }")).toEqual({a:'b', b:'c', d:'e', f:'g'});
-    expect(parsePyDict("{   'a':\"b\",\"b\":  'c','d':   'e','f':'g'}")).toEqual({a:'b', b:'c', d:'e', f:'g'});
+    const e = new Map([['a', 'b'], ['b', 'c'], ['d','e'], ['f','g']]);
+    expect(parsePyDict(" {'a':'b',  'b':  'c','d':     'e','f':'g'   }")).toEqual(e);
+    expect(parsePyDict("{   'a':\"b\",\"b\":  'c','d':   'e','f':'g'}")).toEqual(e);
 });
 
 test('Parsing dicts: mixed strings and ints', () => {
-    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   }")).toEqual({a:2, '3':'c', d: 4, 5:'g'});
+    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   }")).toEqual(new Map([['a', 2], [3, 'c'], ['d', 4], [5, 'g']]));
 });
 
 test('Parsing dicts: mixed strings and ints with repeated keys', () => {
-    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   , 'a': 'b', 5: 'f'      }               ")).toEqual({a:'b', '3':'c', d: 4, 5:'f'});
+    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   , 'a': 'b', 5: 'f'      }               ")).toEqual(new Map([['a', 'b'], [3, 'c'], ['d', 4], [5, 'f']]));
 });
 
 test('Parsing dicts: malformed dicts', () => {
@@ -186,4 +178,16 @@ test('Parsing lists: malformed lists', () => {
     expect(() => parseList("a")).toThrowError(/Expected.*\[/);
     expect(() => parseList("['a',5")).toThrowError(/abrupt/);
     expect(() => parseList("['a',5e]")).toThrowError(/Floats/);
+});
+
+test('Dumping lists', () => {
+    expect(dumpPyList([])).toEqual("[]"); 
+    expect(dumpPyList([1, 1, 2, 3, 5])).toEqual("[1, 1, 2, 3, 5]"); 
+    expect(dumpPyList(["abc", "def", 2, 3, 5])).toEqual('["abc", "def", 2, 3, 5]'); 
+});
+
+test('Dumping dicts', () => {
+    expect(dumpPyDict(new Map())).toEqual("{}"); 
+    expect(dumpPyDict(new Map([[1, 2], [2, 3], [3, 4], [5, 9]]))).toEqual("{1: 2, 2: 3, 3: 4, 5: 9}"); 
+    expect(dumpPyDict(new Map([["abc", 4], ["def", "fgh"], [2, 9], [3, "ar"], [5, ""]]))).toEqual('{"abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: ""}'); 
 });

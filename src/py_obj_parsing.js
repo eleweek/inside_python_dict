@@ -74,7 +74,7 @@ class PyObjParser {
         const c = this.current();
 
         this.consumeWS("{");
-        let res = {};
+        let res = new Map();
         this.skipWhitespace();
         while (this.current() !== "}") {
             if (this.current() == null) {
@@ -83,7 +83,7 @@ class PyObjParser {
             let key = this.parseStringOrNumber(allowedSeparatorsForNumbers);
             this.consumeWS(":");
             let value = this.parseStringOrNumber(allowedSeparatorsForNumbers);
-            res[key] = value;
+            res.set(key, value);
 
             this.skipWhitespace();
             if (this.current() === ",")
@@ -202,4 +202,21 @@ export function parsePyDict(s) {
 export function parseList(s) {
     let parser = new PyObjParser(s);
     return parser.parseList();
+}
+
+// TODO: Dump functions are very hacky right now
+export function dumpPyList(l) {
+    let strItems = [];
+    for (let item of l) {
+        strItems.push(JSON.stringify(item));
+    }
+    return '[' + strItems.join(', ') + ']';
+}
+
+export function dumpPyDict(d) {
+    let strItems = [];
+    for (let [k, v] of d.entries()) {
+        strItems.push(`${JSON.stringify(k)}: ${JSON.stringify(v)}`);
+    }
+    return "{" + strItems.join(', ') + "}";
 }
