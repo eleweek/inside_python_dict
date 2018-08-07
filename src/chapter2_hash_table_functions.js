@@ -4,7 +4,7 @@ import _ from 'lodash'
 import {List} from 'immutable';
 import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
-import {JsonInput} from './inputs';
+import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
 import {MySticky} from './util';
 
 function postBpTransform(bp) {
@@ -483,11 +483,11 @@ class HashExamples extends React.Component {
         return <div> 
             <p>
                 Strings:
-                <code>hash(</code><JsonInput autogrowing={true} value={this.state.string} onChange={(value) => this.setState({string: value})} /><code>)</code> = <code>{pyHashString(this.state.string)}</code>
+                <code>hash(</code><PyStringInput autogrowing={true} value={this.state.string} onChange={(value) => this.setState({string: value})} /><code>)</code> = <code>{pyHashString(this.state.string)}</code>
             </p>
             <p>
                 Integers:
-                <code>hash(</code><JsonInput autogrowing={true} value={this.state.integer} onChange={(value) => this.setState({integer: value})} /><code>)</code> = <code>{pyHashInt(this.state.integer)}</code>
+                <code>hash(</code><PyNumberInput autogrowing={true} value={this.state.integer} onChange={(value) => this.setState({integer: value})} /><code>)</code> = <code>{pyHashInt(this.state.integer)}</code>
             </p>
             <p>
                 Floats: <code>hash(42.5)</code> = <code>1426259968</code>
@@ -547,7 +547,7 @@ class Chapter2_HashTableFunctions extends React.Component {
               <p> Recall that we started with a simple problem: searching efficiently in a list of distinct numbers. Now, let's make this problem harder: our hash table needs to support types other than integers, handle duplicates and support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
               <p> Let's say we have a mixed list of strings and integers: </p>
               <MySticky bottomBoundary=".chapter2">
-                <JsonInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
+                <PyListInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </MySticky>
 
               <p> TODO: move the next sentence somewhere: </p>
@@ -585,7 +585,7 @@ EMPTY = EmptyValueClass()
               <h5> Removing objects </h5>
               <p> If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. Then, how do we remove a key?</p>
               <p> The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder that indicates we shouldn't stop probing during a search. </p>
-              <p> Let's see this in action. Let's say we want to remove <JsonInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
+              <p> Let's see this in action. Let's say we want to remove <PyStringOrNumberInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
               <VisualizedCode
                 code={HASH_REMOVE_CODE}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import _ from 'lodash'
-import {parsePyList, parsePyNumber, dumpPyList} from './py_obj_parsing';
+import {parsePyList, dumpPyList, dumpPyDict, parsePyDict, parsePyNumber, parsePyString, parsePyStringOrNumber} from './py_obj_parsing';
 
 import AutosizeInput from 'react-input-autosize';
 
@@ -49,14 +49,22 @@ class ParsableInput extends React.Component {
     }
 }
 
-export function JsonInput(props) {
-    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={JSON.parse} />;
-}
-
 export function PyListInput(props) {
     return <ParsableInput {...props} dumpValue={dumpPyList} parseValue={parsePyList} />;
 }
 
+export function PyDictInput(props) {
+    return <ParsableInput {...props} dumpValue={dumpPyDict} parseValue={parsePyDict} />;
+}
+
 export function PyNumberInput(props) {
     return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyNumber} />;
+}
+
+export function PyStringInput(props) {
+    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyString} />;
+}
+
+export function PyStringOrNumberInput(props) {
+    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyStringOrNumber} />;
 }

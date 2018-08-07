@@ -1,4 +1,4 @@
-import {parsePyString, parsePyNumber, parsePyDict, parsePyList, dumpPyList, dumpPyDict} from './py_obj_parsing';
+import {parsePyString, parsePyNumber, parsePyStringOrNumber, parsePyDict, parsePyList, dumpPyList, dumpPyDict} from './py_obj_parsing';
 
 test('Parsing empty strings', () => {
     expect(parsePyString('""')).toEqual("");
@@ -86,6 +86,12 @@ test('Parsing numbers: reject non-numbers', () => {
 
     // Techically, a number in python, but isn't considered one by the parser right now
     expect(() => parsePyNumber("--1")).toThrowError(/Invalid number/)
+});
+
+test('Parsing py strings or numbers', () => {
+    expect(parsePyStringOrNumber('  "aba"  ')).toEqual("aba");
+    expect(parsePyStringOrNumber('  17  ')).toEqual(17);
+    expect(parsePyStringOrNumber('  "17"  ')).toEqual("17");
 });
 
 test('Parsing dicts: empty dict', () => {

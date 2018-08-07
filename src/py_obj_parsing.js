@@ -204,6 +204,11 @@ export function parsePyList(s) {
     return parser.parseList();
 }
 
+export function parsePyStringOrNumber(s) {
+    let parser = new PyObjParser(s);
+    return parser.parseStringOrNumber();
+}
+
 // TODO: Dump functions are very hacky right now
 export function dumpPyList(l) {
     let strItems = [];

@@ -13,7 +13,7 @@ import {
     VisualizedCode
 } from './code_blocks';
 
-import {JsonInput} from './inputs';
+import {PyDictInput} from './inputs';
 import {MySticky} from './util';
 
 function signedToUnsigned(num) {
@@ -151,19 +151,19 @@ class Chapter4_RealPythonDict extends React.Component {
         super();
 
         this.state = {
-            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
+            hashClassOriginal: new Map([["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]]),
         }
     }
 
     handleInputChange = value => {
-        this.setState({hashClassOriginalPairs: value})
+        this.setState({hashClassOriginal: value})
     }
 
     render() {
         let dict32Self = hashClassConstructor();
         let ia = new HashClassInsertAll();
         // TODO: 4 or 2 -- depends on dict size
-        dict32Self = ia.run(dict32Self, this.state.hashClassOriginalPairs, true, Dict32SetItem, Dict32Resize, 4);
+        dict32Self = ia.run(dict32Self, Array.from(this.state.hashClassOriginal.entries()), true, Dict32SetItem, Dict32Resize, 4);
         let iaBreakpoints = ia.getBreakpoints();
 
         let resizes = ia.getResizes();
@@ -201,7 +201,7 @@ class Chapter4_RealPythonDict extends React.Component {
 
               <p> Let's say we want to create a python dict from the followin pairs: </p>
               <MySticky bottomBoundary=".chapter4">
-                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChange} />
+                <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
               </MySticky>
               <p> Insert: </p>
               <VisualizedCode

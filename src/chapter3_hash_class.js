@@ -15,7 +15,7 @@ import {
     SimpleCodeBlock, VisualizedCode, dummyFormat
 } from './code_blocks';
 
-import {JsonInput} from './inputs';
+import {PyDictInput} from './inputs';
 import {MySticky} from './util';
 
 let chapter3Extend = (Base) => class extends Base {
@@ -151,18 +151,25 @@ class Chapter3_HashClass extends React.Component {
         super();
 
         this.state = {
-            hashClassOriginalPairs: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
+            hashClassOriginal: new Map([["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]]),
         }
     }
 
     handleInputChange = value => {
-        this.setState({hashClassOriginalPairs: value})
+        this.setState({hashClassOriginal: value})
     }
 
     render() {
         let hashClassSelf = hashClassConstructor();
         let hashClassInsertAll = new HashClassInsertAll();
-        hashClassSelf = hashClassInsertAll.run(hashClassSelf, this.state.hashClassOriginalPairs, false, HashClassSetItem, HashClassResize, 2);
+        hashClassSelf = hashClassInsertAll.run(
+            hashClassSelf,
+            Array.from(this.state.hashClassOriginal.entries()),
+            false,
+            HashClassSetItem,
+            HashClassResize,
+            2
+        );
         let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
 
         let resizes = hashClassInsertAll.getResizes();
@@ -248,7 +255,7 @@ class Chapter3_HashClass extends React.Component {
 
               <p> Let's say we want to create an almost-dict from the following pairs: </p>
               <MySticky bottomBoundary=".chapter3">
-                <JsonInput value={this.state.hashClassOriginalPairs} onChange={this.handleInputChange} />
+                <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
               </MySticky>
 
               <VisualizedCode
