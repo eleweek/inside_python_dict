@@ -24,7 +24,7 @@ h1,h2,h3,h4,h5,h6 {
   font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
 }
 
-code, .json-input {
+code, .parsable-input {
   font-family: "Roboto Mono", monospace;
   font-display: optional;
 }
@@ -35,7 +35,7 @@ p,a,li,blockquote {
   font-weight: 400;
 }
 
-.json-input {
+.parsable-input {
     font-size: 14px;
 }
 

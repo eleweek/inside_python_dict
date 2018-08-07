@@ -4,7 +4,7 @@ import {List} from 'immutable';
 
 import {BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
-import {JsonInput} from './inputs';
+import {PyListInput, PyNumberInput} from './inputs';
 import {MySticky} from './util'
 
 const SIMPLE_LIST_SEARCH = [
@@ -284,7 +284,7 @@ class Chapter1_SimplifiedHash extends React.Component {
               <p> The most important part of python dict is handling keys. Dict keys need to be organized in such a way that searching, inserting and deleting is possible. We will begin with a simplified problem. We won't have any values. And "keys" will be just plain integers. So, the simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me. </p>
               <p> Let's say we have a simple list of numbers:</p>
               <MySticky bottomBoundary=".chapter1">
-                <JsonInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
+                <PyListInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
               </MySticky>
               <p className="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
               <p> Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be misleading to people who are unfamiliar with python but know about double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
@@ -292,7 +292,7 @@ class Chapter1_SimplifiedHash extends React.Component {
               <p> Accessing an element by index is very fast. Appending to a list is fast too. But if there is no order whatsoever, searching for a specific element will be slow. We may get lucky and find an element in only a few iterations if it is near the beginning of the list. But if it is not there at all, we'll have to scan over the whole array. </p>
               <p> This simple list scan can be visualized as follows. </p>
               <p> For example, let's say we want to search for 
-                <JsonInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
+                <PyNumberInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
                 <span className="text-muted"> (Try changing this field as well! And see how the steps and the data visualization update) </span>
               </p>
               <VisualizedCode
@@ -315,7 +315,7 @@ class Chapter1_SimplifiedHash extends React.Component {
               <p> To search for a number, we simply retrace all the steps necessary to insert it. So we start from the slot <code> number % len(new_list)</code> and do linear probing. We either end up finding the number or hitting an empty slot. The latter situation means that the number is not present. </p>
               <p> Here is how the search process would look: </p>
 
-              Let's say we want to search for <JsonInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
+              Let's say we want to search for <PyNumberInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
               <VisualizedCode
                 code={SIMPLIFIED_SEARCH_CODE}
                 breakpoints={simplifiedSearchBreakpoints.map(postBpTransform)}

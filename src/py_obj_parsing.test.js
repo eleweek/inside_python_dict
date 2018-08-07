@@ -1,4 +1,4 @@
-import {parsePyString, parsePyNumber, parsePyDict, parseList, dumpPyList, dumpPyDict} from './py_obj_parsing';
+import {parsePyString, parsePyNumber, parsePyDict, parsePyList, dumpPyList, dumpPyDict} from './py_obj_parsing';
 
 test('Parsing empty strings', () => {
     expect(parsePyString('""')).toEqual("");
@@ -138,46 +138,46 @@ test('Parsing dicts: malformed dicts', () => {
 
 
 test('Parsing lists: empty list', () => {
-    expect(parseList("[]")).toEqual([]);
-    expect(parseList("[        ]")).toEqual([]);
-    expect(parseList("          [        ]")).toEqual([]);
-    expect(parseList("          [        ]              ")).toEqual([]);
-    expect(parseList("[        ]              ")).toEqual([]);
-    expect(parseList("[]       ")).toEqual([]);
-    expect(parseList("         []       ")).toEqual([]);
+    expect(parsePyList("[]")).toEqual([]);
+    expect(parsePyList("[        ]")).toEqual([]);
+    expect(parsePyList("          [        ]")).toEqual([]);
+    expect(parsePyList("          [        ]              ")).toEqual([]);
+    expect(parsePyList("[        ]              ")).toEqual([]);
+    expect(parsePyList("[]       ")).toEqual([]);
+    expect(parsePyList("         []       ")).toEqual([]);
 });
 
 test('Parsing lists: just ints', () => {
-    expect(parseList(" [1,2,  2,  3,4,     5,6,7   ]")).toEqual([1, 2, 2, 3, 4, 5, 6, 7]);
-    expect(parseList("[   1,2,2,  3,4,   5,6,7]")).toEqual([1,2, 2,3, 4,5, 6,7]);
+    expect(parsePyList(" [1,2,  2,  3,4,     5,6,7   ]")).toEqual([1, 2, 2, 3, 4, 5, 6, 7]);
+    expect(parsePyList("[   1,2,2,  3,4,   5,6,7]")).toEqual([1,2, 2,3, 4,5, 6,7]);
 
-    expect(parseList("[1,2]")).toEqual([1,2]);
-    expect(parseList("  [1,2]")).toEqual([1,2]);
-    expect(parseList("  [1,2]   ")).toEqual([1,2]);
-    expect(parseList("[1,2]   ")).toEqual([1,2]);
+    expect(parsePyList("[1,2]")).toEqual([1,2]);
+    expect(parsePyList("  [1,2]")).toEqual([1,2]);
+    expect(parsePyList("  [1,2]   ")).toEqual([1,2]);
+    expect(parsePyList("[1,2]   ")).toEqual([1,2]);
 });
 
 test('Parsing lists: just strings', () => {
-    expect(parseList(" ['a','b',  'b',  'c','d',     'e','f','g'   ]")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
-    expect(parseList("[   'a',\"b\",\"b\",  'c','d',   'e','f','g']")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
+    expect(parsePyList(" ['a','b',  'b',  'c','d',     'e','f','g'   ]")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
+    expect(parsePyList("[   'a',\"b\",\"b\",  'c','d',   'e','f','g']")).toEqual(['a','b', 'b','c', 'd','e', 'f','g']);
 });
 
 test('Parsing lists: mixed strings and ints', () => {
-    expect(parseList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual(['a',2, 3,'c', 'd', 4, 5,'g']);
+    expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual(['a',2, 3,'c', 'd', 4, 5,'g']);
 });
 
 test('Parsing lists: mixed strings and ints with repeated values', () => {
-    expect(parseList(" ['a',2,  3,  'c','d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, 3, 'c', 'd', 4, 5,'g', 'a', 'b', 5, 'f']);
+    expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, 3, 'c', 'd', 4, 5,'g', 'a', 'b', 5, 'f']);
 });
 
 test('Parsing lists: malformed lists', () => {
     // TODO: more of this?
-    expect(() => parseList(" [")).toThrowError(/abrupt/);
-    expect(() => parseList(" [     ")).toThrowError(/abrupt/);
-    expect(() => parseList(" ]     ")).toThrowError(/Expected.*\[/);
-    expect(() => parseList("a")).toThrowError(/Expected.*\[/);
-    expect(() => parseList("['a',5")).toThrowError(/abrupt/);
-    expect(() => parseList("['a',5e]")).toThrowError(/Floats/);
+    expect(() => parsePyList(" [")).toThrowError(/abrupt/);
+    expect(() => parsePyList(" [     ")).toThrowError(/abrupt/);
+    expect(() => parsePyList(" ]     ")).toThrowError(/Expected.*\[/);
+    expect(() => parsePyList("a")).toThrowError(/Expected.*\[/);
+    expect(() => parsePyList("['a',5")).toThrowError(/abrupt/);
+    expect(() => parsePyList("['a',5e]")).toThrowError(/Floats/);
 });
 
 test('Dumping lists', () => {

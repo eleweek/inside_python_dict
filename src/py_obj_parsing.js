@@ -199,7 +199,7 @@ export function parsePyDict(s) {
     return parser.parseDict();
 }
 
-export function parseList(s) {
+export function parsePyList(s) {
     let parser = new PyObjParser(s);
     return parser.parseList();
 }
