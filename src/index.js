@@ -61,5 +61,9 @@ if (typeof window !== 'undefined') {
         } else {
             ReactDOM.render(<App />, root);
         }
+        // Seems to fix stickynode not stickying on page reload
+        window.requestAnimationFrame(() => {
+            window.scrollBy(0, 1);
+        });
     });
 }
