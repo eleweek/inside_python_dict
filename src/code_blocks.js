@@ -538,8 +538,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             lines.push(formattedLine);
         }
 
-        return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef}>
-            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+        return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef} className="code-block-with-annotations-ps-container">
+            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block-with-annotations" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
             <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
     }

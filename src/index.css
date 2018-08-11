@@ -134,9 +134,23 @@ span.code-explanation {
     font-size: 12px !important;
 }
 
-div.code-block {
+.code-block {
     line-height: 1.15;
     margin-bottom: 15px;
+}
+
+/* TODO: apply only when there is a scrollbar ? */
+.code-block-with-annotations-ps-container {
+    box-shadow: 0px 0px 2px 2px rgba(171, 226, 251, 0.5);
+}
+
+.visualized-code > .code-block-row {
+    margin-bottom: 20px;
+}
+
+.code-block-with-annotations {
+    line-height: 1.15;
+    padding: 10px;
 }
 
 pre.code-line-container {
@@ -183,7 +197,7 @@ div.visualized-code {
 }
 
 div.slider-row {
-    margin-bottom: 15px;
+    margin-bottom: 25px;
 }
 
 .tetris-row-label {
