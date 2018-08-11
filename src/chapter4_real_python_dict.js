@@ -200,7 +200,7 @@ class Chapter4_RealPythonDict extends React.Component {
               <p> Let's see how this dict can be implemented. </p>
 
               <p> Let's say we want to create a python dict from the following pairs: </p>
-              <MySticky bottomBoundary=".chapter4">
+              <MySticky>
                 <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
               </MySticky>
               <p> Insert: </p>

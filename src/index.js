@@ -30,8 +30,37 @@ class CrossFade extends React.Component {
 }
 
 export class App extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
+        }
+    }
+
+    windowSizeChangeHandle = () => {
+        console.log("App size changed");
+        logViewportStats();
+        console.log(this.state);
+        if (this.state.windowWidth != window.innerWidth || this.state.windowHeight != window.innerHeight) {
+            this.setState({
+                windowWidth: window.innerWidth,
+                windowHeight: window.innerHeight,
+            });
+            this.forceUpdate();
+            fixStickyResize();
+        }
+    }
+
+    componentDidMount() {
+        window.addEventListener('resize', this.windowSizeChangeHandle);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.windowSizeChangeHandle);
+    }
+
     render() {
-        console.log(MyErrorBoundary);
         return(<div className="app-container container-fluid">
                   <h1> Inside python dict &mdash; an explorable explanation</h1>
                   <MyErrorBoundary>
@@ -50,8 +79,23 @@ export class App extends React.Component {
     }
 }
 
+function fixSticky() {
+    // Nudges react-stickynode just a little bit
+    window.requestAnimationFrame(() => {
+        window.scrollBy(0, -1);
+        window.requestAnimationFrame(() => {
+            window.scrollBy(0, 1);
+        });
+    });
+}
+
+function fixStickyResize() {
+    // Generates a fake resize event that react-stickynode seems to listen to
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+}
+
 if (typeof window !== 'undefined') {
-    document.addEventListener("DOMContentLoaded", function(event) {
+    document.addEventListener("DOMContentLoaded", () => {
         logViewportStats();
         const root = document.getElementById('root');
         const isSSR = root.hasChildNodes();
@@ -62,8 +106,6 @@ if (typeof window !== 'undefined') {
             ReactDOM.render(<App />, root);
         }
         // Seems to fix stickynode not stickying on page reload
-        window.requestAnimationFrame(() => {
-            window.scrollBy(0, 1);
-        });
+        fixSticky();
     });
 }

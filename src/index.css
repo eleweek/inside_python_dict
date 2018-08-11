@@ -130,7 +130,7 @@ p,a,li,blockquote {
 }
 
 pre > code,
-span.code-explanation {
+.code-explanation {
     font-size: 12px !important;
 }
 
@@ -151,6 +151,7 @@ span.code-explanation {
 .code-block-with-annotations {
     line-height: 1.15;
     padding: 10px;
+    white-space: nowrap;
 }
 
 pre.code-line-container {
