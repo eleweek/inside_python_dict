@@ -13,7 +13,7 @@ const SIMPLE_LIST_SEARCH = [
     ["    while idx < len(l):", "check-boundary", 2],
     ["        if l[idx].key == key:", "check-found", 2],
     ["            return True", "found-key", 2],
-    ["        idx += 1", "next-idx", 1],
+    ["        idx += 1", "next-idx", 2],
     ["    return False", "found-nothing", 1]
 ];
 
@@ -79,14 +79,14 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
                     : `<code>${bp.idx} === ${bp.size}</code>, so all elements are processed`);
         case 'check-found':
             return (bp.found
-                    ? `<code>${bp.atIdx} === ${bp.arg}</code> &mdash; the searched key is found`
-                    : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the searched key is not found so far`);
+                    ? `<code>${bp.atIdx} === ${bp.arg}</code> &mdash; the wanted key is found`
+                    : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the wanted key has not been found so far`);
         case 'found-key':
             return `The searched key <code>${bp.arg}</code> is found, so return <code>True</code>`
         case 'found-nothing':
             return `The searched key <code>${bp.arg}</code> is not found, so return <code>False</code>`;
         case 'next-idx':
-            return `Go to next idx: <code>${bp.idx}</code>`;
+            return `Go to the next index: <code>${bp.idx}</code>`;
     }
 }
 
@@ -137,9 +137,6 @@ class SimplifiedInsertAll extends NewListCachingBreakpointFunction {
             this.newList = this.newList.set(this.newListIdx, this.number);
             this.addBP('assign-elem', true);
         }
-        this.originalListIdx = null;
-        this.newListIdx = null;
-        this.number = null;
 
         this.addBP('return-created-list');
 
@@ -150,21 +147,21 @@ class SimplifiedInsertAll extends NewListCachingBreakpointFunction {
 let formatSimplifiedInsertAllDescription = function(bp) {
     switch (bp.point) {
         case 'create-new-list':
-            return `Create new list of size <code>${bp.newList.length}</code>`;
+            return `Create a new list of size <code>${bp.newList.length}</code>`;
         case 'for-loop':
-            return `[${bp.originalListIdx}/${bp.originalList.length}] Number to insert is <code>${bp.number}</code>`;
+            return `[${bp.originalListIdx}/${bp.originalList.length}] The number to insert is <code>${bp.number}</code>`;
         case 'compute-idx':
-            return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${bp.newList.length}</code>`;
         case 'check-collision':
             if (bp.newList[bp.newListIdx] === null) {
-                return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `Collision in the slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList[bp.newListIdx]}</code>`;
+                return `A collision in slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList[bp.newListIdx]}</code>`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'assign-elem':
-            return `Put <code>${bp.number}</code> in the empty slot <code>${bp.newListIdx}</code>`;
+            return `Put <code>${bp.number}</code> in slot <code>${bp.newListIdx}</code>, which is empty`;
         case 'return-created-list':
             return `Return created list`;
     }
@@ -224,12 +221,12 @@ class SimplifiedSearch extends NewListCachingBreakpointFunction {
 let formatSimplifiedSearchDescription = function(bp) {
     switch (bp.point) {
         case 'compute-idx':
-            return `Compute the slot index: <code>${bp.number} % ${bp.newList.length}</code> == <code>${bp.newListIdx}</code>`;
+            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${bp.newList.length}</code>`;
         case 'check-not-found':
             if (bp.newList[bp.newListIdx] === null) {
-                return `The slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `The slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList[bp.newListIdx]}</code>`;
+                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList[bp.newListIdx]}</code>`;
             }
         case 'check-found':
             let found = (bp.newList[bp.newListIdx] === bp.number);
@@ -239,9 +236,9 @@ let formatSimplifiedSearchDescription = function(bp) {
                 return `The number is not found yet: <code>${bp.newList[bp.newListIdx]} != ${bp.number}</code>`;
             }
         case 'found-key':
-            return "Simply return true";
+            return "Now simply return true";
         case 'found-nothing':
-            return "Simply return false";
+            return "Now simply return false";
         case 'next-idx':
             return `Keep retracing probing steps, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'return-created-list':

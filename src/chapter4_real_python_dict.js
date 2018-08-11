@@ -48,9 +48,9 @@ export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
 function formatDict32IdxRelatedBp(bp) {
     switch (bp.point) {
         case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
+            return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
             return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':

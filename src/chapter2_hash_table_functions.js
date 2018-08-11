@@ -127,15 +127,15 @@ function HashCreateNewStateVisualization(props) {
 function formatHashCreateNewAndInsert(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
-            return `Create new list of size <code>${bp.hashCodes.length}</code> for hash codes`;
+            return `Create a new list of size <code>${bp.hashCodes.length}</code> for hash codes`;
         case 'create-new-empty-keys':
-            return `Create new list of size <code>${bp.keys.length}</code> for keys`;
+            return `Create a new list of size <code>${bp.keys.length}</code> for keys`;
         case 'for-loop':
             return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.length}] Current key to insert is <code>${bp.key}</code>`;
         case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
+            return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
+            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
         case 'check-collision':
             if (bp.keys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
@@ -150,7 +150,7 @@ function formatHashCreateNewAndInsert(bp) {
             }
         case 'check-dup-key':
             if (bp.keys[bp.idx] === bp.key) {
-                return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is already present in the table`;
+                return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is already in the table`;
             } else {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
             }
@@ -164,10 +164,10 @@ function formatHashCreateNewAndInsert(bp) {
             if (bp._prevBp.keys[bp.idx] === null) {
                 return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot <code>${bp.idx}</code>`;
             } else {
-                return `<code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> is already in slot, overwriting it anyway`;
+                return `<code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> is already in the slot, overwriting it anyway`;
             }
         case 'return-lists':
-            return `The hash table is built, return the lists`;
+            return `The hash table is complete, return the lists`;
     }
 }
 
@@ -187,9 +187,9 @@ const HASH_SEARCH_CODE = [
 function formatHashRemoveSearch(bp) {
     switch (bp.point) {
         case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
+            return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
+            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
         case 'check-not-found':
             if (bp.keys[bp.idx] === null) {
                 return `The slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
@@ -373,13 +373,13 @@ class HashResize extends Chapter2BreakpointFunction {
 function formatHashResize(bp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
-            return `Create new list of size <code>${bp.newHashCodes.length}</code> for hash codes`;
+            return `Create a new list of size <code>${bp.newHashCodes.length}</code> for hash codes`;
         case 'create-new-empty-keys':
-            return `Create new list of size <code>${bp.newKeys.length}</code> for keys`;
+            return `Create a new list of size <code>${bp.newKeys.length}</code> for keys`;
         case 'for-loop':
             return `[${bp.oldIdx + 1}/${bp.keys.length}] The current key to insert is <code>${bp.key === null ? "EMPTY" : bp.key}</code>, its hash is <code>${bp.hashCode === null ? "EMPTY" : bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: ${bp.hashCode} % ${bp.newKeys.length} == ${bp.idx}`;
+            return `Compute the starting slot index: <code>${bp.idx} == ${bp.hashCode} % ${bp.newKeys.length}</code>`;
         case 'check-skip-empty-dummy':
             if (bp.keys[bp.oldIdx] === null) {
                 return `The current slot is empty`;

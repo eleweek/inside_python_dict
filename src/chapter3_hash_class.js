@@ -37,11 +37,11 @@ class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 function formatHashClassChapter3IdxRelatedBp(bp) {
     switch (bp.point) {
         case 'compute-hash':
-            return `Compute hash code: <code>${bp.hashCode}</code>`;
+            return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+            return `Compute the starting slot index: <code>${bp.idx}</code> == <code>${bp.hashCode} % ${bp.self.slots.length}</code>`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp._prevBp.idx} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code> (${bp._prevBp.idx} + 1) % ${bp.self.slots.length}</code>`;
     }
 }
 
