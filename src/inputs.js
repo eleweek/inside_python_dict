@@ -2,6 +2,7 @@ import * as React from 'react';
 import _ from 'lodash'
 import {parsePyList, dumpPyList, dumpPyDict, parsePyDict, parsePyNumber, parsePyString, parsePyStringOrNumber} from './py_obj_parsing';
 
+import classNames from 'classnames';
 import AutosizeInput from 'react-input-autosize';
 
 class ParsableInput extends React.Component {
@@ -10,27 +11,51 @@ class ParsableInput extends React.Component {
         // TODO: this is a hack
         // there should probably be a single source of truth
         this.state = {
-            value: this.props.dumpValue(this.props.value)
+            value: this.props.dumpValue(this.props.value),
+            error: null,
         }
         this.propsOnChangeDebounced = _.debounce(this.propsOnChange, 50);
     }
 
     handleChange = event => {
+        this.setState({
+            value: event.target.value
+        })
         try {
             this.setState({
-                value: event.target.value
+                error: null,
             })
             let value = this.props.parseValue(event.target.value);
             console.log("Calling onChangeDebounced");
             this.propsOnChangeDebounced(value);
         } catch (e) {
-            // TODO: add error?
-            return;
+            this.setState({
+                error: e,
+                fml: true
+            });
         }
     }
 
     propsOnChange = value => {
         this.props.onChange(value);
+    }
+
+    formatErrorMessageForBlock(e) {
+        const text = e.message;
+        const pos = e.pos;
+        // TODO: check math for off-by-one type problems
+        // TODO: take input width in the account
+        if (text.length < pos - 1) {
+            return _.padEnd(text + " ", pos, '-') + "^";
+        } else if (text.length - pos - 5 < text.length) {
+            return _.padStart("", pos, " ") + "^--- " + text;
+        } else {
+            return [
+              _.padStart("", pos - 1, " ") + "^",
+              <br/>,
+              text
+            ];
+        }
     }
 
     render() {
@@ -43,8 +68,22 @@ class ParsableInput extends React.Component {
                     onChange={this.handleChange}
                 />;
         } else {
-            let className = this.props.inline ? "parsable-input-input form-control fc-inline" : "parsable-input-input form-control";
-            return <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />;
+            let error;
+            if (this.state.error) {
+                const errorText = this.props.inline ? this.state.error.message : this.formatErrorMessageForBlock(this.state.error);
+                error = (
+                    <div className={classNames(
+                        "invalid-feedback", {"invalid-feedback-block-parsable-input": !this.props.inline}
+                     )}>
+                       {errorText} 
+                   </div>
+                );
+            }
+            const className = classNames("parsable-input", "form-control", {"fc-inline": this.props.inline, "is-invalid": !!error});
+            return <div className="parsable-input-with-error">
+                <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />
+                {error}
+            </div>;
         }
     }
 }

@@ -140,6 +140,7 @@ test('Parsing dicts: malformed dicts', () => {
     expect(() => parsePyDict("{'a':5")).toThrowError(/abrupt/);
     expect(() => parsePyDict("{'a',5")).toThrowError(/Expected.*:/);
     expect(() => parsePyDict("{'a':5e}")).toThrowError(/Floats/);
+    expect(() => parsePyDict("{'a': 'b' 5: 6")).toThrowError(/Expected.*,/);
 });
 
 
@@ -181,6 +182,7 @@ test('Parsing lists: malformed lists', () => {
     expect(() => parsePyList(" [")).toThrowError(/abrupt/);
     expect(() => parsePyList(" [     ")).toThrowError(/abrupt/);
     expect(() => parsePyList(" ]     ")).toThrowError(/Expected.*\[/);
+    expect(() => parsePyList(" [5 5]     ")).toThrowError(/Expected.*,/);
     expect(() => parsePyList("a")).toThrowError(/Expected.*\[/);
     expect(() => parsePyList("['a',5")).toThrowError(/abrupt/);
     expect(() => parsePyList("['a',5e]")).toThrowError(/Floats/);

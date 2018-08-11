@@ -1,6 +1,7 @@
 class PyParsingError extends Error {
     constructor(text, pos) {
-        super(`${text} (at position ${pos})`);
+        // super(`${text} (at position ${pos})`);
+        super(text);
         this.pos = pos;
     }
 }
@@ -42,7 +43,7 @@ class PyObjParser {
         }
 
         if (c !== expectedChar) {
-            this.throwErr(`Expected ${expectedChar}, got ${c}`);
+            this.throwErr(`Expected \`${expectedChar}\`, got \`${c}\``);
         }
         this.pos++;
     }
@@ -62,10 +63,16 @@ class PyObjParser {
         if (c === "{" || c === "[") {
             this.throwErr("Nested lists and dictionaries are not supported. Only strings and ints are.");
         }
+        if (c == null) {
+            this.throwErr("Dict literal added abruptly - expected value");
+        }
+
         if (digitsMinusPlus.includes(c)) {
             return this.parseNumber(allowedSeparatorsForNumbers);
-        } else {
+        } else if (`"'`.includes(c)) {
             return this.parseString();
+        } else {
+            this.throwErr("Expected value - string or number")
         }
     }
 
@@ -86,7 +93,7 @@ class PyObjParser {
             res.set(key, value);
 
             this.skipWhitespace();
-            if (this.current() === ",")
+            if (this.current() !== "}" && this.current() != null)
                 this.consume(",");
         }
         this.consumeWS("}");
@@ -107,8 +114,9 @@ class PyObjParser {
             let val = this.parseStringOrNumber(allowedSeparatorsForNumbers);
             res.push(val);
             this.skipWhitespace();
-            if (this.current() === ",")
+            if (this.current() !== "]" && this.current() != null)
                 this.consume(",");
+            this.skipWhitespace();
         }
         this.consumeWS("]");
         return res;
@@ -117,7 +125,7 @@ class PyObjParser {
     parseNumber(allowedSeparators="") {
         this.skipWhitespace();
         if (this.current() == null) {
-            this.throwErr("Empty string");
+            this.throwErr("Number can't be empty");
         }
 
         const originalPos = this.pos;
@@ -139,7 +147,7 @@ class PyObjParser {
             !allowedSeparators.includes(this.current())
            ) {
             // TODO: a bit more descriptive? and a bit less hacky?
-            this.throwErr("Invalid syntax. If you want a string, don't forget to wrap it in quotation characters");
+            this.throwErr("Invalid syntax: number with non-digit characters");
         }
 
         const num = this.s.slice(originalPos, this.pos);

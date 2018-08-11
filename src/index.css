@@ -24,7 +24,7 @@ h1,h2,h3,h4,h5,h6 {
   font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
 }
 
-code, .parsable-input {
+code, .parsable-input, .invalid-feedback.invalid-feedback-block-parsable-input {
   font-family: "Roboto Mono", monospace;
   font-display: optional;
 }
@@ -36,7 +36,19 @@ p,a,li,blockquote {
 }
 
 .parsable-input {
-    font-size: 14px;
+  font-size: 14px;
+}
+
+.invalid-feedback.invalid-feedback-block-parsable-input {
+  padding-left: 13px;
+  font-size: 14px;
+  white-space: pre;
+  margin-top: 0px;
+  background-color: rgba(220,53,69,.25); /* from box-shadow color of input in bootstrap  */
+}
+
+.parsable-input-with-error {
+    background-color: #fff;
 }
 
 .array-vis,
