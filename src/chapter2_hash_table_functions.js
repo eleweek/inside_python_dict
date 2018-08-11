@@ -192,13 +192,13 @@ function formatHashRemoveSearch(bp) {
             return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.keys.length}</code> == <code>${bp.idx}</code>`;
         case 'check-not-found':
             if (bp.keys[bp.idx] === null) {
-                return `The slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
+                return `Slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
             } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied, so check it`;
+                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied, so check it`;
             }
         case 'check-hash':
             if (bp.hashCodes[bp.idx] === bp.hashCode) {
-                return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
+                return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, so the slot might contain the same key`;
             } else {
                 return `<code>${bp.hashCodes[bp.idx]} != ${bp.hashCode}</code>, so the slot definitely contains a different key`;
             }
@@ -211,11 +211,11 @@ function formatHashRemoveSearch(bp) {
         case 'assign-dummy':
             return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
         case 'return':
-            return `The key is removed, work is done`;
+            return `The key is removed, now return`;
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'throw-key-error':
-            return `throw an excaption, because no key was found`;
+            return `Throw an exception, because no key was found`;
         /* search */
         case 'return-true':
             return `So return true`;

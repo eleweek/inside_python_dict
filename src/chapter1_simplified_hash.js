@@ -61,7 +61,7 @@ function simpleListSearch(l, key) {
         breakpoints.push(newBP('next-idx', idx));
     }
 
-    breakpoints.push(newBP('found-nothing'));
+    breakpoints.push(newBP('found-nothing', idx));
 
     return breakpoints;
 }
@@ -75,16 +75,16 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
             return `Start from the beginning of the list`;
         case 'check-boundary':
             return (bp.idx < bp.size
-                    ? `<code>${bp.idx} < ${bp.size}</code>, so some elements are not processed`
-                    : `<code>${bp.idx} === ${bp.size}</code>, so all elements are processed`);
+                    ? `<code>${bp.idx} < ${bp.size}</code>, so some elements have not been processed yet`
+                    : `<code>${bp.idx} === ${bp.size}</code>, so all elements were processed`);
         case 'check-found':
             return (bp.found
                     ? `<code>${bp.atIdx} === ${bp.arg}</code> &mdash; the wanted key is found`
                     : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the wanted key has not been found so far`);
         case 'found-key':
-            return `The searched key <code>${bp.arg}</code> is found, so return <code>True</code>`
+            return `The wanted key <code>${bp.arg}</code> was found, so return <code>True</code>`
         case 'found-nothing':
-            return `The searched key <code>${bp.arg}</code> is not found, so return <code>False</code>`;
+            return `The wanted key <code>${bp.arg}</code> was not found, so return <code>False</code>`;
         case 'next-idx':
             return `Go to the next index: <code>${bp.idx}</code>`;
     }
@@ -233,7 +233,7 @@ let formatSimplifiedSearchDescription = function(bp) {
             if (found) {
                 return `The number is found: <code>${bp.newList[bp.newListIdx]} == ${bp.number}</code>`;
             } else {
-                return `The number is not found yet: <code>${bp.newList[bp.newListIdx]} != ${bp.number}</code>`;
+                return `The number has not been found yet: <code>${bp.newList[bp.newListIdx]} != ${bp.number}</code>`;
             }
         case 'found-key':
             return "Now simply return true";
