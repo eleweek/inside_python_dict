@@ -1,3 +1,5 @@
+import {None, isNone} from './hash_impl_common';
+
 class PyParsingError extends Error {
     constructor(text, pos) {
         // super(`${text} (at position ${pos})`);
@@ -12,7 +14,7 @@ const minusPlus = "-+";
 // TODO: add mode for validating stuff: e.g. parseString() should throw on `"string contents" stuff after`
 // TODO: parse Nones
 // TODO: parse long ints
-class PyObjParser {
+export class PyObjParser {
     constructor(literal) {
         this.s = literal;
         this.pos = 0;
@@ -32,8 +34,12 @@ class PyObjParser {
         return this.s[this.pos + 1];
     }
 
+    isWhiteSpaceOrEol(c) {
+        return c == null || /\s/.test(c);
+    }
+
     isCurrentWhitespaceOrEol() {
-        return this.current() == null || /\s/.test(this.current());
+        return this.isWhiteSpaceOrEol(this.current());
     }
 
     consume(expectedChar) {
@@ -57,7 +63,15 @@ class PyObjParser {
         throw new PyParsingError(text, pos != null ? pos : this.pos)
     }
 
-    parseStringOrNumber(allowedSeparatorsForNumbers) {
+    parseStringOrNumberOrNone(allowedSeparators) {
+        // TODO: The whole None parsing and error reporting for unwrapped strings
+        // TODO: is a bit of a mess
+        if (this.isNextNone(allowedSeparators))
+            return this.parseNoneOrThrowUnknownIdentifier(allowedSeparators);
+        return this.parseStringOrNumber(allowedSeparators);
+    }
+
+    parseStringOrNumber(allowedSeparators) {
         this.skipWhitespace();
         const c = this.current();
         if (c === "{" || c === "[") {
@@ -68,7 +82,7 @@ class PyObjParser {
         }
 
         if (digitsMinusPlus.includes(c)) {
-            return this.parseNumber(allowedSeparatorsForNumbers);
+            return this.parseNumber(allowedSeparators);
         } else if (`"'`.includes(c)) {
             return this.parseString();
         } else {
@@ -77,7 +91,7 @@ class PyObjParser {
     }
 
     parseDict() {
-        const allowedSeparatorsForNumbers=",:}";
+        const allowedSeparators=",:}";
         const c = this.current();
 
         this.consumeWS("{");
@@ -87,9 +101,9 @@ class PyObjParser {
             if (this.current() == null) {
                 this.throwErr("Dict literal ended abruptly - no closing }");
             }
-            let key = this.parseStringOrNumber(allowedSeparatorsForNumbers);
+            let key = this.parseStringOrNumberOrNone(allowedSeparators);
             this.consumeWS(":");
-            let value = this.parseStringOrNumber(allowedSeparatorsForNumbers);
+            let value = this.parseStringOrNumberOrNone(allowedSeparators);
             res.set(key, value);
 
             this.skipWhitespace();
@@ -101,7 +115,7 @@ class PyObjParser {
     }
 
     parseList() {
-        const allowedSeparatorsForNumbers=",]";
+        const allowedSeparators=",]";
         const c = this.current();
 
         this.consumeWS("[");
@@ -111,7 +125,7 @@ class PyObjParser {
             if (this.current() == null) {
                 this.throwErr("List literal ended abruptly - no closing ]");
             }
-            let val = this.parseStringOrNumber(allowedSeparatorsForNumbers);
+            let val = this.parseStringOrNumberOrNone(allowedSeparators);
             res.push(val);
             this.skipWhitespace();
             if (this.current() !== "]" && this.current() != null)
@@ -168,7 +182,7 @@ class PyObjParser {
         this.skipWhitespace();
         const c = this.current();
         if (c !== "'" && c !== '"') {
-            this.throwErr("Expected a quotation character (either `'` or `\"`)");
+            this.throwErr("String must be wrapped in quotation characters (either `'` or `\"`)");
         }
         const quote = c;
         this.consume(quote);
@@ -189,6 +203,21 @@ class PyObjParser {
         }
         this.consume(quote);
         return res.join("");
+    }
+
+    isNextNone(allowedSeparators="") {
+        this.skipWhitespace();
+        return this.s.slice(this.pos, this.pos + 4) === "None" && (this.isWhiteSpaceOrEol(this.s[this.pos + 4]) || allowedSeparators.includes(this.s[this.pos + 4]));
+    }
+
+    // Quite hacky
+    parseNoneOrThrowUnknownIdentifier(allowedSeparators) {
+        this.skipWhitespace();
+        if (this.isNextNone(allowedSeparators)) {
+            this.pos += 4;
+            return None;
+        }
+        this.throwErr("Unknown identifier (if you wanted a string, wrap it in quotation marks - `\"` or `'`)")
     }
 }
 
@@ -218,10 +247,17 @@ export function parsePyStringOrNumber(s) {
 }
 
 // TODO: Dump functions are very hacky right now
+
+function dumpSimplePyObj(o) {
+    if (isNone(o))
+        return "None";
+    return JSON.stringify(o);
+}
+
 export function dumpPyList(l) {
     let strItems = [];
     for (let item of l) {
-        strItems.push(JSON.stringify(item));
+        strItems.push(dumpSimplePyObj(item));
     }
     return '[' + strItems.join(', ') + ']';
 }
@@ -229,7 +265,7 @@ export function dumpPyList(l) {
 export function dumpPyDict(d) {
     let strItems = [];
     for (let [k, v] of d.entries()) {
-        strItems.push(`${JSON.stringify(k)}: ${JSON.stringify(v)}`);
+        strItems.push(`${dumpSimplePyObj(k)}: ${dumpSimplePyObj(v)}`);
     }
     return "{" + strItems.join(', ') + "}";
 }

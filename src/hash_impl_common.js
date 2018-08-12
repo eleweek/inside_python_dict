@@ -158,7 +158,7 @@ class Int64 {
     }
 }
 
-let pyHashStringAndUnicode = function(s) {
+function pyHashStringAndUnicode(s) {
     let res = new Int64(s.charCodeAt(0) << 7);
     let magic = new Int64(1000003);
 
@@ -175,31 +175,33 @@ let pyHashStringAndUnicode = function(s) {
     return res.toString();
 }
 
-let pyHashString = function(s) {
+export function pyHashString(s) {
     let sUtf8 = unescape(encodeURIComponent(s));
     return pyHashStringAndUnicode(sUtf8);
 }
 
-let pyHashUnicode = function(s) {
+export function pyHashUnicode(s) {
     return pyHashStringAndUnicode(s);
 }
 
-let pyHashInt = function(n) {
+export function pyHashInt(n) {
     /* TODO: actually implement something... Though it works for most ints now */
     return n;
 }
 
-let pyHash = function(o) {
+export function pyHash(o) {
     if (typeof o === 'string') {
         return BigNumber(pyHashString(o));
-    } else if (typeof o == 'number') {
+    } else if (typeof o === 'number') {
         return BigNumber(pyHashInt(o));
+    } else if (isNone(o)) {
+        return BigNumber("-9223372036581563745");
     } else {
         throw "pyHash called with an object of unknown type: " + o;
     }
 }
 
-class BreakpointFunction {
+export class BreakpointFunction {
     constructor(converters={}) {
         this._breakpoints = [];
         this._converters = converters;
@@ -235,7 +237,7 @@ class BreakpointFunction {
     }
 }
 
-class HashBreakpointFunction extends BreakpointFunction {
+export class HashBreakpointFunction extends BreakpointFunction {
     constructor(converters, rarelyUpdatedFields) {
         super({
             'hashCode': hc => hc !== null ? hc.toString() : null,
@@ -261,10 +263,15 @@ class EmptyClass {
     }
 }
 
-const DUMMY = new DummyClass();
-const EMPTY = new EmptyClass();
+class NoneClass {
+    toString() {
+        return "None";
+    }
+}
 
-
-export {
-    pyHash, pyHashString, pyHashInt, BreakpointFunction, HashBreakpointFunction, DUMMY, EMPTY
+export const DUMMY = new DummyClass();
+export const EMPTY = new EmptyClass();
+export const None = new NoneClass();
+export function isNone(o) {
+    return o.constructor.name === "NoneClass";
 }

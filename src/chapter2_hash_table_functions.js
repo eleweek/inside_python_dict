@@ -495,6 +495,9 @@ class HashExamples extends React.Component {
             <p>
                 Tuples: <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
             </p>
+            <p>
+                None: <code>hash(None)</code> = <code>-9223372036581563745</code>
+            </p>
         </div>
     }
 }

@@ -1,4 +1,5 @@
-import {parsePyString, parsePyNumber, parsePyStringOrNumber, parsePyDict, parsePyList, dumpPyList, dumpPyDict} from './py_obj_parsing';
+import {parsePyString, parsePyNumber, parsePyStringOrNumber, parsePyDict, parsePyList, dumpPyList, dumpPyDict, PyObjParser} from './py_obj_parsing';
+import {None, isNone} from './hash_impl_common';
 
 test('Parsing empty strings', () => {
     expect(parsePyString('""')).toEqual("");
@@ -25,7 +26,7 @@ test('Parsing non-empty strings', () => {
     expect(parsePyString("'aba caba  '")).toEqual("aba caba  ");
 
     expect(parsePyString("\"'''\"")).toEqual("'''");
-    expect(() => parsePyString("aba caba")).toThrowError(/Expected.*quot.*0/)
+    expect(() => parsePyString("aba caba")).toThrowError(/String must be wrapped.*quot/)
     expect(() => parsePyString("'aba caba")).toThrowError(/EOL/)
 });
 
@@ -75,8 +76,8 @@ test('Parsing numbers: reject floats and non-decimals', () => {
 });
 
 test('Parsing numbers: reject non-numbers', () => {
-    expect(() => parsePyNumber("")).toThrowError(/Empty/)
-    expect(() => parsePyNumber("    ")).toThrowError(/Empty/)
+    expect(() => parsePyNumber("")).toThrowError(/Number can't be empty/)
+    expect(() => parsePyNumber("    ")).toThrowError(/Number can't be empty/)
     expect(() => parsePyNumber("a")).toThrowError(/Invalid syntax/)
     expect(() => parsePyNumber("  a ")).toThrowError(/Invalid syntax/)
     expect(() => parsePyNumber("ababab")).toThrowError(/Invalid syntax/)
@@ -126,8 +127,9 @@ test('Parsing dicts: mixed strings and ints', () => {
     expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   }")).toEqual(new Map([['a', 2], [3, 'c'], ['d', 4], [5, 'g']]));
 });
 
-test('Parsing dicts: mixed strings and ints with repeated keys', () => {
+test('Parsing dicts: mixed strings, ints and Nones with repeated keys', () => {
     expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   , 'a': 'b', 5: 'f'      }               ")).toEqual(new Map([['a', 'b'], [3, 'c'], ['d', 4], [5, 'f']]));
+    expect(parsePyDict(" {'a':2,  3:  'c', None: 'abc', 'd':     4,5:'g'   , 'a': 'b', 5: 'f'      , 'a': None, None  : 42 }               ")).toEqual(new Map([['a', None], [3, 'c'], [None, 42], ['d', 4], [5, 'f']]));
 });
 
 test('Parsing dicts: malformed dicts', () => {
@@ -173,8 +175,9 @@ test('Parsing lists: mixed strings and ints', () => {
     expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual(['a',2, 3,'c', 'd', 4, 5,'g']);
 });
 
-test('Parsing lists: mixed strings and ints with repeated values', () => {
-    expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, 3, 'c', 'd', 4, 5,'g', 'a', 'b', 5, 'f']);
+test('Parsing lists: mixed strings, ints and Nones with repeated values', () => {
+    expect(parsePyList(" ['a',2,  3,  'c'   ,'d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, 3, 'c', 'd', 4, 5,'g', 'a', 'b', 5, 'f']);
+    expect(parsePyList(" ['a',2,  None ,  3,  'c','d',  None  ,    4,5,'g' ,  None,None,None , 'a', 'b', 5, 'f'      ]               ")).toEqual(['a', 2, None, 3, 'c', 'd', None, 4, 5,'g', None, None, None, 'a', 'b', 5, 'f']);
 });
 
 test('Parsing lists: malformed lists', () => {
@@ -188,14 +191,30 @@ test('Parsing lists: malformed lists', () => {
     expect(() => parsePyList("['a',5e]")).toThrowError(/Floats/);
 });
 
+test('Parsing None', () => {
+    const parseNone = s => {
+        let p = new PyObjParser(s);
+        return p.parseNoneOrThrowUnknownIdentifier();
+    }
+
+    expect(isNone(parseNone("None"))).toBe(true);
+    expect(isNone(parseNone("   None"))).toBe(true);
+    expect(isNone(parseNone("None    "))).toBe(true);
+    expect(isNone(parseNone("   None    "))).toBe(true);
+    expect(() => parseNone("   Nonenone    ")).toThrowError(/Unknown identifier/);
+    expect(() => parseNone("Nonee")).toThrowError(/Unknown identifier/);
+});
+
 test('Dumping lists', () => {
     expect(dumpPyList([])).toEqual("[]"); 
     expect(dumpPyList([1, 1, 2, 3, 5])).toEqual("[1, 1, 2, 3, 5]"); 
     expect(dumpPyList(["abc", "def", 2, 3, 5])).toEqual('["abc", "def", 2, 3, 5]'); 
+    expect(dumpPyList([None, "abc", None, "def", 2, 3, 5])).toEqual('[None, "abc", None, "def", 2, 3, 5]'); 
 });
 
 test('Dumping dicts', () => {
     expect(dumpPyDict(new Map())).toEqual("{}"); 
     expect(dumpPyDict(new Map([[1, 2], [2, 3], [3, 4], [5, 9]]))).toEqual("{1: 2, 2: 3, 3: 4, 5: 9}"); 
     expect(dumpPyDict(new Map([["abc", 4], ["def", "fgh"], [2, 9], [3, "ar"], [5, ""]]))).toEqual('{"abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: ""}'); 
+    expect(dumpPyDict(new Map([[None, 3], ["abc", 4], ["def", "fgh"], [2, 9], [3, "ar"], [5, ""], [None, "abc"]]))).toEqual('{None: "abc", "abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: ""}'); 
 });
