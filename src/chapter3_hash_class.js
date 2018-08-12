@@ -151,7 +151,7 @@ class Chapter3_HashClass extends React.Component {
         super();
 
         this.state = {
-            hashClassOriginal: new Map([["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]]),
+            hashClassOriginal: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
 
@@ -164,7 +164,7 @@ class Chapter3_HashClass extends React.Component {
         let hashClassInsertAll = new HashClassInsertAll();
         hashClassSelf = hashClassInsertAll.run(
             hashClassSelf,
-            Array.from(this.state.hashClassOriginal.entries()),
+            this.state.hashClassOriginal,
             false,
             HashClassSetItem,
             HashClassResize,

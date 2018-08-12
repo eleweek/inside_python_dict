@@ -95,7 +95,7 @@ export class PyObjParser {
         const c = this.current();
 
         this.consumeWS("{");
-        let res = new Map();
+        let res = []
         this.skipWhitespace();
         while (this.current() !== "}") {
             if (this.current() == null) {
@@ -104,7 +104,7 @@ export class PyObjParser {
             let key = this.parseStringOrNumberOrNone(allowedSeparators);
             this.consumeWS(":");
             let value = this.parseStringOrNumberOrNone(allowedSeparators);
-            res.set(key, value);
+            res.push([key, value]);
 
             this.skipWhitespace();
             if (this.current() !== "}" && this.current() != null)
@@ -264,7 +264,7 @@ export function dumpPyList(l) {
 
 export function dumpPyDict(d) {
     let strItems = [];
-    for (let [k, v] of d.entries()) {
+    for (let [k, v] of d) {
         strItems.push(`${dumpSimplePyObj(k)}: ${dumpSimplePyObj(v)}`);
     }
     return "{" + strItems.join(', ') + "}";

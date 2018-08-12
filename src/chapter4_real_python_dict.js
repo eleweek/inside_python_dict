@@ -151,7 +151,7 @@ class Chapter4_RealPythonDict extends React.Component {
         super();
 
         this.state = {
-            hashClassOriginal: new Map([["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]]),
+            hashClassOriginal: [["abde", 1], ["cdef", 4], ["world", 9], ["hmmm", 16], ["hello", 25], ["xxx", 36], ["ya", 49], ["hello,world!", 64], ["well", 81], ["meh", 100]],
         }
     }
 
@@ -163,7 +163,7 @@ class Chapter4_RealPythonDict extends React.Component {
         let dict32Self = hashClassConstructor();
         let ia = new HashClassInsertAll();
         // TODO: 4 or 2 -- depends on dict size
-        dict32Self = ia.run(dict32Self, Array.from(this.state.hashClassOriginal.entries()), true, Dict32SetItem, Dict32Resize, 4);
+        dict32Self = ia.run(dict32Self, this.state.hashClassOriginal, true, Dict32SetItem, Dict32Resize, 4);
         let iaBreakpoints = ia.getBreakpoints();
 
         let resizes = ia.getResizes();
