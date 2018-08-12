@@ -3,28 +3,50 @@ const split = require('split');
 import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
-import {DUMMY} from './src/hash_impl_common'; 
+import {DUMMY, None} from './src/hash_impl_common'; 
 import {hashClassConstructor, Dict32SetItem, Dict32Lookdict, Dict32Resize, HashClassGetItem, HashClassDelItem} from './src/chapter4_real_python_dict'; 
 import {Slot} from './src/chapter3_and_4_common';
 import {List} from 'immutable';
+
+function parseSimplePyObj(obj) {
+    if (obj === null || typeof obj === "number" || typeof obj === "string") {
+        return obj;
+    } else if (typeof obj === "object" && obj.type === "None") {
+        let res = None;
+        res._hashCode = obj.hash;
+        return res;
+    } else if (typeof obj === "object" && obj.type === "DUMMY") {
+        return DUMMY; 
+    } else {
+        throw new Error(`Unknown obj ${JSON.stringify(obj)}`);
+    }
+}
+
+function dumpSimplePyObj(obj) {
+    if (obj === DUMMY) {
+        return {
+            type: "DUMMY",
+        };
+    } else if (obj === None) {
+        return {
+            type: "None",
+        };
+    } else {
+        return obj;
+    }
+}
 
 function restorePyDictState(state) {
     let self = hashClassConstructor();
     if (state.slots != null) {
         self = self.set("slots", new List(state.slots.map(slot => {
-            let key;
-            if (slot.key === null || typeof slot.key === "number" || typeof slot.key === "string") {
-                key = slot.key;
-            } else if (typeof slot.key === "object" && slot.key.type === "DUMMY") {
-                key = DUMMY; 
-            } else {
-                throw new Error(`Unknown key ${JSON.stringify(slot.key)}`);
-            }
+            let key = parseSimplePyObj(slot.key);
+            let value = parseSimplePyObj(slot.value);
 
             return Slot({
-                hashCode: new BigNumber(slot.hashCode),
+                hashCode: slot.hashCode ? new BigNumber(slot.hashCode) : null,
                 key: key,
-                value: slot.value,
+                value: value,
             })
         })));
     } else {
@@ -40,19 +62,10 @@ function dumpPyDictState(self) {
     let data = {};
 
     data.slots = self.get("slots").toJS().map(slot => {
-        let key;
-        if (slot.key === DUMMY) {
-            key = {
-                type: "DUMMY",
-            }
-        } else {
-            key = slot.key;
-        }
-
         return {
-            hashCode: slot.hashCode != null ? +slot.hashCode.toString() : null,
-            key: key,
-            value: slot.value,
+            hashCode: slot.hashCode != null ? slot.hashCode.toString() : null,
+            key: dumpSimplePyObj(slot.key),
+            value: dumpSimplePyObj(slot.value),
         }
     });
     data.used = self.get("used");
@@ -75,30 +88,38 @@ const server = net.createServer(c => {
         const data = JSON.parse(line);
         let self = restorePyDictState(data.self);
         // console.log(self);
-        console.log(data.op, data.args.key, data.args.value)
+        const op = data.op;
+        let {key, value} = data.args;
+        if (key !== undefined) {
+            key = parseSimplePyObj(key);
+        }
+        if (value !== undefined) {
+            value = parseSimplePyObj(value);
+        }
+        console.log(op, key, value)
         let isException = false;
         let result = null;
         // TODO: the whole thing is kinda ugly, encapsulate passing all these classes (e.g. Dict32Resize around)
         // TODO: isException() is really ugly, make .run() properly return exception
-        switch (data.op) {
+        switch (op) {
             case '__init__':
                 self = hashClassConstructor();
                 break;
             case '__getitem__': {
                 let gi = new HashClassGetItem();
-                result = gi.run(self, data.args.key, Dict32Lookdict);
+                result = gi.run(self, key, Dict32Lookdict);
                 let giBreakpoints = gi.getBreakpoints();
                 isException = (giBreakpoints[giBreakpoints.length - 1].point !== "return-value");
                 break;
             }
             case '__setitem__': {
                 let hcsi = new Dict32SetItem();
-                self = hcsi.run(self, data.args.key, data.args.value, true, Dict32Resize, 4 /* FIXME */);
+                self = hcsi.run(self, key, value, true, Dict32Resize, 4 /* FIXME */);
                 break;
             }
             case '__delitem__': {
                 let di = new HashClassDelItem();
-                self = di.run(self, data.args.key, Dict32Lookdict);
+                self = di.run(self, key, Dict32Lookdict);
                 let diBreakpoints = di.getBreakpoints();
                 isException = (diBreakpoints[diBreakpoints.length - 1].point !== "replace-value-empty");
                 break;
@@ -110,7 +131,7 @@ const server = net.createServer(c => {
         console.log("Writing response");
         c.write(JSON.stringify({
             exception: isException,
-            result: result,
+            result: dumpSimplePyObj(result),
             self: dumpPyDictState(self),
         }) + "\n");
     });

@@ -184,6 +184,7 @@ export function pyHashUnicode(s) {
     return pyHashStringAndUnicode(s);
 }
 
+
 export function pyHashInt(n) {
     /* TODO: actually implement something... Though it works for most ints now */
     return n;
@@ -195,7 +196,8 @@ export function pyHash(o) {
     } else if (typeof o === 'number') {
         return BigNumber(pyHashInt(o));
     } else if (isNone(o)) {
-        return BigNumber("-9223372036581563745");
+        // TODO: for None hash seems to be always different
+        return BigNumber(o._hashCode);
     } else {
         throw "pyHash called with an object of unknown type: " + o;
     }
@@ -264,6 +266,8 @@ class EmptyClass {
 }
 
 class NoneClass {
+    _hashCode = "-9223372036581563745";
+
     toString() {
         return "None";
     }
@@ -273,5 +277,5 @@ export const DUMMY = new DummyClass();
 export const EMPTY = new EmptyClass();
 export const None = new NoneClass();
 export function isNone(o) {
-    return o.constructor.name === "NoneClass";
+    return o != null && typeof o === "object" && o.constructor.name === "NoneClass";
 }

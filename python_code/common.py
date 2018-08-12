@@ -36,6 +36,6 @@ def get_object_field_or_none(obj, field_name):
         return None
 
 
-def generate_random_string():
+def generate_random_string(str_len=5):
     # FROM: https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(str_len))

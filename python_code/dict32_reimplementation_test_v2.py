@@ -2,7 +2,7 @@ import random
 import argparse
 
 
-from common import EMPTY
+from common import EMPTY, generate_random_string
 from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_reimpl_dict
 from js_reimplementation_interface import JsDictReimplementation
@@ -30,14 +30,60 @@ def verify_same(d, dreimpl, dump_reimpl_func):
     assert dump_do == dump_reimpl
 
 
-def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks):
+class IntKeyValueFactory(object):
+    def __init__(self, n_inserts):
+        self.n_inserts = n_inserts
+        self._insert_count = 0
+        self._key_range = list(range(n_inserts))
+
+    def generate_key(self):
+        return random.choice(self._key_range)
+
+    def generate_value(self):
+        self._insert_count += 1
+        return self._insert_count
+
+
+# TODO: long ints
+class AllKeyValueFactory(object):
+    def __init__(self, n_inserts, int_chance=0.1, len0_chance=0.01, len1_chance=0.1, len2_chance=0.5, len3_chance=0.2):
+        self.int_pbf = int_chance
+        self.len0_pbf = self.int_pbf + len0_chance
+        self.len1_pbf = self.len0_pbf + len1_chance
+        self.len2_pbf = self.len1_pbf + len2_chance
+        self.len3_pbf = self.len2_pbf + len3_chance
+        assert 0.0 <= self.len3_pbf <= 1.0
+
+        half_range = int(n_inserts / 2)
+        self._int_range = [i - half_range for i in range(2 * half_range)]
+
+    def _generate_obj(self):
+        r = random.random()
+        if r <= self.int_pbf:
+            return random.choice(self._int_range)
+        if r <= self.len0_pbf:
+            return ""
+        if r <= self.len1_pbf:
+            return generate_random_string(1)
+        if r <= self.len2_pbf:
+            return generate_random_string(2)
+        if r <= self.len3_pbf:
+            return generate_random_string(3)
+        return None
+
+    def generate_key(self):
+        return self._generate_obj()
+
+    def generate_value(self):
+        return self._generate_obj()
+
+
+def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks, key_value_factory):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
 
     removed = set()
-    key_range = range(n_inserts)
-    insert_count = 0
     d = {}
     dreimpl = ReimplementationClass()
     print("Starting test")
@@ -73,8 +119,8 @@ def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks):
                 except KeyError:
                     pass
 
-        key_to_insert = random.choice(key_range)
-        value_to_insert = insert_count
+        key_to_insert = key_value_factory.generate_key()
+        value_to_insert = key_value_factory.generate_value()
         if key_to_insert not in d:
             print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
             try:
@@ -87,10 +133,9 @@ def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks):
         removed.discard(key_to_insert)
         d[key_to_insert] = value_to_insert
         dreimpl[key_to_insert] = value_to_insert
-        assert dreimpl[key_to_insert] == value_to_insert
-        insert_count += 1
         print(d)
         verify_same(d, dreimpl, dump_reimpl_func)
+        assert dreimpl[key_to_insert] == value_to_insert
 
 
 if __name__ == "__main__":
@@ -99,13 +144,19 @@ if __name__ == "__main__":
     parser.add_argument('--no-extra-getitem-checks', dest='extra_checks', action='store_false')
     parser.add_argument('--num-inserts',  type=int, default=500)
     parser.add_argument('--forever', action='store_true')
+    parser.add_argument('--kv', choices=["numbers", "all"], required=True)
     args = parser.parse_args()
+
+    if args.kv == "numbers":
+        kv_factory = IntKeyValueFactory(args.num_inserts)
+    elif args.kv == "all":
+        kv_factory = AllKeyValueFactory(args.num_inserts)
 
     def test_iteration():
         if args.reimplementation == "py":
-            run(PyDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks)
+            run(PyDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
         else:
-            run(JsDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks)
+            run(JsDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
 
     if args.forever:
         while True:
