@@ -259,12 +259,6 @@ class DummyClass {
     }
 }
 
-class EmptyClass {
-    toString() {
-        return "EMPTY";
-    }
-}
-
 class NoneClass {
     _hashCode = "-9223372036581563745";
 
@@ -274,8 +268,12 @@ class NoneClass {
 }
 
 export const DUMMY = new DummyClass();
-export const EMPTY = new EmptyClass();
 export const None = new NoneClass();
+
 export function isNone(o) {
     return o != null && typeof o === "object" && o.constructor.name === "NoneClass";
+}
+
+export function isDummy(o) {
+    return o != null && typeof o === "object" && o.constructor.name === "DummyClass";
 }

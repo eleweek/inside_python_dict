@@ -22,6 +22,7 @@ import {spring, Motion} from 'react-motion';
 
 
 import {MyErrorBoundary} from './util';
+import {isNone, isDummy} from './hash_impl_common';
 
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
@@ -68,6 +69,24 @@ function computeBoxTransformProperty(idx, y) {
     return `translate(${x}px, ${y}px)`
 }
 
+function pyObjToKey(obj) {
+    let res;
+    if (typeof obj === "number") {
+        res = ["int", obj];
+    } else if (typeof obj === "string") {
+        res = ["string", obj];
+    } else if (isNone(obj)) {
+        res = ["none"];
+    } else if (isDummy(obj)) {
+        res = ["dummy"];
+    } else if (BigNumber.isBigNumber(obj)) {
+        res = ["bignumber.js", obj.toString()];
+    } else {
+        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
+    }
+
+    return JSON.stringify(res);
+}
 
 function ActiveBoxSelection(props) {
     const animatedClass = "active-box-selection-animated";
@@ -681,7 +700,7 @@ class HashBoxesComponent extends React.Component {
     static getBoxKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
-                return value.toString(); // TODO something other than toString
+                return pyObjToKey(value);
             } else {
                 return `empty-${idx}`;
             }
@@ -700,7 +719,7 @@ class LineOfBoxesComponent extends React.Component {
         let keys = []
         // Does not support nulls/"empty"
         for (let [idx, value] of array.entries()) {
-            const keyPart = value.toString(); // TODO!
+            const keyPart = pyObjToKey(value);
             if (!(value in counter)) {
                 counter[value] = 0
             } else {
