@@ -9,9 +9,9 @@ import {MySticky} from './util';
 
 function postBpTransform(bp) {
     let cloned = _.clone(bp);
-    const mapHashes = hc => hc != null ? hc.toString() : null;
+    const hashToString = hc => hc != null ? hc.toString() : null;
 
-    cloned.hashCodes = cloned.hashCodes.toJS().map(mapHashes)
+    cloned.hashCodes = cloned.hashCodes.toJS();
     cloned.keys = cloned.keys.toJS();
 
     if (bp.fromKeys) {
@@ -46,13 +46,7 @@ const HASH_CREATE_NEW_CODE = [
     ["    return hash_codes, keys", "return-lists", 1],
 ];
 
-class Chapter2BreakpointFunction extends HashBreakpointFunction {
-    constructor(converters, rarelyUpdatedFields=[]) {
-        super(converters, ["hashCodes", "keys", ...rarelyUpdatedFields])
-    }
-}
-
-class HashCreateNew extends Chapter2BreakpointFunction {
+class HashCreateNew extends HashBreakpointFunction {
     run(_fromKeys) {
         this.fromKeys = new List(_fromKeys);
 
@@ -252,7 +246,7 @@ const HASH_REMOVE_CODE = [
     ["    raise KeyError()", "throw-key-error", 1]
 ];
 
-class HashRemoveOrSearch extends Chapter2BreakpointFunction {
+class HashRemoveOrSearch extends HashBreakpointFunction {
     run(_hashCodes, _keys, _key, isRemoveMode) {
         this.hashCodes = new List(_hashCodes);
         this.keys = new List(_keys);
@@ -316,7 +310,7 @@ const HASH_RESIZE_CODE = [
     ["    return new_hash_codes, new_keys", "return-lists", 1],
 ];
 
-class HashResize extends Chapter2BreakpointFunction {
+class HashResize extends HashBreakpointFunction {
     constructor() {
         super({
             'newHashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
@@ -433,7 +427,7 @@ const HASH_INSERT_CODE = [
     ["    hash_codes[idx], keys[idx] = hash_code, key", "assign-elem"],
 ];
 
-class HashInsert extends Chapter2BreakpointFunction {
+class HashInsert extends HashBreakpointFunction {
     run(_hashCodes, _keys, _key) {
         this.hashCodes = new List(_hashCodes);
         this.keys = new List(_keys);

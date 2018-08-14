@@ -9,25 +9,18 @@ import {
 
 import {HashBreakpointFunction, pyHash, DUMMY} from './hash_impl_common';
 
-class HashClassBreakpointFunction extends HashBreakpointFunction {
-    constructor(converters, rarelyUpdatedFields={}) {
-        super(converters, {"self": "slots", ...rarelyUpdatedFields})
-    }
-}
-
-
 function postBpTransform(bp) {
     let cloned = _.clone(bp);
-    const mapHashes = s => s.hashCode != null ? s.hashCode.toString() : null;
+    const getHash = s => s.hashCode != null ? s.hashCode : null;
 
     cloned.self = cloned.self.toJS();
-    cloned.hashCodes = cloned.self.slots.map(mapHashes)
+    cloned.hashCodes = cloned.self.slots.map(getHash)
     cloned.keys = cloned.self.slots.map(s => s.key)
     cloned.values = cloned.self.slots.map(s => s.value)
 
     if (bp.oldSlots) {
         cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : cloned.oldSlots;
-        cloned.oldHashCodes = cloned.oldSlots.map(mapHashes);
+        cloned.oldHashCodes = cloned.oldSlots.map(getHash);
         cloned.oldKeys = cloned.oldSlots.map(s => s.key);
         cloned.oldValues = cloned.oldSlots.map(s => s.value);
     }
@@ -45,7 +38,7 @@ function formatHashClassLookdictRelated(bp) {
             }
         case 'check-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
-            if (slotHash.toString() /*FIXME toString */ === bp.hashCode) {
+            if (slotHash.eq(bp.hashCode)) {
                 return `<code>${slotHash} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
             } else {
                 return `<code>${slotHash} != ${bp.hashCode}</code>, so the slot definitely contains a different key`;
@@ -93,7 +86,7 @@ function formatHashClassSetItemAndCreate(bp) {
             }
         case 'check-dup-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
-            if (slotHash.toString() /*FIXME toString */=== bp.hashCode) {
+            if (slotHash.eq(bp.hashCode)) {
                 return `<code>${slotHash} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `<code>${slotHash} != ${bp.hashCode}</code>, so there is a collision with a different key`;
@@ -231,7 +224,7 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-class HashClassSetItemBase extends HashClassBreakpointFunction {
+class HashClassSetItemBase extends HashBreakpointFunction {
     run(_self, _key, _value, useRecycling, Resize, optimalSizeQuot) {
         this.self = _self;
         this.key = _key;
@@ -333,7 +326,7 @@ class HashClassSetItemBase extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassLookdictBase extends HashClassBreakpointFunction {
+class HashClassLookdictBase extends HashBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -366,7 +359,7 @@ class HashClassLookdictBase extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassGetItem extends HashClassBreakpointFunction {
+class HashClassGetItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -383,7 +376,7 @@ class HashClassGetItem extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassDelItem extends HashClassBreakpointFunction {
+class HashClassDelItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -405,7 +398,7 @@ class HashClassDelItem extends HashClassBreakpointFunction {
     }
 }
 
-class HashClassInsertAll extends HashClassBreakpointFunction {
+class HashClassInsertAll extends HashBreakpointFunction {
     constructor() {
         super();
 
@@ -482,11 +475,7 @@ function HashClassResizeVisualization(props) {
     />;
 }
 
-class HashClassResizeBase extends HashClassBreakpointFunction {
-    constructor(converters) {
-        super(converters, {"oldSlots": ""});
-    }
-
+class HashClassResizeBase extends HashBreakpointFunction {
     run(_self, optimalSizeQuot) {
         this.self = _self;
 

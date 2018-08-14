@@ -204,9 +204,8 @@ export function pyHash(o) {
 }
 
 export class BreakpointFunction {
-    constructor(converters={}) {
+    constructor() {
         this._breakpoints = [];
-        this._converters = converters;
     }
 
     addBP(point) {
@@ -218,12 +217,6 @@ export class BreakpointFunction {
         for (let [key, value] of Object.entries(this)) {
             if (key[0] != "_" && value !== undefined) {
                 bp[key] = value;
-            }
-        }
-
-        for (let [key, value] of Object.entries(bp)) {
-            if (key in this._converters) {
-                bp[key] = this._converters[key](bp[key]);
             }
         }
 
@@ -240,14 +233,6 @@ export class BreakpointFunction {
 }
 
 export class HashBreakpointFunction extends BreakpointFunction {
-    constructor(converters, rarelyUpdatedFields) {
-        super({
-            'hashCode': hc => hc !== null ? hc.toString() : null,
-            'hashCodes': hcs => hcs.map(hc => hc !== null ? hc.toString() : null),
-            ...converters
-        }, rarelyUpdatedFields);
-    }
-
     computeIdx(hashCodeBig, len) {
         return +hashCodeBig.mod(len).plus(len).mod(len).toString();
     }

@@ -2,6 +2,8 @@ import _ from 'lodash'
 import classNames from 'classnames';
 import * as React from 'react';
 
+import {BigNumber} from 'bignumber.js';
+
 import low from 'lowlight/lib/core';
 
 import unified from 'unified';
@@ -69,7 +71,7 @@ function computeBoxTransformProperty(idx, y) {
     return `translate(${x}px, ${y}px)`
 }
 
-function pyObjToKey(obj) {
+function pyObjToReactKey(obj) {
     let res;
     if (typeof obj === "number") {
         res = ["int", obj];
@@ -86,6 +88,16 @@ function pyObjToKey(obj) {
     }
 
     return JSON.stringify(res);
+}
+
+function pyObjToDisplayedString(obj) {
+    if (typeof obj === "number" || isNone(obj) || isDummy(obj) || BigNumber.isBigNumber(obj)) {
+        return obj.toString();
+    } else if (typeof obj === "string") {
+        return JSON.stringify(obj);
+    } else {
+        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
+    }
 }
 
 function ActiveBoxSelection(props) {
@@ -112,28 +124,25 @@ function ActiveBoxSelection(props) {
 }
 
 class Box extends React.Component {
-    shortenObj(value) {
-        // TODO: better way + add hover
-        let s = value.toString();
+    shortDisplayedString(value) {
+        // TODO: add hover?
+        let s = pyObjToDisplayedString(value);
         if (s.length <= 13) {
             return s;
         }
 
-        return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 5, s.length - 1);
+        return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 4, s.length);
     }
 
     render() {
         const {value, idx, status} = this.props;
         let classes = ["box", "box-animated"];
         let content;
-        let key;
         if (value != null) {
             classes.push("box-full");
-            content = <span className="box-content">{this.shortenObj(value.toString())}</span>;
-            key = value.toString(); // TODO
+            content = <span className="box-content">{this.shortDisplayedString(value)}</span>;
         } else {
             classes.push("box-empty");
-            key = `empty-${idx}`
         }
 
         let y;
@@ -700,7 +709,7 @@ class HashBoxesComponent extends React.Component {
     static getBoxKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
-                return pyObjToKey(value);
+                return pyObjToReactKey(value);
             } else {
                 return `empty-${idx}`;
             }
@@ -719,7 +728,7 @@ class LineOfBoxesComponent extends React.Component {
         let keys = []
         // Does not support nulls/"empty"
         for (let [idx, value] of array.entries()) {
-            const keyPart = pyObjToKey(value);
+            const keyPart = pyObjToReactKey(value);
             if (!(value in counter)) {
                 counter[value] = 0
             } else {
