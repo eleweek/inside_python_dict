@@ -61,6 +61,7 @@ p,a,li,blockquote {
 
 .box {
     display: flex;
+    font-family: "Roboto Mono", monospace;
     position: absolute;
     width: 40px;
     height: 40px;
