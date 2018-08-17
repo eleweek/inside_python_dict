@@ -195,7 +195,12 @@ class Chapter4_RealPythonDict extends React.Component {
               <p> The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions. </p>
               <p> It is also fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys this "clump" is prone to growing. Large "clumps" are detrimental of performance. There is a nice metaphor by Robert Lafore: it's like the crowd that gathers when someone faints at the shopping mall. The first arrivals come because they saw the victim fall; later arrivals gather because they wondered what everyone else was looking at. The larger the crowd grows, the more people are attracted to it. <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing"> From: stackoverflow. </a> </p>
               <p> TODO </p>
-              <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. The only thing we need to add is handling of values, which is not that difficult. </p>
+              <p> If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. </p>
+              <p> <code> 5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular </p>
+              <p> Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks like in C. </p>
+              TODO
+              <p> The C code implicitly converts a hash code to an unsigned integer and then performs bit shifts. The equivalent python code is a bit cumbersome. </p>
+              <p> The whole scheme may look weird, but it guarantees to stop over all indexes</p>
               <h5> Python 3.2's dict </h5>
               <p> Let's see how this dict can be implemented. </p>
 
