@@ -192,7 +192,7 @@ export function pyHashInt(n) {
 
 export function pyHash(o) {
     if (typeof o === 'string') {
-        return BigNumber(pyHashString(o));
+        return BigNumber(pyHashUnicode(o));
     } else if (typeof o === 'number') {
         return BigNumber(pyHashInt(o));
     } else if (isNone(o)) {

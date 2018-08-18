@@ -2,7 +2,7 @@ import * as React from 'react';
 import _ from 'lodash'
 
 import {List} from 'immutable';
-import {pyHash, pyHashString, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
+import {pyHash, pyHashUnicode, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
 import {MySticky} from './util';
@@ -477,7 +477,7 @@ class HashExamples extends React.Component {
         return <div> 
             <p>
                 Strings:
-                <code>hash(</code><PyStringInput autogrowing={true} value={this.state.string} onChange={(value) => this.setState({string: value})} /><code>)</code> = <code>{pyHashString(this.state.string)}</code>
+                <code>hash(</code><PyStringInput autogrowing={true} value={this.state.string} onChange={(value) => this.setState({string: value})} /><code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
             </p>
             <p>
                 Integers:
