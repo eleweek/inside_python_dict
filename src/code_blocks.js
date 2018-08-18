@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import classNames from 'classnames';
 import * as React from 'react';
+import memoize from 'memoize-one';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -473,8 +474,7 @@ class MotionScroll extends React.Component {
     }
 }
 
-// TODO: parts of this function may be optimized/memoized
-class CodeBlockWithActiveLineAndAnnotations extends React.Component {
+class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     HEIGHT = 300;
 
     constructor() {
@@ -490,60 +490,54 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         this.scrollRef = ref;
     }
 
-    render() {
-        let lines = [];
-        let maxLen = _.max(this.props.code.map(([line, bpPoint]) => line.length));
-        let activeBp = this.props.breakpoints[this.props.time];
+    _singleCodeLine({html, isActive}) {
+        let className;
+        if (isActive)
+            className = "code-highlight";
+        console.log("_singleCodeLine", html, isActive);
+        return (
+            <pre className="code-line-container">
+                <code>
+                    <span className={className} dangerouslySetInnerHTML={{__html: html}} />
+                </code>
+            </pre>
+        );
+    }
 
-        let visibleBreakpoints = {};
+    renderCodeLinesAndGetPointToLevel = memoize(code => {
         let pointToLevel = {};
-        for (let [line, bpPoint, level] of this.props.code) {
-            if (line === "" || bpPoint === "") {
-                continue;
+        let lineFuncs = [];
+        let maxLen = _.max(code.map(([line, bpPoint]) => line.length));
+        for (let [line, bpPoint, level] of code) {
+            let paddedLine = _.padEnd(line, maxLen);
+            let htCodeHtml = renderPythonCode(paddedLine);
+            const SingleCodeLine = this._singleCodeLine;
+            lineFuncs.push(isActive => <SingleCodeLine html={htCodeHtml} isActive={isActive} />);
+
+            if (line !== "" && bpPoint !== "") {
+                pointToLevel[bpPoint] = level;
             }
-            if (level === undefined) {
-                pointToLevel = null;
-                break;
-            }
-            pointToLevel[bpPoint] = level;
         }
+        return [lineFuncs, pointToLevel];
+    })
 
-        if (pointToLevel !== null) {
-            for (let [time, bp] of this.props.breakpoints.entries()) {
-                if (time > this.props.time) {
-                    break;
-                }
+    getCodeWithExplanation(lineFuncs, visibleBreakpoints, activeBp) {
+        let content = [];
 
-                if (bp.point in visibleBreakpoints) {
-                    let level = pointToLevel[bp.point];
-                    for (let visibleBpPoint in visibleBreakpoints) {
-                        if (pointToLevel[visibleBpPoint] >= level) {
-                            delete visibleBreakpoints[visibleBpPoint];
-                        }
-                    }
-                }
-
-                visibleBreakpoints[bp.point] = bp;
-            }
-        } else {
-            visibleBreakpoints[activeBp.point] = activeBp;
-        }
-
-        for (let [line, bpPoint] of this.props.code) {
-            let className = activeBp.point;
-            let explanation = "";
-            if (bpPoint === activeBp.point) {
-                className += " code-highlight";
-            }
+        for (let [i, [_, bpPoint]] of this.props.code.entries()) {
+            const isActive = bpPoint === activeBp.point;
+            const codeLine = lineFuncs[i](isActive);
+            console.log(codeLine);
+            console.log(isActive);
 
             if (bpPoint in visibleBreakpoints) {
-                const bpType = visibleBreakpoints[bpPoint];
+                const bp = visibleBreakpoints[bpPoint];
                 let desc = null;
                 if (typeof this.props.formatBpDesc === "function") {
-                    desc = this.props.formatBpDesc(bpType);
+                    desc = this.props.formatBpDesc(bp);
                 } else {
                     for (const formatBpDesc of this.props.formatBpDesc) {
-                        desc = formatBpDesc(bpType);
+                        desc = formatBpDesc(bp);
                         if (desc != null)
                             break;
                     }
@@ -553,21 +547,49 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                     throw new Error("Unknown bp type: " + bp.point);
                 }
 
-                if (desc) {
-                    explanation = `<span class="code-explanation"> ~ ${desc}</span>`
+                content.push(<span class="code-explanation">{codeLine} <span dangerouslySetInnerHTML={{__html:` ~ ${desc}`}} /></span>);
+            } else {
+                content.push(<span class="code-explanation">{codeLine}</span>);
+            }
+            content.push(<br/>);
+        }
+
+        return content;
+    }
+
+    getVisibleBreakpoints(pointToLevel, activeBp) {
+        let visibleBreakpoints = {};
+
+        for (let [time, bp] of this.props.breakpoints.entries()) {
+            if (time > this.props.time) {
+                break;
+            }
+
+            if (bp.point in visibleBreakpoints) {
+                let level = pointToLevel[bp.point];
+                for (let visibleBpPoint in visibleBreakpoints) {
+                    if (pointToLevel[visibleBpPoint] >= level) {
+                        delete visibleBreakpoints[visibleBpPoint];
+                    }
                 }
             }
 
-            let paddedLine = _.padEnd(line, maxLen);
-            let htCodeHtml = renderPythonCode(paddedLine);
-
-            let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
-            formattedLine += explanation + "<br>";
-            lines.push(formattedLine);
+            visibleBreakpoints[bp.point] = bp;
         }
 
+        return visibleBreakpoints;
+    }
+
+    render() {
+        let activeBp = this.props.breakpoints[this.props.time];
+
+        const [linesFuncs, pointToLevel] = this.renderCodeLinesAndGetPointToLevel(this.props.code);
+        const visibleBreakpoints = this.getVisibleBreakpoints(pointToLevel, activeBp);
+        const content = this.getCodeWithExplanation(linesFuncs, visibleBreakpoints, activeBp);
+        console.log(content);
+
         return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef} className="code-block-with-annotations-ps-container">
-            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block-with-annotations" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block-with-annotations">{content}</div>
             <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
     }
@@ -586,7 +608,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         let activeBp = this.props.breakpoints[this.props.time];
         for (let [i, [_, bpPoint]] of this.props.code.entries()) {
             if (bpPoint === activeBp.point) {
-                activeLine  = i;
+                activeLine = i;
             }
         }
 

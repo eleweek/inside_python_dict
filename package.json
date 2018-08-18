@@ -27,6 +27,7 @@
     "immutable": "^3.8.2",
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",
+    "memoize-one": "^4.0.0",
     "rc-slider": "^8.6.1",
     "react": "^16.4.2",
     "react-css-transition-replace": "^3.0.3",
