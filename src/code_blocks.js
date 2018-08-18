@@ -123,7 +123,7 @@ function ActiveBoxSelection(props) {
     return <div className={classNames(classes)} style={style}/>;
 }
 
-class Box extends React.Component {
+class Box extends React.PureComponent {
     shortDisplayedString(value) {
         // TODO: add hover?
         let s = pyObjToDisplayedString(value);
@@ -610,7 +610,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 }
 
 
-class TimeSlider extends React.Component {
+class TimeSlider extends React.PureComponent {
     handleValueChange = value => {
         this.props.handleTimeChange(value);
     }
