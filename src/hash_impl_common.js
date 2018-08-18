@@ -256,9 +256,9 @@ export const DUMMY = new DummyClass();
 export const None = new NoneClass();
 
 export function isNone(o) {
-    return o != null && typeof o === "object" && o.constructor.name === "NoneClass";
+    return o instanceof NoneClass;
 }
 
 export function isDummy(o) {
-    return o != null && typeof o === "object" && o.constructor.name === "DummyClass";
+    return o instanceof DummyClass;
 }

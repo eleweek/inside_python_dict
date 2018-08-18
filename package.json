@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --env=node",
     "start": "webpack-dev-server --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js",
-    "test": "jest --env=node"
+    "build": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
@@ -29,9 +28,9 @@
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",
     "rc-slider": "^8.6.1",
-    "react": "^16.4.1",
+    "react": "^16.4.2",
     "react-css-transition-replace": "^3.0.3",
-    "react-dom": "^16.4.1",
+    "react-dom": "^16.4.2",
     "react-error-boundary": "^1.2.3",
     "react-input-autosize": "^2.2.1",
     "react-motion": "^0.5.2",

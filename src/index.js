@@ -32,9 +32,11 @@ class CrossFade extends React.Component {
 export class App extends React.Component {
     constructor() {
         super();
-        this.state = {
-            windowWidth: window.innerWidth,
-            windowHeight: window.innerHeight,
+        if (global.window) {
+            this.state = {
+                windowWidth: window.innerWidth,
+                windowHeight: window.innerHeight,
+            }
         }
     }
 
