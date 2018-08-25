@@ -200,8 +200,8 @@ class BaseBoxesComponent extends React.Component {
 
         let newState;
         if (!state.firstRender) {
-            let newStatus = _.cloneDeep(state.status);
-            let newKeyModId = _.cloneDeep(state.keyModId);
+            let newStatus = _.clone(state.status);
+            let newKeyModId = _.clone(state.keyModId);
             let keyToIdxVal = {};
             let newKeyBox = {};
             for (let key in state.keyBox) {
@@ -359,7 +359,7 @@ class BaseBoxesComponent extends React.Component {
             console.log(removed);
             */
             if (removed.length > 0) {
-                let {status, keyBox, keyModId} = _.cloneDeep(state);
+                let {status, keyBox, keyModId} = _.clone(state);
                 for (const key of removed) {
                     delete status[key];
                     delete keyModId[key];
@@ -408,7 +408,7 @@ class BaseBoxesComponent extends React.Component {
             reflow(node);
 
             this.setState(state => {
-                let newStatus = _.cloneDeep(state.status);
+                let newStatus = _.clone(state.status);
                 for (let [key, status] of Object.entries(newStatus)) {
                     if (status === 'created') {
                         newStatus[key] = 'adding';
