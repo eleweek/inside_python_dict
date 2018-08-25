@@ -23,7 +23,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import {spring, Motion} from 'react-motion';
 
 
-import {MyErrorBoundary} from './util';
+import {MyErrorBoundary, getUxConsts} from './util';
 import {isNone, isDummy} from './hash_impl_common';
 
 function doubleRAF(callback) {
@@ -615,7 +615,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 scrollTopTarget: scrollTopTarget,
             });
         }
-    }, 100);
+    }, getUxConsts().CODE_SCROLL_DEBOUNCE_TIME);
 
     componentDidUpdate() {
         this.updateScrollDebounced();
@@ -665,7 +665,7 @@ class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
         }
-        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, 50);
+        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxConsts().TIME_SLIDER_THROTTLE_TIME);
     }
 
     handleTimeChange = time => {

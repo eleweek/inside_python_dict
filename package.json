@@ -23,6 +23,7 @@
     "bootstrap": "^4.0.0",
     "classnames": "^2.2.6",
     "clean-webpack-plugin": "^0.1.19",
+    "detect-browser": "^3.0.0",
     "dom-helpers": "^3.3.1",
     "immutable": "^3.8.2",
     "lodash": "^4.17.5",

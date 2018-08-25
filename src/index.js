@@ -1,5 +1,3 @@
-// require('popper.js');
-// require('bootstrap');
 import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
 import indexCss from './index.css';
 
@@ -12,7 +10,7 @@ import {Chapter3_HashClass} from './chapter3_hash_class.js';
 import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
-import {MyErrorBoundary} from './util';
+import {MyErrorBoundary, initUxConsts} from './util';
 
 function logViewportStats() {
     console.log("window: " + window.innerWidth + "x" + window.innerHeight);
@@ -97,6 +95,8 @@ function fixStickyResize() {
 }
 
 if (typeof window !== 'undefined') {
+    initUxConsts();
+
     document.addEventListener("DOMContentLoaded", () => {
         logViewportStats();
         const root = document.getElementById('root');
