@@ -37,7 +37,6 @@ module.exports = {
     filename: 'browser-bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
-  devtool: 'cheap-module-eval-source-map',
   module: {
     rules: [
       {

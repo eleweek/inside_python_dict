@@ -205,7 +205,7 @@ class BaseBoxesComponent extends React.Component {
             let keyToIdxVal = {};
             let newKeyBox = {};
             for (let key in state.keyBox) {
-                newKeyBox[key] = React.cloneElement(state.keyBox[key]);
+                newKeyBox[key] = state.keyBox[key];
             }
 
             const nextArray = nextProps.array;
@@ -584,8 +584,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         window.requestAnimationFrame(() => this.psRef.current.updateScroll());
     }
 
-    // TODO: same behaviour on componentDidMount() ?
-    componentDidUpdate() {
+    updateScrollDebounced = _.debounce(() => {
         const node = this.scrollRef;
         const totalLines = this.props.code.length;
         let activeLine = 0;
@@ -602,7 +601,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         const scrollTop = node.scrollTop;
 
         // TODO: use actual height
-        const scrollBottom = scrollTop + this.HEIGHT;
+        const scrollBottom = scrollTop + this.HEIGHT - 20;
 
         const activeLinePos = activeLine / totalLines * scrollHeight;
         // TODO: check that line height is taken into account
@@ -616,6 +615,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 scrollTopTarget: scrollTopTarget,
             });
         }
+    }, 100);
+
+    componentDidUpdate() {
+        this.updateScrollDebounced();
     }
 }
 
@@ -662,7 +665,7 @@ class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
         }
-        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, 75);
+        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, 50);
     }
 
     handleTimeChange = time => {
