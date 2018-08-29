@@ -167,7 +167,7 @@ class Box extends React.PureComponent {
     }
 }
 
-class BaseBoxesComponent extends React.Component {
+class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1000
     // Because it seems to produce less "stupid" looking results
     static ANIMATION_DURATION_TIMEOUT = 900;
@@ -474,7 +474,7 @@ class MotionScroll extends React.Component {
 }
 
 // TODO: parts of this function may be optimized/memoized
-class CodeBlockWithActiveLineAndAnnotations extends React.Component {
+class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     HEIGHT = 300;
 
     constructor() {
@@ -575,16 +575,17 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         const lines = this.getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp);
 
         return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef} className="code-block-with-annotations-ps-container">
-            <div style={{maxHeight: `${this.HEIGHT}px`}} className="code-block-with-annotations" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
+            <div style={{maxHeight: `${this.HEIGHT}px`, transform: "translateZ(0)"}} className="code-block-with-annotations" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
             <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
         </PerfectScrollbar>
     }
 
     componentDidMount() {
+        this.updateScroll();
         window.requestAnimationFrame(() => this.psRef.current.updateScroll());
     }
 
-    updateScrollDebounced = _.debounce(() => {
+    updateScroll = () => {
         const node = this.scrollRef;
         const totalLines = this.props.code.length;
         let activeLine = 0;
@@ -615,7 +616,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 scrollTopTarget: scrollTopTarget,
             });
         }
-    }, getUxConsts().CODE_SCROLL_DEBOUNCE_TIME);
+    }
+
+    updateScrollDebounced = _.debounce(this.updateScroll, getUxConsts().CODE_SCROLL_DEBOUNCE_TIME);
 
     componentDidUpdate() {
         this.updateScrollDebounced();
@@ -718,7 +721,7 @@ class VisualizedCode extends React.Component {
 }
 
 // TODO: properly support keys coming from other rows
-class HashBoxesComponent extends React.Component {
+class HashBoxesComponent extends React.PureComponent {
     static getBoxKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
@@ -735,7 +738,7 @@ class HashBoxesComponent extends React.Component {
 }
 
 
-class LineOfBoxesComponent extends React.Component {
+class LineOfBoxesComponent extends React.PureComponent {
     static getBoxKeys(array) {
         let counter = {};
         let keys = []
