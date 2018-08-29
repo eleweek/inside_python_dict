@@ -450,7 +450,7 @@ class ScrollSink extends React.Component {
         }
     }
 
-    render () {
+    render() {
         return null
     }
 }
@@ -474,7 +474,7 @@ class MotionScroll extends React.Component {
 }
 
 // TODO: parts of this function may be optimized/memoized
-class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
+class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     HEIGHT = 300;
 
     constructor() {
@@ -581,11 +581,11 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.updateScroll();
+        this.scrollRef.scrollTop = this.getScrollTopTarget().scrollTopTarget;
         window.requestAnimationFrame(() => this.psRef.current.updateScroll());
     }
 
-    updateScroll = () => {
+    getScrollTopTarget() {
         const node = this.scrollRef;
         const totalLines = this.props.code.length;
         let activeLine = 0;
@@ -601,17 +601,26 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         const scrollHeight = node.scrollHeight;
         const scrollTop = node.scrollTop;
 
-        // TODO: use actual height
-        const scrollBottom = scrollTop + this.HEIGHT - 20;
+        const scrollBottom = scrollTop + this.HEIGHT;
 
         const activeLinePos = activeLine / totalLines * scrollHeight;
-        // TODO: check that line height is taken into account
-        if (activeLinePos > scrollTop && activeLinePos < scrollBottom) {
-            return;
+        // TODO: use actual height
+        const kindOfLineHeight = 20;
+        const needsUpdating = activeLinePos > scrollTop + kindOfLineHeight || activeLinePos < scrollBottom - kindOfLineHeight;
+
+        let scrollTopTarget = activeLinePos - this.HEIGHT / 2;
+        if (scrollTopTarget < 0) {
+            scrollTopTarget = 0;
+        } else if (scrollTopTarget > scrollHeight) {
+            scrollTopTarget = scrollHeight;
         }
 
-        const scrollTopTarget = activeLinePos - this.HEIGHT / 2;
-        if (this.state.scrollTopTarget != scrollTopTarget) {
+        return {scrollTopTarget, needsUpdating};
+    }
+
+    updateScroll = () => {
+        const {scrollTopTarget, needsUpdating} = this.getScrollTopTarget();
+        if (needsUpdating && scrollTopTarget != this.state.scrollTopTarget) {
             this.setState({
                 scrollTopTarget: scrollTopTarget,
             });
