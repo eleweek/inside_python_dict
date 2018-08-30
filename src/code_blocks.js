@@ -211,25 +211,20 @@ class BaseBoxesComponent extends React.PureComponent {
             }
 
             const nextArray = nextProps.array;
+            let needProcessCreatedAfterRender = false;
             let nextArrayKeys = nextProps.getBoxKeys(nextArray);
             let nextArrayKeysSet = new Set(nextArrayKeys);
-            for (let [idx, value] of nextArray.entries()) {
+            for (let idx = 0; idx < nextArray.length; ++idx) {
                 const key = nextArrayKeys[idx];
-                keyToIdxVal[key] = {idx, value};
-            }
-
-            let needProcessCreatedAfterRender = false;
-
-            for (let key of nextArrayKeys) {
                 let status;
                 if (!(key in state.status)) {
                     status = 'created';
                     // console.log("Creating", key);
                     needProcessCreatedAfterRender = true;
-                    newKeyBox[key] = <Box {...keyToIdxVal[key]} status={status} key={key} />;
+                    newKeyBox[key] = <Box idx={idx} value={nextArray[idx]} status={status} key={key} />;
                 } else {
                     status = 'adding';
-                    newKeyBox[key] = React.cloneElement(state.keyBox[key], {...keyToIdxVal[key], status});
+                    newKeyBox[key] = React.cloneElement(state.keyBox[key], {idx, value: nextArray[idx], status});
                 }
                 newStatus[key] = status;
                 newKeyModId[key] = modificationId;
