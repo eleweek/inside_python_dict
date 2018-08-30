@@ -100,27 +100,29 @@ function pyObjToDisplayedString(obj) {
     }
 }
 
-function ActiveBoxSelection(props) {
-    const animatedClass = "active-box-selection-animated";
-    let classes = ["active-box-selection", props.extraClassName, animatedClass];
+class ActiveBoxSelection extends React.PureComponent {
+    render() {
+        const animatedClass = "active-box-selection-animated";
+        let classes = ["active-box-selection", this.props.extraClassName, animatedClass];
 
-    let visibility;
-    switch (props.status) {
-        case 'removing':
-            visibility = 'hidden';
-            break;
-        case 'created':
-            visibility = 'hidden';
-            break;
-        case 'adding':
-            visibility = 'visible';
-            break;
+        let visibility;
+        switch (this.props.status) {
+            case 'removing':
+                visibility = 'hidden';
+                break;
+            case 'created':
+                visibility = 'hidden';
+                break;
+            case 'adding':
+                visibility = 'visible';
+                break;
+        }
+        const style = {
+            visibility: visibility,
+            transform: this.props.idx != null ? computeBoxTransformProperty(this.props.idx, 0) : 0,
+        }
+        return <div className={classNames(classes)} style={style}/>;
     }
-    const style = {
-        visibility: visibility,
-        transform: props.idx != null ? computeBoxTransformProperty(props.idx, 0) : 0,
-    }
-    return <div className={classNames(classes)} style={style}/>;
 }
 
 class Box extends React.PureComponent {
@@ -439,7 +441,7 @@ function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
 }
 
 /* From: https://medium.com/@tkh44/animate-scroll-position-with-react-motion-dcc9b8aa01cf */
-class ScrollSink extends React.Component {
+class ScrollSink extends React.PureComponent {
     componentDidUpdate(prevProps) {
         if (!this.props.node) {
             return;
@@ -456,7 +458,7 @@ class ScrollSink extends React.Component {
 }
 
 
-class MotionScroll extends React.Component {
+class MotionScroll extends React.PureComponent {
     renderScrollSink = (currentStyles) => {
         return (
             <ScrollSink scrollTop={currentStyles.scrollTop} node={this.props.node} />
@@ -474,7 +476,7 @@ class MotionScroll extends React.Component {
 }
 
 // TODO: parts of this function may be optimized/memoized
-class CodeBlockWithActiveLineAndAnnotations extends React.Component {
+class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     HEIGHT = 300;
 
     constructor() {
