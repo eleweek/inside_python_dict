@@ -117,11 +117,15 @@ class ActiveBoxSelection extends React.PureComponent {
                 visibility = 'visible';
                 break;
         }
-        const style = {
-            visibility: visibility,
-            transform: this.props.idx != null ? computeBoxTransformProperty(this.props.idx, 0) : 0,
-        }
-        return <div className={classNames(classes)} style={style}/>;
+        const targetX = computeBoxX(this.props.idx);
+        return <Motion defaultStyle={{ x: targetX || 0}} style={{ x: spring(targetX || 0) }} >
+            {value => {
+                return <div className={classNames(classes)} style={{
+                        visibility: visibility,
+                        transform: `translate(${value.x}px, 0)`,
+                    }} />;
+            }}
+        </Motion>;
     }
 }
 

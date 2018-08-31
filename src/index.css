@@ -116,9 +116,9 @@ p,a,li,blockquote {
 }
 
 .active-box-selection-animated {
-    transition-property: opacity,transform;
+    /*transition-property: opacity,transform;
     transition-duration: .3s;
-    transition-timing-function: ease;
+    transition-timing-function: ease;*/
 }
 
 .box.box-just-added,
