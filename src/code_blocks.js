@@ -22,10 +22,6 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 
 import {spring, Motion} from 'react-motion';
 
-import {Spring} from 'react-spring'
-import {TimingAnimation, Easing} from 'react-spring/dist/addons'
-
-
 
 import {MyErrorBoundary, getUxConsts} from './util';
 import {isNone, isDummy} from './hash_impl_common';
@@ -121,15 +117,11 @@ class ActiveBoxSelection extends React.PureComponent {
                 visibility = 'visible';
                 break;
         }
-        const targetX = computeBoxX(this.props.idx) || 0;
-        return <Spring impl={TimingAnimation} config={{duration: 300, easing: Easing.inOut(Easing.ease)}} from={{ x: targetX }} to={{ x: targetX }} >
-            {value => {
-                return <div className={classNames(classes)} style={{
-                        visibility: visibility,
-                        transform: `translate(${value.x}px, 0)`,
-                    }} />;
-            }}
-        </Spring>;
+        const style = {
+            visibility: visibility,
+            transform: this.props.idx != null ? computeBoxTransformProperty(this.props.idx, 0) : 0,
+        }
+        return <div className={classNames(classes)} style={style}/>;
     }
 }
 
