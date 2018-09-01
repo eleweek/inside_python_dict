@@ -108,17 +108,22 @@ class ActiveBoxSelection extends React.Component {
             transitionRunning: false,
             currentIdx: null,
             currentStatus: null,
-            transitionIdx: null,
-            transitionStatus: null,
         }
     }
 
-    render() {
-        const targetIdx = this.props.idx;
-        const targetStatus = this.props.status;
+    shouldComponentUpdate() {
+        return !this.transitionRunning;
+    }
 
-        const idx = this.state.transitionIdx != null ? this.state.transitionIdx : targetIdx;
-        const status = this.state.transitionStatus || targetStatus;
+    render() {
+        let idx, status;
+        if (this.state.transitionRunning) {
+            idx = this.state.currentIdx;
+            status = this.state.currentStatus;
+        } else {
+            idx = this.props.idx;
+            status = this.props.status;
+        }
 
         const animatedClass = "active-box-selection-animated";
         let classes = ["active-box-selection", this.props.extraClassName, animatedClass];
@@ -145,10 +150,6 @@ class ActiveBoxSelection extends React.Component {
     handleTransitionEnd = () => {
         this.setState({
             transitionRunning: false,
-            currentIdx: this.state.transitionIdx,
-            currentStatus: this.state.transitionStatus,
-            transitionIdx: null,
-            transitionStatus: null,
         });
     }
 
@@ -156,33 +157,13 @@ class ActiveBoxSelection extends React.Component {
         const targetIdx = this.props.idx;
         const targetStatus = this.props.status;
 
-        const statusAllowsTransition = targetStatus === 'adding' && this.state.currentStatus === 'adding';
-        if (!this.state.transitionRunning) {
-            if (this.state.currentIdx != targetIdx) {
-                if (statusAllowsTransition) {
-                    this.setState({
-                        transitionRunning: true,
-                        transitionIdx: targetIdx,
-                        transitionStatus: targetStatus,
-                    });
-                } else {
-                    this.setState({
-                        transitionRunning: false,
-                        transitionIdx: null,
-                        transitionStatus: null,
-                        currentIdx: targetIdx,
-                        currentStatus: targetStatus,
-                    });
-                }
-            } else if (this.state.currentStatus != targetStatus) {
-                this.setState({
-                    transitionRunning: false,
-                    transitionIdx: null,
-                    transitionStatus: null,
-                    currentIdx: targetIdx,
-                    currentStatus: targetStatus,
-                });
-            }
+        if (!this.state.transitionRunning && (this.state.currentIdx != targetIdx || this.state.currentStatus != targetStatus)) {
+            const statusAllowsTransition = targetStatus === 'adding' && this.state.currentStatus === 'adding';
+            this.setState({
+                transitionRunning: statusAllowsTransition && this.state.currentIdx != targetIdx,
+                currentIdx: targetIdx,
+                currentStatus: targetStatus,
+            });
         }
     }
 
