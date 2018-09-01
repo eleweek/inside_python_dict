@@ -8,8 +8,8 @@ class PyParsingError extends Error {
     }
 }
 
-const digitsMinusPlus = "-+0123456789";
-const minusPlus = "-+";
+const digitsMinusPlus = '-+0123456789';
+const minusPlus = '-+';
 
 // TODO: add mode for validating stuff: e.g. parseString() should throw on `"string contents" stuff after`
 // TODO: parse Nones
@@ -60,25 +60,24 @@ export class PyObjParser {
     }
 
     throwErr(text, pos) {
-        throw new PyParsingError(text, pos != null ? pos : this.pos)
+        throw new PyParsingError(text, pos != null ? pos : this.pos);
     }
 
     parseStringOrNumberOrNone(allowedSeparators) {
         // TODO: The whole None parsing and error reporting for unwrapped strings
         // TODO: is a bit of a mess
-        if (this.isNextNone(allowedSeparators))
-            return this.parseNoneOrThrowUnknownIdentifier(allowedSeparators);
+        if (this.isNextNone(allowedSeparators)) return this.parseNoneOrThrowUnknownIdentifier(allowedSeparators);
         return this.parseStringOrNumber(allowedSeparators);
     }
 
     parseStringOrNumber(allowedSeparators) {
         this.skipWhitespace();
         const c = this.current();
-        if (c === "{" || c === "[") {
-            this.throwErr("Nested lists and dictionaries are not supported. Only strings and ints are.");
+        if (c === '{' || c === '[') {
+            this.throwErr('Nested lists and dictionaries are not supported. Only strings and ints are.');
         }
         if (c == null) {
-            this.throwErr("Dict literal added abruptly - expected value");
+            this.throwErr('Dict literal added abruptly - expected value');
         }
 
         if (digitsMinusPlus.includes(c)) {
@@ -86,57 +85,55 @@ export class PyObjParser {
         } else if (`"'`.includes(c)) {
             return this.parseString();
         } else {
-            this.throwErr("Expected value - string or number")
+            this.throwErr('Expected value - string or number');
         }
     }
 
     parseDict() {
-        const allowedSeparators=",:}";
+        const allowedSeparators = ',:}';
         const c = this.current();
 
-        this.consumeWS("{");
-        let res = []
+        this.consumeWS('{');
+        let res = [];
         this.skipWhitespace();
-        while (this.current() !== "}") {
+        while (this.current() !== '}') {
             if (this.current() == null) {
-                this.throwErr("Dict literal ended abruptly - no closing }");
+                this.throwErr('Dict literal ended abruptly - no closing }');
             }
             let key = this.parseStringOrNumberOrNone(allowedSeparators);
-            this.consumeWS(":");
+            this.consumeWS(':');
             let value = this.parseStringOrNumberOrNone(allowedSeparators);
             res.push([key, value]);
 
             this.skipWhitespace();
-            if (this.current() !== "}" && this.current() != null)
-                this.consume(",");
+            if (this.current() !== '}' && this.current() != null) this.consume(',');
         }
-        this.consumeWS("}");
+        this.consumeWS('}');
         return res;
     }
 
     parseList() {
-        const allowedSeparators=",]";
+        const allowedSeparators = ',]';
         const c = this.current();
 
-        this.consumeWS("[");
+        this.consumeWS('[');
         let res = [];
         this.skipWhitespace();
-        while (this.current() !== "]") {
+        while (this.current() !== ']') {
             if (this.current() == null) {
-                this.throwErr("List literal ended abruptly - no closing ]");
+                this.throwErr('List literal ended abruptly - no closing ]');
             }
             let val = this.parseStringOrNumberOrNone(allowedSeparators);
             res.push(val);
             this.skipWhitespace();
-            if (this.current() !== "]" && this.current() != null)
-                this.consume(",");
+            if (this.current() !== ']' && this.current() != null) this.consume(',');
             this.skipWhitespace();
         }
-        this.consumeWS("]");
+        this.consumeWS(']');
         return res;
     }
 
-    parseNumber(allowedSeparators="") {
+    parseNumber(allowedSeparators = '') {
         this.skipWhitespace();
         if (this.current() == null) {
             this.throwErr("Number can't be empty");
@@ -147,31 +144,29 @@ export class PyObjParser {
             this.pos++;
         }
 
-        if (this.current() === ".") {
-            this.throwErr("Floats are not supported (yet)");
+        if (this.current() === '.') {
+            this.throwErr('Floats are not supported (yet)');
         }
-        const nonDecimalErrorString = "Non-decimal bases are not supported (yet)";
-        if (this.current() === "e") {
-            this.throwErr("Floats in scientific notation are not supported (yet)");
+        const nonDecimalErrorString = 'Non-decimal bases are not supported (yet)';
+        if (this.current() === 'e') {
+            this.throwErr('Floats in scientific notation are not supported (yet)');
         }
-        if (this.current() === "x") {
+        if (this.current() === 'x') {
             this.throwErr(nonDecimalErrorString);
         }
-        if (!this.isCurrentWhitespaceOrEol() &&
-            !allowedSeparators.includes(this.current())
-           ) {
+        if (!this.isCurrentWhitespaceOrEol() && !allowedSeparators.includes(this.current())) {
             // TODO: a bit more descriptive? and a bit less hacky?
-            this.throwErr("Invalid syntax: number with non-digit characters");
+            this.throwErr('Invalid syntax: number with non-digit characters');
         }
 
         const num = this.s.slice(originalPos, this.pos);
-        if (num[0] === "0" && num.length > 1) {
+        if (num[0] === '0' && num.length > 1) {
             this.throwErr(nonDecimalErrorString);
         }
         // TODO: python parses numbers like ++1, -+--1, etc properly
         const parsedNum = +num;
         if (isNaN(parsedNum)) {
-            this.throwErr("Invalid number", originalPos);
+            this.throwErr('Invalid number', originalPos);
         }
         return parsedNum;
     }
@@ -182,7 +177,7 @@ export class PyObjParser {
         this.skipWhitespace();
         const c = this.current();
         if (c !== "'" && c !== '"') {
-            this.throwErr("String must be wrapped in quotation characters (either `'` or `\"`)");
+            this.throwErr('String must be wrapped in quotation characters (either `\'` or `"`)');
         }
         const quote = c;
         this.consume(quote);
@@ -190,9 +185,9 @@ export class PyObjParser {
         const originalPos = this.pos;
         let res = [];
         while (this.current() != null && this.current() !== quote) {
-            if (this.current() === "\\") {
-                if (this.next() !== "\\" && this.next() !== '"') {
-                    this.throwErr("The only supported escape sequences are for \\\\ and \\\"");
+            if (this.current() === '\\') {
+                if (this.next() !== '\\' && this.next() !== '"') {
+                    this.throwErr('The only supported escape sequences are for \\\\ and \\"');
                 }
                 res.push(this.next());
                 this.pos += 2;
@@ -202,12 +197,15 @@ export class PyObjParser {
             }
         }
         this.consume(quote);
-        return res.join("");
+        return res.join('');
     }
 
-    isNextNone(allowedSeparators="") {
+    isNextNone(allowedSeparators = '') {
         this.skipWhitespace();
-        return this.s.slice(this.pos, this.pos + 4) === "None" && (this.isWhiteSpaceOrEol(this.s[this.pos + 4]) || allowedSeparators.includes(this.s[this.pos + 4]));
+        return (
+            this.s.slice(this.pos, this.pos + 4) === 'None' &&
+            (this.isWhiteSpaceOrEol(this.s[this.pos + 4]) || allowedSeparators.includes(this.s[this.pos + 4]))
+        );
     }
 
     // Quite hacky
@@ -217,7 +215,7 @@ export class PyObjParser {
             this.pos += 4;
             return None;
         }
-        this.throwErr("Unknown identifier (if you wanted a string, wrap it in quotation marks - `\"` or `'`)")
+        this.throwErr('Unknown identifier (if you wanted a string, wrap it in quotation marks - `"` or `\'`)');
     }
 }
 
@@ -249,8 +247,7 @@ export function parsePyStringOrNumber(s) {
 // TODO: Dump functions are very hacky right now
 
 function dumpSimplePyObj(o) {
-    if (isNone(o))
-        return "None";
+    if (isNone(o)) return 'None';
     return JSON.stringify(o);
 }
 
@@ -267,5 +264,5 @@ export function dumpPyDict(d) {
     for (let [k, v] of d) {
         strItems.push(`${dumpSimplePyObj(k)}: ${dumpSimplePyObj(v)}`);
     }
-    return "{" + strItems.join(', ') + "}";
+    return '{' + strItems.join(', ') + '}';
 }

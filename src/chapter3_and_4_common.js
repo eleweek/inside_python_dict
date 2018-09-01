@@ -1,22 +1,26 @@
 import * as React from 'react';
-import _ from 'lodash'
+import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
 
 import {
-    HashBoxesComponent, LineOfBoxesComponent, Tetris,
-    SimpleCodeBlock, VisualizedCode, dummyFormat
+    HashBoxesComponent,
+    LineOfBoxesComponent,
+    Tetris,
+    SimpleCodeBlock,
+    VisualizedCode,
+    dummyFormat,
 } from './code_blocks';
 
 import {HashBreakpointFunction, pyHash, DUMMY} from './hash_impl_common';
 
 export function postBpTransform(bp) {
     let cloned = _.clone(bp);
-    const getHash = s => s.hashCode != null ? s.hashCode : null;
+    const getHash = s => (s.hashCode != null ? s.hashCode : null);
 
     cloned.self = cloned.self.toJS();
-    cloned.hashCodes = cloned.self.slots.map(getHash)
-    cloned.keys = cloned.self.slots.map(s => s.key)
-    cloned.values = cloned.self.slots.map(s => s.value)
+    cloned.hashCodes = cloned.self.slots.map(getHash);
+    cloned.keys = cloned.self.slots.map(s => s.key);
+    cloned.values = cloned.self.slots.map(s => s.value);
 
     if (bp.oldSlots) {
         cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : cloned.oldSlots;
@@ -46,7 +50,7 @@ export function formatHashClassLookdictRelated(bp) {
         }
         case 'check-key': {
             const slotKey = bp.self.slots[bp.idx].key;
-            if (slotKey== bp.key) {
+            if (slotKey == bp.key) {
                 return `<code>${slotKey} == ${bp.key}</code>, so the key is found`;
             } else {
                 return `<code>${slotKey} != ${bp.key}</code>, so there is a different key with the same hash`;
@@ -58,7 +62,9 @@ export function formatHashClassLookdictRelated(bp) {
             return `Throw an exception, because no key was found`;
         /* __delitem__ */
         case 'dec-used':
-            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${bp.self.used}`;
+            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${
+                bp.self.used
+            }`;
         case 'replace-key-dummy':
             return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
         case 'replace-value-empty':
@@ -87,7 +93,9 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-dup-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
             if (slotHash.eq(bp.hashCode)) {
-                return `<code>${slotHash} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
+                return `<code>${slotHash} == ${
+                    bp.hashCode
+                }</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `<code>${slotHash} != ${bp.hashCode}</code>, so there is a collision with a different key`;
             }
@@ -103,7 +111,9 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-should-recycle': {
             const slotKey = bp.self.slots[bp.idx].key;
             if (bp.targetIdx !== null) {
-                return `<code>target_idx == ${bp.targetIdx}</code> - we have already found a dummy slot that we may replace`;
+                return `<code>target_idx == ${
+                    bp.targetIdx
+                }</code> - we have already found a dummy slot that we may replace`;
             } else if (slotKey !== DUMMY) {
                 return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${slotKey}, i.e. not dummy</code>`;
             } else {
@@ -113,9 +123,9 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'set-target-idx-recycle':
             return `So save its index`;
         case 'set-target-idx-found':
-            return `We will put the value in the slot <code>${bp.targetIdx}</code>`
+            return `We will put the value in the slot <code>${bp.targetIdx}</code>`;
         case 'check-dup-break':
-            return "Because the key is found, stop"
+            return 'Because the key is found, stop';
         case 'check-target-idx-is-none':
             if (bp.idx == null) {
                 return `<code>target_idx is None</code>, and this means that we haven't found nor dummy slot neither existing slot`;
@@ -125,52 +135,67 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'after-probing-assign-target-idx':
             return `So we'll put the item in the current slot (<code>${bp.idx}</code>), which is empty`;
         case 'check-used-fill-increased':
-            return "If we're putting the item in an empty slot " + (bp.self.slots[bp.targetIdx].key == null ? "(and we are)" : "(and we aren't)");
+            return (
+                "If we're putting the item in an empty slot " +
+                (bp.self.slots[bp.targetIdx].key == null ? '(and we are)' : "(and we aren't)")
+            );
         case 'inc-used':
         case 'inc-used-2':
             return `Then we need to increment used, which makes it <code>${bp.self.used}</code>`;
         case 'inc-fill':
             return `and increment fill, which makes it <code>${bp.self.fill}</code>`;
         case 'check-recycle-used-increased':
-            return `If we're putting the item in dummy slot ` + (bp.self.slots[bp.targetIdx].key === DUMMY ? "(and we are)" : "(and we aren't)");
+            return (
+                `If we're putting the item in dummy slot ` +
+                (bp.self.slots[bp.targetIdx].key === DUMMY ? '(and we are)' : "(and we aren't)")
+            );
         case 'assign-slot':
             return `Put the item in the slot <code>${bp.targetIdx}</code>`;
         case 'check-resize': {
             const fillQ = bp.self.fill * 3;
             const sizeQ = bp.self.slots.length * 2;
             let compStr;
-            let noRunResizeStr = ""; 
+            let noRunResizeStr = '';
             if (fillQ > sizeQ) {
-                compStr = "is greater than"
+                compStr = 'is greater than';
             } else if (fillQ === sizeQ) {
-                compStr = "is equals to";
+                compStr = 'is equals to';
             } else {
-                compStr = "is less than";
-                noRunResizeStr = ", so no need to run <code>resize()</code>";
+                compStr = 'is less than';
+                noRunResizeStr = ', so no need to run <code>resize()</code>';
             }
 
-            return `<code> ${bp.self.fill} * 3</code> (== <code>${fillQ}</code>) ` + compStr + ` <code>${bp.self.slots.length} * 2</code> (== <code>${sizeQ}</code>)` + noRunResizeStr;
+            return (
+                `<code> ${bp.self.fill} * 3</code> (== <code>${fillQ}</code>) ` +
+                compStr +
+                ` <code>${bp.self.slots.length} * 2</code> (== <code>${sizeQ}</code>)` +
+                noRunResizeStr
+            );
         }
         case 'resize':
-            return "Do a resize";
+            return 'Do a resize';
         case 'done-no-return':
-            return "";
+            return '';
     }
 }
 
 export function formatHashClassResize(bp) {
     switch (bp.point) {
         case 'assign-old-slots':
-            return "Copy reference to slots (no actual copying is done)"
+            return 'Copy reference to slots (no actual copying is done)';
         case 'assign-fill':
-            return `Set fill to <code>${bp.self.used}</code>, because we know we'll be filtering out any removed "dummy" slots`;
+            return `Set fill to <code>${
+                bp.self.used
+            }</code>, because we know we'll be filtering out any removed "dummy" slots`;
         case 'compute-new-size':
             return `Compute an optimal size: <code>${bp.newSize}</code>. TODO: explain calculation`;
         case 'new-empty-slots':
-            return `Create new list of empty slots of size <code>${bp.self.slots.length}</code>`
+            return `Create new list of empty slots of size <code>${bp.self.slots.length}</code>`;
         case 'for-loop': {
             const {key, hashCode} = bp.oldSlots[bp.oldIdx];
-            return `[${bp.oldIdx + 1}/${bp.oldSlots.length}] The current key to insert is <code>${key === null ? "EMPTY" : key}</code>, its hash is <code>${hashCode === null ? "EMPTY" : hashCode}</code>`;
+            return `[${bp.oldIdx + 1}/${bp.oldSlots.length}] The current key to insert is <code>${
+                key === null ? 'EMPTY' : key
+            }</code>, its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
         }
         case 'check-skip-empty-dummy': {
             const slotKey = bp.oldSlots[bp.oldIdx].key;
@@ -182,7 +207,7 @@ export function formatHashClassResize(bp) {
                 return `The current slot is a normal slot containing an item`;
             }
         }
-        case 'continue': /* FIXME not currently used */
+        case 'continue' /* FIXME not currently used */:
             return 'So skip it';
         case 'check-collision':
             if (bp.self.slots[bp.idx].key === null) {
@@ -215,7 +240,7 @@ export function hashClassConstructor() {
 
 export const Slot = Record({hashCode: null, key: null, value: null});
 
-export function findOptimalSize(used, quot=2) {
+export function findOptimalSize(used, quot = 2) {
     let newSize = 8;
     while (newSize <= quot * used) {
         newSize *= 2;
@@ -233,20 +258,25 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
-        this.computeIdxAndSave(this.hashCode, this.self.get("slots").size);
+        this.computeIdxAndSave(this.hashCode, this.self.get('slots').size);
         this.targetIdx = null;
         this.addBP('target-idx-none');
 
         while (true) {
             this.addBP('check-collision');
-            if (this.self.get("slots").get(this.idx).key === null) {
+            if (this.self.get('slots').get(this.idx).key === null) {
                 break;
             }
 
             this.addBP('check-dup-hash');
-            if (this.self.get("slots").get(this.idx).hashCode.eq(this.hashCode)) {
+            if (
+                this.self
+                    .get('slots')
+                    .get(this.idx)
+                    .hashCode.eq(this.hashCode)
+            ) {
                 this.addBP('check-dup-key');
-                if (this.self.get("slots").get(this.idx).key === this.key) {
+                if (this.self.get('slots').get(this.idx).key === this.key) {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-found');
                     this.addBP('check-dup-break');
@@ -256,68 +286,59 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
 
             if (useRecycling) {
                 this.addBP('check-should-recycle');
-                if (this.targetIdx === null && this.self.get("slots").get(this.idx).key === DUMMY) {
+                if (this.targetIdx === null && this.self.get('slots').get(this.idx).key === DUMMY) {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-recycle');
                 }
             }
-            
+
             this.nextIdxAndSave();
         }
 
         this.addBP('check-target-idx-is-none');
         if (this.targetIdx === null) {
             this.targetIdx = this.idx;
-            this.addBP("after-probing-assign-target-idx");
+            this.addBP('after-probing-assign-target-idx');
         }
 
         this.addBP('check-used-fill-increased');
-        if (this.self.get("slots").get(this.targetIdx).key === null) {
-            this.self = this.self.set(
-                "used",
-                this.self.get("used") + 1
-            );
+        if (this.self.get('slots').get(this.targetIdx).key === null) {
+            this.self = this.self.set('used', this.self.get('used') + 1);
             this.addBP('inc-used');
 
-            this.self = this.self.set(
-                "fill",
-                this.self.get("fill") + 1
-            );
+            this.self = this.self.set('fill', this.self.get('fill') + 1);
             this.addBP('inc-fill');
         } else {
             if (useRecycling) {
                 this.addBP('check-recycle-used-increased');
-                if (this.self.get("slots").get(this.targetIdx).key === DUMMY) {
-                    this.self = this.self.set(
-                        "used",
-                        this.self.get("used") + 1
-                    );
-                    this.addBP("inc-used-2");
+                if (this.self.get('slots').get(this.targetIdx).key === DUMMY) {
+                    this.self = this.self.set('used', this.self.get('used') + 1);
+                    this.addBP('inc-used-2');
                 }
             }
         }
 
         this.self = this.self.setIn(
-            ["slots", this.targetIdx],
+            ['slots', this.targetIdx],
             new Slot({hashCode: this.hashCode, key: this.key, value: this.value})
         );
 
         this.addBP('assign-slot');
         this.addBP('check-resize');
-        if (this.self.get("fill") * 3 >= this.self.get("slots").size * 2) {
+        if (this.self.get('fill') * 3 >= this.self.get('slots').size * 2) {
             let hashClassResize = new Resize();
             let _oldSelf = this.self;
             this.self = hashClassResize.run(this.self, optimalSizeQuot);
 
             this._resize = {
-                'oldSelf': _oldSelf,
-                'self': this.self,
-                'breakpoints': hashClassResize.getBreakpoints(),
+                oldSelf: _oldSelf,
+                self: this.self,
+                breakpoints: hashClassResize.getBreakpoints(),
             };
 
             this.addBP('resize');
         }
-        this.addBP("done-no-return");
+        this.addBP('done-no-return');
         return this.self;
     }
 
@@ -334,18 +355,23 @@ export class HashClassLookdictBase extends HashBreakpointFunction {
         this.addBP('start-execution-lookdict');
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
-        this.computeIdxAndSave(this.hashCode, this.self.get("slots").size);
+        this.computeIdxAndSave(this.hashCode, this.self.get('slots').size);
 
         while (true) {
             this.addBP('check-not-found');
-            if (this.self.get("slots").get(this.idx).key === null) {
+            if (this.self.get('slots').get(this.idx).key === null) {
                 break;
             }
 
             this.addBP('check-hash');
-            if (this.self.get("slots").get(this.idx).hashCode.eq(this.hashCode)) {
+            if (
+                this.self
+                    .get('slots')
+                    .get(this.idx)
+                    .hashCode.eq(this.hashCode)
+            ) {
                 this.addBP('check-key');
-                if (this.self.get("slots").get(this.idx).key === this.key) {
+                if (this.self.get('slots').get(this.idx).key === this.key) {
                     this.addBP('return-idx');
                     return this.idx;
                 }
@@ -363,15 +389,15 @@ export class HashClassGetItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
-        this.addBP("start-execution-getitem");
+        this.addBP('start-execution-getitem');
 
         let hcld = new Lookdict();
-        this.idx = hcld.run(this.self, this.key)
-        this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()]
+        this.idx = hcld.run(this.self, this.key);
+        this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()];
         if (this.idx !== null) {
             // did not throw exception
-            this.addBP("return-value");
-            return this.self.get("slots").get(this.idx).value;
+            this.addBP('return-value');
+            return this.self.get('slots').get(this.idx).value;
         }
     }
 }
@@ -380,19 +406,19 @@ export class HashClassDelItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
-        this.addBP("start-execution-delitem");
+        this.addBP('start-execution-delitem');
 
         let hcld = new Lookdict();
-        this.idx = hcld.run(this.self, this.key)
-        this._breakpoints = [...this._breakpoints,...hcld.getBreakpoints()]
+        this.idx = hcld.run(this.self, this.key);
+        this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()];
         if (this.idx !== null) {
             // did not throw exception
-            this.self = this.self.set("used", this.self.get("used") - 1);
-            this.addBP("dec-used");
-            this.self = this.self.setIn(["slots", this.idx, "key"], DUMMY);
-            this.addBP("replace-key-dummy");
-            this.self = this.self.setIn(["slots", this.idx, "value"], null);
-            this.addBP("replace-value-empty");
+            this.self = this.self.set('used', this.self.get('used') - 1);
+            this.addBP('dec-used');
+            this.self = this.self.setIn(['slots', this.idx, 'key'], DUMMY);
+            this.addBP('replace-key-dummy');
+            this.self = this.self.setIn(['slots', this.idx, 'value'], null);
+            this.addBP('replace-value-empty');
         }
         return this.self;
     }
@@ -421,7 +447,7 @@ export class HashClassInsertAll extends HashBreakpointFunction {
             if (hcsi.getResize()) {
                 this._resizes.push(hcsi.getResize());
             }
-            this._breakpoints = [...this._breakpoints,...hcsi.getBreakpoints()]
+            this._breakpoints = [...this._breakpoints, ...hcsi.getBreakpoints()];
         }
         return this.self;
     }
@@ -432,47 +458,47 @@ export class HashClassInsertAll extends HashBreakpointFunction {
 }
 
 export function HashClassNormalStateVisualization(props) {
-    return <Tetris
-        lines={
-            [
-                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx", "targetIdx"]],
-                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx", "targetIdx"]],
-                [HashBoxesComponent, ["self.slots[*].value", "values", "idx", "targetIdx"]],
-            ]
-        }
-        {...props}
-    />;
+    return (
+        <Tetris
+            lines={[
+                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx', 'targetIdx']],
+                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx', 'targetIdx']],
+                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx', 'targetIdx']],
+            ]}
+            {...props}
+        />
+    );
 }
 
 export function HashClassInsertAllVisualization(props) {
-    return <Tetris
-        lines={
-            [
-                [LineOfBoxesComponent, ["from_keys", "fromKeys", "oldIdx"]],
-                [LineOfBoxesComponent, ["from_values", "fromValues", "oldIdx"]],
-                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
-            ]
-        }
-        {...props}
-    />;
+    return (
+        <Tetris
+            lines={[
+                [LineOfBoxesComponent, ['from_keys', 'fromKeys', 'oldIdx']],
+                [LineOfBoxesComponent, ['from_values', 'fromValues', 'oldIdx']],
+                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx']],
+                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx']],
+                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx']],
+            ]}
+            {...props}
+        />
+    );
 }
 
 export function HashClassResizeVisualization(props) {
-    return <Tetris
-        lines={
-            [
-                [HashBoxesComponent, ["oldSlots[*].hash", "oldHashCodes", "oldIdx"]],
-                [HashBoxesComponent, ["oldSlots[*].key", "oldKeys", "oldIdx"]],
-                [HashBoxesComponent, ["oldSlots[*].value", "oldValues", "oldIdx"]],
-                [HashBoxesComponent, ["self.slots[*].hash", "hashCodes", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].key", "keys", "idx"]],
-                [HashBoxesComponent, ["self.slots[*].value", "values", "idx"]],
-            ]
-        }
-        {...props}
-    />;
+    return (
+        <Tetris
+            lines={[
+                [HashBoxesComponent, ['oldSlots[*].hash', 'oldHashCodes', 'oldIdx']],
+                [HashBoxesComponent, ['oldSlots[*].key', 'oldKeys', 'oldIdx']],
+                [HashBoxesComponent, ['oldSlots[*].value', 'oldValues', 'oldIdx']],
+                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx']],
+                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx']],
+                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx']],
+            ]}
+            {...props}
+        />
+    );
 }
 
 export class HashClassResizeBase extends HashBreakpointFunction {
@@ -480,22 +506,22 @@ export class HashClassResizeBase extends HashBreakpointFunction {
         this.self = _self;
 
         this.oldSlots = new List();
-        this.addBP("start-execution");
-        this.oldSlots = this.self.get("slots");
-        this.addBP("assign-old-slots");
-        this.newSize = findOptimalSize(this.self.get("used"), optimalSizeQuot);
-        this.addBP("compute-new-size");
+        this.addBP('start-execution');
+        this.oldSlots = this.self.get('slots');
+        this.addBP('assign-old-slots');
+        this.newSize = findOptimalSize(this.self.get('used'), optimalSizeQuot);
+        this.addBP('compute-new-size');
 
         let slotsTemp = [];
 
         for (let i = 0; i < this.newSize; ++i) {
             slotsTemp.push(new Slot());
         }
-        this.self = this.self.set("slots", new List(slotsTemp));
-        this.addBP("new-empty-slots");
+        this.self = this.self.set('slots', new List(slotsTemp));
+        this.addBP('new-empty-slots');
 
-        this.self = this.self.set("fill", this.self.get("used"));
-        this.addBP("assign-fill");
+        this.self = this.self.set('fill', this.self.get('used'));
+        this.addBP('assign-fill');
 
         for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
             /* For consistency with other functions, add these names */
@@ -509,25 +535,22 @@ export class HashClassResizeBase extends HashBreakpointFunction {
                 this.addBP('continue');
                 continue;
             }
-            this.computeIdxAndSave(this.slot.hashCode, this.self.get("slots").size);
+            this.computeIdxAndSave(this.slot.hashCode, this.self.get('slots').size);
 
             while (true) {
                 this.addBP('check-collision');
-                if (this.self.get("slots").get(this.idx).key === null) {
+                if (this.self.get('slots').get(this.idx).key === null) {
                     break;
                 }
 
                 this.nextIdxAndSave();
             }
 
-            this.self = this.self.setIn(
-                ["slots", this.idx],
-                this.slot
-            );
+            this.self = this.self.setIn(['slots', this.idx], this.slot);
             this.addBP('assign-slot');
         }
         this.addBP('done-no-return');
 
         return this.self;
     }
-};
+}

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash';
 import classNames from 'classnames';
 import * as React from 'react';
 
@@ -18,10 +18,9 @@ import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
 import './perfect-scrollbar-mod.css';
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 import {spring, Motion} from 'react-motion';
-
 
 import {MyErrorBoundary, getUxSettings} from './util';
 import {isNone, isDummy} from './hash_impl_common';
@@ -34,7 +33,7 @@ function doubleRAF(callback) {
 
 function reflow(node) {
     if (!node) {
-        console.error("Not reflowing non-existant node!");
+        console.error('Not reflowing non-existant node!');
         return;
     }
     node && node.scrollTop;
@@ -46,18 +45,21 @@ function renderPythonCode(codeString) {
     const processor = unified().use(rehypestringify);
     return processor.stringify({
         type: 'root',
-        children: lowAst
+        children: lowAst,
     });
 }
 
 export function dummyFormat(bp) {
     /* return JSON.stringify(bp); */
-    return "";
+    return '';
 }
 
-
 export function SimpleCodeBlock(props) {
-    return <pre><code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} /></pre>
+    return (
+        <pre>
+            <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />
+        </pre>
+    );
 }
 
 const BOX_SIZE = 40;
@@ -68,21 +70,21 @@ function computeBoxX(idx) {
 
 function computeBoxTransformProperty(idx, y) {
     let x = computeBoxX(idx);
-    return `translate(${x}px, ${y}px)`
+    return `translate(${x}px, ${y}px)`;
 }
 
 function pyObjToReactKey(obj) {
     let res;
-    if (typeof obj === "number") {
-        res = ["int", obj];
-    } else if (typeof obj === "string") {
-        res = ["string", obj];
+    if (typeof obj === 'number') {
+        res = ['int', obj];
+    } else if (typeof obj === 'string') {
+        res = ['string', obj];
     } else if (isNone(obj)) {
-        res = ["none"];
+        res = ['none'];
     } else if (isDummy(obj)) {
-        res = ["dummy"];
+        res = ['dummy'];
     } else if (BigNumber.isBigNumber(obj)) {
-        res = ["bignumber.js", obj.toString()];
+        res = ['bignumber.js', obj.toString()];
     } else {
         throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
     }
@@ -91,9 +93,9 @@ function pyObjToReactKey(obj) {
 }
 
 function pyObjToDisplayedString(obj) {
-    if (typeof obj === "number" || isNone(obj) || isDummy(obj) || BigNumber.isBigNumber(obj)) {
+    if (typeof obj === 'number' || isNone(obj) || isDummy(obj) || BigNumber.isBigNumber(obj)) {
         return obj.toString();
-    } else if (typeof obj === "string") {
+    } else if (typeof obj === 'string') {
         return JSON.stringify(obj);
     } else {
         throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
@@ -105,8 +107,8 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
         const {extraClassName, idx, status, transitionDuration} = this.props;
         console.log(transitionDuration);
 
-        const animatedClass = "active-box-selection-animated";
-        let classes = ["active-box-selection", extraClassName, animatedClass];
+        const animatedClass = 'active-box-selection-animated';
+        let classes = ['active-box-selection', extraClassName, animatedClass];
 
         let visibility;
         switch (status) {
@@ -124,8 +126,8 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
             visibility: visibility,
             'transition-duration': `${transitionDuration}ms`,
             transform: idx != null ? computeBoxTransformProperty(idx, 0) : 0,
-        }
-        return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style}/>;
+        };
+        return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style} />;
     }
 }
 
@@ -136,12 +138,12 @@ class ActiveBoxSelectionThrottled extends React.Component {
             transitionRunning: false,
             currentIdx: null,
             currentStatus: null,
-        }
+        };
     }
 
-    handleRef = (node) => {
+    handleRef = node => {
         this.node = node;
-    }
+    };
 
     shouldComponentUpdate() {
         return !this.transitionRunning;
@@ -157,20 +159,31 @@ class ActiveBoxSelectionThrottled extends React.Component {
             status = this.props.status;
         }
         const extraClassName = this.props.extraClassName;
-        return <ActiveBoxSelectionUnthrottled setInnerRef={this.handleRef} extraClassName={extraClassName} idx={idx} status={status} transitionDuration={this.props.transitionDuration} />;
+        return (
+            <ActiveBoxSelectionUnthrottled
+                setInnerRef={this.handleRef}
+                extraClassName={extraClassName}
+                idx={idx}
+                status={status}
+                transitionDuration={this.props.transitionDuration}
+            />
+        );
     }
 
     handleTransitionEnd = () => {
         this.setState({
             transitionRunning: false,
         });
-    }
+    };
 
     componentDidUpdate() {
         const targetIdx = this.props.idx;
         const targetStatus = this.props.status;
 
-        if (!this.state.transitionRunning && (this.state.currentIdx != targetIdx || this.state.currentStatus != targetStatus)) {
+        if (
+            !this.state.transitionRunning &&
+            (this.state.currentIdx != targetIdx || this.state.currentStatus != targetStatus)
+        ) {
             const statusAllowsTransition = targetStatus === 'adding' && this.state.currentStatus === 'adding';
             this.setState({
                 transitionRunning: statusAllowsTransition && this.state.currentIdx != targetIdx,
@@ -187,7 +200,7 @@ class ActiveBoxSelectionThrottled extends React.Component {
             currentStatus: this.props.status,
         });
 
-        this.node.addEventListener("transitionend", this.handleTransitionEnd, false);
+        this.node.addEventListener('transitionend', this.handleTransitionEnd, false);
     }
 }
 
@@ -198,12 +211,11 @@ function ActiveBoxSelection(props) {
     const Component = isThrottled ? ActiveBoxSelectionThrottled : ActiveBoxSelectionUnthrottled;
 
     if (isDynamicDuration) {
-        return <ActiveBoxSelectionDynamicTransition {...props} componentClass={Component} />
+        return <ActiveBoxSelectionDynamicTransition {...props} componentClass={Component} />;
     } else {
         return <Component {...props} transitionDuration={300} />;
     }
 }
-
 
 class ActiveBoxSelectionDynamicTransition extends React.Component {
     constructor() {
@@ -231,39 +243,41 @@ class Box extends React.PureComponent {
             return s;
         }
 
-        return s.substring(0, 4) + "\u22EF" + s.substring(s.length - 4, s.length);
+        return s.substring(0, 4) + '\u22EF' + s.substring(s.length - 4, s.length);
     }
 
     render() {
         const {value, idx, status} = this.props;
-        let classes = ["box", "box-animated"];
+        let classes = ['box', 'box-animated'];
         let content;
         if (value != null) {
-            classes.push("box-full");
+            classes.push('box-full');
             content = <span className="box-content">{this.shortDisplayedString(value)}</span>;
         } else {
-            classes.push("box-empty");
+            classes.push('box-empty');
         }
 
         let y;
 
         switch (status) {
             case 'removing':
-                classes.push("box-removed");
-                y = (value != null ? -BOX_SIZE : 0);
+                classes.push('box-removed');
+                y = value != null ? -BOX_SIZE : 0;
                 break;
             case 'created':
-                classes.push("box-just-added");
-                y = (value != null ? -BOX_SIZE : 0);
+                classes.push('box-just-added');
+                y = value != null ? -BOX_SIZE : 0;
                 break;
             case 'adding':
                 y = 0;
                 break;
         }
 
-        return <div style={{transform: computeBoxTransformProperty(this.props.idx, y)}} className={classNames(classes)}>
-            {content}
-        </div>;
+        return (
+            <div style={{transform: computeBoxTransformProperty(this.props.idx, y)}} className={classNames(classes)}>
+                {content}
+            </div>
+        );
     }
 }
 
@@ -288,14 +302,11 @@ class BaseBoxesComponent extends React.PureComponent {
             needProcessCreatedAfterRender: false,
             firstRender: true,
             modificationId: 0,
-        }
+        };
         this.ref = React.createRef();
     }
 
-    static getDerivedStateFromProps(
-        nextProps,
-        state
-    ) {
+    static getDerivedStateFromProps(nextProps, state) {
         const modificationId = state.modificationId + 1;
 
         let newState;
@@ -348,7 +359,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
                 needGarbageCollection: needGarbageCollection,
                 modificationId: modificationId,
-            }
+            };
         } else {
             let newStatus = {};
             let newKeyModId = {};
@@ -369,7 +380,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
                 modificationId: modificationId,
-            }
+            };
         }
 
         let activeBoxSelection1 = state.activeBoxSelection1;
@@ -382,23 +393,25 @@ class BaseBoxesComponent extends React.PureComponent {
         // FIXME: probably better to get rid of created/removing/adding statuses here
         const getOrModSelection = (selection, extraClassName, oldIdx, idx, status) => {
             if (idx == null) {
-                status = "removing";
-            } else if (status === "created" || idx != null) {
-                status = "adding";
+                status = 'removing';
+            } else if (status === 'created' || idx != null) {
+                status = 'adding';
             }
 
             if (!selection) {
                 return [
-                    <ActiveBoxSelection key={extraClassName} extraClassName={extraClassName} idx={idx != null ? idx : oldIdx} status={status} />,
-                    status
+                    <ActiveBoxSelection
+                        key={extraClassName}
+                        extraClassName={extraClassName}
+                        idx={idx != null ? idx : oldIdx}
+                        status={status}
+                    />,
+                    status,
                 ];
             } else {
-                return [
-                    React.cloneElement(selection, {idx, status}),
-                    status
-                ];
+                return [React.cloneElement(selection, {idx, status}), status];
             }
-        }
+        };
         if (activeBoxSelection1 || nextProps.idx != null) {
             [activeBoxSelection1, activeBoxSelection1status] = getOrModSelection(
                 activeBoxSelection1,
@@ -464,7 +477,7 @@ class BaseBoxesComponent extends React.PureComponent {
             } else {
                 return state;
             }
-        })
+        });
     }
 
     render() {
@@ -493,7 +506,11 @@ class BaseBoxesComponent extends React.PureComponent {
             boxes.push(this.state.activeBoxSelection2);
         }
 
-        return <div className="clearfix hash-vis" ref={this.ref}>{boxes}</div>;
+        return (
+            <div className="clearfix hash-vis" ref={this.ref}>
+                {boxes}
+            </div>
+        );
     }
 
     componentDidUpdate() {
@@ -518,18 +535,27 @@ export function Tetris(props) {
     let elems = [];
     const transformedBp = props.bp;
     for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
-        elems.push(<div className="tetris-row"> <div className="tetris-row-label-div"> <p className="tetris-row-label"> {(dataLabel ? dataLabel + ":" : "")} </p> </div> <Component array={props.bp[dataName]} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} /> </div>);
+        elems.push(
+            <div className="tetris-row">
+                {' '}
+                <div className="tetris-row-label-div">
+                    {' '}
+                    <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>{' '}
+                </div>{' '}
+                <Component array={props.bp[dataName]} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />{' '}
+            </div>
+        );
     }
 
-    return <div className="tetris"> {elems} </div>
+    return <div className="tetris"> {elems} </div>;
 }
 
 export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     return class extends React.Component {
         render() {
-            return <Tetris lines={[[component, [dataLabel, (dataName || "data"), (idxName || "idx")]]]} {...this.props} />;
+            return <Tetris lines={[[component, [dataLabel, dataName || 'data', idxName || 'idx']]]} {...this.props} />;
         }
-    }
+    };
 }
 
 /* From: https://medium.com/@tkh44/animate-scroll-position-with-react-motion-dcc9b8aa01cf */
@@ -540,22 +566,19 @@ class ScrollSink extends React.PureComponent {
         }
 
         if (prevProps.scrollTop !== this.props.scrollTop) {
-            this.props.node.scrollTop = this.props.scrollTop
+            this.props.node.scrollTop = this.props.scrollTop;
         }
     }
 
     render() {
-        return null
+        return null;
     }
 }
 
-
 class MotionScroll extends React.PureComponent {
-    renderScrollSink = (currentStyles) => {
-        return (
-            <ScrollSink scrollTop={currentStyles.scrollTop} node={this.props.node} />
-        )
-    }
+    renderScrollSink = currentStyles => {
+        return <ScrollSink scrollTop={currentStyles.scrollTop} node={this.props.node} />;
+    };
 
     render() {
         const {scrollTop, node} = this.props;
@@ -576,13 +599,13 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         this.scrollRef = null;
         this.state = {
             scrollTopTarget: 0,
-        }
+        };
         this.psRef = React.createRef();
     }
 
     setScrollRef = ref => {
         this.scrollRef = ref;
-    }
+    };
 
     getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
         let lines = [];
@@ -590,30 +613,29 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
         for (let [line, bpPoint] of this.props.code) {
             let className = activeBp.point;
-            let explanation = "";
+            let explanation = '';
             if (bpPoint === activeBp.point) {
-                className += " code-highlight";
+                className += ' code-highlight';
             }
 
             if (bpPoint in visibleBreakpoints) {
                 const bpType = visibleBreakpoints[bpPoint];
                 let desc = null;
-                if (typeof this.props.formatBpDesc === "function") {
+                if (typeof this.props.formatBpDesc === 'function') {
                     desc = this.props.formatBpDesc(bpType);
                 } else {
                     for (const formatBpDesc of this.props.formatBpDesc) {
                         desc = formatBpDesc(bpType);
-                        if (desc != null)
-                            break;
+                        if (desc != null) break;
                     }
                 }
 
                 if (desc == null) {
-                    throw new Error("Unknown bp type: " + bp.point);
+                    throw new Error('Unknown bp type: ' + bp.point);
                 }
 
                 if (desc) {
-                    explanation = `<span class="code-explanation"> ~ ${desc}</span>`
+                    explanation = `<span class="code-explanation"> ~ ${desc}</span>`;
                 }
             }
 
@@ -621,7 +643,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
             let htCodeHtml = renderPythonCode(paddedLine);
 
             let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
-            formattedLine += explanation + "<br>";
+            formattedLine += explanation + '<br>';
             lines.push(formattedLine);
         }
 
@@ -632,7 +654,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         let visibleBreakpoints = {};
         let pointToLevel = {};
         for (let [line, bpPoint, level] of this.props.code) {
-            if (line === "" || bpPoint === "") {
+            if (line === '' || bpPoint === '') {
                 continue;
             }
             if (level === undefined) {
@@ -668,10 +690,20 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         const visibleBreakpoints = this.getVisibleBreakpoints(activeBp);
         const lines = this.getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp);
 
-        return <PerfectScrollbar ref={this.psRef} containerRef={this.setScrollRef} className="code-block-with-annotations-ps-container">
-            <div style={{maxHeight: `${this.HEIGHT}px`, transform: "translateZ(0)"}} className="code-block-with-annotations" dangerouslySetInnerHTML={{__html: lines.join("\n")}} />
-            <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
-        </PerfectScrollbar>
+        return (
+            <PerfectScrollbar
+                ref={this.psRef}
+                containerRef={this.setScrollRef}
+                className="code-block-with-annotations-ps-container"
+            >
+                <div
+                    style={{maxHeight: `${this.HEIGHT}px`, transform: 'translateZ(0)'}}
+                    className="code-block-with-annotations"
+                    dangerouslySetInnerHTML={{__html: lines.join('\n')}}
+                />
+                <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
+            </PerfectScrollbar>
+        );
     }
 
     componentDidMount() {
@@ -688,7 +720,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         let activeBp = this.props.breakpoints[this.props.time];
         for (let [i, [_, bpPoint]] of this.props.code.entries()) {
             if (bpPoint === activeBp.point) {
-                activeLine  = i;
+                activeLine = i;
             }
         }
 
@@ -697,10 +729,11 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
         const scrollBottom = scrollTop + this.HEIGHT;
 
-        const activeLinePos = activeLine / totalLines * scrollHeight;
+        const activeLinePos = (activeLine / totalLines) * scrollHeight;
         // TODO: use actual height
         const kindOfLineHeight = 20;
-        const needsUpdating = activeLinePos > scrollTop + kindOfLineHeight || activeLinePos < scrollBottom - kindOfLineHeight;
+        const needsUpdating =
+            activeLinePos > scrollTop + kindOfLineHeight || activeLinePos < scrollBottom - kindOfLineHeight;
 
         let scrollTopTarget = activeLinePos - this.HEIGHT / 2;
         if (scrollTopTarget < 0) {
@@ -719,7 +752,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
                 scrollTopTarget: scrollTopTarget,
             });
         }
-    }
+    };
 
     updateScrollDebounced = _.debounce(this.updateScroll, getUxSettings().CODE_SCROLL_DEBOUNCE_TIME);
 
@@ -728,20 +761,20 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     }
 }
 
-
 class TimeSlider extends React.PureComponent {
     handleValueChange = value => {
         this.props.handleTimeChange(value);
-    }
+    };
 
     render() {
         let marks = {};
         if (this.props.maxTime < 30) {
             for (let i of _.range(this.props.maxTime + 1)) {
-                marks[i] = "";
+                marks[i] = '';
             }
         }
-        return <Slider
+        return (
+            <Slider
                 marks={marks}
                 onChange={this.handleValueChange}
                 min={0}
@@ -757,11 +790,12 @@ class TimeSlider extends React.PureComponent {
                     width: 20,
                     marginTop: -6,
                 }}
-                railStyle={{ height: 10 }}
+                railStyle={{height: 10}}
                 trackStyle={{
                     height: 10,
                 }}
-               />;
+            />
+        );
     }
 }
 
@@ -770,20 +804,20 @@ export class VisualizedCode extends React.Component {
         super(props);
         this.state = {
             time: props.breakpoints.length - 1,
-        }
+        };
         this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
     }
 
     handleTimeChange = time => {
         this.setState({
-            time: time
+            time: time,
         });
-    }
+    };
 
     componentWillReceiveProps(nextProps) {
         // FIXME: commented out to speed up execution,
         // there might be a better way to compare objects
-       
+
         /* if (!_.isEqual(nextProps.breakpoints, this.props.breakpoints)) { */
         if (!nextProps.breakpoints.length != this.props.breakpoints.length) {
             this.setState({
@@ -796,30 +830,32 @@ export class VisualizedCode extends React.Component {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
 
-        return <MyErrorBoundary>
-            <div className="visualized-code">
-                <div className="row slider-row">
-                  <div className="col-md-6 col-sm-12">
-                    <TimeSlider
-                       handleTimeChange={this.handleTimeChangeThrottled}
-                       time={this.state.time}
-                       maxTime={this.props.breakpoints.length - 1}
-                    />
-                  </div>
+        return (
+            <MyErrorBoundary>
+                <div className="visualized-code">
+                    <div className="row slider-row">
+                        <div className="col-md-6 col-sm-12">
+                            <TimeSlider
+                                handleTimeChange={this.handleTimeChangeThrottled}
+                                time={this.state.time}
+                                maxTime={this.props.breakpoints.length - 1}
+                            />
+                        </div>
+                    </div>
+                    <div className="row code-block-row">
+                        <div className="col">
+                            <CodeBlockWithActiveLineAndAnnotations
+                                time={this.state.time}
+                                code={this.props.code}
+                                breakpoints={this.props.breakpoints}
+                                formatBpDesc={this.props.formatBpDesc}
+                            />
+                        </div>
+                    </div>
+                    <StateVisualization bp={bp} />
                 </div>
-                <div className="row code-block-row">
-                  <div className="col">
-                    <CodeBlockWithActiveLineAndAnnotations
-                        time={this.state.time}
-                        code={this.props.code}
-                        breakpoints={this.props.breakpoints}
-                        formatBpDesc={this.props.formatBpDesc}
-                    />
-                  </div>
-                </div>
-                <StateVisualization bp={bp} />
-            </div>
-        </MyErrorBoundary>
+            </MyErrorBoundary>
+        );
     }
 }
 
@@ -840,16 +876,15 @@ export class HashBoxesComponent extends React.PureComponent {
     }
 }
 
-
 export class LineOfBoxesComponent extends React.PureComponent {
     static getBoxKeys(array) {
         let counter = {};
-        let keys = []
+        let keys = [];
         // Does not support nulls/"empty"
         for (let [idx, value] of array.entries()) {
             const keyPart = pyObjToReactKey(value);
             if (!(value in counter)) {
-                counter[value] = 0
+                counter[value] = 0;
             } else {
                 counter[value]++;
             }

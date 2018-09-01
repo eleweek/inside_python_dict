@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/eleweek/inside_python_dict#readme",
   "prettier": {
+    "printWidth": 120,
     "tabWidth": 4,
     "useTabs": false,
     "singleQuote": true,

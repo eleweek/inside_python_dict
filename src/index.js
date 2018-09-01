@@ -13,17 +13,26 @@ import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import {MyErrorBoundary, initUxSettings} from './util';
 
 function logViewportStats() {
-    console.log("window: " + window.innerWidth + "x" + window.innerHeight);
-    console.log("document.documentElement: " + document.documentElement.clientWidth + "x" + document.documentElement.clientHeight);
+    console.log('window: ' + window.innerWidth + 'x' + window.innerHeight);
+    console.log(
+        'document.documentElement: ' +
+            document.documentElement.clientWidth +
+            'x' +
+            document.documentElement.clientHeight
+    );
 }
 
 class CrossFade extends React.Component {
     render() {
-      return <ReactCSSTransitionReplace
-        transitionName="cross-fade"
-        transitionEnterTimeout={350} transitionLeaveTimeout={350}>
-          {this.props.children}
-      </ReactCSSTransitionReplace>
+        return (
+            <ReactCSSTransitionReplace
+                transitionName="cross-fade"
+                transitionEnterTimeout={350}
+                transitionLeaveTimeout={350}
+            >
+                {this.props.children}
+            </ReactCSSTransitionReplace>
+        );
     }
 }
 
@@ -34,12 +43,12 @@ export class App extends React.Component {
             this.state = {
                 windowWidth: window.innerWidth,
                 windowHeight: window.innerHeight,
-            }
+            };
         }
     }
 
     windowSizeChangeHandle = () => {
-        console.log("App size changed");
+        console.log('App size changed');
         logViewportStats();
         console.log(this.state);
         if (this.state.windowWidth != window.innerWidth || this.state.windowHeight != window.innerHeight) {
@@ -50,7 +59,7 @@ export class App extends React.Component {
             this.forceUpdate();
             fixStickyResize();
         }
-    }
+    };
 
     componentDidMount() {
         window.addEventListener('resize', this.windowSizeChangeHandle);
@@ -61,21 +70,23 @@ export class App extends React.Component {
     }
 
     render() {
-        return(<div className="app-container container-fluid">
-                  <h1> Inside python dict &mdash; an explorable explanation</h1>
-                  <MyErrorBoundary>
+        return (
+            <div className="app-container container-fluid">
+                <h1> Inside python dict &mdash; an explorable explanation</h1>
+                <MyErrorBoundary>
                     <Chapter1_SimplifiedHash />
-                  </MyErrorBoundary>
-                  <MyErrorBoundary>
+                </MyErrorBoundary>
+                <MyErrorBoundary>
                     <Chapter2_HashTableFunctions />
-                  </MyErrorBoundary>
-                  <MyErrorBoundary>
+                </MyErrorBoundary>
+                <MyErrorBoundary>
                     <Chapter3_HashClass />
-                  </MyErrorBoundary>
-                  <MyErrorBoundary>
+                </MyErrorBoundary>
+                <MyErrorBoundary>
                     <Chapter4_RealPythonDict />
-                  </MyErrorBoundary>
-                </div>)
+                </MyErrorBoundary>
+            </div>
+        );
     }
 }
 
@@ -97,7 +108,7 @@ function fixStickyResize() {
 if (typeof window !== 'undefined') {
     initUxSettings();
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('DOMContentLoaded', () => {
         logViewportStats();
         const root = document.getElementById('root');
         const isSSR = root.hasChildNodes();

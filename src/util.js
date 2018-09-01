@@ -5,28 +5,37 @@ import Sticky from 'react-stickynode';
 import {detect} from 'detect-browser';
 
 function MyFallbackComponent({componentStack, error}) {
-  return <div style={{backgroundColor: "pink"}}>
-    <h3 className="text-danger">An error occured. This should not happen.  Please file a bug report <a href="https://github.com/eleweek/inside_python_dict">on github</a></h3>
-    <p>{componentStack}</p>
-    <p>{error.toString()}</p>
-  </div>
+    return (
+        <div style={{backgroundColor: 'pink'}}>
+            <h3 className="text-danger">
+                An error occured. This should not happen. Please file a bug report{' '}
+                <a href="https://github.com/eleweek/inside_python_dict">on github</a>
+            </h3>
+            <p>{componentStack}</p>
+            <p>{error.toString()}</p>
+        </div>
+    );
 }
 
 export function MyErrorBoundary(props) {
     const onError = (error, componentStack) => {
         console.log(componentStack);
         console.log(error);
-    }
+    };
 
-    return <ErrorBoundary onError={onError} FallbackComponent={MyFallbackComponent}>
-      {props.children}
-    </ErrorBoundary>
-};
+    return (
+        <ErrorBoundary onError={onError} FallbackComponent={MyFallbackComponent}>
+            {props.children}
+        </ErrorBoundary>
+    );
+}
 
 export function MySticky(props) {
-    return <Sticky innerZ={10} bottomBoundary={props.bottomBoundary}>
-        {props.children}
-    </Sticky>;
+    return (
+        <Sticky innerZ={10} bottomBoundary={props.bottomBoundary}>
+            {props.children}
+        </Sticky>
+    );
 }
 
 const defaultUxSettings = {
@@ -34,15 +43,14 @@ const defaultUxSettings = {
     CODE_SCROLL_DEBOUNCE_TIME: 300,
     THROTTLE_SELECTION_TRANSITIONS: true,
     DYNAMIC_SELECTION_TRANSITION_DURATION: false,
-}
+};
 
 export function initUxSettings() {
     const browser = detect();
-    console.log("Detected browser", browser);
+    console.log('Detected browser', browser);
 
-    if (!browser || !browser.name)
-        return;
-    const browserName = browser.name; 
+    if (!browser || !browser.name) return;
+    const browserName = browser.name;
 
     let settings = {};
     window.insidePythonDictUxSettings = settings;
@@ -72,12 +80,12 @@ export function initUxSettings() {
             settings.TIME_SLIDER_THROTTLE_TIME = defaultUxSettings.TIME_SLIDER_THROTTLE_TIME;
             settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
             settings.DYNAMIC_SELECTION_TRANSITION_DURATION = defaultUxSettings.DYNAMIC_SELECTION_TRANSITION_DURATION;
-	}
-    console.log("UX settings", getUxSettings());
+    }
+    console.log('UX settings', getUxSettings());
 }
 
 export function getUxSettings() {
-    if (typeof window === "undefined" || !window.insidePythonDictUxSettings) {
+    if (typeof window === 'undefined' || !window.insidePythonDictUxSettings) {
         return defaultUxSettings;
     }
     return window.insidePythonDictUxSettings;

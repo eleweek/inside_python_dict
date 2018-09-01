@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -11,15 +11,15 @@ class Int64 {
         let signBit = jsNumInt32 >= 0 ? 0 : 1;
 
         for (let i = 0; i < this.jsNumMaxSize; ++i) {
-            let bit = (jsNumInt32 & (1 << i)) ? 1 : 0;
+            let bit = jsNumInt32 & (1 << i) ? 1 : 0;
             this.data.push(bit);
         }
-        
+
         for (let i = this.jsNumMaxSize; i < this.size; ++i) {
             this.data.push(signBit);
         }
     }
-    
+
     xorBy(other) {
         for (let i = 0; i < this.size; ++i) {
             this.data[i] ^= other.data[i];
@@ -40,10 +40,10 @@ class Int64 {
     eq(other) {
         for (let i = 0; i < this.size; ++i) {
             if (this.data[i] != other.data[i]) {
-                return false
+                return false;
             }
         }
-        return true
+        return true;
     }
 
     add(other) {
@@ -59,7 +59,7 @@ class Int64 {
 
     complement() {
         for (let i = 0; i < this.size; ++i) {
-            this.data[i] = (this.data[i] == 0 ? 1 : 0);
+            this.data[i] = this.data[i] == 0 ? 1 : 0;
         }
 
         return this;
@@ -94,7 +94,7 @@ class Int64 {
         let res = 0;
         for (let i = 0; i < 32; ++i) {
             if (this.data[i]) {
-                res |= (1 << i);
+                res |= 1 << i;
             }
         }
 
@@ -115,8 +115,7 @@ class Int64 {
             let carry = 0;
             if (copyOfThis.data[i]) {
                 for (let j = 0; j < decPower.length; ++j) {
-                    if (j >= decRes.length)
-                        decRes.push(0);
+                    if (j >= decRes.length) decRes.push(0);
 
                     decRes[j] += decPower[j] + carry;
                     carry = (decRes[j] / 10) | 0;
@@ -138,11 +137,10 @@ class Int64 {
             }
         }
 
-        let res = "";
-        if (sign < 0)
-            res += "-";
+        let res = '';
+        if (sign < 0) res += '-';
         for (let j = decRes.length - 1; j >= 0; j--) {
-            res += String.fromCharCode("0".charCodeAt(0) + decRes[j]);
+            res += String.fromCharCode('0'.charCodeAt(0) + decRes[j]);
         }
 
         return res;
@@ -184,7 +182,6 @@ export function pyHashUnicode(s) {
     return pyHashStringAndUnicode(s);
 }
 
-
 export function pyHashInt(n) {
     /* TODO: actually implement something... Though it works for most ints now */
     return n;
@@ -199,7 +196,7 @@ export function pyHash(o) {
         // TODO: for None hash seems to be always different
         return BigNumber(o._hashCode);
     } else {
-        throw "pyHash called with an object of unknown type: " + o;
+        throw 'pyHash called with an object of unknown type: ' + o;
     }
 }
 
@@ -211,18 +208,18 @@ export class BreakpointFunction {
     addBP(point) {
         let bp = {
             point: point,
-            _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null
-        }
+            _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null,
+        };
 
         for (let [key, value] of Object.entries(this)) {
-            if (key[0] != "_" && value !== undefined) {
+            if (key[0] != '_' && value !== undefined) {
                 bp[key] = value;
             }
         }
 
         this._breakpoints.push({...this._extraBpContext, ...bp});
     }
-    
+
     setExtraBpContext(extraBpContext) {
         this._extraBpContext = extraBpContext;
     }
@@ -234,21 +231,25 @@ export class BreakpointFunction {
 
 export class HashBreakpointFunction extends BreakpointFunction {
     computeIdx(hashCodeBig, len) {
-        return +hashCodeBig.mod(len).plus(len).mod(len).toString();
+        return +hashCodeBig
+            .mod(len)
+            .plus(len)
+            .mod(len)
+            .toString();
     }
 }
 
 class DummyClass {
     toString() {
-        return "DUMMY";
+        return 'DUMMY';
     }
 }
 
 class NoneClass {
-    _hashCode = "-9223372036581563745";
+    _hashCode = '-9223372036581563745';
 
     toString() {
-        return "None";
+        return 'None';
     }
 }
 
