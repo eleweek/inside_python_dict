@@ -146,7 +146,7 @@ let HASH_CLASS_DELITEM = HASH_CLASS_LOOKDICT.concat([
 ]);
 
 
-class Chapter3_HashClass extends React.Component {
+export class Chapter3_HashClass extends React.Component {
     constructor() {
         super();
 
@@ -300,8 +300,4 @@ class Chapter3_HashClass extends React.Component {
                stateVisualization={HashClassNormalStateVisualization} />
         </div>;
     }
-}
-
-export {
-    Chapter3_HashClass
 }

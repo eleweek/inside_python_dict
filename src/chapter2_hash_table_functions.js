@@ -496,7 +496,7 @@ class HashExamples extends React.Component {
     }
 }
 
-class Chapter2_HashTableFunctions extends React.Component {
+export class Chapter2_HashTableFunctions extends React.Component {
     constructor() {
         super();
 
@@ -608,8 +608,4 @@ EMPTY = EmptyValueClass()
               <p> TODO: maybe insert HASH_INSERT_CODE here?</p>
         </div>;
     }
-}
-
-export {
-    Chapter2_HashTableFunctions
 }

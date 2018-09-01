@@ -146,7 +146,7 @@ let DICT32_DELITEM = DICT32_LOOKDICT.concat([
     ["    self.slots[idx].value = EMPTY", "replace-value-empty", 1],
 ]);
 
-class Chapter4_RealPythonDict extends React.Component {
+export class Chapter4_RealPythonDict extends React.Component {
     constructor() {
         super();
 
@@ -235,9 +235,4 @@ class Chapter4_RealPythonDict extends React.Component {
                stateVisualization={HashClassNormalStateVisualization} />
         </div>;
     }
-}
-
-
-export {
-    Chapter4_RealPythonDict
 }

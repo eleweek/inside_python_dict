@@ -9,7 +9,7 @@ import {
 
 import {HashBreakpointFunction, pyHash, DUMMY} from './hash_impl_common';
 
-function postBpTransform(bp) {
+export function postBpTransform(bp) {
     let cloned = _.clone(bp);
     const getHash = s => s.hashCode != null ? s.hashCode : null;
 
@@ -28,7 +28,7 @@ function postBpTransform(bp) {
     return cloned;
 }
 
-function formatHashClassLookdictRelated(bp) {
+export function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
         case 'check-not-found':
             if (bp.self.slots[bp.idx].key === null) {
@@ -74,7 +74,7 @@ function formatHashClassLookdictRelated(bp) {
     }
 }
 
-function formatHashClassSetItemAndCreate(bp) {
+export function formatHashClassSetItemAndCreate(bp) {
     switch (bp.point) {
         case 'target-idx-none':
             return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
@@ -158,7 +158,7 @@ function formatHashClassSetItemAndCreate(bp) {
     }
 }
 
-function formatHashClassResize(bp) {
+export function formatHashClassResize(bp) {
     switch (bp.point) {
         case 'assign-old-slots':
             return "Copy reference to slots (no actual copying is done)"
@@ -198,7 +198,7 @@ function formatHashClassResize(bp) {
     }
 }
 
-function hashClassConstructor() {
+export function hashClassConstructor() {
     let slotsTemp = [];
     for (let i = 0; i < 8; ++i) {
         slotsTemp.push(new Slot());
@@ -213,9 +213,9 @@ function hashClassConstructor() {
     return self;
 }
 
-const Slot = Record({hashCode: null, key: null, value: null});
+export const Slot = Record({hashCode: null, key: null, value: null});
 
-function findOptimalSize(used, quot=2) {
+export function findOptimalSize(used, quot=2) {
     let newSize = 8;
     while (newSize <= quot * used) {
         newSize *= 2;
@@ -224,7 +224,7 @@ function findOptimalSize(used, quot=2) {
     return newSize;
 }
 
-class HashClassSetItemBase extends HashBreakpointFunction {
+export class HashClassSetItemBase extends HashBreakpointFunction {
     run(_self, _key, _value, useRecycling, Resize, optimalSizeQuot) {
         this.self = _self;
         this.key = _key;
@@ -326,7 +326,7 @@ class HashClassSetItemBase extends HashBreakpointFunction {
     }
 }
 
-class HashClassLookdictBase extends HashBreakpointFunction {
+export class HashClassLookdictBase extends HashBreakpointFunction {
     run(_self, _key) {
         this.self = _self;
         this.key = _key;
@@ -359,7 +359,7 @@ class HashClassLookdictBase extends HashBreakpointFunction {
     }
 }
 
-class HashClassGetItem extends HashBreakpointFunction {
+export class HashClassGetItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -376,7 +376,7 @@ class HashClassGetItem extends HashBreakpointFunction {
     }
 }
 
-class HashClassDelItem extends HashBreakpointFunction {
+export class HashClassDelItem extends HashBreakpointFunction {
     run(_self, _key, Lookdict) {
         this.self = _self;
         this.key = _key;
@@ -398,7 +398,7 @@ class HashClassDelItem extends HashBreakpointFunction {
     }
 }
 
-class HashClassInsertAll extends HashBreakpointFunction {
+export class HashClassInsertAll extends HashBreakpointFunction {
     constructor() {
         super();
 
@@ -431,7 +431,7 @@ class HashClassInsertAll extends HashBreakpointFunction {
     }
 }
 
-function HashClassNormalStateVisualization(props) {
+export function HashClassNormalStateVisualization(props) {
     return <Tetris
         lines={
             [
@@ -444,7 +444,7 @@ function HashClassNormalStateVisualization(props) {
     />;
 }
 
-function HashClassInsertAllVisualization(props) {
+export function HashClassInsertAllVisualization(props) {
     return <Tetris
         lines={
             [
@@ -459,7 +459,7 @@ function HashClassInsertAllVisualization(props) {
     />;
 }
 
-function HashClassResizeVisualization(props) {
+export function HashClassResizeVisualization(props) {
     return <Tetris
         lines={
             [
@@ -475,7 +475,7 @@ function HashClassResizeVisualization(props) {
     />;
 }
 
-class HashClassResizeBase extends HashBreakpointFunction {
+export class HashClassResizeBase extends HashBreakpointFunction {
     run(_self, optimalSizeQuot) {
         this.self = _self;
 
@@ -531,10 +531,3 @@ class HashClassResizeBase extends HashBreakpointFunction {
         return this.self;
     }
 };
-
-export {
-    hashClassConstructor, Slot, findOptimalSize,
-    HashClassResizeBase, HashClassSetItemBase, HashClassDelItem, HashClassGetItem, HashClassLookdictBase, HashClassInsertAll,
-    HashClassNormalStateVisualization, HashClassInsertAllVisualization, HashClassResizeVisualization,
-    formatHashClassSetItemAndCreate, formatHashClassLookdictRelated, formatHashClassResize, postBpTransform
-}

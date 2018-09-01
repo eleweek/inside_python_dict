@@ -50,13 +50,13 @@ function renderPythonCode(codeString) {
     });
 }
 
-function dummyFormat(bp) {
+export function dummyFormat(bp) {
     /* return JSON.stringify(bp); */
     return "";
 }
 
 
-function SimpleCodeBlock(props) {
+export function SimpleCodeBlock(props) {
     return <pre><code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} /></pre>
 }
 
@@ -514,7 +514,7 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 }
 
-function Tetris(props) {
+export function Tetris(props) {
     let elems = [];
     const transformedBp = props.bp;
     for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
@@ -524,7 +524,7 @@ function Tetris(props) {
     return <div className="tetris"> {elems} </div>
 }
 
-function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
+export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     return class extends React.Component {
         render() {
             return <Tetris lines={[[component, [dataLabel, (dataName || "data"), (idxName || "idx")]]]} {...this.props} />;
@@ -765,7 +765,7 @@ class TimeSlider extends React.PureComponent {
     }
 }
 
-class VisualizedCode extends React.Component {
+export class VisualizedCode extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -824,7 +824,7 @@ class VisualizedCode extends React.Component {
 }
 
 // TODO: properly support keys coming from other rows
-class HashBoxesComponent extends React.PureComponent {
+export class HashBoxesComponent extends React.PureComponent {
     static getBoxKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
@@ -841,7 +841,7 @@ class HashBoxesComponent extends React.PureComponent {
 }
 
 
-class LineOfBoxesComponent extends React.PureComponent {
+export class LineOfBoxesComponent extends React.PureComponent {
     static getBoxKeys(array) {
         let counter = {};
         let keys = []
@@ -864,10 +864,4 @@ class LineOfBoxesComponent extends React.PureComponent {
     render() {
         return <BaseBoxesComponent {...this.props} getBoxKeys={LineOfBoxesComponent.getBoxKeys} />;
     }
-}
-
-
-export {
-    HashBoxesComponent, LineOfBoxesComponent, TetrisSingleRowWrap, Tetris,
-    SimpleCodeBlock, VisualizedCode, dummyFormat
 }

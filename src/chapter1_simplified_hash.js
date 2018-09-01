@@ -248,7 +248,7 @@ let formatSimplifiedSearchDescription = function(bp) {
 
 const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent, "new_list", "newList", "newListIdx");
 
-class Chapter1_SimplifiedHash extends React.Component {
+export class Chapter1_SimplifiedHash extends React.Component {
     constructor() {
         super();
 
@@ -323,8 +323,4 @@ class Chapter1_SimplifiedHash extends React.Component {
               <p> We still haven't discussed adding more elements (what happens if a table overflows?), removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling objects other than integers - strings, tuples, floats. </p>
         </div>;
     }
-}
-
-export {
-    Chapter1_SimplifiedHash
 }
