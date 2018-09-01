@@ -116,7 +116,7 @@ p,a,li,blockquote {
 }
 
 .active-box-selection-animated {
-    transition-property: opacity,transform;
+    transition-property: transform;
     transition-duration: .3s;
     transition-timing-function: ease;
 }
