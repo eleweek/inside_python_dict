@@ -273,25 +273,25 @@ export class Chapter1_SimplifiedHash extends React.Component {
 
         return <div className="chapter chapter1">
               <h2> Chapter 1: searching efficiently in a list</h2>
-              <p>Before we begin, here are a couple of notes. First, this is <em>an explorable explanation</em> of python dictionaries. This page is dynamic and interactive &mdash; you can plug in your own data and see how the algorithms work on it. </p>
-              <p>Second, this page discusses <code>dict</code> as it is implemented in <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of the python language (if you are not sure what implementation you use, it is almost certainly CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>, <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>. The way dict works in each of these implementations may be similar to CPython (in the case of PyPy) or very different from CPython (in the case of Jython). </p>
+              <p>Before we begin, here are a couple of notes. First, this is <em>an explorable explanation</em> of python dictionaries. This page is dynamic and interactive &mdash; you can plug in your own data and see how the algorithms work on it.</p>
+              <p>Second, this page discusses <code>dict</code> as it is implemented in <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of the python language (if you are not sure what implementation you use, it is almost certainly CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>, <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>. The way dict works in each of these implementations may be similar to CPython (in the case of PyPy) or very different from CPython (in the case of Jython).</p>
               <p>Third, even though dict in CPython is implemented in C, this explanation uses python for code snippets. The goal of this page is to help you understand <em> the algorithms and the underlying data structure</em>, not the minutiae of the C code (these are interesting too, but are beyond of the scope of this page).</p>
               <h5> Let's get started! </h5>
 
-              <p>The most important part of python dict is handling keys. Dict keys need to be organized in such a way that searching, inserting and deleting is possible. We will begin with a simplified problem. We won't have any values. And "keys" will be just plain integers. So, the simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me. </p>
+              <p>The most important part of python dict is handling keys. Dict keys need to be organized in such a way that searching, inserting and deleting is possible. We will begin with a simplified problem. We won't have any values. And "keys" will be just plain integers. So, the simplified problem is to check if a number is present in a list, but we have to do this <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me.</p>
               <p>Let's say we have a simple list of numbers:</p>
               <MySticky bottomBoundary=".chapter1">
                 <PyListInput value={this.state.exampleArrayNumbers} onChange={(value) => this.setState({exampleArrayNumbers: value})} />
               </MySticky>
-              <p className="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update) </p>
-              <p>Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be misleading to people who are unfamiliar with python but know about double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object: </p>
+              <p className="text-muted"> (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever want to see the difference between two versions of data and don't want the page to update while you type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page when to update)</p>
+              <p>Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be misleading to people who are unfamiliar with python but know about double-linked lists. You can picture a list as a row of slots, where each slot can hold a single python object:</p>
               <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
-              <p>Accessing an element by index is very fast. Appending to a list is fast too. But if there is no order whatsoever, searching for a specific element will be slow. We may get lucky and find an element in only a few iterations if it is near the beginning of the list. But if it is not there at all, we'll have to scan over the whole array. </p>
-              <p>This simple list scan can be visualized as follows. </p>
+              <p>Accessing an element by index is very fast. Appending to a list is fast too. But if there is no order whatsoever, searching for a specific element will be slow. We may get lucky and find an element in only a few iterations if it is near the beginning of the list. But if it is not there at all, we'll have to scan over the whole array.</p>
+              <p>This simple list scan can be visualized as follows.</p>
               <p>For example, let's say we want to search for 
                 <PyNumberInput inline={true} value={this.state.simpleSearchObj} onChange={(value) => this.setState({simpleSearchObj: value})} />
-                <span className="text-muted"> (Try changing this field as well! And see how the steps and the data visualization update) </span>
-              </p>
+                <span className="text-muted">(Try changing this field as well! And see how the steps and the data visualization update) </span>
+             </p>
               <VisualizedCode
                 code={SIMPLE_LIST_SEARCH}
                 breakpoints={simpleListSearchBreakpoints}
@@ -299,9 +299,9 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 stateVisualization={SimpleListSearchStateVisualization} />
               
               <p>Of course, we only have a few elements here, so scanning over them is no big deal. But what if we have a million distinct numbers? Scanning the entire million would be slow.</p>
-              <p>In order to do this faster, what we need to do is organize our data in a clever way. Here's how. Let's begin by creating a new list. You can picture this list as a list of slots. Each slot will hold a number from the original list. But, we'll use the number itself to compute an index of a slot. The simplest way to do this is to just take the slot <code> number % len(the_list) </code> and put our number in there. Would this approach work, however? Not entirely. For example, two numbers (TODO: compute it) would be put in the same slot. Situtations like these are called <em>collisions</em>.</p>
+              <p>In order to do this faster, what we need to do is organize our data in a clever way. Here's how. Let's begin by creating a new list. You can picture this list as a list of slots. Each slot will hold a number from the original list. But, we'll use the number itself to compute an index of a slot. The simplest way to do this is to just take the slot <code>number % len(the_list)</code> and put our number in there. Would this approach work, however? Not entirely. For example, two numbers (TODO: compute it) would be put in the same slot. Situtations like these are called <em>collisions</em>.</p>
               <p>To make this approach viable we need to somehow <em>resolve collisions</em>. Let's do the following. If the slot is already occupied by some other number, we'll just check the slot that comes right after it. And if that slot is empty, we'll put the number there. But, what if that slot is also occupied? We'll simply repeat the process until we finally hit an empty slot! This process of searching for an empty slot is called <em> probing </em>. And because we do it linearly, it is called <em> linear probing</em>.</p> 
-              <p>If we make the new list the same size as the original list, we'll have too many collisions. So what size should it be? If we make it 10x larger, we'll have very few collisions, but we'll waste a lot of memory. So, we want to hit the sweet spot where we don't use up too much memory but also don't have too many collisions. Twice the size of the original list is reasonable. </p>
+              <p>If we make the new list the same size as the original list, we'll have too many collisions. So what size should it be? If we make it 10x larger, we'll have very few collisions, but we'll waste a lot of memory. So, we want to hit the sweet spot where we don't use up too much memory but also don't have too many collisions. Twice the size of the original list is reasonable.</p>
               <p>Let's transform the original list using this method (when reading this code, remember that <code>original_list</code> is a list of <em>distinct numbers</em>, so we don't need to handle duplicates just yet.</p>
               <VisualizedCode
                 code={SIMPLIFIED_INSERT_ALL_CODE}
@@ -309,8 +309,8 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 formatBpDesc={formatSimplifiedInsertAllDescription}
                 stateVisualization={SimplifiedInsertStateVisualization} />
 
-              <p>To search for a number, we simply retrace all the steps necessary to insert it. So we start from the slot <code> number % len(new_list)</code> and do linear probing. We either end up finding the number or hitting an empty slot. The latter situation means that the number is not present. </p>
-              <p>Here is how the search process would look: </p>
+              <p>To search for a number, we simply retrace all the steps necessary to insert it. So we start from the slot <code>number % len(new_list)</code> and do linear probing. We either end up finding the number or hitting an empty slot. The latter situation means that the number is not present.</p>
+              <p>Here is how the search process would look:</p>
 
               Let's say we want to search for <PyNumberInput inline={true} value={this.state.simplifiedSearchObj} onChange={(value) => this.setState({simplifiedSearchObj: value})} />
               <VisualizedCode
@@ -319,8 +319,8 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 formatBpDesc={formatSimplifiedSearchDescription}
                 stateVisualization={SimplifiedSearchStateVisualization} />
 
-              <p>Calculating an index based on the values of numbers and doing linear probing in the case of a collision is incredibly powerful. If you understand this idea, you will understand 25% of what a python dict is. What we've just implemented is a super simple <em>hash table</em>. Python dict uses a hash table internally, albeit a more complex variant. </p>
-              <p>We still haven't discussed adding more elements (what happens if a table overflows?), removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling objects other than integers - strings, tuples, floats. </p>
+              <p>Calculating an index based on the values of numbers and doing linear probing in the case of a collision is incredibly powerful. If you understand this idea, you will understand 25% of what a python dict is. What we've just implemented is a super simple <em>hash table</em>. Python dict uses a hash table internally, albeit a more complex variant.</p>
+              <p>We still haven't discussed adding more elements (what happens if a table overflows?), removing elements (removing an element without a trace would cause a hole to appear, wouldn't this cause the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling objects other than integers - strings, tuples, floats.</p>
         </div>;
     }
 }

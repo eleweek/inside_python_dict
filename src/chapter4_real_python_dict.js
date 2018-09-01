@@ -54,9 +54,9 @@ function formatDict32IdxRelatedBp(bp) {
         case 'compute-perturb':
             return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code> (${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
+            return `Keep probing, the next slot will be <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${bp.self.slots.length}</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Mixing up <code> perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${bp.perturb}</code>`
+            return `Mixing up <code>perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${bp.perturb}</code>`
     }
 }
 
@@ -182,39 +182,39 @@ export class Chapter4_RealPythonDict extends React.Component {
 
         return <div className="chapter chapter4">
               <h2> Chapter 4. How does python dict *really* work internally? </h2>
-              <p>Now it is (finally!) time to explore how the dict works in python! </p>
-              <p>TODO: a few sentences about the chapter </p>
-              <p>This explanation is about the dict in CPython (the most popular, "default", implementation of python). The implementation of dict in CPython has evolved over time. The dict stayed pretty much the same from version 2.7 to version 3.2 </p>
+              <p>Now it is (finally!) time to explore how the dict works in python!</p>
+              <p>TODO: a few sentences about the chapter</p>
+              <p>This explanation is about the dict in CPython (the most popular, "default", implementation of python). The implementation of dict in CPython has evolved over time. The dict stayed pretty much the same from version 2.7 to version 3.2</p>
               <p>In 3.3, however, there were major changes to the internal structure of dicts (<a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't get the same hash() for the same object if you relaunched the python interpreter (object hashes are still stable within the same "run").</p> 
-              <p>In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>. </p>
-              <p>In 3.6 <a href="https://bugs.python.org/issue27350">the dict internal structure became more compact and the dict became "ordered"</a>. </p>
-              <p>However, the core idea has stayed the same throughout all versions so far. </p>
-              <p>We will discuss the major changes one by one. </p>
+              <p>In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>.</p>
+              <p>In 3.6 <a href="https://bugs.python.org/issue27350">the dict internal structure became more compact and the dict became "ordered"</a>.</p>
+              <p>However, the core idea has stayed the same throughout all versions so far.</p>
+              <p>We will discuss the major changes one by one.</p>
               
               <h5> Probing algorithm</h5>
-              <p>The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions. </p>
-              <p>It is also fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys this "clump" is prone to growing. Large "clumps" are detrimental of performance. There is a nice metaphor by Robert Lafore: it's like the crowd that gathers when someone faints at the shopping mall. The first arrivals come because they saw the victim fall; later arrivals gather because they wondered what everyone else was looking at. The larger the crowd grows, the more people are attracted to it. <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing"> From: stackoverflow. </a> </p>
-              <p>TODO </p>
-              <p>If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict. </p>
-              <p><code> 5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular </p>
-              <p>Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks like in C. </p>
+              <p>The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions.</p>
+              <p>It is also fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys this "clump" is prone to growing. Large "clumps" are detrimental of performance. There is a nice metaphor by Robert Lafore: it's like the crowd that gathers when someone faints at the shopping mall. The first arrivals come because they saw the victim fall; later arrivals gather because they wondered what everyone else was looking at. The larger the crowd grows, the more people are attracted to it. <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing"> From: stackoverflow. </a></p>
+              <p>TODO</p>
+              <p>If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict.</p>
+              <p><code>5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular</p>
+              <p>Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks like in C.</p>
               TODO
-              <p>The C code implicitly converts a hash code to an unsigned integer and then performs bit shifts. The equivalent python code is a bit cumbersome. </p>
+              <p>The C code implicitly converts a hash code to an unsigned integer and then performs bit shifts. The equivalent python code is a bit cumbersome.</p>
               <p>The whole scheme may look weird, but it guarantees to stop over all indexes</p>
               <h5> Python 3.2's dict </h5>
-              <p>Let's see how this dict can be implemented. </p>
+              <p>Let's see how this dict can be implemented.</p>
 
-              <p>Let's say we want to create a python dict from the following pairs: </p>
+              <p>Let's say we want to create a python dict from the following pairs:</p>
               <MySticky>
                 <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
               </MySticky>
-              <p>Insert: </p>
+              <p>Insert:</p>
               <VisualizedCode
                 code={DICT32_SETITEM}
                 breakpoints={iaBreakpoints.map(postBpTransform)}
                 formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                 stateVisualization={HashClassInsertAllVisualization} />
-              <p>Let's look at the first resize in depth: </p>
+              <p>Let's look at the first resize in depth:</p>
               <VisualizedCode
                 code={DICT32_RESIZE_CODE}
                 breakpoints={resize.breakpoints.map(postBpTransform)}
@@ -227,7 +227,7 @@ export class Chapter4_RealPythonDict extends React.Component {
                breakpoints={diBreakpoints.map(postBpTransform)}
                formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                stateVisualization={HashClassNormalStateVisualization} />
-             <p>Search is mostly the same </p>
+             <p>Search is mostly the same</p>
              <VisualizedCode
                code={DICT32_GETITEM}
                breakpoints={giBreakpoints.map(postBpTransform)}
