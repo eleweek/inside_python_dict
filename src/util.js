@@ -33,6 +33,7 @@ const defaultUxSettings = {
     TIME_SLIDER_THROTTLE_TIME: 125,
     CODE_SCROLL_DEBOUNCE_TIME: 300,
     THROTTLE_SELECTION_TRANSITIONS: true,
+    DYNAMIC_SELECTION_TRANSITION_DURATION: false,
 }
 
 export function initUxSettings() {
@@ -59,15 +60,18 @@ export function initUxSettings() {
             // kind of ended up optimizing for chrome
             settings.TIME_SLIDER_THROTTLE_TIME = 50;
             settings.CODE_SCROLL_DEBOUNCE_TIME = 150;
+            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = true;
             break;
         case 'firefox':
             settings.TIME_SLIDER_THROTTLE_TIME = 150;
             // Firefox doesn't seems to tolerate auto-scrolling
             settings.CODE_SCROLL_DEBOUNCE_TIME = 550;
+            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = false;
             break;
         default:
             settings.TIME_SLIDER_THROTTLE_TIME = defaultUxSettings.TIME_SLIDER_THROTTLE_TIME;
             settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
+            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = defaultUxSettings.DYNAMIC_SELECTION_TRANSITION_DURATION;
 	}
     console.log("UX settings", getUxSettings());
 }

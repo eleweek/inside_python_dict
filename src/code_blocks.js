@@ -102,7 +102,8 @@ function pyObjToDisplayedString(obj) {
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status} = this.props;
+        const {extraClassName, idx, status, transitionDuration} = this.props;
+        console.log(transitionDuration);
 
         const animatedClass = "active-box-selection-animated";
         let classes = ["active-box-selection", extraClassName, animatedClass];
@@ -121,6 +122,7 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
         }
         const style = {
             visibility: visibility,
+            'transition-duration': `${transitionDuration}ms`,
             transform: idx != null ? computeBoxTransformProperty(idx, 0) : 0,
         }
         return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style}/>;
@@ -155,7 +157,7 @@ class ActiveBoxSelectionThrottled extends React.Component {
             status = this.props.status;
         }
         const extraClassName = this.props.extraClassName;
-        return <ActiveBoxSelectionUnthrottled setInnerRef={this.handleRef} extraClassName={extraClassName} idx={idx} status={status} />;
+        return <ActiveBoxSelectionUnthrottled setInnerRef={this.handleRef} extraClassName={extraClassName} idx={idx} status={status} transitionDuration={this.props.transitionDuration} />;
     }
 
     handleTransitionEnd = () => {
@@ -191,7 +193,34 @@ class ActiveBoxSelectionThrottled extends React.Component {
 
 function ActiveBoxSelection(props) {
     const isThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
-    return isThrottled ? <ActiveBoxSelectionThrottled {...props} /> : <ActiveBoxSelectionUnthrottled {...props} />;
+
+    const isDynamicDuration = getUxSettings().DYNAMIC_SELECTION_TRANSITION_DURATION;
+    const Component = isThrottled ? ActiveBoxSelectionThrottled : ActiveBoxSelectionUnthrottled;
+
+    if (isDynamicDuration) {
+        return <ActiveBoxSelectionDynamicTransition {...props} componentClass={Component} />
+    } else {
+        return <Component {...props} transitionDuration={300} />;
+    }
+}
+
+
+class ActiveBoxSelectionDynamicTransition extends React.Component {
+    constructor() {
+        super();
+        this.lastRender = null;
+    }
+
+    render() {
+        let transitionDuration = 300;
+        if (this.lastRender != null && performance.now() - this.lastRender < 200) {
+            transitionDuration = 200;
+        }
+        this.lastRender = performance.now();
+
+        const Component = this.props.componentClass;
+        return <Component {...this.props} transitionDuration={transitionDuration} />;
+    }
 }
 
 class Box extends React.PureComponent {

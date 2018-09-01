@@ -117,7 +117,6 @@ p,a,li,blockquote {
 
 .active-box-selection-animated {
     transition-property: transform;
-    transition-duration: .3s;
     transition-timing-function: ease;
 }
 
