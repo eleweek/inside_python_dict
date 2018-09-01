@@ -100,13 +100,52 @@ function pyObjToDisplayedString(obj) {
     }
 }
 
-class ActiveBoxSelection extends React.PureComponent {
+class ActiveBoxSelection extends React.Component {
+    constructor() {
+        super();
+        this.ref = React.createRef();
+        this.state = {
+            transitionRunning: false,
+            currentIdx: null,
+            currentStatus: null,
+            targetIdx: null,
+            targetStatus: null,
+            transitionIdx: null,
+            transitionStatus: null,
+        }
+    }
+
+    static getDerivedStateFromProps(
+        nextProps,
+        state
+    ) {
+        console.log("getDerivedStateFromProps");
+        console.log(nextProps);
+        console.log(state);
+        const newState = {
+            ...state,
+            targetIdx: nextProps.idx,
+            targetStatus: nextProps.status,
+        }
+        console.log("newState", newState);
+        return newState;
+    }
+
+    shouldComponentUpdate() {
+        console.log("shouldComponentUpdate");
+        console.log(this.state);
+        return !this.state.transitionRunning && (this.state.targetIdx !== this.state.currentIdx || this.state.currentStatus !== this.state.targetStatus);
+    }
+
     render() {
+        const idx = this.state.targetIdx;
+        const status = this.state.targetStatus;
+        console.log("render", idx, status);
         const animatedClass = "active-box-selection-animated";
         let classes = ["active-box-selection", this.props.extraClassName, animatedClass];
 
         let visibility;
-        switch (this.props.status) {
+        switch (status) {
             case 'removing':
                 visibility = 'hidden';
                 break;
@@ -119,9 +158,45 @@ class ActiveBoxSelection extends React.PureComponent {
         }
         const style = {
             visibility: visibility,
-            transform: this.props.idx != null ? computeBoxTransformProperty(this.props.idx, 0) : 0,
+            transform: idx != null ? computeBoxTransformProperty(idx, 0) : 0,
         }
-        return <div className={classNames(classes)} style={style}/>;
+        return <div ref={this.ref} className={classNames(classes)} style={style}/>;
+    }
+
+    handleTransitionEnd = () => {
+        this.setState({
+            transitionRunning: false,
+            currentIdx: this.state.transitionIdx,
+            currentStatus: this.state.transitionStatus,
+        });
+        console.log("transitionEnd");
+    }
+
+    componentDidUpdate() {
+        console.log("componentDidUpdate");
+        // TODO: fix ugly handling of visibility
+        if (this.state.targetIdx !== this.state.currentIdx && this.state.targetStatus === 'adding') {
+            this.setState({
+                transitionRunning: true,
+                transitionIdx: this.state.targetIdx,
+                transitionStatus: this.state.targetStatus,
+            });
+        } else {
+            this.setState({
+                transitionRunning: false,
+                currentIdx: this.state.targetIdx,
+                currentStatus: this.state.targetStatus,
+            });
+        }
+    }
+
+    componentDidMount() {
+        this.ref.current.addEventListener("transitionend", this.handleTransitionEnd, false);
+        this.setState({
+            transitionRunning: false,
+            currentIdx: this.state.targetIdx,
+            currentStatus: this.state.targetStatus,
+        });
     }
 }
 
