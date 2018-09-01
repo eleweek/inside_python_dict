@@ -29,36 +29,52 @@ export function MySticky(props) {
     </Sticky>;
 }
 
-export function initUxConsts() {
-    let consts = {};
-    window.insidePythonDictUxConsts = consts;
-    const browser = detect();
-    console.log("Detected browser", browser);
-    switch (browser && browser.name) {
-        case 'chrome':
-            // kind of ended up optimizing for chrome
-            consts.TIME_SLIDER_THROTTLE_TIME = 50;
-            consts.CODE_SCROLL_DEBOUNCE_TIME = 150;
-            break;
-        case 'firefox':
-            consts.TIME_SLIDER_THROTTLE_TIME = 150;
-            // Firefox seems to tolerate auto-scrolling especially bad
-            consts.CODE_SCROLL_DEBOUNCE_TIME = 550;
-            break;
-        case 'safari':
-            consts.TIME_SLIDER_THROTTLE_TIME = 100;
-            consts.CODE_SCROLL_DEBOUNCE_TIME = 200;
-	}
-    console.log("UX consts", getUxConsts());
-}
-const defaultUxConsts = {
+const defaultUxSettings = {
     TIME_SLIDER_THROTTLE_TIME: 125,
-    CODE_SCROLL_DEBOUNCE_TIME: 300
+    CODE_SCROLL_DEBOUNCE_TIME: 300,
+    THROTTLE_SELECTION_TRANSITIONS: true,
 }
 
-export function getUxConsts() {
-    if (typeof window === "undefined" || !window.insidePythonDictUxConsts) {
-        return defaultUxConsts;
+export function initUxSettings() {
+    const browser = detect();
+    console.log("Detected browser", browser);
+
+    if (!browser || !browser.name)
+        return;
+    const browserName = browser.name; 
+
+    let settings = {};
+    window.insidePythonDictUxSettings = settings;
+
+    if (['chrome', 'yandexbrowser'].includes(browserName)) {
+        settings.THROTTLE_SELECTION_TRANSITIONS = false;
+    } else {
+        settings.THROTTLE_SELECTION_TRANSITIONS = true;
     }
-    return window.insidePythonDictUxConsts;
+
+    switch (browserName) {
+        case 'chrome':
+        case 'yandexbrowser':
+        case 'safari':
+            // kind of ended up optimizing for chrome
+            settings.TIME_SLIDER_THROTTLE_TIME = 50;
+            settings.CODE_SCROLL_DEBOUNCE_TIME = 150;
+            break;
+        case 'firefox':
+            settings.TIME_SLIDER_THROTTLE_TIME = 150;
+            // Firefox doesn't seems to tolerate auto-scrolling
+            settings.CODE_SCROLL_DEBOUNCE_TIME = 550;
+            break;
+        default:
+            settings.TIME_SLIDER_THROTTLE_TIME = defaultUxSettings.TIME_SLIDER_THROTTLE_TIME;
+            settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
+	}
+    console.log("UX settings", getUxSettings());
+}
+
+export function getUxSettings() {
+    if (typeof window === "undefined" || !window.insidePythonDictUxSettings) {
+        return defaultUxSettings;
+    }
+    return window.insidePythonDictUxSettings;
 }

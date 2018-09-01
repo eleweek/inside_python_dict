@@ -23,7 +23,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import {spring, Motion} from 'react-motion';
 
 
-import {MyErrorBoundary, getUxConsts} from './util';
+import {MyErrorBoundary, getUxSettings} from './util';
 import {isNone, isDummy} from './hash_impl_common';
 
 function doubleRAF(callback) {
@@ -100,33 +100,12 @@ function pyObjToDisplayedString(obj) {
     }
 }
 
-class ActiveBoxSelection extends React.Component {
-    constructor() {
-        super();
-        this.ref = React.createRef();
-        this.state = {
-            transitionRunning: false,
-            currentIdx: null,
-            currentStatus: null,
-        }
-    }
-
-    shouldComponentUpdate() {
-        return !this.transitionRunning;
-    }
-
+class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        let idx, status;
-        if (this.state.transitionRunning) {
-            idx = this.state.currentIdx;
-            status = this.state.currentStatus;
-        } else {
-            idx = this.props.idx;
-            status = this.props.status;
-        }
+        const {extraClassName, idx, status} = this.props;
 
         const animatedClass = "active-box-selection-animated";
-        let classes = ["active-box-selection", this.props.extraClassName, animatedClass];
+        let classes = ["active-box-selection", extraClassName, animatedClass];
 
         let visibility;
         switch (status) {
@@ -144,7 +123,39 @@ class ActiveBoxSelection extends React.Component {
             visibility: visibility,
             transform: idx != null ? computeBoxTransformProperty(idx, 0) : 0,
         }
-        return <div ref={this.ref} className={classNames(classes)} style={style}/>;
+        return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style}/>;
+    }
+}
+
+class ActiveBoxSelectionThrottled extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            transitionRunning: false,
+            currentIdx: null,
+            currentStatus: null,
+        }
+    }
+
+    handleRef = (node) => {
+        this.node = node;
+    }
+
+    shouldComponentUpdate() {
+        return !this.transitionRunning;
+    }
+
+    render() {
+        let idx, status;
+        if (this.state.transitionRunning) {
+            idx = this.state.currentIdx;
+            status = this.state.currentStatus;
+        } else {
+            idx = this.props.idx;
+            status = this.props.status;
+        }
+        const extraClassName = this.props.extraClassName;
+        return <ActiveBoxSelectionUnthrottled setInnerRef={this.handleRef} extraClassName={extraClassName} idx={idx} status={status} />;
     }
 
     handleTransitionEnd = () => {
@@ -173,8 +184,14 @@ class ActiveBoxSelection extends React.Component {
             currentIdx: this.props.idx,
             currentStatus: this.props.status,
         });
-        this.ref.current.addEventListener("transitionend", this.handleTransitionEnd, false);
+
+        this.node.addEventListener("transitionend", this.handleTransitionEnd, false);
     }
+}
+
+function ActiveBoxSelection(props) {
+    const isThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
+    return isThrottled ? <ActiveBoxSelectionThrottled {...props} /> : <ActiveBoxSelectionUnthrottled {...props} />;
 }
 
 class Box extends React.PureComponent {
@@ -675,7 +692,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         }
     }
 
-    updateScrollDebounced = _.debounce(this.updateScroll, getUxConsts().CODE_SCROLL_DEBOUNCE_TIME);
+    updateScrollDebounced = _.debounce(this.updateScroll, getUxSettings().CODE_SCROLL_DEBOUNCE_TIME);
 
     componentDidUpdate() {
         this.updateScrollDebounced();
@@ -725,7 +742,7 @@ class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
         }
-        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxConsts().TIME_SLIDER_THROTTLE_TIME);
+        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
     }
 
     handleTimeChange = time => {

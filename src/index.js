@@ -10,7 +10,7 @@ import {Chapter3_HashClass} from './chapter3_hash_class.js';
 import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
-import {MyErrorBoundary, initUxConsts} from './util';
+import {MyErrorBoundary, initUxSettings} from './util';
 
 function logViewportStats() {
     console.log("window: " + window.innerWidth + "x" + window.innerHeight);
@@ -95,7 +95,7 @@ function fixStickyResize() {
 }
 
 if (typeof window !== 'undefined') {
-    initUxConsts();
+    initUxSettings();
 
     document.addEventListener("DOMContentLoaded", () => {
         logViewportStats();
