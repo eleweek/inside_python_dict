@@ -529,42 +529,42 @@ export class Chapter2_HashTableFunctions extends React.Component {
         let hashInsertBreakpoints = hi.getBreakpoints();
         return <div className="chapter chapter2">
               <h2> Chapter 2. Why are hash tables called hash tables? </h2>
-              <p> Now that we have the solution for searching in a list of numbers, can we use this for non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects are turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, for performance reasons it is desirable to usually get distinct numbers for distinct objects. The transformation also needs to be completely predictable and deterministic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during a search. </p>
-              <p> Functions that do this kind of transformation are called <em>hash functions</em>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
-              <p> In python there are built-in implementations of hash functions for many built-in types. They are all available through a single interface: python function <code>hash()</code>. This python function can take any python object as an input and call an appropriate implementation (if it exists). </p> 
+              <p>Now that we have the solution for searching in a list of numbers, can we use this for non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated objects are turned into the same number &mdash; we can use linear probing to resolve this collision anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>, our hash table would work, but its performance would severely degrade. So, for performance reasons it is desirable to usually get distinct numbers for distinct objects. The transformation also needs to be completely predictable and deterministic, we need to always get the same value for the same object. In other words, something like <code>random()</code> would not work, because we would "forget" where we placed our objects and we wouldn't be able to locate them during a search. </p>
+              <p>Functions that do this kind of transformation are called <em>hash functions</em>. Since it is not required to preserve any order in the input domain, a typical hash function "mixes up" its input domain, hence the name "hash".</p>
+              <p>In python there are built-in implementations of hash functions for many built-in types. They are all available through a single interface: python function <code>hash()</code>. This python function can take any python object as an input and call an appropriate implementation (if it exists). </p> 
               <HashExamples />
-              <p> As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should. One major exception is integers, you can notice that <code>hash(x) == x</code> for small numbers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
-              <p> For large("long") integers, python uses a different algorithm. Try typing a really big number, for example TODO to see this. </p>
+              <p>As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should. One major exception is integers, you can notice that <code>hash(x) == x</code> for small numbers. This fact may seem surprising to people familiar with hash functions, however it is a delibirate design decision by Python Core Developers. </p>
+              <p>For large("long") integers, python uses a different algorithm. Try typing a really big number, for example TODO to see this. </p>
               
               <h5> Unhashable types </h5>
 
-              <p> Not all types are hashable. For example, for lists if you call <code>hash(["some", "values"])</code> you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash function as for tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not prevent us from defining a hash function. However changing a list would change the value of the hash function as well, and therefore we will not be able to find the mutated list! Hashing and using lists as keys in dicts would lead to many accidental bugs, so developers of python chose not to allow this. </p>
+              <p>Not all types are hashable. For example, for lists if you call <code>hash(["some", "values"])</code> you will get <code> TypeError: unhashable type: 'list' </code>. Why can't we use the same hash function as for tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not prevent us from defining a hash function. However changing a list would change the value of the hash function as well, and therefore we will not be able to find the mutated list! Hashing and using lists as keys in dicts would lead to many accidental bugs, so developers of python chose not to allow this. </p>
 
               <h5> Using hash functions for hash tables </h5>
-              <p> Recall that we started with a simple problem: searching efficiently in a list of distinct numbers. Now, let's make this problem harder: our hash table needs to support types other than integers, handle duplicates and support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
-              <p> Let's say we have a mixed list of strings and integers: </p>
+              <p>Recall that we started with a simple problem: searching efficiently in a list of distinct numbers. Now, let's make this problem harder: our hash table needs to support types other than integers, handle duplicates and support removing and adding keys (and therefore resizing). We will see how to handle values in the next chapter, but for now let's assume we only need to search for keys. </p>
+              <p>Let's say we have a mixed list of strings and integers: </p>
               <MySticky bottomBoundary=".chapter2">
                 <PyListInput value={this.state.exampleArray} onChange={(value) => this.setState({exampleArray: value})} />
               </MySticky>
 
-              <p> TODO: move the next sentence somewhere: </p>
-              <p> Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>
-              <p> TODO: explain that "hashes" is short for "hash function values" </p>
+              <p>TODO: move the next sentence somewhere: </p>
+              <p>Hash tables are called hash tables because they use hash functions and because they also "mix up" the order of input elements. </p>
+              <p>TODO: explain that "hashes" is short for "hash function values" </p>
 
               <h5> How does using hash functions change the insertion algorithm? </h5>
-              <p> Obviously, we have to use <code>hash()</code> function to convert objects into integers for indexing. </p> 
-              <p> Because <code>None</code> is hashable too, we will need to use some other value as a placeholder for an empty slot. The cleanest way to do this is to create a new type and use a value of this type. In python, this is quite simple: </p>
+              <p>Obviously, we have to use <code>hash()</code> function to convert objects into integers for indexing. </p> 
+              <p>Because <code>None</code> is hashable too, we will need to use some other value as a placeholder for an empty slot. The cleanest way to do this is to create a new type and use a value of this type. In python, this is quite simple: </p>
               <SimpleCodeBlock>{`
 class EmptyValueClass(object):
     pass
 
 EMPTY = EmptyValueClass()
               `}</SimpleCodeBlock>
-              <p> We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
-              <p> But here is one important and subtle thing: checking for equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And, we may end up doing several equality checks when doing linear probing. </p>
-              <p> When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in the case of arbitrary objects. We still get numbers from hash functions. So, we can cache these numbers and compare them before comparing actual objects. When comparing hashes, there are two different outcomes. First, the hashes are different; in this case, we can safely conclude that the objects are different as well. Second, the hashes are equal; in this case, there is still a possibility of two distinct objects having the same hash, so we have to compare the actual objects. </p>
-              <p> This optimization is an example of a space-time tradeoff. We spend extra memory to make the algorithm faster.</p> 
-              <p> Now, let's see this algorithm in action. We'll use a separate list called <code>hash_codes</code> for caching values of hash functions.</p>
+              <p>We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to safely insert <code>None</code> in the hash table.</p>
+              <p>But here is one important and subtle thing: checking for equality of objects can be expensive. For example, comparing strings of length 10000 may require up to 10000 comparision operations - one per each pair of corresponding characters. And, we may end up doing several equality checks when doing linear probing. </p>
+              <p>When we only had integers, we didn't have this problem, because comparing integers is cheap. But here is a cool trick we can use to improve the performance in the case of arbitrary objects. We still get numbers from hash functions. So, we can cache these numbers and compare them before comparing actual objects. When comparing hashes, there are two different outcomes. First, the hashes are different; in this case, we can safely conclude that the objects are different as well. Second, the hashes are equal; in this case, there is still a possibility of two distinct objects having the same hash, so we have to compare the actual objects. </p>
+              <p>This optimization is an example of a space-time tradeoff. We spend extra memory to make the algorithm faster.</p> 
+              <p>Now, let's see this algorithm in action. We'll use a separate list called <code>hash_codes</code> for caching values of hash functions.</p>
               <VisualizedCode
                 code={HASH_CREATE_NEW_CODE}
                 breakpoints={hashCreateNewBreakpoints.map(postBpTransform)}
@@ -572,7 +572,7 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashCreateNewStateVisualization} />
 
               <h5> Searching </h5>
-              <p> The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and just like with the inserting algorithm, during linear probing we compare actual objects only when hashes are equal. </p>
+              <p>The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the object, and just like with the inserting algorithm, during linear probing we compare actual objects only when hashes are equal. </p>
               <VisualizedCode
                 code={HASH_SEARCH_CODE}
                 breakpoints={hashSearchBreakpoints.map(postBpTransform)}
@@ -580,9 +580,9 @@ EMPTY = EmptyValueClass()
                 stateVisualization={HashNormalStateVisualization} />
               
               <h5> Removing objects </h5>
-              <p> If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. Then, how do we remove a key?</p>
-              <p> The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder that indicates we shouldn't stop probing during a search. </p>
-              <p> Let's see this in action. Let's say we want to remove <PyStringOrNumberInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
+              <p>If we removed a key without a trace, it'd leave a hole, and this would break the search algorithm. Then, how do we remove a key?</p>
+              <p>The answer is that if we can't remove a key without a trace, we should leave a trace. When removing a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This object acts as a placeholder that indicates we shouldn't stop probing during a search. </p>
+              <p>Let's see this in action. Let's say we want to remove <PyStringOrNumberInput inline={true} value={this.state.hrToRemove} onChange={(value) => this.setState({hrToRemove: value})} /></p>
 
               <VisualizedCode
                 code={HASH_REMOVE_CODE}
@@ -590,22 +590,22 @@ EMPTY = EmptyValueClass()
                 formatBpDesc={formatHashRemoveSearch}
                 stateVisualization={HashNormalStateVisualization} />
               
-              <p> Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table overflows with dummy objects? There is a way to clean them up. But first, let's see what happens if a table overflows with normal objects. </p>
+              <p>Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table overflows with dummy objects? There is a way to clean them up. But first, let's see what happens if a table overflows with normal objects. </p>
               <h5>Resizing hash tables</h5>
-              <p> How do we resize a hash table? The index of each element depends on the table size, so it may change if the size of a table changes. Moreover, because of linear probing, each index may depend on the indexes of other objects (which, in turn, also depend on the size of a table and the indexes of other objects). This is a tangled mess. </p>
-              <p> There is a way to disentangle this Gordian Knot, however. We can create a new, bigger table and re-insert all the elements from the smaller table (skipping dummy placeholders). This may sound expensive. And, it <em>is</em> expensive. But, the thing is, we don't have to resize the table after every operation. If we make the new table size 1.5x, 2x or even 4x the size of the old table, we will do the resize operation rarely enough that the heavy cost of it will amortize (spread out) over many insertions/deletions. But, more on this later. </p>
-              <p> Now, let's see how we could resize the current table </p>
+              <p>How do we resize a hash table? The index of each element depends on the table size, so it may change if the size of a table changes. Moreover, because of linear probing, each index may depend on the indexes of other objects (which, in turn, also depend on the size of a table and the indexes of other objects). This is a tangled mess. </p>
+              <p>There is a way to disentangle this Gordian Knot, however. We can create a new, bigger table and re-insert all the elements from the smaller table (skipping dummy placeholders). This may sound expensive. And, it <em>is</em> expensive. But, the thing is, we don't have to resize the table after every operation. If we make the new table size 1.5x, 2x or even 4x the size of the old table, we will do the resize operation rarely enough that the heavy cost of it will amortize (spread out) over many insertions/deletions. But, more on this later. </p>
+              <p>Now, let's see how we could resize the current table </p>
               <VisualizedCode
                 code={HASH_RESIZE_CODE}
                 breakpoints={hashResizeBreakpoints.map(postBpTransform)}
                 formatBpDesc={formatHashResize}
                 stateVisualization={HashResizeStateVisualization} />
-              <p> There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until a table is nearly full, the performance will severely degrade. If we resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized when it is around 66% full. </p>
-              <p> TODO: load factor or fill factor?</p>
-              <p> The number of non-empty slots (including dummy/tombstone slots) is called <em>fill</em>. The ratio between fill and table size is called the <em>fill factor</em>. So, using the new terms, we can say that a hash table is resized when the fill factor reaches 66%. By what factor should the size change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x, 4x discussed before</p>
-              <p> To implement this efficiently, we need to track the fill factor. So, we will need two counters for tracking fill and usage. With the current code structure, tracking these counters would be messy because we would need to pass these counters to and from every function. A much cleaner solution would be using classes. </p>
-              // TODO: remove this sentence? <p> A separate insertion function would need to check for fill factor and do resizing. </p>
-              <p> TODO: maybe insert HASH_INSERT_CODE here?</p>
+              <p>There is still one more important question. What condition should trigger the resizing opration? If we postpone resizing until a table is nearly full, the performance will severely degrade. If we resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized when it is around 66% full. </p>
+              <p>TODO: load factor or fill factor?</p>
+              <p>The number of non-empty slots (including dummy/tombstone slots) is called <em>fill</em>. The ratio between fill and table size is called the <em>fill factor</em>. So, using the new terms, we can say that a hash table is resized when the fill factor reaches 66%. By what factor should the size change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x, 4x discussed before</p>
+              <p>To implement this efficiently, we need to track the fill factor. So, we will need two counters for tracking fill and usage. With the current code structure, tracking these counters would be messy because we would need to pass these counters to and from every function. A much cleaner solution would be using classes. </p>
+              // TODO: remove this sentence? <p>A separate insertion function would need to check for fill factor and do resizing. </p>
+              <p>TODO: maybe insert HASH_INSERT_CODE here?</p>
         </div>;
     }
 }
