@@ -30,7 +30,9 @@ import {
 } from './code_blocks';
 
 import {PyDictInput} from './inputs';
-import {MySticky} from './util';
+import {MySticky, ChapterComponent} from './util';
+
+import memoizeOne from "memoize-one";
 
 let chapter3Extend = Base =>
     class extends Base {
@@ -163,12 +165,12 @@ let HASH_CLASS_DELITEM = HASH_CLASS_LOOKDICT.concat([
     ['    self.slots[idx].value = EMPTY', 'replace-value-empty', 1],
 ]);
 
-export class Chapter3_HashClass extends React.Component {
+export class Chapter3_HashClass extends ChapterComponent {
     constructor() {
         super();
 
         this.state = {
-            hashClassOriginal: [
+            pairs: [
                 ['abde', 1],
                 ['cdef', 4],
                 ['world', 9],
@@ -183,40 +185,68 @@ export class Chapter3_HashClass extends React.Component {
         };
     }
 
-    handleInputChange = value => {
-        this.setState({hashClassOriginal: value});
-    };
+    runCreateNew = memoizeOne(pairs => {
+        let pySelf = hashClassConstructor();
 
-    render() {
-        let hashClassSelf = hashClassConstructor();
-        let hashClassInsertAll = new HashClassInsertAll();
-        hashClassSelf = hashClassInsertAll.run(
-            hashClassSelf,
-            this.state.hashClassOriginal,
+        const ia = new HashClassInsertAll();
+        pySelf = ia.run(
+            pySelf,
+            pairs,
             false,
             HashClassSetItem,
             HashClassResize,
             2
         );
-        let hashClassInsertAllBreakpoints = hashClassInsertAll.getBreakpoints();
+        const bp = ia.getBreakpoints();
+        const resizes = ia.getResizes();
 
-        let resizes = hashClassInsertAll.getResizes();
+        return {self: pySelf, resizes: resizes, bp: bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+    runDelItem = memoizeOne((pySelf, key) => {
+        const di = new HashClassDelItem();
+        const newPySelf = di.run(pySelf, key, HashClassLookdict);
+        const bp = di.getBreakpoints();
+        
+        return {self: newPySelf, bp: bp, bpTransformed: bp.map(postBpTransform)}
+    })
+
+    runGetItem = memoizeOne((pySelf, key) => {
+        const gi = new HashClassGetItem();
+        gi.run(pySelf, key, HashClassLookdict);
+        const bp = gi.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)}
+    })
+
+    runSetItemRecycling = memoizeOne((pySelf, key, value) => {
+        const sir = new HashClassSetItem();
+        const newPySelf = sir.run(pySelf, key, value, true, HashClassResize, 2);
+        const bp = sir.getBreakpoints();
+        return {self: newPySelf, bp, bpTransformed: bp.map(postBpTransform)}
+    })
+
+    selectResize = memoizeOne(resizes => {
         let resize = null;
+        // TODO: support warning user about no resizes
         if (resizes.length > 0) {
             resize = resizes[0];
         }
+        return {resize, bpTransformed: resize.breakpoints.map(postBpTransform)};
+    });
 
-        let hashClassDelItem = new HashClassDelItem();
-        hashClassSelf = hashClassDelItem.run(hashClassSelf, 'hello', HashClassLookdict);
-        let hashClassDelItemBreakpoints = hashClassDelItem.getBreakpoints();
+    render() {
+        let newRes = this.runCreateNew(this.state.pairs);
+        let pySelf = newRes.self;
 
-        let hashClassGetItem = new HashClassGetItem();
-        hashClassGetItem.run(hashClassSelf, 42, HashClassLookdict);
-        let hashClassGetItemBreakpoints = hashClassGetItem.getBreakpoints();
+        let resizeRes = this.selectResize(newRes.resizes);
 
-        let hashClassSetItemRecycling = new HashClassSetItem();
-        hashClassSelf = hashClassSetItemRecycling.run(hashClassSelf, 'recycling', 499, true, HashClassResize, 2);
-        let hashClassSetItemRecyclingBreakpoints = hashClassSetItemRecycling.getBreakpoints();
+        let delRes = this.runDelItem(pySelf, 'hello')
+        pySelf = delRes.self;
+
+        let getRes = this.runGetItem(pySelf, 42)
+
+        let setRecyclingRes = this.runSetItemRecycling(pySelf, 'recycling', 499);
+        pySelf = setRecyclingRes.self;
 
         return (
             <div className="chapter chapter3">
@@ -330,12 +360,12 @@ export class Chapter3_HashClass extends React.Component {
 
                 <p>Let's say we want to create an almost-dict from the following pairs:</p>
                 <MySticky bottomBoundary=".chapter3">
-                    <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
+                    <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
 
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
-                    breakpoints={hashClassInsertAllBreakpoints.map(postBpTransform)}
+                    breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
                 />
@@ -344,7 +374,7 @@ export class Chapter3_HashClass extends React.Component {
                 <p>Let's look at the first resize in depth:</p>
                 <VisualizedCode
                     code={HASH_CLASS_RESIZE_CODE}
-                    breakpoints={resize.breakpoints.map(postBpTransform)}
+                    breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                 />
@@ -361,7 +391,7 @@ export class Chapter3_HashClass extends React.Component {
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_DELITEM}
-                    breakpoints={hashClassDelItemBreakpoints.map(postBpTransform)}
+                    breakpoints={delRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     formatBpDesc={dummyFormat}
                     stateVisualization={HashClassNormalStateVisualization}
@@ -372,7 +402,7 @@ export class Chapter3_HashClass extends React.Component {
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_GETITEM}
-                    breakpoints={hashClassGetItemBreakpoints.map(postBpTransform)}
+                    breakpoints={getRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                 />
@@ -404,7 +434,7 @@ export class Chapter3_HashClass extends React.Component {
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_RECYCLING_CODE}
-                    breakpoints={hashClassSetItemRecyclingBreakpoints.map(postBpTransform)}
+                    breakpoints={setRecyclingRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                 />
