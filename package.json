@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest --env=node",
     "start": "webpack-dev-server --config webpack.dev.js --host 0.0.0.0",
-    "build": "webpack --config webpack.prod.js"
+    "build": "webpack --config webpack.prod.js",
+    "precommit": "pretty-quick --staged"
   },
   "repository": {
     "type": "git",
@@ -68,6 +69,7 @@
     "mini-css-extract-plugin": "^0.4.1",
     "npm": "^6.0.1",
     "prettier": "1.14.2",
+    "pretty-quick": "^1.6.0",
     "split": "^1.0.1",
     "style-loader": "^0.19.1",
     "uglifyjs-webpack-plugin": "^1.2.5",
