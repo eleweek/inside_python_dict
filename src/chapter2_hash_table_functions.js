@@ -5,7 +5,9 @@ import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
-import {MySticky} from './util';
+import {MySticky, ChapterComponent} from './util';
+
+import memoizeOne from "memoize-one";
 
 function postBpTransform(bp) {
     let cloned = _.clone(bp);
@@ -524,37 +526,66 @@ class HashExamples extends React.Component {
     }
 }
 
-export class Chapter2_HashTableFunctions extends React.Component {
+export class Chapter2_HashTableFunctions extends ChapterComponent {
     constructor() {
         super();
 
         this.state = {
-            exampleArray: ['abde', 'cdef', 'world', 'hmmm', 'hello', 'xxx', 'ya', 'hello,world!', 'well', 'meh'],
-            hrToRemove: 'xxx',
-            hiToInsert: 'okok',
+            array: ['abde', 'cdef', 'world', 'hmmm', 'hello', 'xxx', 'ya', 'hello,world!', 'well', 'meh'],
+            objToRemove: 'xxx',
+            objToInsert: 'okok',
         };
     }
 
+    runCreateNew = memoizeOne(array => {
+        const hcn = new HashCreateNew();
+        const [hashCodes, keys] = hcn.run(array);
+        const bp = hcn.getBreakpoints();
+
+        return {hashCodes, keys, bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+    runSearch = memoizeOne((hashCodes, keys, searchedObj) => {
+        const hs = new HashRemoveOrSearch();
+        hs.run(hashCodes, keys, searchedObj, false);
+        const bp = hs.getBreakpoints();
+
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+    runRemove = memoizeOne((hashCodes, keys, objToRemove) => {
+        const hr = new HashRemoveOrSearch();
+        hr.run(hashCodes, keys, objToRemove, true);
+        const bp = hr.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+
+    runResize = memoizeOne((hashCodes, keys) => {
+        const hres = new HashResize();
+        hres.run(hashCodes, keys);
+        const bp = hres.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+    runInsert = memoizeOne((hashCodes, keys, objToInsert) => {
+        const hi = new HashInsert();
+        hi.run(hashCodes, keys, objToInsert);
+        const bp = hi.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
     render() {
-        let hcn = new HashCreateNew();
-        let [hcnHashCodes, hcnKeys] = hcn.run(this.state.exampleArray);
-        let hashCreateNewBreakpoints = hcn.getBreakpoints();
+        const newRes = this.runCreateNew(this.state.array);
+        let {hashCodes, keys} = newRes;
 
-        let hs = new HashRemoveOrSearch();
-        hs.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, false);
-        let hashSearchBreakpoints = hs.getBreakpoints();
+        // TODO: make results of operations connected to each other ?
+        // TODO: searchObj
+        const searchRes = this.runSearch(hashCodes, keys, this.state.objToRemove);
+        const removeRes = this.runRemove(hashCodes, keys, this.state.objToRemove);
+        const resizeRes = this.runResize(hashCodes, keys);
+        const insertRes = this.runInsert(hashCodes, keys, this.state.objToInsert);
 
-        let hr = new HashRemoveOrSearch();
-        hr.run(hcnHashCodes, hcnKeys, this.state.hrToRemove, true);
-        let hashRemoveBreakpoints = hr.getBreakpoints();
-
-        let hres = new HashResize();
-        hres.run(hcnHashCodes, hcnKeys);
-        let hashResizeBreakpoints = hres.getBreakpoints();
-
-        let hi = new HashInsert();
-        hi.run(hcnHashCodes, hcnKeys, this.state.hiToInsert);
-        let hashInsertBreakpoints = hi.getBreakpoints();
         return (
             <div className="chapter chapter2">
                 <h2> Chapter 2. Why are hash tables called hash tables? </h2>
@@ -611,8 +642,8 @@ export class Chapter2_HashTableFunctions extends React.Component {
                 <p>Let's say we have a mixed list of strings and integers:</p>
                 <MySticky bottomBoundary=".chapter2">
                     <PyListInput
-                        value={this.state.exampleArray}
-                        onChange={value => this.setState({exampleArray: value})}
+                        value={this.state.array}
+                        onChange={this.setter('array')}
                     />
                 </MySticky>
                 <p>TODO: move the next sentence somewhere:</p>
@@ -666,7 +697,7 @@ EMPTY = EmptyValueClass()
                 </p>
                 <VisualizedCode
                     code={HASH_CREATE_NEW_CODE}
-                    breakpoints={hashCreateNewBreakpoints.map(postBpTransform)}
+                    breakpoints={newRes.bpTransformed}
                     formatBpDesc={formatHashCreateNewAndInsert}
                     stateVisualization={HashCreateNewStateVisualization}
                 />
@@ -678,7 +709,7 @@ EMPTY = EmptyValueClass()
                 </p>
                 <VisualizedCode
                     code={HASH_SEARCH_CODE}
-                    breakpoints={hashSearchBreakpoints.map(postBpTransform)}
+                    breakpoints={searchRes.bpTransformed}
                     formatBpDesc={formatHashRemoveSearch}
                     stateVisualization={HashNormalStateVisualization}
                 />
@@ -696,13 +727,13 @@ EMPTY = EmptyValueClass()
                     Let's see this in action. Let's say we want to remove{' '}
                     <PyStringOrNumberInput
                         inline={true}
-                        value={this.state.hrToRemove}
-                        onChange={value => this.setState({hrToRemove: value})}
+                        value={this.state.objToRemove}
+                        onChange={this.setter('objToRemove')}
                     />
                 </p>
                 <VisualizedCode
                     code={HASH_REMOVE_CODE}
-                    breakpoints={hashRemoveBreakpoints.map(postBpTransform)}
+                    breakpoints={removeRes.bpTransformed}
                     formatBpDesc={formatHashRemoveSearch}
                     stateVisualization={HashNormalStateVisualization}
                 />
@@ -729,7 +760,7 @@ EMPTY = EmptyValueClass()
                 <p>Now, let's see how we could resize the current table</p>
                 <VisualizedCode
                     code={HASH_RESIZE_CODE}
-                    breakpoints={hashResizeBreakpoints.map(postBpTransform)}
+                    breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={formatHashResize}
                     stateVisualization={HashResizeStateVisualization}
                 />

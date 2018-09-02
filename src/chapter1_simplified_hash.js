@@ -5,7 +5,7 @@ import {List} from 'immutable';
 import {BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyNumberInput} from './inputs';
-import {MySticky} from './util';
+import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from "memoize-one";
 
@@ -256,7 +256,7 @@ let formatSimplifiedSearchDescription = function(bp) {
 
 const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent, 'new_list', 'newList', 'newListIdx');
 
-export class Chapter1_SimplifiedHash extends React.Component {
+export class Chapter1_SimplifiedHash extends ChapterComponent {
     constructor() {
         super();
 
@@ -265,14 +265,6 @@ export class Chapter1_SimplifiedHash extends React.Component {
             simpleSearchNumber: 46,
             simplifiedHashSearchNumber: 46,
         };
-        this.setterFuncs = {};
-    }
-
-    setter(name) {
-        if (!(name in this.setterFuncs)) {
-            this.setterFuncs[name] = value => this.setState({[name]: value});
-        }
-        return this.setterFuncs[name]
     }
     
     runSimplifiedInsertAll = memoizeOne(numbers => {

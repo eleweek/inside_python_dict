@@ -38,6 +38,17 @@ export function MySticky(props) {
     );
 }
 
+export class ChapterComponent extends React.Component {
+    setterFuncs = {}
+
+    setter(name) {
+        if (!(name in this.setterFuncs)) {
+            this.setterFuncs[name] = value => this.setState({[name]: value});
+        }
+        return this.setterFuncs[name]
+    }
+}
+
 const defaultUxSettings = {
     TIME_SLIDER_THROTTLE_TIME: 125,
     CODE_SCROLL_DEBOUNCE_TIME: 300,
