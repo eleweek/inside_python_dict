@@ -22,7 +22,9 @@ import {
 import {VisualizedCode} from './code_blocks';
 
 import {PyDictInput} from './inputs';
-import {MySticky} from './util';
+import {MySticky, ChapterComponent} from './util';
+
+import memoizeOne from 'memoize-one';
 
 function signedToUnsigned(num) {
     if (num.lt(0)) {
@@ -165,12 +167,12 @@ let DICT32_DELITEM = DICT32_LOOKDICT.concat([
     ['    self.slots[idx].value = EMPTY', 'replace-value-empty', 1],
 ]);
 
-export class Chapter4_RealPythonDict extends React.Component {
+export class Chapter4_RealPythonDict extends ChapterComponent {
     constructor() {
         super();
 
         this.state = {
-            hashClassOriginal: [
+            pairs: [
                 ['abde', 1],
                 ['cdef', 4],
                 ['world', 9],
@@ -185,30 +187,52 @@ export class Chapter4_RealPythonDict extends React.Component {
         };
     }
 
-    handleInputChange = value => {
-        this.setState({hashClassOriginal: value});
-    };
-
-    render() {
-        let dict32Self = hashClassConstructor();
-        let ia = new HashClassInsertAll();
+    runCreateNew = memoizeOne(pairs => {
+        let pySelf = hashClassConstructor();
+        const ia = new HashClassInsertAll();
         // TODO: 4 or 2 -- depends on dict size
-        dict32Self = ia.run(dict32Self, this.state.hashClassOriginal, true, Dict32SetItem, Dict32Resize, 4);
-        let iaBreakpoints = ia.getBreakpoints();
+        pySelf = ia.run(pySelf, pairs, true, Dict32SetItem, Dict32Resize, 4);
+        const bp = ia.getBreakpoints();
+        const resizes = ia.getResizes();
 
-        let resizes = ia.getResizes();
+        return {self: pySelf, resizes: resizes, bp: bp, bpTransformed: bp.map(postBpTransform)};
+    });
+
+    selectResize = memoizeOne(resizes => {
         let resize = null;
+        // TODO: support warning user about no resizes
         if (resizes.length > 0) {
             resize = resizes[0];
         }
+        const bp = resize.breakpoints;
+        return {resize, bp, bpTransformed: bp.map(postBpTransform)};
+    });
 
-        let di = new HashClassDelItem();
-        dict32Self = di.run(dict32Self, 'hello', Dict32Lookdict);
-        let diBreakpoints = di.getBreakpoints();
+    runDelItem = memoizeOne((pySelf, key) => {
+        const di = new HashClassDelItem();
+        pySelf = di.run(pySelf, key, Dict32Lookdict);
+        const bp = di.getBreakpoints();
 
-        let gi = new HashClassGetItem();
-        gi.run(dict32Self, 42, Dict32Lookdict);
-        let giBreakpoints = gi.getBreakpoints();
+        return {bp, self: pySelf, bpTransformed: bp.map(postBpTransform)};
+    });
+
+    runGetItem = memoizeOne((pySelf, key) => {
+        const gi = new HashClassGetItem();
+        gi.run(pySelf, key, Dict32Lookdict);
+        const bp = gi.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    });
+
+    render() {
+        let newRes = this.runCreateNew(this.state.pairs);
+        let pySelf = newRes.self;
+
+        let resizeRes = this.selectResize(newRes.resizes);
+
+        let delRes = this.runDelItem(pySelf, 'hello');
+        pySelf = delRes.self;
+
+        let getRes = this.runGetItem(pySelf, 42);
 
         return (
             <div className="chapter chapter4">
@@ -276,33 +300,33 @@ export class Chapter4_RealPythonDict extends React.Component {
                 <p>Let's see how this dict can be implemented.</p>
                 <p>Let's say we want to create a python dict from the following pairs:</p>
                 <MySticky>
-                    <PyDictInput value={this.state.hashClassOriginal} onChange={this.handleInputChange} />
+                    <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
                 <p>Insert:</p>
                 <VisualizedCode
                     code={DICT32_SETITEM}
-                    breakpoints={iaBreakpoints.map(postBpTransform)}
+                    breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
                 />
                 <p>Let's look at the first resize in depth:</p>
                 <VisualizedCode
                     code={DICT32_RESIZE_CODE}
-                    breakpoints={resize.breakpoints.map(postBpTransform)}
+                    breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                 />
                 <p>Removing a key looks pretty much the same</p>
                 <VisualizedCode
                     code={DICT32_DELITEM}
-                    breakpoints={diBreakpoints.map(postBpTransform)}
+                    breakpoints={delRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                 />
                 <p>Search is mostly the same</p>
                 <VisualizedCode
                     code={DICT32_GETITEM}
-                    breakpoints={giBreakpoints.map(postBpTransform)}
+                    breakpoints={getRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                 />

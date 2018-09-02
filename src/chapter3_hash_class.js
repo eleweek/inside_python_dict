@@ -32,7 +32,7 @@ import {
 import {PyDictInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
-import memoizeOne from "memoize-one";
+import memoizeOne from 'memoize-one';
 
 let chapter3Extend = Base =>
     class extends Base {
@@ -189,41 +189,34 @@ export class Chapter3_HashClass extends ChapterComponent {
         let pySelf = hashClassConstructor();
 
         const ia = new HashClassInsertAll();
-        pySelf = ia.run(
-            pySelf,
-            pairs,
-            false,
-            HashClassSetItem,
-            HashClassResize,
-            2
-        );
+        pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
         const bp = ia.getBreakpoints();
         const resizes = ia.getResizes();
 
         return {self: pySelf, resizes: resizes, bp: bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runDelItem = memoizeOne((pySelf, key) => {
         const di = new HashClassDelItem();
         const newPySelf = di.run(pySelf, key, HashClassLookdict);
         const bp = di.getBreakpoints();
-        
-        return {self: newPySelf, bp: bp, bpTransformed: bp.map(postBpTransform)}
-    })
+
+        return {self: newPySelf, bp: bp, bpTransformed: bp.map(postBpTransform)};
+    });
 
     runGetItem = memoizeOne((pySelf, key) => {
         const gi = new HashClassGetItem();
         gi.run(pySelf, key, HashClassLookdict);
         const bp = gi.getBreakpoints();
-        return {bp, bpTransformed: bp.map(postBpTransform)}
-    })
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    });
 
     runSetItemRecycling = memoizeOne((pySelf, key, value) => {
         const sir = new HashClassSetItem();
         const newPySelf = sir.run(pySelf, key, value, true, HashClassResize, 2);
         const bp = sir.getBreakpoints();
-        return {self: newPySelf, bp, bpTransformed: bp.map(postBpTransform)}
-    })
+        return {self: newPySelf, bp, bpTransformed: bp.map(postBpTransform)};
+    });
 
     selectResize = memoizeOne(resizes => {
         let resize = null;
@@ -231,7 +224,8 @@ export class Chapter3_HashClass extends ChapterComponent {
         if (resizes.length > 0) {
             resize = resizes[0];
         }
-        return {resize, bpTransformed: resize.breakpoints.map(postBpTransform)};
+        const bp = resize.breakpoints;
+        return {resize, bp, bpTransformed: bp.map(postBpTransform)};
     });
 
     render() {
@@ -240,10 +234,10 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         let resizeRes = this.selectResize(newRes.resizes);
 
-        let delRes = this.runDelItem(pySelf, 'hello')
+        let delRes = this.runDelItem(pySelf, 'hello');
         pySelf = delRes.self;
 
-        let getRes = this.runGetItem(pySelf, 42)
+        let getRes = this.runGetItem(pySelf, 42);
 
         let setRecyclingRes = this.runSetItemRecycling(pySelf, 'recycling', 499);
         pySelf = setRecyclingRes.self;
