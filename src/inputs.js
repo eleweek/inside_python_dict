@@ -22,7 +22,6 @@ class ParsableInput extends React.Component {
             value: this.props.dumpValue(this.props.value),
             error: null,
         };
-        this.propsOnChangeDebounced = _.debounce(this.propsOnChange, 50);
     }
 
     handleChange = event => {
@@ -34,8 +33,7 @@ class ParsableInput extends React.Component {
                 error: null,
             });
             let value = this.props.parseValue(event.target.value);
-            console.log('Calling onChangeDebounced');
-            this.propsOnChangeDebounced(value);
+            this.propsOnChangeThrottled(value);
         } catch (e) {
             this.setState({
                 error: e,
@@ -44,9 +42,9 @@ class ParsableInput extends React.Component {
         }
     };
 
-    propsOnChange = value => {
+    propsOnChangeThrottled = _.throttle(value => {
         this.props.onChange(value);
-    };
+    }, 50);
 
     formatErrorMessageForBlock(e) {
         const text = e.message;
