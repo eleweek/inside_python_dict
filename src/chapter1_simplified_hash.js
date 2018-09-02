@@ -7,6 +7,8 @@ import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, V
 import {PyListInput, PyNumberInput} from './inputs';
 import {MySticky} from './util';
 
+import memoizeOne from "memoize-one";
+
 const SIMPLE_LIST_SEARCH = [
     ['def has_key(l, key):', '', 0],
     ['    idx = 0', 'start-from-zero', 1],
@@ -259,26 +261,46 @@ export class Chapter1_SimplifiedHash extends React.Component {
         super();
 
         this.state = {
-            exampleArrayNumbers: [14, 8, 19, 15, 13, 42, 46, 22],
-            simpleSearchObj: 46,
-            simplifiedSearchObj: 46,
+            numbers: [14, 8, 19, 15, 13, 42, 46, 22],
+            simpleSearchNumber: 46,
+            simplifiedHashSearchNumber: 46,
         };
+        this.setterFuncs = {};
     }
 
-    render() {
-        let simpleListSearchBreakpoints = simpleListSearch(this.state.exampleArrayNumbers, this.state.simpleSearchObj);
-
+    setter(name) {
+        if (!(name in this.setterFuncs)) {
+            this.setterFuncs[name] = value => this.setState({[name]: value});
+        }
+        return this.setterFuncs[name]
+    }
+    
+    runSimplifiedInsertAll = memoizeOne(numbers => {
         let sia = new SimplifiedInsertAll();
-        let simplifiedInsertAllData = sia.run(this.state.exampleArrayNumbers);
-        let simplifiedInsertAllBreakpoints = sia.getBreakpoints();
+        let data = sia.run(numbers);
+        let bp = sia.getBreakpoints();
+        return {data, bp, bpTransformed: bp.map(postBpTransform)};
+    })
 
+    runSimplifiedSearch = memoizeOne((data, number) => {
         let ss = new SimplifiedSearch();
-        ss.run(simplifiedInsertAllData, this.state.simplifiedSearchObj);
-        let simplifiedSearchBreakpoints = ss.getBreakpoints();
+        ss.run(data, number);
+        let bp = ss.getBreakpoints();
+        return {bp, bpTransformed: bp.map(postBpTransform)};
+    })
+
+    runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {
+        return {bp: simpleListSearch(numbers, searchedNumber)};
+    });
+
+    render() {
+        const slsRes = this.runSimpleListSearch(this.state.numbers, this.state.simpleSearchNumber);
+        const siaRes = this.runSimplifiedInsertAll(this.state.numbers);
+        const ssRes = this.runSimplifiedSearch(siaRes.data, this.state.simplifiedHashSearchNumber);
 
         return (
             <div className="chapter chapter1">
-                <h2> Chapter 1: searching efficiently in a list</h2>
+                <h2>Chapter 1: searching efficiently in a list</h2>
                 <p>
                     Before we begin, here are a couple of notes. First, this is <em>an explorable explanation</em> of
                     python dictionaries. This page is dynamic and interactive &mdash; you can plug in your own data and
@@ -299,7 +321,7 @@ export class Chapter1_SimplifiedHash extends React.Component {
                     <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
                     are interesting too, but are beyond of the scope of this page).
                 </p>
-                <h5> Let's get started! </h5>
+                <h5>Let's get started!</h5>
                 <p>
                     The most important part of python dict is handling keys. Dict keys need to be organized in such a
                     way that searching, inserting and deleting is possible. We will begin with a simplified problem. We
@@ -310,8 +332,8 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 <p>Let's say we have a simple list of numbers:</p>
                 <MySticky bottomBoundary=".chapter1">
                     <PyListInput
-                        value={this.state.exampleArrayNumbers}
-                        onChange={value => this.setState({exampleArrayNumbers: value})}
+                        value={this.state.numbers}
+                        onChange={this.setter('numbers')}
                     />
                 </MySticky>
                 <p className="text-muted">
@@ -325,7 +347,7 @@ export class Chapter1_SimplifiedHash extends React.Component {
                     misleading to people who are unfamiliar with python but know about double-linked lists. You can
                     picture a list as a row of slots, where each slot can hold a single python object:
                 </p>
-                <LineOfBoxesComponent array={this.state.exampleArrayNumbers} />
+                <LineOfBoxesComponent array={this.state.numbers} />
                 <p>
                     Accessing an element by index is very fast. Appending to a list is fast too. But if there is no
                     order whatsoever, searching for a specific element will be slow. We may get lucky and find an
@@ -337,8 +359,8 @@ export class Chapter1_SimplifiedHash extends React.Component {
                     For example, let's say we want to search for
                     <PyNumberInput
                         inline={true}
-                        value={this.state.simpleSearchObj}
-                        onChange={value => this.setState({simpleSearchObj: value})}
+                        value={this.state.simpleSearchNumber}
+                        onChange={this.setter('simpleSearchNumber')}
                     />
                     <span className="text-muted">
                         (Try changing this field as well! And see how the steps and the data visualization update)
@@ -346,7 +368,7 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 </p>
                 <VisualizedCode
                     code={SIMPLE_LIST_SEARCH}
-                    breakpoints={simpleListSearchBreakpoints}
+                    breakpoints={slsRes.bp}
                     formatBpDesc={formatSimpleListSearchBreakpointDescription}
                     stateVisualization={SimpleListSearchStateVisualization}
                 />
@@ -384,7 +406,7 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 </p>
                 <VisualizedCode
                     code={SIMPLIFIED_INSERT_ALL_CODE}
-                    breakpoints={simplifiedInsertAllBreakpoints.map(postBpTransform)}
+                    breakpoints={siaRes.bpTransformed}
                     formatBpDesc={formatSimplifiedInsertAllDescription}
                     stateVisualization={SimplifiedInsertStateVisualization}
                 />
@@ -397,12 +419,12 @@ export class Chapter1_SimplifiedHash extends React.Component {
                 Let's say we want to search for{' '}
                 <PyNumberInput
                     inline={true}
-                    value={this.state.simplifiedSearchObj}
-                    onChange={value => this.setState({simplifiedSearchObj: value})}
+                    value={this.state.simplifiedHashSearchNumber}
+                    onChange={this.setter('simplifiedHashSearchNumber')}
                 />
                 <VisualizedCode
                     code={SIMPLIFIED_SEARCH_CODE}
-                    breakpoints={simplifiedSearchBreakpoints.map(postBpTransform)}
+                    breakpoints={ssRes.bpTransformed}
                     formatBpDesc={formatSimplifiedSearchDescription}
                     stateVisualization={SimplifiedSearchStateVisualization}
                 />

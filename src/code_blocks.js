@@ -105,7 +105,6 @@ function pyObjToDisplayedString(obj) {
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
         const {extraClassName, idx, status, transitionDuration} = this.props;
-        console.log(transitionDuration);
 
         const animatedClass = 'active-box-selection-animated';
         let classes = ['active-box-selection', extraClassName, animatedClass];
