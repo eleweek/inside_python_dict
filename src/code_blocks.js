@@ -730,9 +730,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
         const activeLinePos = (activeLine / totalLines) * scrollHeight;
         // TODO: use actual height
-        const kindOfLineHeight = 20;
+        const kindOfLineHeight = 25;
         const needsUpdating =
-            activeLinePos > scrollTop + kindOfLineHeight || activeLinePos < scrollBottom - kindOfLineHeight;
+            activeLinePos < scrollTop + 2 * kindOfLineHeight || activeLinePos > scrollBottom - 2 * kindOfLineHeight;
 
         let scrollTopTarget = activeLinePos - this.HEIGHT / 2;
         if (scrollTopTarget < 0) {
