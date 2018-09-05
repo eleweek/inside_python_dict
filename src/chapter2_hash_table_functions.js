@@ -7,7 +7,7 @@ import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, Visua
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
-import memoizeOne from "memoize-one";
+import memoizeOne from 'memoize-one';
 
 function postBpTransform(bp) {
     let cloned = _.clone(bp);
@@ -534,6 +534,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
             array: ['abde', 'cdef', 'world', 'hmmm', 'hello', 'xxx', 'ya', 'hello,world!', 'well', 'meh'],
             objToRemove: 'xxx',
             objToInsert: 'okok',
+            searchedObj: 'world',
         };
     }
 
@@ -543,7 +544,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         const bp = hcn.getBreakpoints();
 
         return {hashCodes, keys, bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runSearch = memoizeOne((hashCodes, keys, searchedObj) => {
         const hs = new HashRemoveOrSearch();
@@ -551,29 +552,28 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         const bp = hs.getBreakpoints();
 
         return {bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runRemove = memoizeOne((hashCodes, keys, objToRemove) => {
         const hr = new HashRemoveOrSearch();
         hr.run(hashCodes, keys, objToRemove, true);
         const bp = hr.getBreakpoints();
         return {bp, bpTransformed: bp.map(postBpTransform)};
-    })
-
+    });
 
     runResize = memoizeOne((hashCodes, keys) => {
         const hres = new HashResize();
         hres.run(hashCodes, keys);
         const bp = hres.getBreakpoints();
         return {bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runInsert = memoizeOne((hashCodes, keys, objToInsert) => {
         const hi = new HashInsert();
         hi.run(hashCodes, keys, objToInsert);
         const bp = hi.getBreakpoints();
         return {bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     render() {
         const newRes = this.runCreateNew(this.state.array);
@@ -581,7 +581,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
 
         // TODO: make results of operations connected to each other ?
         // TODO: searchObj
-        const searchRes = this.runSearch(hashCodes, keys, this.state.objToRemove);
+        const searchRes = this.runSearch(hashCodes, keys, this.state.searchedObj);
         const removeRes = this.runRemove(hashCodes, keys, this.state.objToRemove);
         const resizeRes = this.runResize(hashCodes, keys);
         const insertRes = this.runInsert(hashCodes, keys, this.state.objToInsert);
@@ -641,10 +641,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                 </p>
                 <p>Let's say we have a mixed list of strings and integers:</p>
                 <MySticky bottomBoundary=".chapter2">
-                    <PyListInput
-                        value={this.state.array}
-                        onChange={this.setter('array')}
-                    />
+                    <PyListInput value={this.state.array} onChange={this.setter('array')} />
                 </MySticky>
                 <p>TODO: move the next sentence somewhere:</p>
                 <p>
@@ -706,6 +703,15 @@ EMPTY = EmptyValueClass()
                     The search algorithm isn't changed much. We just get the <code>hash()</code> function value for the
                     object, and just like with the inserting algorithm, during linear probing we compare actual objects
                     only when hashes are equal.
+                </p>
+                <p>
+                    For instance, let's search for
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.searchedObj}
+                        onChange={this.setter('searchedObj')}
+                    />
+                    and see what happens
                 </p>
                 <VisualizedCode
                     code={HASH_SEARCH_CODE}

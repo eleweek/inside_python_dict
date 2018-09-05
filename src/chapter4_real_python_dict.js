@@ -21,7 +21,7 @@ import {
 
 import {VisualizedCode} from './code_blocks';
 
-import {PyDictInput} from './inputs';
+import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -184,6 +184,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 ['well', 81],
                 ['meh', 100],
             ],
+            keyToDel: 'hello',
+            keyToGet: 'ya',
         };
     }
 
@@ -229,10 +231,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         let resizeRes = this.selectResize(newRes.resizes);
 
-        let delRes = this.runDelItem(pySelf, 'hello');
+        let delRes = this.runDelItem(pySelf, this.state.keyToDel);
         pySelf = delRes.self;
 
-        let getRes = this.runGetItem(pySelf, 42);
+        let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
         return (
             <div className="chapter chapter4">
@@ -317,6 +319,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     stateVisualization={HashClassResizeVisualization}
                 />
                 <p>Removing a key looks pretty much the same</p>
+                <p>
+                    Deleting
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                </p>
                 <VisualizedCode
                     code={DICT32_DELITEM}
                     breakpoints={delRes.bpTransformed}
@@ -324,6 +334,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     stateVisualization={HashClassNormalStateVisualization}
                 />
                 <p>Search is mostly the same</p>
+                <p>
+                    Getting the following key
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToGet}
+                        onChange={this.setter('keyToGet')}
+                    />
+                </p>
                 <VisualizedCode
                     code={DICT32_GETITEM}
                     breakpoints={getRes.bpTransformed}

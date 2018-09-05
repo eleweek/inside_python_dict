@@ -1,10 +1,10 @@
 /* TODO: integrate with webpack? e.g. google-fonts-webpack-plugin */
-@import url(https://fonts.googleapis.com/css?family=Montserrat:700|Roboto:400,400italic,700|Roboto+Mono:400,700);
+@import url(https://fonts.googleapis.com/css?family=Montserrat:700|Roboto:400, 400italic, 700|Roboto+Mono:400, 700);
 
 /* FROM: https://stackoverflow.com/questions/12502234/how-to-prevent-webkit-text-rendering-change-during-css-transition */
 @media screen and (-webkit-min-device-pixel-ratio: 2) {
     body {
-      -webkit-font-smoothing: subpixel-antialiased;
+        -webkit-font-smoothing: subpixel-antialiased;
     }
 }
 
@@ -18,37 +18,51 @@
     max-width: 700px;
 }*/
 
-h1,h2,h3,h4,h5,h6 {
-  font-family: "Montserrat", sans-serif;
-  font-weight: 700;
-  font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
 }
 
-code, .parsable-input, .invalid-feedback.invalid-feedback-block-parsable-input {
-  font-family: "Roboto Mono", monospace;
-  font-display: optional;
+code,
+.parsable-input,
+.invalid-feedback.invalid-feedback-block-parsable-input {
+    font-family: 'Roboto Mono', monospace;
+    font-display: optional;
 }
 
-p,a,li,blockquote {
-  font-family: "Roboto", "Helvetica", sans-serif;
-  font-display: optional;
-  font-weight: 400;
+p,
+a,
+li,
+blockquote {
+    font-family: 'Roboto', 'Helvetica', sans-serif;
+    font-display: optional;
+    font-weight: 400;
 }
 
 .parsable-input {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 .invalid-feedback.invalid-feedback-block-parsable-input {
-  padding-left: 13px;
-  font-size: 14px;
-  white-space: pre;
-  margin-top: 0px;
-  background-color: rgba(220,53,69,.25); /* from box-shadow color of input in bootstrap  */
+    padding-left: 13px;
+    font-size: 14px;
+    white-space: pre;
+    margin-top: 0px;
+    background-color: rgba(220, 53, 69, 0.25); /* from box-shadow color of input in bootstrap  */
 }
 
-.parsable-input-with-error {
+.parsable-input-with-error-div {
     background-color: #fff;
+}
+
+.parsable-input-inline {
+    display: inline-block;
 }
 
 .array-vis,
@@ -61,14 +75,14 @@ p,a,li,blockquote {
 
 .box {
     display: flex;
-    font-family: "Roboto Mono", monospace;
+    font-family: 'Roboto Mono', monospace;
     position: absolute;
     width: 40px;
     height: 40px;
     border-radius: 4px;
     font-size: 12px;
     line-height: 12px;
-    float:left;
+    float: left;
     opacity: 1;
 
     justify-content: center;
@@ -93,7 +107,7 @@ p,a,li,blockquote {
 
 .box-animated {
     /* transition-property: left,top,opacity,transform; */
-    transition-property: opacity,transform;
+    transition-property: opacity, transform;
     transition-duration: 1s;
     transition-timing-function: ease;
 }
@@ -160,36 +174,36 @@ pre.code-line-container {
 }
 
 .code-highlight {
-    background-color: #C2DFFF;
+    background-color: #c2dfff;
 }
 
 .cross-fade-leave {
-  opacity: 1;
+    opacity: 1;
 }
 
 .cross-fade-leave.cross-fade-leave-active {
-  opacity: 0;
-  transition: opacity .35s ease-in;
+    opacity: 0;
+    transition: opacity 0.35s ease-in;
 }
 
 .cross-fade-enter {
-  opacity: 0;
+    opacity: 0;
 }
 .cross-fade-enter.cross-fade-enter-active {
-  opacity: 1;
-  transition: opacity .35s ease-in;
+    opacity: 1;
+    transition: opacity 0.35s ease-in;
 }
 
 .cross-fade-height {
-  transition: height .5s ease-in-out;
+    transition: height 0.5s ease-in-out;
 }
 
 .fc-inline {
-  display: inline-block !important;
-  width: 120px !important;
-  line-height: 1.0 !important;
-  margin-left: 5px;
-  margin-right: 5px;
+    display: inline-block !important;
+    width: 120px !important;
+    line-height: 1 !important;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 div.visualized-code {

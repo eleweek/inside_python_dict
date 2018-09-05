@@ -91,8 +91,11 @@ class ParsableInput extends React.Component {
                 'fc-inline': this.props.inline,
                 'is-invalid': !!error,
             });
+            const divClassNames = classNames('parsable-input-with-error-div', {
+                'parsable-input-inline': this.props.inline,
+            });
             return (
-                <div className="parsable-input-with-error">
+                <div className={divClassNames}>
                     <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />
                     {error}
                 </div>

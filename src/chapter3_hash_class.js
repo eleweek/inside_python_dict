@@ -29,7 +29,7 @@ import {
     dummyFormat,
 } from './code_blocks';
 
-import {PyDictInput} from './inputs';
+import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -182,6 +182,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                 ['well', 81],
                 ['meh', 100],
             ],
+            keyToDel: 'hello',
+            keyToGet: 'ya',
+            keyToSetRecycling: 'recycling',
+            valueToSetRecycling: 499,
         };
     }
 
@@ -234,12 +238,16 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         let resizeRes = this.selectResize(newRes.resizes);
 
-        let delRes = this.runDelItem(pySelf, 'hello');
+        let delRes = this.runDelItem(pySelf, this.state.keyToDel);
         pySelf = delRes.self;
 
-        let getRes = this.runGetItem(pySelf, 42);
+        let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
-        let setRecyclingRes = this.runSetItemRecycling(pySelf, 'recycling', 499);
+        let setRecyclingRes = this.runSetItemRecycling(
+            pySelf,
+            this.state.keyToSetRecycling,
+            this.state.valueToSetRecycling
+        );
         pySelf = setRecyclingRes.self;
 
         return (
@@ -383,6 +391,15 @@ export class Chapter3_HashClass extends ChapterComponent {
                     method is now used for realism, so we can do <code>del almost_dict[42]</code>. And we decrement the{' '}
                     <code>self.used</code> counter if we end up finding the element and removing it.
                 </p>
+                <p>
+                    {' '}
+                    For example, let's say we want to remove{' '}
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                </p>
                 <VisualizedCode
                     code={HASH_CLASS_DELITEM}
                     breakpoints={delRes.bpTransformed}
@@ -393,6 +410,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <p>
                     After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks
                     pretty much the same as <code>__delitem__</code>
+                </p>
+                <p>
+                    Searching for
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToGet}
+                        onChange={this.setter('keyToGet')}
+                    />
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_GETITEM}
@@ -425,6 +450,19 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <p>
                     However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (TODO:
                     add some sort of preface | Can you come up with an item that would replace the dummy object?).
+                </p>
+                <p> Let's say we want to insert the following key value pair </p>
+                <p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToSetRecycling}
+                        onChange={this.setter('keyToSetRecycling')}
+                    />
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.valueToSetRecycling}
+                        onChange={this.setter('valueToSetRecycling')}
+                    />
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_RECYCLING_CODE}
