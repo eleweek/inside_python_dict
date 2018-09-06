@@ -7,7 +7,7 @@ import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, V
 import {PyListInput, PyNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
-import memoizeOne from "memoize-one";
+import memoizeOne from 'memoize-one';
 
 const SIMPLE_LIST_SEARCH = [
     ['def has_key(l, key):', '', 0],
@@ -105,13 +105,7 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
     ['    return new_list', 'return-created-list', 1],
 ];
 
-class NewListCachingBreakpointFunction extends BreakpointFunction {
-    constructor(converters) {
-        super(converters, ['newList']);
-    }
-}
-
-class SimplifiedInsertAll extends NewListCachingBreakpointFunction {
+class SimplifiedInsertAll extends BreakpointFunction {
     run(_originalList) {
         this.originalList = new List(_originalList);
         this.newList = new List();
@@ -195,7 +189,7 @@ const SIMPLIFIED_SEARCH_CODE = [
     ['    return False', 'found-nothing', 1],
 ];
 
-class SimplifiedSearch extends NewListCachingBreakpointFunction {
+class SimplifiedSearch extends BreakpointFunction {
     run(_newList, _number) {
         this.newList = new List(_newList);
         this.number = _number;
@@ -266,20 +260,20 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
             simplifiedHashSearchNumber: 46,
         };
     }
-    
+
     runSimplifiedInsertAll = memoizeOne(numbers => {
         let sia = new SimplifiedInsertAll();
         let data = sia.run(numbers);
         let bp = sia.getBreakpoints();
         return {data, bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runSimplifiedSearch = memoizeOne((data, number) => {
         let ss = new SimplifiedSearch();
         ss.run(data, number);
         let bp = ss.getBreakpoints();
         return {bp, bpTransformed: bp.map(postBpTransform)};
-    })
+    });
 
     runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {
         return {bp: simpleListSearch(numbers, searchedNumber)};
@@ -310,8 +304,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <p>
                     Third, even though dict in CPython is implemented in C, this explanation uses python for code
                     snippets. The goal of this page is to help you understand{' '}
-                    <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
-                    are interesting too, but are beyond of the scope of this page).
+                    <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these are
+                    interesting too, but are beyond of the scope of this page).
                 </p>
                 <h5>Let's get started!</h5>
                 <p>
@@ -323,10 +317,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 </p>
                 <p>Let's say we have a simple list of numbers:</p>
                 <MySticky bottomBoundary=".chapter1">
-                    <PyListInput
-                        value={this.state.numbers}
-                        onChange={this.setter('numbers')}
-                    />
+                    <PyListInput value={this.state.numbers} onChange={this.setter('numbers')} />
                 </MySticky>
                 <p className="text-muted">
                     (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever
