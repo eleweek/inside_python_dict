@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import {BigNumber} from 'bignumber.js';
-
 import {
     hashClassConstructor,
     HashClassResizeBase,
@@ -18,9 +17,9 @@ import {
     formatHashClassResize,
     postBpTransform,
 } from './chapter3_and_4_common';
+import {pyHash, computeIdx} from './hash_impl_common';
 
 import {VisualizedCode} from './code_blocks';
-
 import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
@@ -38,22 +37,34 @@ function signedToUnsigned(num) {
     }
 }
 
+function computePerturb(hashCode) {
+    return signedToUnsigned(hashCode);
+}
+
+function nextIdx(idx, perturb, size) {
+    return +BigNumber(5 * idx + 1)
+        .plus(perturb)
+        .mod(size)
+        .toString();
+}
+
+function perturbShift(perturb) {
+    return perturb.idiv(BigNumber(2).pow(5)); // >>= 5
+}
+
 let chapter4Extend = Base =>
     class extends Base {
         computeIdxAndSave(hashCode, len) {
             this.idx = this.computeIdx(hashCode, len);
             this.addBP('compute-idx');
-            this.perturb = signedToUnsigned(hashCode);
+            this.perturb = computePerturb(hashCode);
             this.addBP('compute-perturb');
         }
 
         nextIdxAndSave() {
-            this.idx = +BigNumber(5 * this.idx + 1)
-                .plus(this.perturb)
-                .mod(this.self.get('slots').size)
-                .toString();
+            this.idx = nextIdx(this.idx, this.perturb, +this.self.get('slots').size);
             this.addBP('next-idx');
-            this.perturb = this.perturb.idiv(BigNumber(2).pow(5)); // >>= 5
+            this.perturb = perturbShift(this.perturb);
             this.addBP('perturb-shift');
         }
     };
@@ -222,7 +233,7 @@ class ProbingVisualization extends React.Component {
 
     render() {
         return (
-            <svg width={500} height={200}>
+            <svg width={700} height={200}>
                 <defs>
                     <marker
                         id="arrow"
@@ -385,6 +396,25 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         return links;
     });
 
+    generateLinksPython = memoizeOne((slotsCount, obj) => {
+        let links = [];
+
+        const hash = pyHash(obj);
+        let perturb = computePerturb(hash);
+        let idx = computeIdx(hash, slotsCount);
+        let visitedIdx = new Set();
+        while (visitedIdx.size != slotsCount) {
+            visitedIdx.add(idx);
+            const nIdx = nextIdx(idx, perturb, slotsCount);
+            perturb = perturbShift(perturb);
+
+            links.push([idx, nIdx]);
+            idx = nIdx;
+        }
+
+        return links;
+    });
+
     render() {
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
@@ -396,8 +426,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
-        const linksSimpleProbing = this.generateLinksSimpleProbing(8);
-        const links5iPlus1 = this.generateLinks5iPlus1(8);
+        const slotsCount = 8;
+        const linksSimpleProbing = this.generateLinksSimpleProbing(slotsCount);
+        const links5iPlus1 = this.generateLinks5iPlus1(slotsCount);
+        const linksPython = this.generateLinksPython(slotsCount, 'hello');
 
         return (
             <div className="chapter chapter4">
@@ -451,8 +483,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>
                     <code>5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular
                 </p>
-                <ProbingVisualization slotsCount={8} links={linksSimpleProbing} />
-                <ProbingVisualization slotsCount={8} links={links5iPlus1} />
+                <ProbingVisualization slotsCount={slotsCount} links={linksSimpleProbing} />
+                <ProbingVisualization slotsCount={slotsCount} links={links5iPlus1} />
+                <ProbingVisualization slotsCount={slotsCount} links={linksPython} />
                 <p>
                     Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks
                     like in C.

@@ -229,13 +229,17 @@ export class BreakpointFunction {
     }
 }
 
+export function computeIdx(hashCodeBig, len) {
+    return +hashCodeBig
+        .mod(len)
+        .plus(len)
+        .mod(len)
+        .toString();
+}
+
 export class HashBreakpointFunction extends BreakpointFunction {
     computeIdx(hashCodeBig, len) {
-        return +hashCodeBig
-            .mod(len)
-            .plus(len)
-            .mod(len)
-            .toString();
+        return computeIdx(hashCodeBig, len);
     }
 }
 
