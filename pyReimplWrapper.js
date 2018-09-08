@@ -4,14 +4,7 @@ import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
 import {DUMMY, None} from './src/hash_impl_common';
-import {
-    hashClassConstructor,
-    Dict32SetItem,
-    Dict32Lookdict,
-    Dict32Resize,
-    HashClassGetItem,
-    HashClassDelItem,
-} from './src/chapter4_real_python_dict';
+import {Dict32} from './src/chapter4_real_python_dict';
 import {Slot} from './src/chapter3_and_4_common';
 import {List} from 'immutable';
 
@@ -44,9 +37,9 @@ function dumpSimplePyObj(obj) {
 }
 
 function restorePyDictState(state) {
-    let self = hashClassConstructor();
+    let {pySelf} = Dict32.__init__();
     if (state.slots != null) {
-        self = self.set(
+        pySelf = pySelf.set(
             'slots',
             new List(
                 state.slots.map(slot => {
@@ -62,18 +55,18 @@ function restorePyDictState(state) {
             )
         );
     } else {
-        self = self.set('slots', null);
+        pySelf = pySelf.set('slots', null);
     }
-    self = self.set('used', state.used);
-    self = self.set('fill', state.fill);
+    pySelf = pySelf.set('used', state.used);
+    pySelf = pySelf.set('fill', state.fill);
 
-    return self;
+    return pySelf;
 }
 
-function dumpPyDictState(self) {
+function dumpPyDictState(pySelf) {
     let data = {};
 
-    data.slots = self
+    data.slots = pySelf
         .get('slots')
         .toJS()
         .map(slot => {
@@ -83,8 +76,8 @@ function dumpPyDictState(self) {
                 value: dumpSimplePyObj(slot.value),
             };
         });
-    data.used = self.get('used');
-    data.fill = self.get('fill');
+    data.used = pySelf.get('used');
+    data.fill = pySelf.get('fill');
 
     return data;
 }
@@ -100,7 +93,7 @@ const server = net.createServer(c => {
         console.log('Received line of length ' + line.length);
         if (!line) return;
         const data = JSON.parse(line);
-        let self = restorePyDictState(data.self);
+        let pySelf = restorePyDictState(data.self);
         // console.log(self);
         const op = data.op;
         let {key, value} = data.args;
@@ -114,28 +107,21 @@ const server = net.createServer(c => {
         let isException = false;
         let result = null;
         // TODO: the whole thing is kinda ugly, encapsulate passing all these classes (e.g. Dict32Resize around)
-        // TODO: isException() is really ugly, make .run() properly return exception
+        // TODO: isException is really ugly, make .run() properly return exception
         switch (op) {
             case '__init__':
-                self = hashClassConstructor();
+                pySelf = Dict32.__init__().pySelf;
                 break;
             case '__getitem__': {
-                let gi = new HashClassGetItem();
-                result = gi.run(self, key, Dict32Lookdict);
-                let giBreakpoints = gi.getBreakpoints();
-                isException = giBreakpoints[giBreakpoints.length - 1].point !== 'return-value';
+                ({result, isException} = Dict32.__getitem__(pySelf, key));
                 break;
             }
             case '__setitem__': {
-                let hcsi = new Dict32SetItem();
-                self = hcsi.run(self, key, value, true, Dict32Resize, 4 /* FIXME */);
+                ({pySelf} = Dict32.__setitem__(pySelf, key, value));
                 break;
             }
             case '__delitem__': {
-                let di = new HashClassDelItem();
-                self = di.run(self, key, Dict32Lookdict);
-                let diBreakpoints = di.getBreakpoints();
-                isException = diBreakpoints[diBreakpoints.length - 1].point !== 'replace-value-empty';
+                ({pySelf, isException} = Dict32.__delitem__(pySelf, key));
                 break;
             }
             default:
@@ -147,7 +133,7 @@ const server = net.createServer(c => {
             JSON.stringify({
                 exception: isException,
                 result: dumpSimplePyObj(result),
-                self: dumpPyDictState(self),
+                self: dumpPyDictState(pySelf),
             }) + '\n'
         );
     });

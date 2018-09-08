@@ -67,6 +67,8 @@ class JsDictReimplementation(object):
         return list(map(dump_slot, self.slots))
 
     def restore_slots(self, slots):
+        print(slots)
+
         def restore_slot(slot):
             key = parse_simple_py_obj(slot["key"])
             value = parse_simple_py_obj(slot["value"])

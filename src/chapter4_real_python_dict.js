@@ -167,6 +167,48 @@ let DICT32_DELITEM = DICT32_LOOKDICT.concat([
     ['    self.slots[idx].value = EMPTY', 'replace-value-empty', 1],
 ]);
 
+export class Dict32 {
+    static __init__(pairs) {
+        let pySelf = hashClassConstructor();
+        if (pairs && pairs.length > 0) {
+            const ia = new HashClassInsertAll();
+            // TODO: 4 or 2 -- depends on dict size
+            pySelf = ia.run(pySelf, pairs, true, Dict32SetItem, Dict32Resize, 4);
+            const bp = ia.getBreakpoints();
+            const resizes = ia.getResizes();
+
+            return {resizes: resizes, bp: bp, pySelf};
+        } else {
+            return {resizes: [], bp: [], pySelf};
+        }
+    }
+
+    static __delitem__(pySelf, key) {
+        const di = new HashClassDelItem();
+        pySelf = di.run(pySelf, key, Dict32Lookdict);
+        const bp = di.getBreakpoints();
+        const isException = bp[bp.length - 1].point !== 'replace-value-empty';
+
+        return {bp, pySelf, isException};
+    }
+
+    static __getitem__(pySelf, key) {
+        const gi = new HashClassGetItem();
+        const result = gi.run(pySelf, key, Dict32Lookdict);
+        const bp = gi.getBreakpoints();
+        const isException = bp[bp.length - 1].point !== 'return-value';
+
+        return {bp, isException, result, pySelf};
+    }
+
+    static __setitem__(pySelf, key, value) {
+        let si = new Dict32SetItem();
+        pySelf = si.run(pySelf, key, value, true, Dict32Resize, 4 /* FIXME */);
+        const bp = si.getBreakpoints();
+        return {bp, pySelf};
+    }
+}
+
 export class Chapter4_RealPythonDict extends ChapterComponent {
     constructor() {
         super();
@@ -190,14 +232,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     }
 
     runCreateNew = memoizeOne(pairs => {
-        let pySelf = hashClassConstructor();
-        const ia = new HashClassInsertAll();
-        // TODO: 4 or 2 -- depends on dict size
-        pySelf = ia.run(pySelf, pairs, true, Dict32SetItem, Dict32Resize, 4);
-        const bp = ia.getBreakpoints();
-        const resizes = ia.getResizes();
-
-        return {self: pySelf, resizes: resizes, bp: bp, bpTransformed: bp.map(postBpTransform)};
+        const {bp, bpTransformed, resizes, pySelf} = Dict32.__init__(pairs);
+        return {bp, pySelf, resizes, bpTransformed: bp.map(postBpTransform)};
     });
 
     selectResize = memoizeOne(resizes => {
@@ -211,28 +247,23 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
-        const di = new HashClassDelItem();
-        pySelf = di.run(pySelf, key, Dict32Lookdict);
-        const bp = di.getBreakpoints();
-
-        return {bp, self: pySelf, bpTransformed: bp.map(postBpTransform)};
+        const {bp, pySelf: newPySelf} = Dict32.__delitem__(pySelf, key);
+        return {bp, pySelf: newPySelf, bpTransformed: bp.map(postBpTransform)};
     });
 
     runGetItem = memoizeOne((pySelf, key) => {
-        const gi = new HashClassGetItem();
-        gi.run(pySelf, key, Dict32Lookdict);
-        const bp = gi.getBreakpoints();
+        const {bp} = Dict32.__getitem__(pySelf, key);
         return {bp, bpTransformed: bp.map(postBpTransform)};
     });
 
     render() {
         let newRes = this.runCreateNew(this.state.pairs);
-        let pySelf = newRes.self;
+        let pySelf = newRes.pySelf;
 
         let resizeRes = this.selectResize(newRes.resizes);
 
         let delRes = this.runDelItem(pySelf, this.state.keyToDel);
-        pySelf = delRes.self;
+        pySelf = delRes.pySelf;
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
