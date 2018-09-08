@@ -32,6 +32,8 @@
     "bignumber.js": "^7.2.1",
     "bootstrap": "^4.0.0",
     "classnames": "^2.2.6",
+    "d3": "^5.7.0",
+    "d3-selection-multi": "^1.0.1",
     "detect-browser": "^3.0.0",
     "immutable": "^3.8.2",
     "lodash": "^4.17.5",

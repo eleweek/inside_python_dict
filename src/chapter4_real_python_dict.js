@@ -25,6 +25,10 @@ import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
+// TODO: prune d3 stuff
+import * as d3 from 'd3';
+// TODO: probably don't really need it
+import 'd3-selection-multi';
 
 function signedToUnsigned(num) {
     if (num.lt(0)) {
@@ -209,6 +213,113 @@ export class Dict32 {
     }
 }
 
+class ProbingVisualization extends React.Component {
+    rendered = false;
+
+    setRef = node => {
+        this.gChild = node;
+    };
+
+    render() {
+        return (
+            <svg width={500} height={200}>
+                <defs>
+                    <marker
+                        id="arrow"
+                        markerUnits="strokeWidth"
+                        markerWidth="12"
+                        markerHeight="12"
+                        viewBox="0 0 12 12"
+                        refX="6"
+                        refY="6"
+                        orient="auto"
+                    >
+                        <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{fill: 'blue'}} />
+                    </marker>
+                </defs>
+                <g ref={this.setRef} transform={'translate(0, 10)'} />
+            </svg>
+        );
+    }
+
+    d3render() {
+        // TODO: re-render
+        if (this.rendered) return;
+        this.rendered = true;
+
+        const {slotsCount, links} = this.props;
+        const topSpace = 50;
+        const bottomSpace = 50;
+        const boxSize = 30;
+        const boxMargin = 8;
+
+        console.log('d3render', this.node);
+        let g = d3.select(this.gChild);
+        let lineFunction = d3
+            .line()
+            .x(function(d) {
+                return d.x;
+            })
+            .y(function(d) {
+                return d.y;
+            })
+            .curve(d3.curveMonotoneX); // TODO: better curve
+
+        g.selectAll('rect')
+            .data(d3.range(slotsCount))
+            .enter()
+            .append('rect')
+            .attrs((d, i) => ({
+                x: (boxSize + boxMargin) * i,
+                y: topSpace,
+                width: boxSize,
+                height: boxSize,
+                fill: '#ededed', // TODO: might need a better color
+            }));
+
+        const arrowLinePoints = (i1, i2) => {
+            const xstart = (boxSize + boxMargin) * i1 + boxSize * 0.66;
+            const xend = (boxSize + boxMargin) * i2 + boxSize * 0.33;
+            const xmid = (xstart + xend) / 2;
+            let ystart, yend, ymid;
+
+            if (i1 < i2) {
+                ystart = topSpace;
+                yend = topSpace;
+                ymid = topSpace * (1 - (i2 - i1) / slotsCount);
+            } else {
+                const yOffset = topSpace + boxSize;
+                ystart = yOffset;
+                yend = yOffset;
+                ymid = yOffset + bottomSpace * (1 - (i2 - i1) / slotsCount);
+            }
+
+            const points = [[xstart, ystart], [xmid, ymid], [xend, yend]].map(([x, y]) => ({x, y}));
+
+            return points;
+        };
+
+        let paths = g.selectAll('path').data(links);
+        paths
+            .enter()
+            .append('path')
+            .merge(paths)
+            .style('stroke', 'blue')
+            .style('stroke-width', 1)
+            .style('fill', 'none')
+            .attr('d', ([i1, i2]) => lineFunction(arrowLinePoints(i1, i2)))
+            .attr('marker-end', 'url(#arrow)');
+    }
+
+    componentDidUpdate() {
+        this.d3render();
+    }
+
+    componentDidMount() {
+        this.d3render();
+    }
+}
+
 export class Chapter4_RealPythonDict extends ChapterComponent {
     constructor() {
         super();
@@ -256,6 +367,24 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         return {bp, bpTransformed: bp.map(postBpTransform)};
     });
 
+    generateLinksSimpleProbing = memoizeOne(slotsCount => {
+        let links = [];
+        for (let i = 0; i < slotsCount; ++i) {
+            links.push([i, (i + 1) % slotsCount]);
+        }
+
+        return links;
+    });
+
+    generateLinks5iPlus1 = memoizeOne(slotsCount => {
+        let links = [];
+        for (let i = 0; i < slotsCount; ++i) {
+            links.push([i, (5 * i + 1) % slotsCount]);
+        }
+
+        return links;
+    });
+
     render() {
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
@@ -266,6 +395,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         pySelf = delRes.pySelf;
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
+
+        const linksSimpleProbing = this.generateLinksSimpleProbing(8);
+        const links5iPlus1 = this.generateLinks5iPlus1(8);
 
         return (
             <div className="chapter chapter4">
@@ -319,6 +451,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>
                     <code>5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular
                 </p>
+                <ProbingVisualization slotsCount={8} links={linksSimpleProbing} />
+                <ProbingVisualization slotsCount={8} links={links5iPlus1} />
                 <p>
                     Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks
                     like in C.
