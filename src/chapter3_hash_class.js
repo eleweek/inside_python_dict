@@ -51,6 +51,52 @@ class HashClassSetItem extends chapter3Extend(HashClassSetItemBase) {}
 class HashClassLookdict extends chapter3Extend(HashClassLookdictBase) {}
 class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 
+export class AlmostPythonDict {
+    static __init__(pairs) {
+        let pySelf = hashClassConstructor();
+
+        const ia = new HashClassInsertAll();
+        pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
+        const bp = ia.getBreakpoints();
+        const resizes = ia.getResizes();
+
+        return {pySelf, resizes: resizes, bp: bp};
+    }
+
+    static __delitem__(pySelf, key) {
+        const di = new HashClassDelItem();
+        pySelf = di.run(pySelf, key, HashClassLookdict);
+        const bp = di.getBreakpoints();
+        const isException = bp[bp.length - 1].point !== 'replace-value-empty';
+
+        return {bp, pySelf, isException};
+    }
+
+    static __getitem__(pySelf, key) {
+        const gi = new HashClassGetItem();
+        const result = gi.run(pySelf, key, HashClassLookdict);
+        const bp = gi.getBreakpoints();
+        const isException = bp[bp.length - 1].point !== 'return-value';
+
+        return {bp, isException, result, pySelf};
+    }
+
+    static __setitem__base(pySelf, key, value, isRecycling) {
+        let si = new HashClassSetItem();
+        pySelf = si.run(pySelf, key, value, isRecycling, HashClassResize, 2);
+        const bp = si.getBreakpoints();
+        return {bp, pySelf};
+    }
+
+    static __setitem__recycling(pySelf, key, value) {
+        return AlmostPythonDict.__setitem__base(pySelf, key, value, true);
+    }
+
+    static __setitem__no_recycling(pySelf, key, value) {
+        return AlmostPythonDict.__setitem__base(pySelf, key, value, false);
+    }
+}
+
 function formatHashClassChapter3IdxRelatedBp(bp) {
     switch (bp.point) {
         case 'compute-hash':
@@ -190,36 +236,23 @@ export class Chapter3_HashClass extends ChapterComponent {
     }
 
     runCreateNew = memoizeOne(pairs => {
-        let pySelf = hashClassConstructor();
-
-        const ia = new HashClassInsertAll();
-        pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
-        const bp = ia.getBreakpoints();
-        const resizes = ia.getResizes();
-
-        return {self: pySelf, resizes: resizes, bp: bp, bpTransformed: bp.map(postBpTransform)};
+        const {bp, bpTransformed, resizes, pySelf} = AlmostPythonDict.__init__(pairs);
+        return {bp, pySelf, resizes, bpTransformed: bp.map(postBpTransform)};
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
-        const di = new HashClassDelItem();
-        const newPySelf = di.run(pySelf, key, HashClassLookdict);
-        const bp = di.getBreakpoints();
-
-        return {self: newPySelf, bp: bp, bpTransformed: bp.map(postBpTransform)};
+        const {bp, pySelf: newPySelf} = AlmostPythonDict.__delitem__(pySelf, key);
+        return {bp, pySelf: newPySelf, bpTransformed: bp.map(postBpTransform)};
     });
 
     runGetItem = memoizeOne((pySelf, key) => {
-        const gi = new HashClassGetItem();
-        gi.run(pySelf, key, HashClassLookdict);
-        const bp = gi.getBreakpoints();
+        const {bp} = AlmostPythonDict.__getitem__(pySelf, key);
         return {bp, bpTransformed: bp.map(postBpTransform)};
     });
 
     runSetItemRecycling = memoizeOne((pySelf, key, value) => {
-        const sir = new HashClassSetItem();
-        const newPySelf = sir.run(pySelf, key, value, true, HashClassResize, 2);
-        const bp = sir.getBreakpoints();
-        return {self: newPySelf, bp, bpTransformed: bp.map(postBpTransform)};
+        const {bp, pySelf: newPySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key);
+        return {pySelf: newPySelf, bp, bpTransformed: bp.map(postBpTransform)};
     });
 
     selectResize = memoizeOne(resizes => {
@@ -234,12 +267,12 @@ export class Chapter3_HashClass extends ChapterComponent {
 
     render() {
         let newRes = this.runCreateNew(this.state.pairs);
-        let pySelf = newRes.self;
+        let pySelf = newRes.pySelf;
 
         let resizeRes = this.selectResize(newRes.resizes);
 
         let delRes = this.runDelItem(pySelf, this.state.keyToDel);
-        pySelf = delRes.self;
+        pySelf = delRes.pySelf;
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
@@ -248,7 +281,7 @@ export class Chapter3_HashClass extends ChapterComponent {
             this.state.keyToSetRecycling,
             this.state.valueToSetRecycling
         );
-        pySelf = setRecyclingRes.self;
+        pySelf = setRecyclingRes.pySelf;
 
         return (
             <div className="chapter chapter3">
