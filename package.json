@@ -32,9 +32,7 @@
     "bignumber.js": "^7.2.1",
     "bootstrap": "^4.0.0",
     "classnames": "^2.2.6",
-    "clean-webpack-plugin": "^0.1.19",
     "detect-browser": "^3.0.0",
-    "dom-helpers": "^3.3.1",
     "immutable": "^3.8.2",
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",
@@ -48,7 +46,6 @@
     "react-motion": "^0.5.2",
     "react-perfect-scrollbar": "^1.2.0",
     "react-stickynode": "^2.0.1",
-    "react-transition-group": "^2.4.0",
     "rehype": "^5.0.1"
   },
   "devDependencies": {
@@ -62,6 +59,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
+    "clean-webpack-plugin": "^0.1.19",
     "css-loader": "^0.28.8",
     "husky": "^0.14.3",
     "ignore-styles": "^5.0.1",
