@@ -297,12 +297,12 @@ class ProbingVisualization extends React.Component {
             if (i1 < i2) {
                 ystart = topSpace;
                 yend = topSpace;
-                ymid = topSpace * (1 - (i2 - i1) / slotsCount);
+                ymid = topSpace * (1 - Math.max(i2 - i1, 1) / slotsCount);
             } else {
                 const yOffset = topSpace + boxSize;
                 ystart = yOffset;
                 yend = yOffset;
-                ymid = yOffset + bottomSpace * (1 - (i2 - i1) / slotsCount);
+                ymid = yOffset + bottomSpace * (Math.max(i1 - i2, 1) / slotsCount);
             }
 
             const points = [[xstart, ystart], [xmid, ymid], [xend, yend]].map(([x, y]) => ({x, y}));
