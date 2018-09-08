@@ -67,7 +67,7 @@
     "ignore-styles": "^5.0.1",
     "jest": "^23.4.2",
     "mini-css-extract-plugin": "^0.4.1",
-    "npm": "^6.0.1",
+    "npm": "^6.4.1",
     "prettier": "1.14.2",
     "pretty-quick": "^1.6.0",
     "split": "^1.0.1",
