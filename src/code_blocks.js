@@ -286,27 +286,23 @@ class Box extends React.PureComponent {
     }
 }
 
-class SlotBoxes extends React.PureComponent {
-    render() {
-        const {value: slot, idx, status, keyTemplate: key} = this.props;
+/* TODO: make these functions static methods */
+function slotBoxes(keyTemplate, value) {
+    const slot = value;
+    return [
+        [`${keyTemplate}-hashCode`, {value: slot.hashCode, yOffset: 0}],
+        [`${keyTemplate}-key`, {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
+        [`${keyTemplate}-value`, {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
+    ];
+}
 
-        return [
-            <Box key={`${key}-hashCode`} value={slot.hashCode} idx={idx} status={status} yOffset={0} />,
-            <Box key={`${key}-key`} value={slot.key} idx={idx} status={status} yOffset={BOX_SIZE + SPACING_Y_SLOT} />,
-            <Box
-                key={`${key}-value`}
-                value={slot.value}
-                idx={idx}
-                status={status}
-                yOffset={2 * (BOX_SIZE + SPACING_Y_SLOT)}
-            />,
-        ];
-    }
+function oneBox(keyTemplate, value) {
+    return [[keyTemplate, {value}]];
 }
 
 class SlotSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, key, yOffset} = this.props;
+        const {extraClassName, idx, status, yOffset} = this.props;
 
         return [
             <ActiveBoxSelection
@@ -362,7 +358,7 @@ class BaseBoxesComponent extends React.PureComponent {
     static getDerivedStateFromProps(nextProps, state) {
         const modificationId = state.modificationId + 1;
         const Selection = nextProps.selectionClass;
-        const Elem = nextProps.elemClass;
+        const boxFactory = nextProps.boxFactory;
 
         let newState;
         if (!state.firstRender) {
@@ -375,28 +371,35 @@ class BaseBoxesComponent extends React.PureComponent {
 
             const nextArray = nextProps.array;
             let needProcessCreatedAfterRender = false;
-            let nextArrayKeys = nextProps.getKeys(nextArray);
-            let nextArrayKeysSet = new Set(nextArrayKeys);
+            let nextArrayKeysTemplates = nextProps.getKeys(nextArray);
+            let nextKeysSet = new Set();
             for (let idx = 0; idx < nextArray.length; ++idx) {
-                const key = nextArrayKeys[idx];
-                let status;
-                if (!(key in state.status)) {
-                    status = 'created';
-                    // console.log("Creating", key);
-                    needProcessCreatedAfterRender = true;
-                    newKeyBox[key] = <Elem idx={idx} value={nextArray[idx]} status={status} key={key} />;
-                } else {
-                    status = 'adding';
-                    newKeyBox[key] = React.cloneElement(state.keyBox[key], {idx, value: nextArray[idx], status});
+                const keyTemplate = nextArrayKeysTemplates[idx];
+                const idxBoxesProps = boxFactory(keyTemplate, nextArray[idx]);
+                console.log('idx', idx);
+                console.log('idxBoxesProps', idxBoxesProps);
+                for (const [key, someProps] of idxBoxesProps) {
+                    console.log('F', key, someProps);
+                    nextKeysSet.add(key);
+                    let status;
+                    if (!(key in state.status)) {
+                        status = 'created';
+                        // console.log("Creating", key);
+                        needProcessCreatedAfterRender = true;
+                        newKeyBox[key] = <Box idx={idx} status={status} key={key} {...someProps} />;
+                    } else {
+                        status = 'adding';
+                        newKeyBox[key] = React.cloneElement(state.keyBox[key], {idx, status, ...someProps});
+                    }
+                    newStatus[key] = status;
+                    newKeyModId[key] = modificationId;
                 }
-                newStatus[key] = status;
-                newKeyModId[key] = modificationId;
             }
 
             let needGarbageCollection = false;
             for (let key in state.keyBox) {
                 const status = newStatus[key];
-                if (!nextArrayKeysSet.has(key)) {
+                if (!nextKeysSet.has(key)) {
                     if (status !== 'removing') {
                         newStatus[key] = 'removing';
                         newKeyModId[key] = modificationId;
@@ -421,10 +424,15 @@ class BaseBoxesComponent extends React.PureComponent {
             let newKeyBox = {};
             let arrayBoxKeys = nextProps.getKeys(nextProps.array);
             for (let [idx, value] of nextProps.array.entries()) {
-                const key = arrayBoxKeys[idx];
-                newStatus[key] = 'adding';
-                newKeyModId[key] = modificationId;
-                newKeyBox[key] = <Elem idx={idx} value={value} key={key} keyTemplate={key} status={'adding'} />;
+                const keyTemplate = arrayBoxKeys[idx];
+                const idxBoxesProps = boxFactory(keyTemplate, value);
+                console.log('Q', idx, value);
+                console.log('idxBoxesProps', idxBoxesProps);
+                for (const [key, someProps] of idxBoxesProps) {
+                    newStatus[key] = 'adding';
+                    newKeyModId[key] = modificationId;
+                    newKeyBox[key] = <Box idx={idx} key={key} status={'adding'} {...someProps} />;
+                }
             }
 
             newState = {
@@ -943,7 +951,7 @@ export class HashBoxesComponent extends React.PureComponent {
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashBoxesComponent.getKeys}
-                elemClass={Box}
+                boxFactory={oneBox}
                 selectionClass={ActiveBoxSelection}
                 height={HashBoxesComponent.HEIGHT}
             />
@@ -971,7 +979,7 @@ export class HashSlotsComponent extends React.PureComponent {
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashSlotsComponent.getKeys}
-                elemClass={SlotBoxes}
+                boxFactory={slotBoxes}
                 selectionClass={SlotSelection}
                 height={HashSlotsComponent.HEIGHT}
             />
@@ -1006,7 +1014,7 @@ export class LineOfBoxesComponent extends React.PureComponent {
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={LineOfBoxesComponent.getKeys}
-                elemClass={Box}
+                boxFactory={oneBox}
                 selectionClass={ActiveBoxSelection}
                 height={LineOfBoxesComponent.HEIGHT}
             />
