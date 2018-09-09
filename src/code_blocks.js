@@ -63,9 +63,11 @@ export function SimpleCodeBlock(props) {
 }
 
 const BOX_SIZE = 40;
+const SPACING_X = 2;
+const SPACING_Y_SLOT = 5;
 
 function computeBoxX(idx) {
-    return (2 + BOX_SIZE) * idx;
+    return (SPACING_X + BOX_SIZE) * idx;
 }
 
 function computeBoxTransformProperty(idx, y) {
@@ -104,7 +106,8 @@ function pyObjToDisplayedString(obj) {
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, transitionDuration} = this.props;
+        let {extraClassName, idx, status, transitionDuration} = this.props;
+        let yOffset = this.props.yOffset || 0;
 
         const animatedClass = 'active-box-selection-animated';
         let classes = ['active-box-selection', extraClassName, animatedClass];
@@ -123,8 +126,9 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
         }
         const style = {
             visibility: visibility,
-            'transition-duration': `${transitionDuration}ms`,
-            transform: idx != null ? computeBoxTransformProperty(idx, 0) : 0,
+            transitionDuration: `${transitionDuration}ms`,
+            // TODO: the part after : is weird/wrong
+            transform: idx != null ? computeBoxTransformProperty(idx, yOffset) : undefined,
         };
         return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style} />;
     }
@@ -247,6 +251,8 @@ class Box extends React.PureComponent {
 
     render() {
         const {value, idx, status} = this.props;
+        let yOffset = this.props.yOffset || 0;
+
         let classes = ['box', 'box-animated'];
         let content;
         if (value != null) {
@@ -261,14 +267,14 @@ class Box extends React.PureComponent {
         switch (status) {
             case 'removing':
                 classes.push('box-removed');
-                y = value != null ? -BOX_SIZE : 0;
+                y = value != null ? yOffset - BOX_SIZE : yOffset;
                 break;
             case 'created':
                 classes.push('box-just-added');
-                y = value != null ? -BOX_SIZE : 0;
+                y = value != null ? yOffset - BOX_SIZE : yOffset;
                 break;
             case 'adding':
-                y = 0;
+                y = yOffset;
                 break;
         }
 
@@ -277,6 +283,54 @@ class Box extends React.PureComponent {
                 {content}
             </div>
         );
+    }
+}
+
+class SlotBoxes extends React.PureComponent {
+    render() {
+        const {value: slot, idx, status, keyTemplate: key} = this.props;
+
+        return [
+            <Box key={`${key}-hashCode`} value={slot.hashCode} idx={idx} status={status} yOffset={0} />,
+            <Box key={`${key}-key`} value={slot.key} idx={idx} status={status} yOffset={BOX_SIZE + SPACING_Y_SLOT} />,
+            <Box
+                key={`${key}-value`}
+                value={slot.value}
+                idx={idx}
+                status={status}
+                yOffset={2 * (BOX_SIZE + SPACING_Y_SLOT)}
+            />,
+        ];
+    }
+}
+
+class SlotSelection extends React.PureComponent {
+    render() {
+        const {extraClassName, idx, status, key, yOffset} = this.props;
+
+        return [
+            <ActiveBoxSelection
+                key={`${extraClassName}-hashCode`}
+                extraClassName={extraClassName}
+                idx={idx}
+                status={status}
+                yOffset={0}
+            />,
+            <ActiveBoxSelection
+                key={`${extraClassName}-key`}
+                extraClassName={extraClassName}
+                idx={idx}
+                status={status}
+                yOffset={BOX_SIZE + SPACING_Y_SLOT}
+            />,
+            <ActiveBoxSelection
+                key={`${extraClassName}-value`}
+                extraClassName={extraClassName}
+                idx={idx}
+                status={status}
+                yOffset={2 * (BOX_SIZE + SPACING_Y_SLOT)}
+            />,
+        ];
     }
 }
 
@@ -307,6 +361,8 @@ class BaseBoxesComponent extends React.PureComponent {
 
     static getDerivedStateFromProps(nextProps, state) {
         const modificationId = state.modificationId + 1;
+        const Selection = nextProps.selectionClass;
+        const Elem = nextProps.elemClass;
 
         let newState;
         if (!state.firstRender) {
@@ -319,7 +375,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
             const nextArray = nextProps.array;
             let needProcessCreatedAfterRender = false;
-            let nextArrayKeys = nextProps.getBoxKeys(nextArray);
+            let nextArrayKeys = nextProps.getKeys(nextArray);
             let nextArrayKeysSet = new Set(nextArrayKeys);
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const key = nextArrayKeys[idx];
@@ -328,7 +384,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     status = 'created';
                     // console.log("Creating", key);
                     needProcessCreatedAfterRender = true;
-                    newKeyBox[key] = <Box idx={idx} value={nextArray[idx]} status={status} key={key} />;
+                    newKeyBox[key] = <Elem idx={idx} value={nextArray[idx]} status={status} key={key} />;
                 } else {
                     status = 'adding';
                     newKeyBox[key] = React.cloneElement(state.keyBox[key], {idx, value: nextArray[idx], status});
@@ -363,12 +419,12 @@ class BaseBoxesComponent extends React.PureComponent {
             let newStatus = {};
             let newKeyModId = {};
             let newKeyBox = {};
-            let arrayBoxKeys = nextProps.getBoxKeys(nextProps.array);
+            let arrayBoxKeys = nextProps.getKeys(nextProps.array);
             for (let [idx, value] of nextProps.array.entries()) {
                 const key = arrayBoxKeys[idx];
                 newStatus[key] = 'adding';
                 newKeyModId[key] = modificationId;
-                newKeyBox[key] = <Box idx={idx} value={value} key={key} status={'adding'} />;
+                newKeyBox[key] = <Elem idx={idx} value={value} key={key} keyTemplate={key} status={'adding'} />;
             }
 
             newState = {
@@ -390,19 +446,21 @@ class BaseBoxesComponent extends React.PureComponent {
 
         // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
         // FIXME: probably better to get rid of created/removing/adding statuses here
-        const getOrModSelection = (selection, extraClassName, oldIdx, idx, status) => {
-            if (idx == null) {
+        const getOrModSelection = (selection, extraClassName, oldIdx, _idx, status) => {
+            if (_idx == null) {
                 status = 'removing';
-            } else if (status === 'created' || idx != null) {
+            } else if (status === 'created' || _idx != null) {
                 status = 'adding';
             }
 
+            const idx = _idx != null ? _idx : oldIdx;
             if (!selection) {
                 return [
-                    <ActiveBoxSelection
+                    <Selection
                         key={extraClassName}
+                        keyTemplate={extraClassName}
                         extraClassName={extraClassName}
-                        idx={idx != null ? idx : oldIdx}
+                        idx={idx}
                         status={status}
                     />,
                     status,
@@ -411,6 +469,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 return [React.cloneElement(selection, {idx, status}), status];
             }
         };
+
         if (activeBoxSelection1 || nextProps.idx != null) {
             [activeBoxSelection1, activeBoxSelection1status] = getOrModSelection(
                 activeBoxSelection1,
@@ -431,13 +490,13 @@ class BaseBoxesComponent extends React.PureComponent {
             );
         }
 
-        if (nextProps.idx) {
+        if (nextProps.idx != null) {
             newState.lastIdx = nextProps.idx;
         } else {
             newState.lastIdx = state.lastIdx;
         }
 
-        if (nextProps.idx2) {
+        if (nextProps.idx2 != null) {
             newState.lastIdx2 = nextProps.idx2;
         } else {
             newState.lastIdx2 = state.lastIdx2;
@@ -506,7 +565,7 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         return (
-            <div className="clearfix hash-vis" ref={this.ref}>
+            <div className="hash-vis" style={{height: this.props.height}} ref={this.ref}>
                 {boxes}
             </div>
         );
@@ -530,18 +589,26 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 }
 
+function deepGet(obj, path) {
+    const parts = path.split('.');
+    let node = obj;
+    for (const part of parts) {
+        node = node[part];
+    }
+
+    return node;
+}
+
 export function Tetris(props) {
     let elems = [];
     const transformedBp = props.bp;
     for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
         elems.push(
             <div className="tetris-row">
-                {' '}
                 <div className="tetris-row-label-div">
-                    {' '}
-                    <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>{' '}
-                </div>{' '}
-                <Component array={props.bp[dataName]} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />{' '}
+                    <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>
+                </div>
+                <Component array={deepGet(props.bp, dataName)} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />
             </div>
         );
     }
@@ -858,9 +925,10 @@ export class VisualizedCode extends React.Component {
     }
 }
 
-// TODO: properly support keys coming from other rows
 export class HashBoxesComponent extends React.PureComponent {
-    static getBoxKeys(array) {
+    static HEIGHT = BOX_SIZE;
+
+    static getKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
                 return pyObjToReactKey(value);
@@ -871,12 +939,50 @@ export class HashBoxesComponent extends React.PureComponent {
     }
 
     render() {
-        return <BaseBoxesComponent {...this.props} getBoxKeys={HashBoxesComponent.getBoxKeys} />;
+        return (
+            <BaseBoxesComponent
+                {...this.props}
+                getKeys={HashBoxesComponent.getKeys}
+                elemClass={Box}
+                selectionClass={ActiveBoxSelection}
+                height={HashBoxesComponent.HEIGHT}
+            />
+        );
+    }
+}
+
+export class HashSlotsComponent extends React.PureComponent {
+    static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
+
+    static getKeys(array) {
+        return array.map((slot, idx) => {
+            // TODO: better keys
+            // TODO: e.g. ${val}-${repeatedIndex}
+            if (slot.key != null) {
+                return pyObjToReactKey(slot.key);
+            } else {
+                return `empty-${idx}`;
+            }
+        });
+    }
+
+    render() {
+        return (
+            <BaseBoxesComponent
+                {...this.props}
+                getKeys={HashSlotsComponent.getKeys}
+                elemClass={SlotBoxes}
+                selectionClass={SlotSelection}
+                height={HashSlotsComponent.HEIGHT}
+            />
+        );
     }
 }
 
 export class LineOfBoxesComponent extends React.PureComponent {
-    static getBoxKeys(array) {
+    static HEIGHT = BOX_SIZE;
+
+    static getKeys(array) {
         let counter = {};
         let keys = [];
         // Does not support nulls/"empty"
@@ -896,6 +1002,14 @@ export class LineOfBoxesComponent extends React.PureComponent {
     }
 
     render() {
-        return <BaseBoxesComponent {...this.props} getBoxKeys={LineOfBoxesComponent.getBoxKeys} />;
+        return (
+            <BaseBoxesComponent
+                {...this.props}
+                getKeys={LineOfBoxesComponent.getKeys}
+                elemClass={Box}
+                selectionClass={ActiveBoxSelection}
+                height={LineOfBoxesComponent.HEIGHT}
+            />
+        );
     }
 }

@@ -4,6 +4,7 @@ import {Map, List, Record} from 'immutable';
 
 import {
     HashBoxesComponent,
+    HashSlotsComponent,
     LineOfBoxesComponent,
     Tetris,
     SimpleCodeBlock,
@@ -458,16 +459,7 @@ export class HashClassInsertAll extends HashBreakpointFunction {
 }
 
 export function HashClassNormalStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx', 'targetIdx']],
-                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx', 'targetIdx']],
-                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx', 'targetIdx']],
-            ]}
-            {...props}
-        />
-    );
+    return <Tetris lines={[[HashSlotsComponent, ['self.slots', 'self.slots', 'idx', 'targetIdx']]]} {...props} />;
 }
 
 export function HashClassInsertAllVisualization(props) {
@@ -476,9 +468,7 @@ export function HashClassInsertAllVisualization(props) {
             lines={[
                 [LineOfBoxesComponent, ['from_keys', 'fromKeys', 'oldIdx']],
                 [LineOfBoxesComponent, ['from_values', 'fromValues', 'oldIdx']],
-                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx']],
-                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx']],
-                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx']],
+                [HashSlotsComponent, ['self.slots', 'self.slots', 'idx']],
             ]}
             {...props}
         />
@@ -489,12 +479,8 @@ export function HashClassResizeVisualization(props) {
     return (
         <Tetris
             lines={[
-                [HashBoxesComponent, ['oldSlots[*].hash', 'oldHashCodes', 'oldIdx']],
-                [HashBoxesComponent, ['oldSlots[*].key', 'oldKeys', 'oldIdx']],
-                [HashBoxesComponent, ['oldSlots[*].value', 'oldValues', 'oldIdx']],
-                [HashBoxesComponent, ['self.slots[*].hash', 'hashCodes', 'idx']],
-                [HashBoxesComponent, ['self.slots[*].key', 'keys', 'idx']],
-                [HashBoxesComponent, ['self.slots[*].value', 'values', 'idx']],
+                [HashSlotsComponent, ['oldSlots', 'oldSlots', 'oldIdx']],
+                [HashSlotsComponent, ['self.slots', 'self.slots', 'idx']],
             ]}
             {...props}
         />

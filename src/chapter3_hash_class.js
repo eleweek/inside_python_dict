@@ -429,7 +429,6 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <code>self.used</code> counter if we end up finding the element and removing it.
                 </p>
                 <p>
-                    {' '}
                     For example, let's say we want to remove{' '}
                     <PyStringOrNumberInput
                         inline={true}
