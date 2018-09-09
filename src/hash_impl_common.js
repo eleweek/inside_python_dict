@@ -184,7 +184,8 @@ export function pyHashUnicode(s) {
 
 export function pyHashInt(n) {
     /* TODO: actually implement something... Though it works for most ints now */
-    return n;
+    const hash = n;
+    return hash !== -1 ? hash : -2;
 }
 
 export function pyHash(o) {

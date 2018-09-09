@@ -55,12 +55,16 @@ export class AlmostPythonDict {
     static __init__(pairs) {
         let pySelf = hashClassConstructor();
 
-        const ia = new HashClassInsertAll();
-        pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
-        const bp = ia.getBreakpoints();
-        const resizes = ia.getResizes();
+        if (pairs && pairs.length > 0) {
+            const ia = new HashClassInsertAll();
+            pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
+            const bp = ia.getBreakpoints();
+            const resizes = ia.getResizes();
 
-        return {pySelf, resizes: resizes, bp: bp};
+            return {pySelf, resizes: resizes, bp: bp};
+        } else {
+            return {pySelf, resizes: [], bp: []};
+        }
     }
 
     static __delitem__(pySelf, key) {

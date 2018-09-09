@@ -5,6 +5,7 @@ import 'ignore-styles';
 import {BigNumber} from 'bignumber.js';
 import {DUMMY, None} from './src/hash_impl_common';
 import {Dict32} from './src/chapter4_real_python_dict';
+import {AlmostPythonDict} from './src/chapter3_hash_class';
 import {Slot} from './src/chapter3_and_4_common';
 import {List} from 'immutable';
 
@@ -82,6 +83,56 @@ function dumpPyDictState(pySelf) {
     return data;
 }
 
+function dict32RunOp(pySelf, op, key, value) {
+    switch (op) {
+        case '__init__':
+            pySelf = Dict32.__init__().pySelf;
+            return {pySelf};
+        case '__getitem__': {
+            const {result, isException} = Dict32.__getitem__(pySelf, key);
+            return {pySelf, result, isException};
+        }
+        case '__setitem__': {
+            ({pySelf} = Dict32.__setitem__(pySelf, key, value));
+            return {pySelf};
+        }
+        case '__delitem__': {
+            let isException;
+            ({pySelf, isException} = Dict32.__delitem__(pySelf, key));
+            return {pySelf, isException};
+        }
+        default:
+            throw new Error('Unknown op: ' + op);
+    }
+}
+
+function almostPyDictRunOp(pySelf, op, key, value) {
+    switch (op) {
+        case '__init__':
+            pySelf = AlmostPythonDict.__init__().pySelf;
+            return {pySelf};
+        case '__getitem__': {
+            const {result, isException} = AlmostPythonDict.__getitem__(pySelf, key);
+            return {pySelf, result, isException};
+        }
+        case '__setitem__recycling': {
+            ({pySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key, value));
+            return {pySelf};
+        }
+        case '__setitem__no_recycling': {
+            ({pySelf} = AlmostPythonDict.__setitem__no_recycling(pySelf, key, value));
+            return {pySelf};
+        }
+        case '__delitem__': {
+            let isException;
+            ({pySelf, isException} = AlmostPythonDict.__delitem__(pySelf, key));
+            return {pySelf, isException};
+        }
+        default:
+            throw new Error('Unknown op: ' + op);
+    }
+}
+
 const server = net.createServer(c => {
     console.log('Client connected');
 
@@ -95,6 +146,7 @@ const server = net.createServer(c => {
         const data = JSON.parse(line);
         let pySelf = restorePyDictState(data.self);
         // console.log(self);
+        const dictType = data.dict;
         const op = data.op;
         let {key, value} = data.args;
         if (key !== undefined) {
@@ -104,35 +156,22 @@ const server = net.createServer(c => {
             value = parseSimplePyObj(value);
         }
         console.log(op, key, value);
-        let isException = false;
-        let result = null;
+        let isException, result;
+        if (dictType === 'dict32') {
+            ({pySelf, isException, result} = dict32RunOp(pySelf, op, key, value));
+        } else if (dictType === 'almost_python_dict') {
+            ({pySelf, isException, result} = almostPyDictRunOp(pySelf, op, key, value));
+        } else {
+            throw new Error('Unknown dict type');
+        }
         // TODO: the whole thing is kinda ugly, encapsulate passing all these classes (e.g. Dict32Resize around)
         // TODO: isException is really ugly, make .run() properly return exception
-        switch (op) {
-            case '__init__':
-                pySelf = Dict32.__init__().pySelf;
-                break;
-            case '__getitem__': {
-                ({result, isException} = Dict32.__getitem__(pySelf, key));
-                break;
-            }
-            case '__setitem__': {
-                ({pySelf} = Dict32.__setitem__(pySelf, key, value));
-                break;
-            }
-            case '__delitem__': {
-                ({pySelf, isException} = Dict32.__delitem__(pySelf, key));
-                break;
-            }
-            default:
-                throw new Error('Unknown op');
-        }
 
         console.log('Writing response');
         c.write(
             JSON.stringify({
-                exception: isException,
-                result: dumpSimplePyObj(result),
+                exception: isException || false,
+                result: result !== undefined ? dumpSimplePyObj(result) : null,
                 self: dumpPyDictState(pySelf),
             }) + '\n'
         );

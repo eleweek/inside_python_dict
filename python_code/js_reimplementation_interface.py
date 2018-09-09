@@ -32,7 +32,7 @@ def parse_simple_py_obj(obj):
     return obj
 
 
-class JsDictReimplementation(object):
+class JsImplBase(object):
     SOCK_FILENAME = '../pynode.sock'
 
     def __init__(self):
@@ -87,6 +87,7 @@ class JsDictReimplementation(object):
             kwargs[name] = dump_simple_py_obj(kwargs[name])
 
         data = {
+            "dict": self.dict_type,
             "op": op,
             "args": kwargs,
             "self": {
@@ -109,6 +110,10 @@ class JsDictReimplementation(object):
 
         return parse_simple_py_obj(response["result"])
 
+
+class Dict32JsImpl(JsImplBase):
+    dict_type = "dict32"
+
     def __setitem__(self, key, value):
         return self.run_op("__setitem__", key=key, value=value)
 
@@ -117,3 +122,23 @@ class JsDictReimplementation(object):
 
     def __getitem__(self, key):
         return self.run_op("__getitem__", key=key)
+
+
+class AlmostPythonDictBaseJsImpl(JsImplBase):
+    dict_type = "almost_python_dict"
+
+    def __delitem__(self, key):
+        return self.run_op("__delitem__", key=key)
+
+    def __getitem__(self, key):
+        return self.run_op("__getitem__", key=key)
+
+
+class AlmostPythonDictRecyclingJsImpl(AlmostPythonDictBaseJsImpl):
+    def __setitem__(self, key, value):
+        return self.run_op("__setitem__recycling", key=key, value=value)
+
+
+class AlmostPythonDictNoRecyclingJsImpl(AlmostPythonDictBaseJsImpl):
+    def __setitem__(self, key, value):
+        return self.run_op("__setitem__no_recycling", key=key, value=value)

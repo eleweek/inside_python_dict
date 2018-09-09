@@ -2,11 +2,12 @@ from common import DUMMY, EMPTY
 from dict_reimpl_common import BaseDictImpl, Slot
 
 
-class HashDictImplementation(BaseDictImpl):
+class AlmostPythonDictBase(BaseDictImpl):
     START_SIZE = 8
 
     def __init__(self):
         BaseDictImpl.__init__(self)
+        self._keys_set = set()
 
     def lookdict(self, key):
         hash_code = hash(key)
@@ -31,7 +32,31 @@ class HashDictImplementation(BaseDictImpl):
         self.used -= 1
         self.slots[idx].key = DUMMY
         self.slots[idx].value = EMPTY
+        self._keys_set.remove(key)
 
+    def resize(self):
+        old_slots = self.slots
+        new_size = self.find_optimal_size(2)
+        self.slots = [Slot() for _ in range(new_size)]
+
+        for slot in old_slots:
+            if slot.key is not EMPTY and slot.key is not DUMMY:
+                idx = slot.hash_code % len(self.slots)
+                while self.slots[idx].key is not EMPTY:
+                    idx = (idx + 1) % len(self.slots)
+
+                self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)
+
+        self.fill = self.used
+
+    def keys(self):
+        return self._keys_set
+
+    def __len__(self):
+        return len(self.keys())
+
+
+class AlmostPythonDictImplementationRecycling(AlmostPythonDictBase):
     def __setitem__(self, key, value):
         hash_code = hash(key)
         idx = hash_code % len(self.slots)
@@ -59,23 +84,10 @@ class HashDictImplementation(BaseDictImpl):
         if self.fill * 3 >= len(self.slots) * 2:
             self.resize()
 
-    def resize(self):
-        old_slots = self.slots
-        new_size = self.find_optimal_size(2)
-        self.slots = [Slot() for _ in range(new_size)]
-
-        for slot in old_slots:
-            if slot.key is not EMPTY and slot.key is not DUMMY:
-                idx = slot.hash_code % len(self.slots)
-                while self.slots[idx].key is not EMPTY:
-                    idx = (idx + 1) % len(self.slots)
-
-                self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)
-
-        self.fill = self.used
+        self._keys_set.add(key)
 
 
-class HashDictImplementationSimpleSetItem(HashDictImplementation):
+class AlmostPythonDictImplementationNoRecycling(AlmostPythonDictBase):
     def __setitem__(self, key, value):
         hash_code = hash(key)
         idx = hash_code % len(self.slots)
@@ -95,3 +107,5 @@ class HashDictImplementationSimpleSetItem(HashDictImplementation):
         self.slots[target_idx] = Slot(hash_code, key, value)
         if self.fill * 3 >= len(self.slots) * 2:
             self.resize()
+
+        self._keys_set.add(key)

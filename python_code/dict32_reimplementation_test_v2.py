@@ -5,14 +5,27 @@ import argparse
 from common import EMPTY, generate_random_string
 from dictinfo32 import dictobject, dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_reimpl_dict
-from js_reimplementation_interface import JsDictReimplementation
+from js_reimplementation_interface import Dict32JsImpl, AlmostPythonDictRecyclingJsImpl, AlmostPythonDictNoRecyclingJsImpl
+import hash_chapter3_class_impl
+
+IMPLEMENTATIONS = {
+    "dict32_actual": (dict, lambda d: dump_py_dict(dictobject(d))),
+    "dict32_reimpl_py": (PyDictReimplementation, dump_reimpl_dict),
+    "dict32_reimpl_js": (Dict32JsImpl, dump_reimpl_dict),
+
+    "almost_python_dict_recycling_py": (hash_chapter3_class_impl.AlmostPythonDictImplementationRecycling, dump_reimpl_dict),
+    "almost_python_dict_no_recycling_py": (hash_chapter3_class_impl.AlmostPythonDictImplementationNoRecycling, dump_reimpl_dict),
+    "almost_python_dict_recycling_js": (AlmostPythonDictRecyclingJsImpl, dump_reimpl_dict),
+    "almost_python_dict_no_recycling_js": (AlmostPythonDictNoRecyclingJsImpl, dump_reimpl_dict),
+}
 
 
-def verify_same(d, dreimpl, dump_reimpl_func):
-    dump_do = dump_py_dict(dictobject(d))
-    dump_reimpl = dump_reimpl_func(dreimpl)
-    if dump_do != dump_reimpl:
-        hashes_orig, keys_orig, values_orig, fill_orig, used_orig = dump_do
+def verify_same(d, dump_d_func, dreimpl, dump_dreimpl_func):
+    dump_d = dump_d_func(d)
+    dump_reimpl = dump_dreimpl_func(dreimpl)
+
+    if dump_d != dump_reimpl:
+        hashes_orig, keys_orig, values_orig, fill_orig, used_orig = dump_d
         hashes_new, keys_new, values_new, fill_new, used_new = dump_reimpl
         print("ORIG SIZE", len(hashes_orig))
         print("NEW SIZE", len(hashes_new))
@@ -27,7 +40,7 @@ def verify_same(d, dreimpl, dump_reimpl_func):
                           hashes_new[i], keys_new[i], values_new[i], " " * 3,
                           hashes_orig[i], keys_orig[i], values_orig[i])
 
-    assert dump_do == dump_reimpl
+    assert dump_d == dump_reimpl
 
 
 class IntKeyValueFactory(object):
@@ -78,25 +91,25 @@ class AllKeyValueFactory(object):
         return self._generate_obj()
 
 
-def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks, key_value_factory):
+def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_inserts, extra_checks, key_value_factory):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
 
     removed = set()
-    d = {}
-    dreimpl = ReimplementationClass()
+    d = ref_impl_factory()
+    dreimpl = test_impl_factory()
     print("Starting test")
 
     for i in range(n_inserts):
         should_remove = (random.random() < SINGLE_REMOVE_CHANCE)
-        if should_remove and d:
+        if should_remove and d and d.keys():  # TODO: ugly, written while on a plane
             to_remove = random.choice(list(d.keys()))
             print("Removing {}".format(to_remove))
             del d[to_remove]
             del dreimpl[to_remove]
             print(d)
-            verify_same(d, dreimpl, dump_reimpl_func)
+            verify_same(d, ref_impl_dump, dreimpl, test_impl_dump)
             removed.add(to_remove)
 
         should_mass_remove = (random.random() < MASS_REMOVE_CHANCE)
@@ -121,7 +134,15 @@ def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks, key_va
 
         key_to_insert = key_value_factory.generate_key()
         value_to_insert = key_value_factory.generate_value()
-        if key_to_insert not in d:
+        _keys_set = getattr(d, '_keys_set', None)
+        # TODO: ugly code written on a plane
+        # TODO: properly implement in/not in when I land
+        if _keys_set is not None:
+            key_present = key_to_insert in _keys_set
+        else:
+            key_present = key_to_insert in d
+
+        if not key_present:
             print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
             try:
                 dreimpl[key_to_insert]
@@ -134,13 +155,14 @@ def run(ReimplementationClass, dump_reimpl_func, n_inserts, extra_checks, key_va
         d[key_to_insert] = value_to_insert
         dreimpl[key_to_insert] = value_to_insert
         print(d)
-        verify_same(d, dreimpl, dump_reimpl_func)
+        verify_same(d, ref_impl_dump, dreimpl, test_impl_dump)
         assert dreimpl[key_to_insert] == value_to_insert
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Stress-test python dict reimplementation')
-    parser.add_argument('--reimplementation', choices=["py", "js"], required=True)
+    parser = argparse.ArgumentParser(description='Stress-test dict-like reimplementations')
+    parser.add_argument('--reference-implementation', choices=IMPLEMENTATIONS.keys(), required=True)
+    parser.add_argument('--test-implementation', choices=IMPLEMENTATIONS.keys(), required=True)
     parser.add_argument('--no-extra-getitem-checks', dest='extra_checks', action='store_false')
     parser.add_argument('--num-inserts',  type=int, default=500)
     parser.add_argument('--forever', action='store_true')
@@ -152,11 +174,11 @@ if __name__ == "__main__":
     elif args.kv == "all":
         kv_factory = AllKeyValueFactory(args.num_inserts)
 
+    ref_impl = IMPLEMENTATIONS[args.reference_implementation]
+    test_impl = IMPLEMENTATIONS[args.test_implementation]
+
     def test_iteration():
-        if args.reimplementation == "py":
-            run(PyDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
-        else:
-            run(JsDictReimplementation, dump_reimpl_dict, args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
+        run(*(ref_impl + test_impl), n_inserts=args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
 
     if args.forever:
         while True:
