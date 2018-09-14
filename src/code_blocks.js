@@ -966,24 +966,20 @@ export class HashSlotsComponent extends React.PureComponent {
 
     static getKeys(array) {
         let counters = {hashCode: {}, key: {}, value: {}};
-        const emptyOrKey = (v, idx, name) => {
+        const emptyOrKey = (v, idx, name, keyKey) => {
             if (v != null) {
-                let key = pyObjToReactKey(v);
-                if (!(key in counters[name])) {
-                    counters[name][key] = 1;
-                } else {
-                    counters[name][key]++;
-                }
-                return `${key}-${name}-${counters[name][key]}`;
+                const key = pyObjToReactKey(v);
+                return `${key}-${name}-${keyKey}`;
             } else {
                 return `empty-${idx}-${name}`;
             }
         };
         return array.map((slot, idx) => {
+            const keyKey = slot.key != null ? pyObjToReactKey(slot.key) : null;
             return [
-                emptyOrKey(slot.hashCode, idx, 'hashCode'),
-                emptyOrKey(slot.key, idx, 'key'),
-                emptyOrKey(slot.value, idx, 'value'),
+                emptyOrKey(slot.hashCode, idx, 'hashCode', keyKey),
+                emptyOrKey(slot.key, idx, 'key', keyKey),
+                emptyOrKey(slot.value, idx, 'value', keyKey),
             ];
         });
     }
