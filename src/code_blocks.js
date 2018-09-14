@@ -287,17 +287,17 @@ class Box extends React.PureComponent {
 }
 
 /* TODO: make these functions static methods */
-function slotBoxes(keyTemplate, value) {
+function slotBoxes(keys, value) {
     const slot = value;
     return [
-        [`${keyTemplate}-hashCode`, {value: slot.hashCode, yOffset: 0}],
-        [`${keyTemplate}-key`, {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
-        [`${keyTemplate}-value`, {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
+        [keys[0], {value: slot.hashCode, yOffset: 0}],
+        [keys[1], {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
+        [keys[2], {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
     ];
 }
 
-function oneBox(keyTemplate, value) {
-    return [[keyTemplate, {value}]];
+function oneBox(keys, value) {
+    return [[keys[0], {value}]];
 }
 
 class SlotSelection extends React.PureComponent {
@@ -371,11 +371,11 @@ class BaseBoxesComponent extends React.PureComponent {
 
             const nextArray = nextProps.array;
             let needProcessCreatedAfterRender = false;
-            let nextArrayKeysTemplates = nextProps.getKeys(nextArray);
+            const nextArrayKeys = nextProps.getKeys(nextArray);
             let nextKeysSet = new Set();
             for (let idx = 0; idx < nextArray.length; ++idx) {
-                const keyTemplate = nextArrayKeysTemplates[idx];
-                const idxBoxesProps = boxFactory(keyTemplate, nextArray[idx]);
+                const keys = nextArrayKeys[idx];
+                const idxBoxesProps = boxFactory(keys, nextArray[idx]);
                 console.log('idx', idx);
                 console.log('idxBoxesProps', idxBoxesProps);
                 for (const [key, someProps] of idxBoxesProps) {
@@ -424,8 +424,8 @@ class BaseBoxesComponent extends React.PureComponent {
             let newKeyBox = {};
             let arrayBoxKeys = nextProps.getKeys(nextProps.array);
             for (let [idx, value] of nextProps.array.entries()) {
-                const keyTemplate = arrayBoxKeys[idx];
-                const idxBoxesProps = boxFactory(keyTemplate, value);
+                const keys = arrayBoxKeys[idx];
+                const idxBoxesProps = boxFactory(keys, value);
                 console.log('Q', idx, value);
                 console.log('idxBoxesProps', idxBoxesProps);
                 for (const [key, someProps] of idxBoxesProps) {
@@ -454,6 +454,8 @@ class BaseBoxesComponent extends React.PureComponent {
 
         // FIXME: handling active selection is extremely ugly, should be rewritten in a much cleaner fashion
         // FIXME: probably better to get rid of created/removing/adding statuses here
+        //
+        // TODO: it may be a good idea to combine it with Selection component
         const getOrModSelection = (selection, extraClassName, oldIdx, _idx, status) => {
             if (_idx == null) {
                 status = 'removing';
@@ -939,9 +941,9 @@ export class HashBoxesComponent extends React.PureComponent {
     static getKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
-                return pyObjToReactKey(value);
+                return [pyObjToReactKey(value)];
             } else {
-                return `empty-${idx}`;
+                return [`empty-${idx}`];
             }
         });
     }
@@ -963,14 +965,26 @@ export class HashSlotsComponent extends React.PureComponent {
     static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
 
     static getKeys(array) {
-        return array.map((slot, idx) => {
-            // TODO: better keys
-            // TODO: e.g. ${val}-${repeatedIndex}
-            if (slot.key != null) {
-                return pyObjToReactKey(slot.key);
+        let counters = {hashCode: {}, key: {}, value: {}};
+        const emptyOrKey = (v, idx, name) => {
+            if (v != null) {
+                let key = pyObjToReactKey(v);
+                if (!(key in counters[name])) {
+                    counters[name][key] = 1;
+                } else {
+                    counters[name][key]++;
+                }
+                return `${key}-${name}-${counters[name][key]}`;
             } else {
-                return `empty-${idx}`;
+                return `empty-${idx}-${name}`;
             }
+        };
+        return array.map((slot, idx) => {
+            return [
+                emptyOrKey(slot.hashCode, idx, 'hashCode'),
+                emptyOrKey(slot.key, idx, 'key'),
+                emptyOrKey(slot.value, idx, 'value'),
+            ];
         });
     }
 
@@ -1003,7 +1017,7 @@ export class LineOfBoxesComponent extends React.PureComponent {
             }
 
             const key = `${keyPart}-${counter[value]}`;
-            keys.push(key);
+            keys.push([key]);
         }
 
         return keys;
