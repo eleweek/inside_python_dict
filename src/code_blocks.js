@@ -575,7 +575,7 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         return (
-            <div className="hash-vis" style={{height: this.props.height}} ref={this.ref}>
+            <div className="hash-vis" style={{height: this.props.height, width: 1000}} ref={this.ref}>
                 {boxes}
             </div>
         );
@@ -623,7 +623,16 @@ export function Tetris(props) {
         );
     }
 
-    return <div className="tetris"> {elems} </div>;
+    // TODO: width/height stuff here
+    return (
+        <PerfectScrollbar>
+            <div className="some-hacky-padding" style={{height: 40}} />
+            <div className="tetris" style={{maxWidth: '700px'}}>
+                {' '}
+                {elems}{' '}
+            </div>
+        </PerfectScrollbar>
+    );
 }
 
 export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
