@@ -255,7 +255,7 @@ export class Chapter3_HashClass extends ChapterComponent {
     });
 
     runSetItemRecycling = memoizeOne((pySelf, key, value) => {
-        const {bp, pySelf: newPySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key);
+        const {bp, pySelf: newPySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key, value);
         return {pySelf: newPySelf, bp, bpTransformed: bp.map(postBpTransform)};
     });
 
