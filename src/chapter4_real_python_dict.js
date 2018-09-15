@@ -284,7 +284,27 @@ class ProbingVisualization extends React.Component {
                 fill: '#ededed', // TODO: might need a better color
             }));
 
-        const arrowLinePoints = (i1, i2) => {
+        const interpolateNewArrow = ([[xstart, ystart], [xmid, ymid], [xend, yend]]) => {
+            return t => {
+                if (t < 0.5) {
+                    return [[xstart, ystart], [xstart + (xmid - xstart) * 2 * t, ystart + (ymid - ystart) * 2 * t]];
+                } else {
+                    t -= 0.5;
+                    return [
+                        [xstart, ystart],
+                        [xmid, ymid],
+                        [xmid + (xend - xmid) * 2 * t, ymid + (yend - ymid) * 2 * t],
+                    ];
+                }
+            };
+        };
+
+        const interpolateRemovedArrow = d => {
+            let ipNew = interpolateNewArrow(d);
+            return t => ipNew(1 - t);
+        };
+
+        const arrowLinePointsAsArray = (i1, i2) => {
             let ystart, yend, ymid;
 
             let xstartAdjust, xendAdjust;
@@ -306,10 +326,11 @@ class ProbingVisualization extends React.Component {
             const xend = (boxSize + boxMargin) * i2 + xendAdjust;
             const xmid = (xstart + xend) / 2;
 
-            const points = [[xstart, ystart], [xmid, ymid], [xend, yend]].map(([x, y]) => ({x, y}));
-
-            return points;
+            return [[xstart, ystart], [xmid, ymid], [xend, yend]];
         };
+
+        const toPoints = array => array.map(([x, y]) => ({x, y}));
+        const arrowLinePoints = (i1, i2) => toPoints(arrowLinePointsAsArray(i1, i2));
 
         let linksStartIdx = [];
         for (let i = 0; i < links.length; ++i) {
@@ -322,7 +343,9 @@ class ProbingVisualization extends React.Component {
         console.log(this.oldLinks);
         const oldLinks = this.oldLinks;
 
-        let paths = g.selectAll('path').data(linksStartIdx);
+        let t = d3.transition().duration(2000);
+        console.log('Before paths');
+        let paths = g.selectAll('path').data(linksStartIdx, d => d);
         paths
             .enter()
             .append('path')
@@ -330,8 +353,7 @@ class ProbingVisualization extends React.Component {
             .style('stroke', 'blue')
             .style('stroke-width', 1)
             .style('fill', 'none')
-            .transition()
-            .duration(1000)
+            .transition(t)
             .attrTween('d', ([start, idx]) => {
                 let end = links[start][idx];
                 let oldEnd = (oldLinks || links)[start][idx];
@@ -342,12 +364,25 @@ class ProbingVisualization extends React.Component {
                     const ip = d3.interpolateArray(oldLp, lp);
                     return t => lineFunction(ip(t));
                 } else {
-                    const lp = arrowLinePoints(start, end);
+                    const lpArr = arrowLinePointsAsArray(start, end);
+                    const ip = interpolateNewArrow(lpArr);
+                    return t => lineFunction(toPoints(ip(t)));
                 }
             })
             .attr('marker-end', 'url(#arrow)');
 
-        paths.exit().remove();
+        console.log('Before exit');
+        paths
+            .exit()
+            .transition(t)
+            .attrTween('d', ([start, idx]) => {
+                console.log('exit', start, idx);
+                let oldEnd = oldLinks[start][idx];
+                const lpArr = arrowLinePointsAsArray(start, oldEnd);
+                const ip = interpolateRemovedArrow(lpArr);
+                return t => lineFunction(toPoints(ip(t)));
+            })
+            .remove();
 
         this.oldLinks = links;
     }
