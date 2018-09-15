@@ -159,7 +159,8 @@ pre > code,
 }
 
 .code-block-with-annotations-scrollbar-container .scrollbar-track-y {
-    left: 0 !important;
+    left: 0px !important;
+    right: none !important;
 }
 
 /*.visualized-code > .code-block-row {
@@ -168,7 +169,10 @@ pre > code,
 
 .code-block-with-annotations {
     line-height: 1.15;
-    padding: 10px;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-left: 15px;
     white-space: nowrap;
 }
 

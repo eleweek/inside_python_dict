@@ -636,23 +636,6 @@ export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
     };
 }
 
-/* From: https://medium.com/@tkh44/animate-scroll-position-with-react-motion-dcc9b8aa01cf */
-class ScrollSink extends React.PureComponent {
-    componentDidUpdate(prevProps) {
-        if (!this.props.node) {
-            return;
-        }
-
-        if (prevProps.scrollTop !== this.props.scrollTop) {
-            this.props.node.scrollTop = this.props.scrollTop;
-        }
-    }
-
-    render() {
-        return null;
-    }
-}
-
 // TODO: parts of this function may be optimized/memoized
 class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     HEIGHT = 300;
@@ -777,8 +760,6 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
             }
         }
 
-        console.log('getScrollTopTarget() scrollbar', scrollbar);
-        console.log('getScrollTopTarget()', scrollbar.size);
         if (!scrollbar.size) return {scrollTopTarget: null, needsUpdating: false};
 
         const scrollHeight = scrollbar.size.content.height;
@@ -804,7 +785,6 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
     updateScroll = () => {
         const {scrollTopTarget, needsUpdating} = this.getScrollTopTarget();
-        console.log('UpdateScroll', scrollTopTarget, needsUpdating);
         if (needsUpdating) {
             this.ssRef.current.scrollbar.scrollTo(0, scrollTopTarget, 500);
         }
