@@ -254,10 +254,6 @@ class ProbingVisualization extends React.Component {
     }
 
     d3render() {
-        // TODO: re-render
-        if (this.rendered) return;
-        this.rendered = true;
-
         const {slotsCount, links} = this.props;
         const topSpace = 50;
         const bottomSpace = 50;
@@ -310,7 +306,18 @@ class ProbingVisualization extends React.Component {
             return points;
         };
 
-        let paths = g.selectAll('path').data(links);
+        let linksStartIdx = [];
+        for (let i = 0; i < links.length; ++i) {
+            for (let j = 0; j < links[i].length; ++j) {
+                linksStartIdx.push([i, j]);
+            }
+        }
+
+        console.log(links);
+        console.log(this.oldLinks);
+        const oldLinks = this.oldLinks;
+
+        let paths = g.selectAll('path').data(linksStartIdx);
         paths
             .enter()
             .append('path')
@@ -318,8 +325,26 @@ class ProbingVisualization extends React.Component {
             .style('stroke', 'blue')
             .style('stroke-width', 1)
             .style('fill', 'none')
-            .attr('d', ([i1, i2]) => lineFunction(arrowLinePoints(i1, i2)))
+            .transition()
+            .duration(1000)
+            .attrTween('d', ([start, idx]) => {
+                let end = links[start][idx];
+                let oldEnd = (oldLinks || links)[start][idx];
+                console.log(start, end, oldEnd);
+                if (oldEnd != null) {
+                    const oldLp = arrowLinePoints(start, oldEnd);
+                    const lp = arrowLinePoints(start, end);
+                    const ip = d3.interpolateArray(oldLp, lp);
+                    return t => lineFunction(ip(t));
+                } else {
+                    const lp = arrowLinePoints(start, end);
+                }
+            })
             .attr('marker-end', 'url(#arrow)');
+
+        paths.exit().remove();
+
+        this.oldLinks = links;
     }
 
     componentDidUpdate() {
@@ -329,6 +354,14 @@ class ProbingVisualization extends React.Component {
     componentDidMount() {
         this.d3render();
     }
+}
+
+function array2d(n) {
+    let res = [];
+
+    for (let i = 0; i < n; ++i) res.push([]);
+
+    return res;
 }
 
 export class Chapter4_RealPythonDict extends ChapterComponent {
@@ -350,6 +383,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
             ],
             keyToDel: 'hello',
             keyToGet: 'ya',
+            keyForProbingVis: 'hello',
         };
     }
 
@@ -379,25 +413,25 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     });
 
     generateLinksSimpleProbing = memoizeOne(slotsCount => {
-        let links = [];
+        let links = array2d(slotsCount);
         for (let i = 0; i < slotsCount; ++i) {
-            links.push([i, (i + 1) % slotsCount]);
+            links[i].push((i + 1) % slotsCount);
         }
 
         return links;
     });
 
     generateLinks5iPlus1 = memoizeOne(slotsCount => {
-        let links = [];
+        let links = array2d(slotsCount);
         for (let i = 0; i < slotsCount; ++i) {
-            links.push([i, (5 * i + 1) % slotsCount]);
+            links[i].push((5 * i + 1) % slotsCount);
         }
 
         return links;
     });
 
     generateLinksPython = memoizeOne((slotsCount, obj) => {
-        let links = [];
+        let links = array2d(slotsCount);
 
         const hash = pyHash(obj);
         let perturb = computePerturb(hash);
@@ -405,10 +439,12 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         let visitedIdx = new Set();
         while (visitedIdx.size != slotsCount) {
             visitedIdx.add(idx);
+            console.log('init', idx, perturb.toString(), slotsCount);
             const nIdx = nextIdx(idx, perturb, slotsCount);
+            console.log('nIdx', nIdx);
             perturb = perturbShift(perturb);
 
-            links.push([idx, nIdx]);
+            links[idx].push(nIdx);
             idx = nIdx;
         }
 
@@ -429,7 +465,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         const slotsCount = 8;
         const linksSimpleProbing = this.generateLinksSimpleProbing(slotsCount);
         const links5iPlus1 = this.generateLinks5iPlus1(slotsCount);
-        const linksPython = this.generateLinksPython(slotsCount, 'hello');
+        const linksPython = this.generateLinksPython(slotsCount, this.state.keyForProbingVis);
 
         return (
             <div className="chapter chapter4">
@@ -485,6 +521,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 </p>
                 <ProbingVisualization slotsCount={slotsCount} links={linksSimpleProbing} />
                 <ProbingVisualization slotsCount={slotsCount} links={links5iPlus1} />
+                <PyStringOrNumberInput
+                    inline={true}
+                    value={this.state.keyForProbingVis}
+                    onChange={this.setter('keyForProbingVis')}
+                />
                 <ProbingVisualization slotsCount={slotsCount} links={linksPython} />
                 <p>
                     Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks
