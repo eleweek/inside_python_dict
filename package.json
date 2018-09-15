@@ -47,8 +47,10 @@
     "react-input-autosize": "^2.2.1",
     "react-motion": "^0.5.2",
     "react-perfect-scrollbar": "^1.2.0",
+    "react-smooth-scrollbar": "^8.0.6",
     "react-stickynode": "^2.0.1",
-    "rehype": "^5.0.1"
+    "rehype": "^5.0.1",
+    "smooth-scrollbar": "^8.3.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

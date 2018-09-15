@@ -19,6 +19,7 @@ import 'rc-slider/assets/index.css';
 
 import './perfect-scrollbar-mod.css';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import SmoothScrollbar from 'react-smooth-scrollbar';
 
 import {spring, Motion} from 'react-motion';
 
@@ -625,13 +626,12 @@ export function Tetris(props) {
 
     // TODO: width/height stuff here
     return (
-        <PerfectScrollbar>
-            <div className="some-hacky-padding" style={{height: 40}} />
-            <div className="tetris" style={{maxWidth: '700px'}}>
-                {' '}
-                {elems}{' '}
+        <SmoothScrollbar alwaysShowTracks={true}>
+            <div style={{width: '700px'}}>
+                <div className="some-hacky-padding" style={{height: 40}} />
+                <div className="tetris">{elems}</div>
             </div>
-        </PerfectScrollbar>
+        </SmoothScrollbar>
     );
 }
 
