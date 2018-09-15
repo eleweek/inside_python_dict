@@ -17,11 +17,7 @@ import HighLightJStyle from 'highlight.js/styles/default.css';
 import Slider from 'rc-slider/lib/Slider';
 import 'rc-slider/assets/index.css';
 
-import './perfect-scrollbar-mod.css';
-import PerfectScrollbar from 'react-perfect-scrollbar';
 import SmoothScrollbar from 'react-smooth-scrollbar';
-
-import {spring, Motion} from 'react-motion';
 
 import {MyErrorBoundary, getUxSettings} from './util';
 import {isNone, isDummy} from './hash_impl_common';
@@ -377,10 +373,7 @@ class BaseBoxesComponent extends React.PureComponent {
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = nextArrayKeys[idx];
                 const idxBoxesProps = boxFactory(keys, nextArray[idx]);
-                console.log('idx', idx);
-                console.log('idxBoxesProps', idxBoxesProps);
                 for (const [key, someProps] of idxBoxesProps) {
-                    console.log('F', key, someProps);
                     nextKeysSet.add(key);
                     let status;
                     if (!(key in state.status)) {
@@ -427,8 +420,6 @@ class BaseBoxesComponent extends React.PureComponent {
             for (let [idx, value] of nextProps.array.entries()) {
                 const keys = arrayBoxKeys[idx];
                 const idxBoxesProps = boxFactory(keys, value);
-                console.log('Q', idx, value);
-                console.log('idxBoxesProps', idxBoxesProps);
                 for (const [key, someProps] of idxBoxesProps) {
                     newStatus[key] = 'adding';
                     newKeyModId[key] = modificationId;
@@ -660,37 +651,14 @@ class ScrollSink extends React.PureComponent {
     }
 }
 
-class MotionScroll extends React.PureComponent {
-    renderScrollSink = currentStyles => {
-        return <ScrollSink scrollTop={currentStyles.scrollTop} node={this.props.node} />;
-    };
-
-    render() {
-        const {scrollTop, node} = this.props;
-        return (
-            <Motion style={{scrollTop: spring(scrollTop, {stiffness: 50, damping: 10})}}>
-                {this.renderScrollSink}
-            </Motion>
-        );
-    }
-}
-
 // TODO: parts of this function may be optimized/memoized
 class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     HEIGHT = 300;
 
     constructor() {
         super();
-        this.scrollRef = null;
-        this.state = {
-            scrollTopTarget: 0,
-        };
-        this.psRef = React.createRef();
+        this.ssRef = React.createRef();
     }
-
-    setScrollRef = ref => {
-        this.scrollRef = ref;
-    };
 
     getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
         let lines = [];
@@ -776,28 +744,26 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         const lines = this.getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp);
 
         return (
-            <PerfectScrollbar
-                ref={this.psRef}
-                containerRef={this.setScrollRef}
-                className="code-block-with-annotations-ps-container"
+            <SmoothScrollbar
+                ref={this.ssRef}
+                alwaysShowTracks={true}
+                className="code-block-with-annotations-scrollbar-container"
             >
                 <div
                     style={{maxHeight: `${this.HEIGHT}px`, transform: 'translateZ(0)'}}
                     className="code-block-with-annotations"
                     dangerouslySetInnerHTML={{__html: lines.join('\n')}}
                 />
-                <MotionScroll scrollTop={this.state.scrollTopTarget} node={this.scrollRef} />
-            </PerfectScrollbar>
+            </SmoothScrollbar>
         );
     }
 
     componentDidMount() {
-        this.scrollRef.scrollTop = this.getScrollTopTarget().scrollTopTarget;
-        window.requestAnimationFrame(() => this.psRef.current.updateScroll());
+        this.ssRef.current.scrollTop = this.getScrollTopTarget().scrollTopTarget;
     }
 
     getScrollTopTarget() {
-        const node = this.scrollRef;
+        const scrollbar = this.ssRef.current.scrollbar;
         const totalLines = this.props.code.length;
         let activeLine = 0;
 
@@ -809,8 +775,12 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
             }
         }
 
-        const scrollHeight = node.scrollHeight;
-        const scrollTop = node.scrollTop;
+        console.log('getScrollTopTarget() scrollbar', scrollbar);
+        console.log('getScrollTopTarget()', scrollbar.size);
+        if (!scrollbar.size) return {scrollTopTarget: null, needsUpdating: false};
+
+        const scrollHeight = scrollbar.size.content.height;
+        const scrollTop = scrollbar.scrollTop;
 
         const scrollBottom = scrollTop + this.HEIGHT;
 
@@ -832,10 +802,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
     updateScroll = () => {
         const {scrollTopTarget, needsUpdating} = this.getScrollTopTarget();
-        if (needsUpdating && scrollTopTarget != this.state.scrollTopTarget) {
-            this.setState({
-                scrollTopTarget: scrollTopTarget,
-            });
+        console.log('UpdateScroll', scrollTopTarget, needsUpdating);
+        if (needsUpdating) {
+            this.ssRef.current.scrollbar.scrollTo(0, scrollTopTarget, 500);
         }
     };
 
