@@ -743,10 +743,6 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         );
     }
 
-    componentDidMount() {
-        this.ssRef.current.scrollTop = this.getScrollTopTarget().scrollTopTarget;
-    }
-
     getScrollTopTarget() {
         const scrollbar = this.ssRef.current.scrollbar;
         const totalLines = this.props.code.length;
