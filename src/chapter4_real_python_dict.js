@@ -285,21 +285,26 @@ class ProbingVisualization extends React.Component {
             }));
 
         const arrowLinePoints = (i1, i2) => {
-            const xstart = (boxSize + boxMargin) * i1 + boxSize * 0.66;
-            const xend = (boxSize + boxMargin) * i2 + boxSize * 0.33;
-            const xmid = (xstart + xend) / 2;
             let ystart, yend, ymid;
 
+            let xstartAdjust, xendAdjust;
             if (i1 < i2) {
                 ystart = topSpace;
                 yend = topSpace;
                 ymid = topSpace * (1 - Math.max(i2 - i1, 1) / slotsCount);
+                xstartAdjust = boxSize * 0.66;
+                xendAdjust = boxSize * 0.33;
             } else {
                 const yOffset = topSpace + boxSize;
                 ystart = yOffset;
                 yend = yOffset;
                 ymid = yOffset + bottomSpace * (Math.max(i1 - i2, 1) / slotsCount);
+                xstartAdjust = boxSize * 0.33;
+                xendAdjust = boxSize * 0.66;
             }
+            const xstart = (boxSize + boxMargin) * i1 + xstartAdjust;
+            const xend = (boxSize + boxMargin) * i2 + xendAdjust;
+            const xmid = (xstart + xend) / 2;
 
             const points = [[xstart, ystart], [xmid, ymid], [xend, yend]].map(([x, y]) => ({x, y}));
 
