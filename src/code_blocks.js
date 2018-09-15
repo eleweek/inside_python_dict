@@ -159,12 +159,14 @@ class ActiveBoxSelectionThrottled extends React.Component {
             status = this.props.status;
         }
         const extraClassName = this.props.extraClassName;
+        const yOffset = this.props.yOffset;
         return (
             <ActiveBoxSelectionUnthrottled
                 setInnerRef={this.handleRef}
                 extraClassName={extraClassName}
                 idx={idx}
                 status={status}
+                yOffset={yOffset}
                 transitionDuration={this.props.transitionDuration}
             />
         );
@@ -299,7 +301,7 @@ function oneBox(keys, value) {
 
 class SlotSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, yOffset} = this.props;
+        const {extraClassName, idx, status} = this.props;
 
         return [
             <ActiveBoxSelection
