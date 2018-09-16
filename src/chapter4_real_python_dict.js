@@ -99,8 +99,8 @@ function formatDict32IdxRelatedBp(bp) {
 
 const DICT32_SETITEM = [
     /*["@staticmethod", ""],
-	["def signed_to_unsigned(hash_code):", ""],
-	["    return 2**64 + hash_code if hash_code < 0 else hash_code", ""],
+    ["def signed_to_unsigned(hash_code):", ""],
+    ["    return 2**64 + hash_code if hash_code < 0 else hash_code", ""],
     ["", ""],*/
     ['def __setitem__(self, key, value):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
@@ -284,26 +284,6 @@ class ProbingVisualization extends React.Component {
                 fill: '#ededed', // TODO: might need a better color
             }));
 
-        const interpolateNewArrow = ([[xstart, ystart], [xmid, ymid], [xend, yend]]) => {
-            return t => {
-                if (t < 0.5) {
-                    return [[xstart, ystart], [xstart + (xmid - xstart) * 2 * t, ystart + (ymid - ystart) * 2 * t]];
-                } else {
-                    t -= 0.5;
-                    return [
-                        [xstart, ystart],
-                        [xmid, ymid],
-                        [xmid + (xend - xmid) * 2 * t, ymid + (yend - ymid) * 2 * t],
-                    ];
-                }
-            };
-        };
-
-        const interpolateRemovedArrow = d => {
-            let ipNew = interpolateNewArrow(d);
-            return t => ipNew(1 - t);
-        };
-
         const arrowLinePointsAsArray = (i1, i2) => {
             let ystart, yend, ymid;
 
@@ -345,44 +325,66 @@ class ProbingVisualization extends React.Component {
 
         let t = d3.transition().duration(2000);
         console.log('Before paths');
-        let paths = g.selectAll('path').data(linksStartIdx, d => d);
-        paths
-            .enter()
+        let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
+        const enterPaths = updatePaths.enter();
+
+        const exitPaths = updatePaths.exit();
+
+        enterPaths
             .append('path')
-            .merge(paths)
             .style('stroke', 'blue')
             .style('stroke-width', 1)
             .style('fill', 'none')
+            .attr('d', ([start, idx]) => {
+                let end = links[start][idx];
+                console.log('enter', start, end);
+                const lp = arrowLinePoints(start, end);
+                return lineFunction(lp);
+            })
+            .each(function() {
+                const node = this;
+                console.log('node', node);
+                const totalLength = node.getTotalLength();
+                const selected = d3.select(node);
+                selected
+                    .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                    .attr('stroke-dashoffset', totalLength)
+                    .transition(t)
+                    .attr('stroke-dashoffset', 0)
+                    .on('end', () => {
+                        selected.attr('marker-end', 'url(#arrow)');
+                    });
+            });
+
+        updatePaths
+            .attr('stroke-dasharray', null)
+            .attr('stroke-dashoffset', null)
             .transition(t)
             .attrTween('d', ([start, idx]) => {
                 let end = links[start][idx];
-                let oldEnd = (oldLinks || links)[start][idx];
-                console.log(start, end, oldEnd);
-                if (oldEnd != null) {
-                    const oldLp = arrowLinePoints(start, oldEnd);
-                    const lp = arrowLinePoints(start, end);
-                    const ip = d3.interpolateArray(oldLp, lp);
-                    return t => lineFunction(ip(t));
-                } else {
-                    const lpArr = arrowLinePointsAsArray(start, end);
-                    const ip = interpolateNewArrow(lpArr);
-                    return t => lineFunction(toPoints(ip(t)));
-                }
+                let oldEnd = oldLinks[start][idx];
+                console.log('update', start, end, '<-', oldEnd);
+                const oldLp = arrowLinePoints(start, oldEnd);
+                const lp = arrowLinePoints(start, end);
+                const ip = d3.interpolateArray(oldLp, lp);
+                return t => lineFunction(ip(t));
             })
             .attr('marker-end', 'url(#arrow)');
 
         console.log('Before exit');
-        paths
-            .exit()
-            .transition(t)
-            .attrTween('d', ([start, idx]) => {
-                console.log('exit', start, idx);
-                let oldEnd = oldLinks[start][idx];
-                const lpArr = arrowLinePointsAsArray(start, oldEnd);
-                const ip = interpolateRemovedArrow(lpArr);
-                return t => lineFunction(toPoints(ip(t)));
-            })
-            .remove();
+        exitPaths.each(function() {
+            const node = this;
+            console.log('node', node);
+            const totalLength = node.getTotalLength();
+            const selected = d3.select(node);
+            selected
+                .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                .attr('stroke-dashoffset', 0)
+                .attr('marker-end', null)
+                .transition(t)
+                .attr('stroke-dashoffset', totalLength)
+                .remove();
+        });
 
         this.oldLinks = links;
     }
