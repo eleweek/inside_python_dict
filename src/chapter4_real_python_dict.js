@@ -238,8 +238,8 @@ class ProbingVisualization extends React.Component {
                     <marker
                         id="arrow"
                         markerUnits="strokeWidth"
-                        markerWidth="12"
-                        markerHeight="12"
+                        markerWidth="10"
+                        markerHeight="10"
                         viewBox="0 0 12 12"
                         refX="6"
                         refY="6"
