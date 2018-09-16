@@ -233,23 +233,25 @@ class ProbingVisualization extends React.Component {
 
     render() {
         return (
-            <svg width={700} height={200}>
-                <defs>
-                    <marker
-                        id="arrow"
-                        markerUnits="strokeWidth"
-                        markerWidth="10"
-                        markerHeight="10"
-                        viewBox="0 0 12 12"
-                        refX="6"
-                        refY="6"
-                        orient="auto"
-                    >
-                        <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{fill: 'blue'}} />
-                    </marker>
-                </defs>
-                <g ref={this.setRef} transform={'translate(0, 10)'} />
-            </svg>
+            <div class="col">
+                <svg width={700} height={200}>
+                    <defs>
+                        <marker
+                            id="arrow"
+                            markerUnits="strokeWidth"
+                            markerWidth="10"
+                            markerHeight="10"
+                            viewBox="0 0 12 12"
+                            refX="6"
+                            refY="6"
+                            orient="auto"
+                        >
+                            <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{fill: 'blue'}} />
+                        </marker>
+                    </defs>
+                    <g ref={this.setRef} transform={'translate(0, 10)'} />
+                </svg>
+            </div>
         );
     }
 
@@ -513,56 +515,76 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
             <div className="chapter chapter4">
                 <h2> Chapter 4. How does python dict *really* work internally? </h2>
                 <p>Now it is (finally!) time to explore how the dict works in python!</p>
-                <p>TODO: a few sentences about the chapter</p>
                 <p>
                     This explanation is about the dict in CPython (the most popular, "default", implementation of
-                    python). The implementation of dict in CPython has evolved over time. The dict stayed pretty much
-                    the same from version 2.7 to version 3.2
+                    python). CPython evolved over time, and so did its dictionary implementation. The core ideas stayed
+                    the same, and implementations in all versions are similar to each other and to almost-python-dict
+                    implementation from chapter 3.
+                </p>
+                <p>We will discuss the core ideas first, and then we will discuss evolution. </p>
+                <h5>Probing algorithm</h5>
+                <p>
+                    The major difference in python dict from <code>AlmostPythonDict</code> is the probing algorithm. The
+                    problem with simple linear probing is that it doesn't mix up the values well for many real-world
+                    patterns in the data. For example, a pattern like <code>16</code>, <code>0</code>, <code>1</code>,{' '}
+                    <code>2</code>, <code>3</code>, <code>4</code>
+                    ... would lead to many collisions.
                 </p>
                 <p>
-                    In 3.3, however, there were major changes to the internal structure of dicts (
-                    <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
-                    memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't
-                    get the same hash() for the same object if you relaunched the python interpreter (object hashes are
-                    still stable within the same "run").
+                    It is fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys
+                    this "clump" is prone to growing. Large "clumps" are detrimental to performance.
+                    <blockquote class="blockquote">
+                        <p class="mb-0">
+                            Robert Lafore has given a nice example: it's like the crowd that gathers when someone faints
+                            at the shopping mall. The first arrivals come because they saw the victim fall; later
+                            arrivals gather because they wondered what everyone else was looking at. The larger the
+                            crowd grows, the more people are attracted to it.
+                        </p>
+                        <footer class="blockquote-footer">
+                            Yogesh Umesh Vaity on{' '}
+                            <cite title="Source Title">
+                                <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing">
+                                    stackoverflow
+                                </a>
+                            </cite>
+                        </footer>
+                    </blockquote>
                 </p>
                 <p>
-                    In 3.4, <a href="https://www.python.org/dev/peps/pep-0456/">the hash function itself was changed</a>
-                    .
+                    However, nothing prevents us from using a different algorithm that scrambles indexes better. The
+                    first requirements is that algorithm should be determensitic. The second requirement is that the
+                    algorithm would hit an empty slot if it exists, even if it takes it a lot of steps. Although,
+                    ideally we don't want any collisions, we still need the worst case to work.{' '}
                 </p>
                 <p>
-                    In 3.6{' '}
-                    <a href="https://bugs.python.org/issue27350">
-                        the dict internal structure became more compact and the dict became "ordered"
-                    </a>
-                    .
-                </p>
-                <p>However, the core idea has stayed the same throughout all versions so far.</p>
-                <p>We will discuss the major changes one by one.</p>
-                <h5> Probing algorithm</h5>
-                <p>
-                    The major difference in python dict from our <code>AlmostPythonDict</code> versions is probing
-                    algorithm. The problem with simple linear probing is that it doesn't mix up the values well for many
-                    patterns that can occur in the real data. Patterns like 16, 0, 1, 2, 3, 4... lead many collisions.
-                </p>
-                <p>
-                    It is also fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of
-                    keys this "clump" is prone to growing. Large "clumps" are detrimental of performance. There is a
-                    nice metaphor by Robert Lafore: it's like the crowd that gathers when someone faints at the shopping
-                    mall. The first arrivals come because they saw the victim fall; later arrivals gather because they
-                    wondered what everyone else was looking at. The larger the crowd grows, the more people are
-                    attracted to it.{' '}
-                    <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing">
-                        From: stackoverflow.
-                    </a>
-                </p>
-                <p>TODO</p>
-                <p>If we use this probing algorithm instead of linear probing, we get python 3.2's version of dict.</p>
-                <p>
-                    <code>5 * i + 1</code> is guaranteed to cover all indexes. The pattern is fairly regular
+                    Compare linear probing (<code>idx = (idx + 1) % size</code>)
                 </p>
                 <ProbingVisualization slotsCount={slotsCount} links={linksSimpleProbing} />
+                <p>
+                    To the following reccurrence: <code>idx = (5 * idx + 1) % size</code>
+                </p>
                 <ProbingVisualization slotsCount={slotsCount} links={links5iPlus1} />
+                <p>
+                    <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
+                    <code>size</code> is a power of two (the proof of this fact is outside of the scope of this page).
+                    And the algorithm is obviously determenistic. This means it would work for probing.
+                </p>
+                <p>
+                    The probing algorithm in CPython takes this recurrence and adds even more index scrambling to it:{' '}
+                </p>
+                TODO: initialize perturb and proper code
+                <pre>
+                    <code>{`
+idx = (5 * idx) + 1 + perturb;
+perturb >>= PERTURB_SHIFT;
+use j % 2**i as the next table index;`}</code>
+                </pre>
+                <p>
+                    The resulting probing algorithm uses some (pseudo)-randomness in the form of hash code - but it is
+                    still fully deterministic. <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
+                    <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot eventually.
+                </p>
+                <p> Let's see how this algorithm works for: </p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.keyForProbingVis}
@@ -570,15 +592,22 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 />
                 <ProbingVisualization slotsCount={slotsCount} links={linksPython} />
                 <p>
-                    Python using some extra bit twiddling on top of modified linear probing. Here is how the code looks
-                    like in C.
+                    It looks like adding noise (in the form of <code>perturb</code>) could make things slower when hash
+                    table is full. And that's actually true - the worst scenario case becomes a bit worse (compared to{' '}
+                    <code>(5 * idx) + 1</code>
+                    ). However, in practice, our dicts are relatively sparse (we're capping fill factor at around{' '}
+                    <code>66%</code>
+                    ), so we don't expect a lot of collisions. And the initial noise prevents clustering and extra
+                    collisions for regular patterns of keys (which are common in real-world data).
                 </p>
-                TODO
                 <p>
-                    The C code implicitly converts a hash code to an unsigned integer and then performs bit shifts. The
-                    equivalent python code is a bit cumbersome.
+                    If you are interested in more subtleties and technical details, you can check{' '}
+                    <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt">Objects/dictnotes.txt</a>{' '}
+                    and{' '}
+                    <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c">
+                        comments neart the top of Objects/dictobject.c
+                    </a>
                 </p>
-                <p>The whole scheme may look weird, but it guarantees to stop over all indexes</p>
                 <h5> Python 3.2's dict </h5>
                 <p>Let's see how this dict can be implemented.</p>
                 <p>Let's say we want to create a python dict from the following pairs:</p>
@@ -629,6 +658,27 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                 />
+                <h5>Brief history of changes in the following versions</h5>
+                <p>
+                    In 3.3 there were major changes to the internal structure of dicts (
+                    <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
+                    memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't
+                    get the same hash() for the same object if you relaunched the python interpreter (object hashes are
+                    still stable within the same "run").
+                </p>
+                <p>
+                    In 3.4, the hash function itself was changed{' '}
+                    <a href="https://www.python.org/dev/peps/pep-0456/">to a more secure algorithm</a> which is more
+                    resistant to hash collision attacks.
+                </p>
+                <p>
+                    In 3.6{' '}
+                    <a href="https://bugs.python.org/issue27350">
+                        the dict internal structure became more compact and the dict became "ordered"
+                    </a>
+                    .
+                </p>
+                <p>However, the core idea has stayed the same throughout all versions so far.</p>
             </div>
         );
     }
