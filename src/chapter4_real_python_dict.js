@@ -608,12 +608,19 @@ use j % 2**i as the next table index;`}</code>
                         comments neart the top of Objects/dictobject.c
                     </a>
                 </p>
-                <h5> Python 3.2's dict </h5>
-                <p>Let's see how this dict can be implemented.</p>
-                <p>Let's say we want to create a python dict from the following pairs:</p>
+                <h5>Python 3.2's dict</h5>
+                <p>
+                    The main distinction between almost-python-dict from chapter 3 and the real world implementation in
+                    python 3.2 is the probing algorithm. It is described above. But there are a couple more subtleties.
+                </p>
+                <p>When you type a dict literal in your code, for example: </p>
                 <MySticky>
                     <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
+                <p>
+                    python actualy knows the size of the literal, and can pre-compute the optimal hash table size to
+                    completely avoid resizing.
+                </p>
                 <p>Insert:</p>
                 <VisualizedCode
                     code={DICT32_SETITEM}
