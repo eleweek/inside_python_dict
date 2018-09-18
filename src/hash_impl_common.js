@@ -182,17 +182,57 @@ export function pyHashUnicode(s) {
     return pyHashStringAndUnicode(s);
 }
 
-export function pyHashInt(n) {
-    /* TODO: actually implement something... Though it works for most ints now */
-    const hash = n;
-    return hash !== -1 ? hash : -2;
+export function pyHashLong(num) {
+    const twoToPyLong_SHIFT = BigNumber(2).pow(30);
+    const BASE = twoToPyLong_SHIFT;
+    const _PyHASH_MODULUS = BigNumber(2)
+        .pow(61)
+        .minus(1);
+
+    let x = BigNumber(0);
+    let sign = 1;
+    if (num.lt(0)) {
+        sign = -1;
+        num = num.negated();
+    }
+
+    let digits = [];
+    while (num.gt(0)) {
+        const d = num.mod(BASE);
+        num = num.idiv(BASE);
+        digits.push(d);
+    }
+
+    for (const d of digits.reverse()) {
+        x = x
+            .times(twoToPyLong_SHIFT)
+            .plus(d)
+            .modulo(_PyHASH_MODULUS);
+    }
+
+    if (sign < 0) {
+        x = x.negated();
+    }
+    if (x.gte(BigNumber(2).pow(63))) {
+        x = BigNumber(2)
+            .pow(64)
+            .minus(x);
+    }
+
+    if (x.eq(-1)) {
+        x = BigNumber(-2);
+    }
+
+    return x;
 }
 
 export function pyHash(o) {
     if (typeof o === 'string') {
         return BigNumber(pyHashUnicode(o));
     } else if (typeof o === 'number') {
-        return BigNumber(pyHashInt(o));
+        return pyHashLong(BigNumber(o));
+    } else if (BigNumber.isBigNumber(o)) {
+        return pyHashLong(o);
     } else if (isNone(o)) {
         // TODO: for None hash seems to be always different
         return BigNumber(o._hashCode);
