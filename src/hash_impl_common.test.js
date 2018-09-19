@@ -7,6 +7,7 @@ test('pyHashLong() from short int', () => {
     expect(pyHashLong(BigNumber(-1)).eq(-2)).toBe(true);
     expect(pyHashLong(BigNumber(-2)).eq(-2)).toBe(true);
     expect(pyHashLong(BigNumber(-3)).eq(-3)).toBe(true);
+    expect(pyHashLong(BigNumber(-18)).eq(-18)).toBe(true);
 });
 
 test('pyHashLong() from longs', () => {

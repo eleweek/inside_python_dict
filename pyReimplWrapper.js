@@ -10,7 +10,7 @@ import {Slot} from './src/chapter3_and_4_common';
 import {List} from 'immutable';
 
 function parseSimplePyObj(obj) {
-    if (obj === null || typeof obj === 'number' || typeof obj === 'string') {
+    if (obj === null || typeof obj === 'string') {
         return obj;
     } else if (typeof obj === 'object' && obj.type === 'None') {
         let res = None;
@@ -18,6 +18,8 @@ function parseSimplePyObj(obj) {
         return res;
     } else if (typeof obj === 'object' && obj.type === 'DUMMY') {
         return DUMMY;
+    } else if (typeof obj === 'object' && obj.type === 'int') {
+        return BigNumber(obj.value);
     } else {
         throw new Error(`Unknown obj ${JSON.stringify(obj)}`);
     }
@@ -31,6 +33,11 @@ function dumpSimplePyObj(obj) {
     } else if (obj === None) {
         return {
             type: 'None',
+        };
+    } else if (BigNumber.isBigNumber(obj)) {
+        return {
+            type: 'int',
+            value: obj.toString(),
         };
     } else {
         return obj;
@@ -145,7 +152,6 @@ const server = net.createServer(c => {
         if (!line) return;
         const data = JSON.parse(line);
         let pySelf = restorePyDictState(data.self);
-        // console.log(self);
         const dictType = data.dict;
         const op = data.op;
         let {key, value} = data.args;
@@ -164,8 +170,6 @@ const server = net.createServer(c => {
         } else {
             throw new Error('Unknown dict type');
         }
-        // TODO: the whole thing is kinda ugly, encapsulate passing all these classes (e.g. Dict32Resize around)
-        // TODO: isException is really ugly, make .run() properly return exception
 
         console.log('Writing response');
         c.write(

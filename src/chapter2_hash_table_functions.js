@@ -1,8 +1,10 @@
 import * as React from 'react';
 import _ from 'lodash';
 
+import {BigNumber} from 'bignumber.js';
+
 import {List} from 'immutable';
-import {pyHash, pyHashUnicode, pyHashInt, HashBreakpointFunction, DUMMY} from './hash_impl_common';
+import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
@@ -83,7 +85,7 @@ class HashCreateNew extends HashBreakpointFunction {
                 this.addBP('check-dup-hash');
                 if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                     this.addBP('check-dup-key');
-                    if (this.keys.get(this.idx) === this.key) {
+                    if (EQ(this.keys.get(this.idx), this.key)) {
                         this.addBP('check-dup-break');
                         break;
                     }
@@ -140,7 +142,7 @@ function formatHashCreateNewAndInsert(bp) {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
         case 'check-dup-hash':
-            if (bp.hashCodes[bp.idx] === bp.hashCode) {
+            if (EQ(bp.hashCodes[bp.idx], bp.hashCode)) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${
                     bp.hashCode
                 }</code>, we cannot rule out the slot being occupied by the same key`;
@@ -150,7 +152,7 @@ function formatHashCreateNewAndInsert(bp) {
                 }</code>, so there is a collision with a different key`;
             }
         case 'check-dup-key':
-            if (bp.keys[bp.idx] === bp.key) {
+            if (EQ(bp.keys[bp.idx], bp.key)) {
                 return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is already in the table`;
             } else {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a collision`;
@@ -203,7 +205,7 @@ function formatHashRemoveSearch(bp) {
                 return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied, so check it`;
             }
         case 'check-hash':
-            if (bp.hashCodes[bp.idx] === bp.hashCode) {
+            if (bp.hashCodes[bp.idx].eq(bp.hashCode)) {
                 return `<code>${bp.hashCodes[bp.idx]} == ${bp.hashCode}</code>, so the slot might contain the same key`;
             } else {
                 return `<code>${bp.hashCodes[bp.idx]} != ${
@@ -211,7 +213,7 @@ function formatHashRemoveSearch(bp) {
                 }</code>, so the slot definitely contains a different key`;
             }
         case 'check-key':
-            if (bp.keys[bp.idx] === bp.key) {
+            if (EQ(bp.keys[bp.idx], bp.key)) {
                 return `<code>${bp.keys[bp.idx]} == ${bp.key}</code>, so the key is found`;
             } else {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a different key with the same hash`;
@@ -280,7 +282,7 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
             this.addBP('check-hash');
             if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-key');
-                if (this.keys.get(this.idx) === this.key) {
+                if (EQ(this.keys.get(this.idx), this.key)) {
                     if (isRemoveMode) {
                         this.keys = this.keys.set(this.idx, DUMMY);
                         this.addBP('assign-dummy');
@@ -464,7 +466,7 @@ class HashInsert extends HashBreakpointFunction {
             this.addBP('check-dup-hash');
             if (this.hashCodes.get(this.idx).eq(this.hashCode)) {
                 this.addBP('check-dup-key');
-                if (this.keys.get(this.idx) === this.key) {
+                if (EQ(this.keys.get(this.idx), this.key)) {
                     this.addBP('check-dup-break');
                     break;
                 }
@@ -510,7 +512,7 @@ class HashExamples extends React.Component {
                         value={this.state.integer}
                         onChange={value => this.setState({integer: value})}
                     />
-                    <code>)</code> = <code>{pyHashInt(this.state.integer)}</code>
+                    <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toString()}</code>
                 </p>
                 <p>
                     Floats: <code>hash(42.5)</code> = <code>1426259968</code>

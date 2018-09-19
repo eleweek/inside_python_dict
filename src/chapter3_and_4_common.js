@@ -12,7 +12,7 @@ import {
     dummyFormat,
 } from './code_blocks';
 
-import {HashBreakpointFunction, pyHash, DUMMY} from './hash_impl_common';
+import {HashBreakpointFunction, pyHash, DUMMY, EQ} from './hash_impl_common';
 
 export function postBpTransform(bp) {
     let cloned = _.clone(bp);
@@ -103,7 +103,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         }
         case 'check-dup-key': {
             const slotKey = bp.self.slots[bp.idx].key;
-            if (slotKey === bp.key) {
+            if (EQ(slotKey, bp.key)) {
                 return `<code>${slotKey} == ${bp.key}</code>, so the key is already present in the table`;
             } else {
                 return `<code>${slotKey} != ${bp.key}</code>, so there is a collision`;
@@ -277,7 +277,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
                     .hashCode.eq(this.hashCode)
             ) {
                 this.addBP('check-dup-key');
-                if (this.self.get('slots').get(this.idx).key === this.key) {
+                if (EQ(this.self.get('slots').get(this.idx).key, this.key)) {
                     this.targetIdx = this.idx;
                     this.addBP('set-target-idx-found');
                     this.addBP('check-dup-break');
@@ -372,7 +372,7 @@ export class HashClassLookdictBase extends HashBreakpointFunction {
                     .hashCode.eq(this.hashCode)
             ) {
                 this.addBP('check-key');
-                if (this.self.get('slots').get(this.idx).key === this.key) {
+                if (EQ(this.self.get('slots').get(this.idx).key, this.key)) {
                     this.addBP('return-idx');
                     return this.idx;
                 }

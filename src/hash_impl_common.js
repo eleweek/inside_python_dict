@@ -230,6 +230,8 @@ export function pyHash(o) {
     if (typeof o === 'string') {
         return BigNumber(pyHashUnicode(o));
     } else if (typeof o === 'number') {
+        // TODO:
+        // throw new Error(`Plain JS numbers are not supported, use BigNumber`)
         return pyHashLong(BigNumber(o));
     } else if (BigNumber.isBigNumber(o)) {
         return pyHashLong(o);
@@ -237,7 +239,7 @@ export function pyHash(o) {
         // TODO: for None hash seems to be always different
         return BigNumber(o._hashCode);
     } else {
-        throw 'pyHash called with an object of unknown type: ' + o;
+        throw new Error('pyHash called with an object of unknown type: ' + JSON.stringify(o));
     }
 }
 
@@ -307,4 +309,12 @@ export function isNone(o) {
 
 export function isDummy(o) {
     return o instanceof DummyClass;
+}
+
+export function EQ(o1, o2) {
+    if (BigNumber.isBigNumber(o1) && BigNumber.isBigNumber(o2)) {
+        return o1.eq(o2);
+    }
+
+    return o1 === o2;
 }

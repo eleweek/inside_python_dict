@@ -20,13 +20,22 @@ def dump_simple_py_obj(obj):
         return None
     elif obj is None:
         return none_info
+    elif isinstance(obj, int):
+        return {
+            'type': 'int',
+            'value': str(obj)
+        }
     return obj
 
 
 def parse_simple_py_obj(obj):
     if isinstance(obj, dict):
-        assert obj["type"] in ["DUMMY", "None"]
-        return DUMMY if obj["type"] == "DUMMY" else None
+        assert obj["type"] in ["DUMMY", "None", "int"]
+        if obj["type"] == "DUMMY":
+            return DUMMY
+        if obj["type"] == "None":
+            return None
+        return int(obj["value"])
     elif obj is None:
         return EMPTY
     return obj
