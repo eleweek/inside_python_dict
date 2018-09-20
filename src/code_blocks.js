@@ -801,6 +801,10 @@ class TimeSlider extends React.PureComponent {
         this.state = {value: null};
     }
 
+    static getDerivedStateFromProps(nextProps, state) {
+        return {time: nextProps.time};
+    }
+
     handleValueChange = value => {
         this.props.handleTimeChange(value);
         this.setState({time: value});
