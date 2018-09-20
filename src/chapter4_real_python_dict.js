@@ -233,7 +233,7 @@ class ProbingVisualization extends React.Component {
 
     render() {
         return (
-            <div class="col">
+            <div className="col">
                 <svg width={700} height={200}>
                     <defs>
                         <marker
@@ -262,7 +262,6 @@ class ProbingVisualization extends React.Component {
         const boxSize = 30;
         const boxMargin = 8;
 
-        console.log('d3render', this.node);
         let g = d3.select(this.gChild);
         let lineFunction = d3
             .line()
@@ -321,12 +320,9 @@ class ProbingVisualization extends React.Component {
             }
         }
 
-        console.log(links);
-        console.log(this.oldLinks);
         const oldLinks = this.oldLinks;
 
         let t = d3.transition().duration(2000);
-        console.log('Before paths');
         let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
         const enterPaths = updatePaths.enter();
 
@@ -339,13 +335,11 @@ class ProbingVisualization extends React.Component {
             .style('fill', 'none')
             .attr('d', ([start, idx]) => {
                 let end = links[start][idx];
-                console.log('enter', start, end);
                 const lp = arrowLinePoints(start, end);
                 return lineFunction(lp);
             })
             .each(function() {
                 const node = this;
-                console.log('node', node);
                 const totalLength = node.getTotalLength();
                 const selected = d3.select(node);
                 selected
@@ -365,7 +359,6 @@ class ProbingVisualization extends React.Component {
             .attrTween('d', ([start, idx]) => {
                 let end = links[start][idx];
                 let oldEnd = oldLinks[start][idx];
-                console.log('update', start, end, '<-', oldEnd);
                 const oldLp = arrowLinePoints(start, oldEnd);
                 const lp = arrowLinePoints(start, end);
                 const ip = d3.interpolateArray(oldLp, lp);
@@ -373,10 +366,8 @@ class ProbingVisualization extends React.Component {
             })
             .attr('marker-end', 'url(#arrow)');
 
-        console.log('Before exit');
         exitPaths.each(function() {
             const node = this;
-            console.log('node', node);
             const totalLength = node.getTotalLength();
             const selected = d3.select(node);
             selected
@@ -483,9 +474,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         let visitedIdx = new Set();
         while (visitedIdx.size != slotsCount) {
             visitedIdx.add(idx);
-            console.log('init', idx, perturb.toString(), slotsCount);
             const nIdx = nextIdx(idx, perturb, slotsCount);
-            console.log('nIdx', nIdx);
             perturb = perturbShift(perturb);
 
             links[idx].push(nIdx);
@@ -533,23 +522,23 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>
                     It is fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys
                     this "clump" is prone to growing. Large "clumps" are detrimental to performance.
-                    <blockquote class="blockquote">
-                        <p class="mb-0">
-                            Robert Lafore has given a nice example: it's like the crowd that gathers when someone faints
-                            at the shopping mall. The first arrivals come because they saw the victim fall; later
-                            arrivals gather because they wondered what everyone else was looking at. The larger the
-                            crowd grows, the more people are attracted to it.
-                        </p>
-                        <footer class="blockquote-footer">
-                            Yogesh Umesh Vaity on{' '}
-                            <cite title="Source Title">
-                                <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing">
-                                    stackoverflow
-                                </a>
-                            </cite>
-                        </footer>
-                    </blockquote>
                 </p>
+                <blockquote className="blockquote">
+                    <p className="mb-0">
+                        Robert Lafore has given a nice example: it's like the crowd that gathers when someone faints at
+                        the shopping mall. The first arrivals come because they saw the victim fall; later arrivals
+                        gather because they wondered what everyone else was looking at. The larger the crowd grows, the
+                        more people are attracted to it.
+                    </p>
+                    <footer className="blockquote-footer">
+                        Yogesh Umesh Vaity on{' '}
+                        <cite title="Source Title">
+                            <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing">
+                                stackoverflow
+                            </a>
+                        </cite>
+                    </footer>
+                </blockquote>
                 <p>
                     However, nothing prevents us from using a different algorithm that scrambles indexes better. The
                     first requirements is that algorithm should be determensitic. The second requirement is that the
@@ -636,14 +625,8 @@ use j % 2**i as the next table index;`}</code>
                     stateVisualization={HashClassResizeVisualization}
                 />
                 <p>Removing a key looks pretty much the same</p>
-                <p>
-                    Deleting
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
-                </p>
+                <p>Deleting</p>
+                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
                 <VisualizedCode
                     code={DICT32_DELITEM}
                     breakpoints={delRes.bpTransformed}
@@ -651,14 +634,8 @@ use j % 2**i as the next table index;`}</code>
                     stateVisualization={HashClassNormalStateVisualization}
                 />
                 <p>Search is mostly the same</p>
-                <p>
-                    Getting the following key
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToGet}
-                        onChange={this.setter('keyToGet')}
-                    />
-                </p>
+                <p className="inline-block">Getting the following key</p>
+                <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
                 <VisualizedCode
                     code={DICT32_GETITEM}
                     breakpoints={getRes.bpTransformed}

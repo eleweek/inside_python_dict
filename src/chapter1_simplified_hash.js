@@ -338,17 +338,15 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     all, we'll have to scan over the whole array.
                 </p>
                 <p>This simple list scan can be visualized as follows.</p>
-                <p>
-                    For example, let's say we want to search for
-                    <PyShortIntInput
-                        inline={true}
-                        value={this.state.simpleSearchNumber}
-                        onChange={this.setter('simpleSearchNumber')}
-                    />
-                    <span className="text-muted">
-                        (Try changing this field as well! And see how the steps and the data visualization update)
-                    </span>
-                </p>
+                <p className="inline-block">For example, let's say we want to search for</p>
+                <PyShortIntInput
+                    inline={true}
+                    value={this.state.simpleSearchNumber}
+                    onChange={this.setter('simpleSearchNumber')}
+                />
+                <span className="text-muted">
+                    (Try changing this field as well! And see how the steps and the data visualization update)
+                </span>
                 <VisualizedCode
                     code={SIMPLE_LIST_SEARCH}
                     breakpoints={slsRes.bp}
@@ -399,7 +397,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     or hitting an empty slot. The latter situation means that the number is not present.
                 </p>
                 <p>Here is how the search process would look:</p>
-                Let's say we want to search for{' '}
+                <p className="inline-block">Let's say we want to search for</p>
                 <PyShortIntInput
                     inline={true}
                     value={this.state.simplifiedHashSearchNumber}

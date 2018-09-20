@@ -709,15 +709,13 @@ EMPTY = EmptyValueClass()
                     object, and just like with the inserting algorithm, during linear probing we compare actual objects
                     only when hashes are equal.
                 </p>
-                <p>
-                    For instance, let's search for
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.searchedObj}
-                        onChange={this.setter('searchedObj')}
-                    />
-                    and see what happens
-                </p>
+                <p className="inline-block">For instance, let's search for</p>
+                <PyStringOrNumberInput
+                    inline={true}
+                    value={this.state.searchedObj}
+                    onChange={this.setter('searchedObj')}
+                />
+                and see what happens
                 <VisualizedCode
                     code={HASH_SEARCH_CODE}
                     breakpoints={searchRes.bpTransformed}
@@ -734,14 +732,12 @@ EMPTY = EmptyValueClass()
                     a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This
                     object acts as a placeholder that indicates we shouldn't stop probing during a search.
                 </p>
-                <p>
-                    Let's see this in action. Let's say we want to remove{' '}
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.objToRemove}
-                        onChange={this.setter('objToRemove')}
-                    />
-                </p>
+                <p className="inline-block">Let's see this in action. Let's say we want to remove </p>
+                <PyStringOrNumberInput
+                    inline={true}
+                    value={this.state.objToRemove}
+                    onChange={this.setter('objToRemove')}
+                />
                 <VisualizedCode
                     code={HASH_REMOVE_CODE}
                     breakpoints={removeRes.bpTransformed}

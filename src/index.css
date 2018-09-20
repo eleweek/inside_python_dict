@@ -248,3 +248,7 @@ blockquote.blockquote {
     padding: 0.5em 10px;
     margin-top: 5px;
 }
+
+.inline-block {
+    display: inline-block;
+}

@@ -608,9 +608,9 @@ function deepGet(obj, path) {
 export function Tetris(props) {
     let elems = [];
     const transformedBp = props.bp;
-    for (let [Component, [dataLabel, dataName, idxName, idx2Name]] of props.lines) {
+    for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name]]] of props.lines.entries()) {
         elems.push(
-            <div className="tetris-row">
+            <div className="tetris-row" key={`row-${i}`}>
                 <div className="tetris-row-label-div">
                     <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>
                 </div>

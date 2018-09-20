@@ -428,14 +428,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     method is now used for realism, so we can do <code>del almost_dict[42]</code>. And we decrement the{' '}
                     <code>self.used</code> counter if we end up finding the element and removing it.
                 </p>
-                <p>
-                    For example, let's say we want to remove{' '}
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
-                </p>
+                <p className="inline-block">For example, let's say we want to remove </p>
+                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
                 <VisualizedCode
                     code={HASH_CLASS_DELITEM}
                     breakpoints={delRes.bpTransformed}
@@ -447,14 +441,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks
                     pretty much the same as <code>__delitem__</code>
                 </p>
-                <p>
-                    Searching for
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToGet}
-                        onChange={this.setter('keyToGet')}
-                    />
-                </p>
+                <p className="inline-block">Searching for</p>
+                <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
                 <VisualizedCode
                     code={HASH_CLASS_GETITEM}
                     breakpoints={getRes.bpTransformed}
@@ -487,19 +475,17 @@ export class Chapter3_HashClass extends ChapterComponent {
                     However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (TODO:
                     add some sort of preface | Can you come up with an item that would replace the dummy object?).
                 </p>
-                <p> Let's say we want to insert the following key value pair </p>
-                <p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToSetRecycling}
-                        onChange={this.setter('keyToSetRecycling')}
-                    />
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.valueToSetRecycling}
-                        onChange={this.setter('valueToSetRecycling')}
-                    />
-                </p>
+                <p> Let's say we want to insert the following key value pair: </p>
+                <PyStringOrNumberInput
+                    inline={true}
+                    value={this.state.keyToSetRecycling}
+                    onChange={this.setter('keyToSetRecycling')}
+                />
+                <PyStringOrNumberInput
+                    inline={true}
+                    value={this.state.valueToSetRecycling}
+                    onChange={this.setter('valueToSetRecycling')}
+                />
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                     breakpoints={setRecyclingRes.bpTransformed}
