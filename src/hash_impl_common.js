@@ -312,8 +312,10 @@ export function isDummy(o) {
 }
 
 export function EQ(o1, o2) {
-    if (BigNumber.isBigNumber(o1) && BigNumber.isBigNumber(o2)) {
+    if (BigNumber.isBigNumber(o1) && (BigNumber.isBigNumber(o2) || typeof o2 === 'number')) {
         return o1.eq(o2);
+    } else if (BigNumber.isBigNumber(o2) && typeof o1 === 'number') {
+        return o2.eq(o1);
     }
 
     return o1 === o2;
