@@ -494,35 +494,38 @@ class HashExamples extends React.Component {
     render() {
         return (
             <div>
-                <p>
-                    Strings:
-                    <code>hash(</code>
-                    <PyStringInput
-                        autogrowing={true}
-                        value={this.state.string}
-                        onChange={value => this.setState({string: value})}
-                    />
-                    <code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
-                </p>
-                <p>
-                    Integers:
-                    <code>hash(</code>
-                    <PyNumberInput
-                        autogrowing={true}
-                        value={this.state.integer}
-                        onChange={value => this.setState({integer: value})}
-                    />
-                    <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
-                </p>
-                <p>
-                    Floats: <code>hash(42.5)</code> = <code>1426259968</code>
-                </p>
-                <p>
-                    Tuples: <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
-                </p>
-                <p>
-                    None: <code>hash(None)</code> = <code>-9223372036581563745</code>
-                </p>
+                <span>Strings: </span>
+                <code>hash(</code>
+                <PyStringInput
+                    autogrowing={true}
+                    value={this.state.string}
+                    onChange={value => this.setState({string: value})}
+                />
+                <code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
+                <br />
+                <br />
+                <span>Integers: </span>
+                <code>hash(</code>
+                <PyNumberInput
+                    autogrowing={true}
+                    value={this.state.integer}
+                    onChange={value => this.setState({integer: value})}
+                />
+                <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
+                <br />
+                <br />
+                <span>Floats: </span>
+                <code>hash(42.5)</code> = <code>1426259968</code>
+                <br />
+                <br />
+                <span>Tuples: </span>
+                <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
+                <br />
+                <br />
+                <span>None: </span>
+                <code>hash(None)</code> = <code>-9223372036581563745</code>
+                <br />
+                <br />
             </div>
         );
     }

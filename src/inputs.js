@@ -66,7 +66,7 @@ class ParsableInput extends React.Component {
                 <AutosizeInput
                     minWidth={140}
                     type="text"
-                    className="parsable-input"
+                    className="parsable-input-autosize"
                     value={this.state.value}
                     onChange={this.handleChange}
                 />

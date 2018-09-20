@@ -45,8 +45,13 @@ blockquote {
     font-weight: 400;
 }
 
-.parsable-input {
+.parsable-input,
+.parsable-input-autosize {
     font-size: 14px;
+}
+
+div.hash-example-instance {
+    padding-bottom: 10px;
 }
 
 .invalid-feedback.invalid-feedback-block-parsable-input {
