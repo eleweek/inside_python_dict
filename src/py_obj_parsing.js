@@ -1,5 +1,7 @@
 import {None, isNone} from './hash_impl_common';
 
+import {BigNumber} from 'bignumber.js';
+
 class PyParsingError extends Error {
     constructor(text, pos) {
         // super(`${text} (at position ${pos})`);
@@ -164,11 +166,10 @@ export class PyObjParser {
             this.throwErr(nonDecimalErrorString);
         }
         // TODO: python parses numbers like ++1, -+--1, etc properly
-        const parsedNum = +num;
-        if (isNaN(parsedNum)) {
+        if (isNaN(+num)) {
             this.throwErr('Invalid number', originalPos);
         }
-        return parsedNum;
+        return BigNumber(num);
     }
 
     parseString() {
@@ -247,7 +248,12 @@ export function parsePyStringOrNumber(s) {
 // TODO: Dump functions are very hacky right now
 
 function dumpSimplePyObj(o) {
-    if (isNone(o)) return 'None';
+    if (isNone(o)) {
+        return 'None';
+    }
+    if (BigNumber.isBigNumber(o)) {
+        return o.toString();
+    }
     return JSON.stringify(o);
 }
 

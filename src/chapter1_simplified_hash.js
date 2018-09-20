@@ -4,7 +4,7 @@ import {List} from 'immutable';
 
 import {BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
-import {PyListInput, PyNumberInput} from './inputs';
+import {PyListInput, PyShortIntInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -340,7 +340,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <p>This simple list scan can be visualized as follows.</p>
                 <p>
                     For example, let's say we want to search for
-                    <PyNumberInput
+                    <PyShortIntInput
                         inline={true}
                         value={this.state.simpleSearchNumber}
                         onChange={this.setter('simpleSearchNumber')}
@@ -400,7 +400,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 </p>
                 <p>Here is how the search process would look:</p>
                 Let's say we want to search for{' '}
-                <PyNumberInput
+                <PyShortIntInput
                     inline={true}
                     value={this.state.simplifiedHashSearchNumber}
                     onChange={this.setter('simplifiedHashSearchNumber')}

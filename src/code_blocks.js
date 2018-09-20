@@ -83,7 +83,7 @@ function pyObjToReactKey(obj) {
     } else if (isDummy(obj)) {
         res = ['dummy'];
     } else if (BigNumber.isBigNumber(obj)) {
-        res = ['bignumber.js', obj.toString()];
+        res = ['bignumber.js', obj.toFixed()];
     } else {
         throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
     }
@@ -92,8 +92,10 @@ function pyObjToReactKey(obj) {
 }
 
 function pyObjToDisplayedString(obj) {
-    if (typeof obj === 'number' || isNone(obj) || isDummy(obj) || BigNumber.isBigNumber(obj)) {
+    if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
         return obj.toString();
+    } else if (BigNumber.isBigNumber(obj)) {
+        return obj.toFixed();
     } else if (typeof obj === 'string') {
         return JSON.stringify(obj);
     } else {

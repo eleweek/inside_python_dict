@@ -512,7 +512,7 @@ class HashExamples extends React.Component {
                         value={this.state.integer}
                         onChange={value => this.setState({integer: value})}
                     />
-                    <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toString()}</code>
+                    <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
                 </p>
                 <p>
                     Floats: <code>hash(42.5)</code> = <code>1426259968</code>

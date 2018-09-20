@@ -116,6 +116,20 @@ export function PyNumberInput(props) {
     return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyNumber} />;
 }
 
+function _parseShortInt(value) {
+    const maxnum = 999;
+    const b = parsePyNumber(value);
+    if (b.lt(-maxnum) || b.gt(maxnum)) {
+        throw new Error('In chapter 1, only small integers are supported (between -999 and 999)');
+    }
+
+    return +b.toString();
+}
+
+export function PyShortIntInput(props) {
+    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={_parseShortInt} />;
+}
+
 export function PyStringInput(props) {
     return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyString} />;
 }

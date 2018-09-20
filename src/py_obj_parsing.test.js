@@ -1,3 +1,4 @@
+import {BigNumber} from 'bignumber.js';
 import {
     parsePyString,
     parsePyNumber,
@@ -47,23 +48,23 @@ test('Parsing escaped strings', () => {
 });
 
 test('Parsing regular numbers', () => {
-    expect(parsePyNumber('0')).toEqual(0);
-    expect(parsePyNumber('1')).toEqual(1);
-    expect(parsePyNumber('-1')).toEqual(-1);
-    expect(parsePyNumber('+1')).toEqual(1);
+    expect(parsePyNumber('0')).toEqual(BigNumber(0));
+    expect(parsePyNumber('1')).toEqual(BigNumber(1));
+    expect(parsePyNumber('-1')).toEqual(BigNumber(-1));
+    expect(parsePyNumber('+1')).toEqual(BigNumber(1));
 
-    expect(parsePyNumber('   0    ')).toEqual(0);
-    expect(parsePyNumber('  1  ')).toEqual(1);
-    expect(parsePyNumber('  -1    ')).toEqual(-1);
-    expect(parsePyNumber('     +1   ')).toEqual(1);
+    expect(parsePyNumber('   0    ')).toEqual(BigNumber(0));
+    expect(parsePyNumber('  1  ')).toEqual(BigNumber(1));
+    expect(parsePyNumber('  -1    ')).toEqual(BigNumber(-1));
+    expect(parsePyNumber('     +1   ')).toEqual(BigNumber(1));
 
-    expect(parsePyNumber('     +1   ')).toEqual(1);
+    expect(parsePyNumber('     +1   ')).toEqual(BigNumber(1));
 
-    expect(parsePyNumber('+123132')).toEqual(123132);
-    expect(parsePyNumber('123132')).toEqual(123132);
-    expect(parsePyNumber('+131')).toEqual(131);
-    expect(parsePyNumber('-131')).toEqual(-131);
-    expect(parsePyNumber('-123132')).toEqual(-123132);
+    expect(parsePyNumber('+123132')).toEqual(BigNumber(123132));
+    expect(parsePyNumber('123132')).toEqual(BigNumber(123132));
+    expect(parsePyNumber('+131')).toEqual(BigNumber(131));
+    expect(parsePyNumber('-131')).toEqual(BigNumber(-131));
+    expect(parsePyNumber('-123132')).toEqual(BigNumber(-123132));
 });
 
 test('Parsing numbers: reject floats and non-decimals', () => {
@@ -100,7 +101,7 @@ test('Parsing numbers: reject non-numbers', () => {
 
 test('Parsing py strings or numbers', () => {
     expect(parsePyStringOrNumber('  "aba"  ')).toEqual('aba');
-    expect(parsePyStringOrNumber('  17  ')).toEqual(17);
+    expect(parsePyStringOrNumber('  17  ')).toEqual(BigNumber(17));
     expect(parsePyStringOrNumber('  "17"  ')).toEqual('17');
 });
 
@@ -116,10 +117,20 @@ test('Parsing dicts: empty dict', () => {
 });
 
 test('Parsing dicts: just ints', () => {
-    expect(parsePyDict(' {1:2,  2:  3,4:     5,6:7   }')).toEqual([[1, 2], [2, 3], [4, 5], [6, 7]]);
-    expect(parsePyDict('{   1:2,2:  3,4:   5,6:7}')).toEqual([[1, 2], [2, 3], [4, 5], [6, 7]]);
+    expect(parsePyDict(' {1:2,  2:  3,4:     5,6:7   }')).toEqual([
+        [BigNumber(1), BigNumber(2)],
+        [BigNumber(2), BigNumber(3)],
+        [BigNumber(4), BigNumber(5)],
+        [BigNumber(6), BigNumber(7)],
+    ]);
+    expect(parsePyDict('{   1:2,2:  3,4:   5,6:7}')).toEqual([
+        [BigNumber(1), BigNumber(2)],
+        [BigNumber(2), BigNumber(3)],
+        [BigNumber(4), BigNumber(5)],
+        [BigNumber(6), BigNumber(7)],
+    ]);
 
-    const m12 = [[1, 2]];
+    const m12 = [[BigNumber(1), BigNumber(2)]];
     expect(parsePyDict('{1:2}')).toEqual(m12);
     expect(parsePyDict('  {1:2}')).toEqual(m12);
     expect(parsePyDict('  {1:2}   ')).toEqual(m12);
@@ -133,23 +144,38 @@ test('Parsing dicts: just strings', () => {
 });
 
 test('Parsing dicts: mixed strings and ints', () => {
-    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   }")).toEqual([['a', 2], [3, 'c'], ['d', 4], [5, 'g']]);
+    expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   }")).toEqual([
+        ['a', BigNumber(2)],
+        [BigNumber(3), 'c'],
+        ['d', BigNumber(4)],
+        [BigNumber(5), 'g'],
+    ]);
 });
 
 test('Parsing dicts: mixed strings, ints and Nones with repeated keys', () => {
     expect(parsePyDict(" {'a':2,  3:  'c','d':     4,5:'g'   , 'a': 'b', 5: 'f'      }               ")).toEqual([
-        ['a', 2],
-        [3, 'c'],
-        ['d', 4],
-        [5, 'g'],
+        ['a', BigNumber(2)],
+        [BigNumber(3), 'c'],
+        ['d', BigNumber(4)],
+        [BigNumber(5), 'g'],
         ['a', 'b'],
-        [5, 'f'],
+        [BigNumber(5), 'f'],
     ]);
     expect(
         parsePyDict(
             " {'a':2,  3:  'c', None: 'abc', 'd':     4,5:'g'   , 'a': 'b', 5: 'f'      , 'a': None, None  : 42 }               "
         )
-    ).toEqual([['a', 2], [3, 'c'], [None, 'abc'], ['d', 4], [5, 'g'], ['a', 'b'], [5, 'f'], ['a', None], [None, 42]]);
+    ).toEqual([
+        ['a', BigNumber(2)],
+        [BigNumber(3), 'c'],
+        [None, 'abc'],
+        ['d', BigNumber(4)],
+        [BigNumber(5), 'g'],
+        ['a', 'b'],
+        [BigNumber(5), 'f'],
+        ['a', None],
+        [None, BigNumber(42)],
+    ]);
 });
 
 test('Parsing dicts: malformed dicts', () => {
@@ -176,13 +202,31 @@ test('Parsing lists: empty list', () => {
 });
 
 test('Parsing lists: just ints', () => {
-    expect(parsePyList(' [1,2,  2,  3,4,     5,6,7   ]')).toEqual([1, 2, 2, 3, 4, 5, 6, 7]);
-    expect(parsePyList('[   1,2,2,  3,4,   5,6,7]')).toEqual([1, 2, 2, 3, 4, 5, 6, 7]);
+    expect(parsePyList(' [1,2,  2,  3,4,     5,6,7   ]')).toEqual([
+        BigNumber(1),
+        BigNumber(2),
+        BigNumber(2),
+        BigNumber(3),
+        BigNumber(4),
+        BigNumber(5),
+        BigNumber(6),
+        BigNumber(7),
+    ]);
+    expect(parsePyList('[   1,2,2,  3,4,   5,6,7]')).toEqual([
+        BigNumber(1),
+        BigNumber(2),
+        BigNumber(2),
+        BigNumber(3),
+        BigNumber(4),
+        BigNumber(5),
+        BigNumber(6),
+        BigNumber(7),
+    ]);
 
-    expect(parsePyList('[1,2]')).toEqual([1, 2]);
-    expect(parsePyList('  [1,2]')).toEqual([1, 2]);
-    expect(parsePyList('  [1,2]   ')).toEqual([1, 2]);
-    expect(parsePyList('[1,2]   ')).toEqual([1, 2]);
+    expect(parsePyList('[1,2]')).toEqual([BigNumber(1), BigNumber(2)]);
+    expect(parsePyList('  [1,2]')).toEqual([BigNumber(1), BigNumber(2)]);
+    expect(parsePyList('  [1,2]   ')).toEqual([BigNumber(1), BigNumber(2)]);
+    expect(parsePyList('[1,2]   ')).toEqual([BigNumber(1), BigNumber(2)]);
 });
 
 test('Parsing lists: just strings', () => {
@@ -209,29 +253,56 @@ test('Parsing lists: just strings', () => {
 });
 
 test('Parsing lists: mixed strings and ints', () => {
-    expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual(['a', 2, 3, 'c', 'd', 4, 5, 'g']);
+    expect(parsePyList(" ['a',2,  3,  'c','d',     4,5,'g'   ]")).toEqual([
+        'a',
+        BigNumber(2),
+        BigNumber(3),
+        'c',
+        'd',
+        BigNumber(4),
+        BigNumber(5),
+        'g',
+    ]);
 });
 
 test('Parsing lists: mixed strings, ints and Nones with repeated values', () => {
     expect(parsePyList(" ['a',2,  3,  'c'   ,'d',     4,5,'g'   , 'a', 'b', 5, 'f'      ]               ")).toEqual([
         'a',
-        2,
-        3,
+        BigNumber(2),
+        BigNumber(3),
         'c',
         'd',
-        4,
-        5,
+        BigNumber(4),
+        BigNumber(5),
         'g',
         'a',
         'b',
-        5,
+        BigNumber(5),
         'f',
     ]);
     expect(
         parsePyList(
             " ['a',2,  None ,  3,  'c','d',  None  ,    4,5,'g' ,  None,None,None , 'a', 'b', 5, 'f'      ]               "
         )
-    ).toEqual(['a', 2, None, 3, 'c', 'd', None, 4, 5, 'g', None, None, None, 'a', 'b', 5, 'f']);
+    ).toEqual([
+        'a',
+        BigNumber(2),
+        None,
+        BigNumber(3),
+        'c',
+        'd',
+        None,
+        BigNumber(4),
+        BigNumber(5),
+        'g',
+        None,
+        None,
+        None,
+        'a',
+        'b',
+        BigNumber(5),
+        'f',
+    ]);
 });
 
 test('Parsing lists: malformed lists', () => {
@@ -268,11 +339,33 @@ test('Dumping lists', () => {
 
 test('Dumping dicts', () => {
     expect(dumpPyDict(new Map())).toEqual('{}');
-    expect(dumpPyDict([[1, 2], [2, 3], [3, 4], [5, 9]])).toEqual('{1: 2, 2: 3, 3: 4, 5: 9}');
-    expect(dumpPyDict([['abc', 4], ['def', 'fgh'], [2, 9], [3, 'ar'], [5, '']])).toEqual(
-        '{"abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: ""}'
-    );
     expect(
-        dumpPyDict([[None, 3], ['abc', 4], ['def', 'fgh'], [2, 9], [3, 'ar'], [5, ''], [None, 'abc'], ['abc', 5]])
+        dumpPyDict([
+            [BigNumber(1), BigNumber(2)],
+            [BigNumber(2), BigNumber(3)],
+            [BigNumber(3), BigNumber(4)],
+            [BigNumber(5), BigNumber(9)],
+        ])
+    ).toEqual('{1: 2, 2: 3, 3: 4, 5: 9}');
+    expect(
+        dumpPyDict([
+            ['abc', BigNumber(4)],
+            ['def', 'fgh'],
+            [BigNumber(2), BigNumber(9)],
+            [BigNumber(3), 'ar'],
+            [BigNumber(5), ''],
+        ])
+    ).toEqual('{"abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: ""}');
+    expect(
+        dumpPyDict([
+            [None, BigNumber(3)],
+            ['abc', BigNumber(4)],
+            ['def', 'fgh'],
+            [BigNumber(2), BigNumber(9)],
+            [BigNumber(3), 'ar'],
+            [BigNumber(5), ''],
+            [None, 'abc'],
+            ['abc', BigNumber(5)],
+        ])
     ).toEqual('{None: 3, "abc": 4, "def": "fgh", 2: 9, 3: "ar", 5: "", None: "abc", "abc": 5}');
 });
