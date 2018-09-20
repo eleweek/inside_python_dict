@@ -408,6 +408,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
+                    {...this.props}
                 />
 
                 <p>TODO: conditional here: i.e. resize after step X.</p>
@@ -417,6 +418,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
+                    {...this.props}
                 />
                 <p>
                     The code for removing and searching is pretty much the same, because, in order to remove an element
@@ -437,6 +439,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     formatBpDesc={dummyFormat}
                     stateVisualization={HashClassNormalStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks
@@ -449,6 +452,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     breakpoints={getRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
+                    {...this.props}
                 />
 
                 <p>
@@ -492,6 +496,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     breakpoints={setRecyclingRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
+                    {...this.props}
                 />
             </div>
         );

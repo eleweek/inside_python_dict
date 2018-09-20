@@ -70,20 +70,21 @@ export class App extends React.Component {
     }
 
     render() {
+        const {windowWidth, windowHeight} = this.state;
         return (
             <div className="app-container container-fluid">
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
                 <MyErrorBoundary>
-                    <Chapter1_SimplifiedHash />
+                    <Chapter1_SimplifiedHash windowWidth={windowWidth} windowHeight={windowHeight} />
                 </MyErrorBoundary>
                 <MyErrorBoundary>
-                    <Chapter2_HashTableFunctions />
+                    <Chapter2_HashTableFunctions windowWidth={windowWidth} windowHeight={windowHeight} />
                 </MyErrorBoundary>
                 <MyErrorBoundary>
-                    <Chapter3_HashClass />
+                    <Chapter3_HashClass windowWidth={windowWidth} windowHeight={windowHeight} />
                 </MyErrorBoundary>
                 <MyErrorBoundary>
-                    <Chapter4_RealPythonDict />
+                    <Chapter4_RealPythonDict windowWidth={windowWidth} windowHeight={windowHeight} />
                 </MyErrorBoundary>
             </div>
         );

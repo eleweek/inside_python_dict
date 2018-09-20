@@ -618,6 +618,7 @@ use j % 2**i as the next table index;`}</code>
                     breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
+                    {...this.props}
                 />
                 <p>Let's look at the first resize in depth:</p>
                 <VisualizedCode
@@ -625,6 +626,7 @@ use j % 2**i as the next table index;`}</code>
                     breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
+                    {...this.props}
                 />
                 <p>Removing a key looks pretty much the same</p>
                 <p>Deleting</p>
@@ -634,6 +636,7 @@ use j % 2**i as the next table index;`}</code>
                     breakpoints={delRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
+                    {...this.props}
                 />
                 <p>Search is mostly the same</p>
                 <p className="inline-block">Getting the following key</p>
@@ -643,6 +646,7 @@ use j % 2**i as the next table index;`}</code>
                     breakpoints={getRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
+                    {...this.props}
                 />
                 <h5>Brief history of changes in the following versions</h5>
                 <p>

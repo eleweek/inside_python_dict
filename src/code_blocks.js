@@ -605,29 +605,33 @@ function deepGet(obj, path) {
     return node;
 }
 
-export function Tetris(props) {
-    let elems = [];
-    const transformedBp = props.bp;
-    for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name]]] of props.lines.entries()) {
-        elems.push(
-            <div className="tetris-row" key={`row-${i}`}>
-                <div className="tetris-row-label-div">
-                    <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>
+export class Tetris extends React.PureComponent {
+    render() {
+        const props = this.props;
+        let elems = [];
+        const transformedBp = props.bp;
+        this.height = 0;
+        for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name]]] of props.lines.entries()) {
+            elems.push(
+                <div className="tetris-row" key={`row-${i}`}>
+                    <div className="tetris-row-label-div">
+                        <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>
+                    </div>
+                    <Component array={deepGet(props.bp, dataName)} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />
                 </div>
-                <Component array={deepGet(props.bp, dataName)} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />
-            </div>
+            );
+        }
+
+        // TODO: width/height stuff here
+        return (
+            <SmoothScrollbar alwaysShowTracks={true}>
+                <div style={{width: '700px'}}>
+                    <div className="some-hacky-padding" style={{height: 40}} />
+                    <div className="tetris">{elems}</div>
+                </div>
+            </SmoothScrollbar>
         );
     }
-
-    // TODO: width/height stuff here
-    return (
-        <SmoothScrollbar alwaysShowTracks={true}>
-            <div style={{width: '700px'}}>
-                <div className="some-hacky-padding" style={{height: 40}} />
-                <div className="tetris">{elems}</div>
-            </div>
-        </SmoothScrollbar>
-    );
 }
 
 export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {

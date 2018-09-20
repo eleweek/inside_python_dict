@@ -702,6 +702,7 @@ EMPTY = EmptyValueClass()
                     breakpoints={newRes.bpTransformed}
                     formatBpDesc={formatHashCreateNewAndInsert}
                     stateVisualization={HashCreateNewStateVisualization}
+                    {...this.props}
                 />
                 <h5> Searching </h5>
                 <p>
@@ -721,6 +722,7 @@ EMPTY = EmptyValueClass()
                     breakpoints={searchRes.bpTransformed}
                     formatBpDesc={formatHashRemoveSearch}
                     stateVisualization={HashNormalStateVisualization}
+                    {...this.props}
                 />
                 <h5> Removing objects </h5>
                 <p>
@@ -743,6 +745,7 @@ EMPTY = EmptyValueClass()
                     breakpoints={removeRes.bpTransformed}
                     formatBpDesc={formatHashRemoveSearch}
                     stateVisualization={HashNormalStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table
@@ -770,6 +773,7 @@ EMPTY = EmptyValueClass()
                     breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={formatHashResize}
                     stateVisualization={HashResizeStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     There is still one more important question. What condition should trigger the resizing opration? If

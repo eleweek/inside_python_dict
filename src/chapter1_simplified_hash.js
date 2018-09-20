@@ -352,6 +352,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     breakpoints={slsRes.bp}
                     formatBpDesc={formatSimpleListSearchBreakpointDescription}
                     stateVisualization={SimpleListSearchStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     Of course, we only have a few elements here, so scanning over them is no big deal. But what if we
@@ -390,6 +391,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     breakpoints={siaRes.bpTransformed}
                     formatBpDesc={formatSimplifiedInsertAllDescription}
                     stateVisualization={SimplifiedInsertStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     To search for a number, we simply retrace all the steps necessary to insert it. So we start from the
@@ -408,6 +410,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     breakpoints={ssRes.bpTransformed}
                     formatBpDesc={formatSimplifiedSearchDescription}
                     stateVisualization={SimplifiedSearchStateVisualization}
+                    {...this.props}
                 />
                 <p>
                     Calculating an index based on the values of numbers and doing linear probing in the case of a
