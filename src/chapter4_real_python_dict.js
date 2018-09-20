@@ -24,10 +24,14 @@ import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
-// TODO: prune d3 stuff
-import * as d3 from 'd3';
-// TODO: probably don't really need it
-import 'd3-selection-multi';
+const d3 = Object.assign(
+    {},
+    require('d3-selection'),
+    require('d3-interpolate'),
+    require('d3-shape'),
+    require('d3-transition'),
+    require('d3-array')
+);
 
 function signedToUnsigned(num) {
     if (num.lt(0)) {
@@ -277,13 +281,11 @@ class ProbingVisualization extends React.Component {
             .data(d3.range(slotsCount))
             .enter()
             .append('rect')
-            .attrs((d, i) => ({
-                x: (boxSize + boxMargin) * i,
-                y: topSpace,
-                width: boxSize,
-                height: boxSize,
-                fill: '#ededed', // TODO: might need a better color
-            }));
+            .style('fill', '#ededed')
+            .attr('x', (d, i) => (boxSize + boxMargin) * i)
+            .attr('y', topSpace)
+            .attr('width', boxSize)
+            .attr('height', boxSize);
 
         const arrowLinePointsAsArray = (i1, i2) => {
             let ystart, yend, ymid;
