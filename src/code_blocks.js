@@ -796,8 +796,14 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 }
 
 class TimeSlider extends React.PureComponent {
+    constructor() {
+        super();
+        this.state = {value: null};
+    }
+
     handleValueChange = value => {
         this.props.handleTimeChange(value);
+        this.setState({time: value});
     };
 
     render() {
@@ -807,13 +813,14 @@ class TimeSlider extends React.PureComponent {
                 marks[i] = '';
             }
         }
+        const time = this.state.time != null ? this.state.time : this.props.time;
         return (
             <Slider
                 marks={marks}
                 onChange={this.handleValueChange}
                 min={0}
                 max={this.props.maxTime}
-                value={this.props.time}
+                value={time}
                 dotStyle={{
                     top: -2,
                     height: 14,
