@@ -44,6 +44,11 @@ export class App extends React.Component {
                 windowWidth: window.innerWidth,
                 windowHeight: window.innerHeight,
             };
+        } else {
+            this.state = {
+                windowWidth: null,
+                windowHeight: null,
+            };
         }
     }
 
