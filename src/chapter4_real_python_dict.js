@@ -332,6 +332,8 @@ function ProbingStateVisualization({bp}) {
 }
 
 class ProbingVisualization extends React.Component {
+    firstRender = true;
+
     setRef = node => {
         this.gChild = node;
     };
@@ -425,7 +427,14 @@ class ProbingVisualization extends React.Component {
 
         const oldLinks = this.oldLinks;
 
-        let t = d3.transition().duration(1000);
+        let transitionTime;
+        if (this.firstRender) {
+            this.firstRender = false;
+            transitionTime = 0;
+        } else {
+            transitionTime = 1000;
+        }
+        let t = d3.transition().duration(transitionTime);
         let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
         const enterPaths = updatePaths.enter();
 
@@ -446,16 +455,22 @@ class ProbingVisualization extends React.Component {
                 const totalLength = node.getTotalLength();
                 const selected = d3.select(node);
                 selected
+                    .classed('entering', true)
                     .attr('stroke-dasharray', totalLength + ' ' + totalLength)
                     .attr('stroke-dashoffset', totalLength)
                     .transition(t)
                     .attr('stroke-dashoffset', 0)
                     .on('end', () => {
                         selected.attr('marker-end', 'url(#arrow)');
+                        selected.classed('entering', false);
                     });
             });
 
         updatePaths
+            .filter(function(d, i) {
+                const [start, idx] = d;
+                return !d3.select(this).classed('entering') || oldLinks[start][idx] != links[start][idx];
+            })
             .attr('stroke-dasharray', null)
             .attr('stroke-dashoffset', null)
             .transition(t)
@@ -469,18 +484,23 @@ class ProbingVisualization extends React.Component {
             })
             .attr('marker-end', 'url(#arrow)');
 
-        exitPaths.each(function() {
-            const node = this;
-            const totalLength = node.getTotalLength();
-            const selected = d3.select(node);
-            selected
-                .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-                .attr('stroke-dashoffset', 0)
-                .attr('marker-end', null)
-                .transition(t)
-                .attr('stroke-dashoffset', totalLength)
-                .remove();
-        });
+        exitPaths
+            .filter(function(d, i) {
+                return !d3.select(this).classed('exiting');
+            })
+            .classed('exiting', true)
+            .each(function() {
+                const node = this;
+                const totalLength = node.getTotalLength();
+                const selected = d3.select(node);
+                selected
+                    .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                    .attr('stroke-dashoffset', 0)
+                    .attr('marker-end', null)
+                    .transition(t)
+                    .attr('stroke-dashoffset', totalLength)
+                    .remove();
+            });
 
         this.oldLinks = links;
     }
