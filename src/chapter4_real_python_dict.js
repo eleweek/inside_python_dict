@@ -17,11 +17,12 @@ import {
     formatHashClassResize,
     postBpTransform,
 } from './chapter3_and_4_common';
-import {pyHash, computeIdx} from './hash_impl_common';
+import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
 import {VisualizedCode} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
+import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
 import memoizeOne from 'memoize-one';
 const d3 = Object.assign(
@@ -102,10 +103,10 @@ function formatDict32IdxRelatedBp(bp) {
 }
 
 const DICT32_SETITEM = [
-    /*["@staticmethod", ""],
-    ["def signed_to_unsigned(hash_code):", ""],
-    ["    return 2**64 + hash_code if hash_code < 0 else hash_code", ""],
-    ["", ""],*/
+    ['@staticmethod', ''],
+    ['def signed_to_unsigned(hash_code):', ''],
+    ['    return 2**64 + hash_code if hash_code < 0 else hash_code', ''],
+    ['', ''],
     ['def __setitem__(self, key, value):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -228,9 +229,109 @@ export class Dict32 {
     }
 }
 
-class ProbingVisualization extends React.Component {
-    rendered = false;
+// TODO: check code
+const SIGNED_TO_UNSIGNED_CODE = [
+    ['def signed_to_unsigned(hash_code):', 'def-signed-to-unsigned', 0],
+    ['    return 2**64 + hash_code if hash_code < 0 else hash_code', 'run-signed-to-unsigned', 1],
+];
 
+// TODO: check code
+const PROBING_IDX_PLUS_ONE_CODE = [
+    ['def probe_all(key):', 'def-probe-all', 0],
+    ['    hash_code = hash(key)', 'compute-hash', 1],
+    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
+    ['    visited = set()', 'create-empty-set', 1],
+    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
+    ['        visited.add(idx)', 'visited-add', 2],
+    ['        idx = (idx + 1) % len(self.slots)', 'next-idx', 2],
+];
+
+// TODO: check code
+const PROBING_FIVE_IDX_PLUS_ONE_CODE = [
+    ['def probe_all(key):', 'def-probel-all', 0],
+    ['    hash_code = hash(key)', 'compute-hash', 1],
+    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
+    ['    visited = set()', 'create-empty-set', 1],
+    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
+    ['        visited.add(idx)', 'visited-add', 2],
+    ['        idx = (5 * idx + 1) % len(self.slots)', 'next-idx', 2],
+];
+
+// TODO: check code
+// TODO: move break condition?
+const PROBING_PYTHON_CODE = [
+    ...SIGNED_TO_UNSIGNED_CODE,
+    ['', '', 0],
+    ['PERTURB_SHIFT = 5', '', 0],
+    ['def probe_all(key):', 'def-probel-all', 0],
+    ['    hash_code = hash(key)', 'compute-hash', 1],
+    ['    perturb = self.signed_to_unsigned(hash_code)', 'compute-perturb', 1],
+    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
+    ['    visited = set()', 'create-empty-set', 1],
+    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
+    ['        visited.add(idx)', 'visited-add', 2],
+    ['        idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 2],
+    ['        perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 2],
+];
+
+class GenerateProbingLinks extends BreakpointFunction {
+    run(_slotsCount, _key, algo) {
+        this.slotsCount = _slotsCount;
+        this.key = _key;
+        this.links = new ImmutableList();
+        for (let i = 0; i < this.slotsCount; ++i) {
+            this.links = this.links.set(i, new ImmutableList());
+        }
+
+        this.hash = pyHash(this.key);
+        this.addBP('compute-hash');
+
+        if (algo === 'python') {
+            this.perturb = computePerturb(this.hash);
+            this.addBP('compute-perturb');
+        }
+
+        this.idx = computeIdx(this.hash, this.slotsCount);
+        this.addBP('compute-idx');
+        this.visitedIdx = new ImmutableSet();
+        this.addBP('create-empty-set');
+        while (true) {
+            this.addBP('while-loop');
+            if (this.visitedIdx.size === this.slotsCount) {
+                break;
+            }
+            this.visitedIdx = this.visitedIdx.add(this.idx);
+            this.addBP('visited-add');
+            let nIdx;
+            if (algo === 'python') {
+                nIdx = nextIdx(this.idx, this.perturb, this.slotsCount);
+            } else if (algo === '5i+1') {
+                nIdx = (5 * this.idx + 1) % this.slotsCount;
+            } else if (algo === 'i+1') {
+                nIdx = (this.idx + 1) % this.slotsCount;
+            } else {
+                throw new Error(`Unknown probing algorithm: ${algo}`);
+            }
+            this.links = this.links.set(this.idx, this.links.get(this.idx).push(nIdx));
+            this.idx = nIdx;
+            this.addBP('next-idx');
+            if (algo === 'python') {
+                this.perturb = perturbShift(this.perturb);
+                this.addBP('perturb-shift');
+            }
+        }
+
+        return this.links;
+    }
+}
+
+function ProbingStateVisualization({bp}) {
+    // TODO: don't call toJS() every time?
+    console.log(bp);
+    return <ProbingVisualization slotsCount={8} links={bp.links.toJS()} />;
+}
+
+class ProbingVisualization extends React.Component {
     setRef = node => {
         this.gChild = node;
     };
@@ -238,7 +339,7 @@ class ProbingVisualization extends React.Component {
     render() {
         return (
             <div className="col">
-                <svg width={700} height={200}>
+                <svg width={700} height={150}>
                     <defs>
                         <marker
                             id="arrow"
@@ -324,7 +425,7 @@ class ProbingVisualization extends React.Component {
 
         const oldLinks = this.oldLinks;
 
-        let t = d3.transition().duration(2000);
+        let t = d3.transition().duration(1000);
         let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
         const enterPaths = updatePaths.enter();
 
@@ -393,12 +494,8 @@ class ProbingVisualization extends React.Component {
     }
 }
 
-function array2d(n) {
-    let res = [];
-
-    for (let i = 0; i < n; ++i) res.push([]);
-
-    return res;
+function dummyFormat() {
+    return '';
 }
 
 export class Chapter4_RealPythonDict extends ChapterComponent {
@@ -449,41 +546,34 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         return {bp, bpTransformed: bp.map(postBpTransform)};
     });
 
-    generateLinksSimpleProbing = memoizeOne(slotsCount => {
-        let links = array2d(slotsCount);
-        for (let i = 0; i < slotsCount; ++i) {
-            links[i].push((i + 1) % slotsCount);
-        }
+    runProbingSimple = memoizeOne(slotsCount => {
+        let g = new GenerateProbingLinks();
+        let links = g.run(slotsCount, '', 'i+1');
 
-        return links;
+        return {
+            links: links.toJS(),
+            bp: g.getBreakpoints(),
+        };
     });
 
-    generateLinks5iPlus1 = memoizeOne(slotsCount => {
-        let links = array2d(slotsCount);
-        for (let i = 0; i < slotsCount; ++i) {
-            links[i].push((5 * i + 1) % slotsCount);
-        }
+    runProbing5iPlus1 = memoizeOne(slotsCount => {
+        let g = new GenerateProbingLinks();
+        let links = g.run(slotsCount, '', '5i+1');
 
-        return links;
+        return {
+            links: links.toJS(),
+            bp: g.getBreakpoints(),
+        };
     });
 
-    generateLinksPython = memoizeOne((slotsCount, obj) => {
-        let links = array2d(slotsCount);
+    runProbingPython = memoizeOne((slotsCount, obj) => {
+        let g = new GenerateProbingLinks();
+        let links = g.run(slotsCount, obj, 'python');
 
-        const hash = pyHash(obj);
-        let perturb = computePerturb(hash);
-        let idx = computeIdx(hash, slotsCount);
-        let visitedIdx = new Set();
-        while (visitedIdx.size != slotsCount) {
-            visitedIdx.add(idx);
-            const nIdx = nextIdx(idx, perturb, slotsCount);
-            perturb = perturbShift(perturb);
-
-            links[idx].push(nIdx);
-            idx = nIdx;
-        }
-
-        return links;
+        return {
+            links: links.toJS(),
+            bp: g.getBreakpoints(),
+        };
     });
 
     render() {
@@ -498,9 +588,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
         const slotsCount = 8;
-        const linksSimpleProbing = this.generateLinksSimpleProbing(slotsCount);
-        const links5iPlus1 = this.generateLinks5iPlus1(slotsCount);
-        const linksPython = this.generateLinksPython(slotsCount, this.state.keyForProbingVis);
+        const probingSimple = this.runProbingSimple(slotsCount);
+        const probing5iPlus1 = this.runProbing5iPlus1(slotsCount);
+        const probingPython = this.runProbingPython(slotsCount, this.state.keyForProbingVis);
 
         return (
             <div className="chapter chapter4">
@@ -550,11 +640,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>
                     Compare linear probing (<code>idx = (idx + 1) % size</code>)
                 </p>
-                <ProbingVisualization slotsCount={slotsCount} links={linksSimpleProbing} />
+                <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
                 <p>
                     To the following reccurrence: <code>idx = (5 * idx + 1) % size</code>
                 </p>
-                <ProbingVisualization slotsCount={slotsCount} links={links5iPlus1} />
+                <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
                 <p>
                     <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
                     <code>size</code> is a power of two (the proof of this fact is outside of the scope of this page).
@@ -575,13 +665,19 @@ use j % 2**i as the next table index;`}</code>
                     still fully deterministic. <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
                     <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot eventually.
                 </p>
-                <p> Let's see how this algorithm works for: </p>
+                <p className="inline-block"> Let's see how this algorithm works for: </p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.keyForProbingVis}
                     onChange={this.setter('keyForProbingVis')}
                 />
-                <ProbingVisualization slotsCount={slotsCount} links={linksPython} />
+                <VisualizedCode
+                    code={PROBING_PYTHON_CODE}
+                    breakpoints={probingPython.bp}
+                    formatBpDesc={dummyFormat}
+                    stateVisualization={ProbingStateVisualization}
+                    {...this.props}
+                />
                 <p>
                     It looks like adding noise (in the form of <code>perturb</code>) could make things slower when hash
                     table is full. And that's actually true - the worst scenario case becomes a bit worse (compared to{' '}
@@ -629,7 +725,7 @@ use j % 2**i as the next table index;`}</code>
                     {...this.props}
                 />
                 <p>Removing a key looks pretty much the same</p>
-                <p>Deleting</p>
+                <p className="inline-block">Deleting</p>
                 <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
                 <VisualizedCode
                     code={DICT32_DELITEM}
