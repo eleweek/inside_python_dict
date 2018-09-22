@@ -16,18 +16,10 @@ import {HashBreakpointFunction, pyHash, DUMMY, EQ} from './hash_impl_common';
 
 export function postBpTransform(bp) {
     let cloned = _.clone(bp);
-    const getHash = s => (s.hashCode != null ? s.hashCode : null);
-
     cloned.self = cloned.self.toJS();
-    cloned.hashCodes = cloned.self.slots.map(getHash);
-    cloned.keys = cloned.self.slots.map(s => s.key);
-    cloned.values = cloned.self.slots.map(s => s.value);
 
     if (bp.oldSlots) {
         cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : cloned.oldSlots;
-        cloned.oldHashCodes = cloned.oldSlots.map(getHash);
-        cloned.oldKeys = cloned.oldSlots.map(s => s.key);
-        cloned.oldValues = cloned.oldSlots.map(s => s.value);
     }
 
     return cloned;
