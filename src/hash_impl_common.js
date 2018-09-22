@@ -3,25 +3,27 @@ import _ from 'lodash';
 import {BigNumber} from 'bignumber.js';
 
 class Int64 {
+    SIZE = 64;
+    JS_NUM_MAX_SIZE = 32;
+
     constructor(jsNumInt32 = 0) {
-        this.size = 64;
-        this.jsNumMaxSize = 32;
+        this.JS_NUM_MAX_SIZE = 32;
 
         this.data = [];
         let signBit = jsNumInt32 >= 0 ? 0 : 1;
 
-        for (let i = 0; i < this.jsNumMaxSize; ++i) {
+        for (let i = 0; i < this.JS_NUM_MAX_SIZE; ++i) {
             let bit = jsNumInt32 & (1 << i) ? 1 : 0;
             this.data.push(bit);
         }
 
-        for (let i = this.jsNumMaxSize; i < this.size; ++i) {
+        for (let i = this.JS_NUM_MAX_SIZE; i < this.SIZE; ++i) {
             this.data.push(signBit);
         }
     }
 
-    xorBy(other) {
-        for (let i = 0; i < this.size; ++i) {
+    xor(other) {
+        for (let i = 0; i < this.SIZE; ++i) {
             this.data[i] ^= other.data[i];
         }
 
@@ -38,7 +40,7 @@ class Int64 {
     }
 
     eq(other) {
-        for (let i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.SIZE; ++i) {
             if (this.data[i] != other.data[i]) {
                 return false;
             }
@@ -48,7 +50,7 @@ class Int64 {
 
     add(other) {
         let carry = 0;
-        for (let i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.SIZE; ++i) {
             this.data[i] += other.data[i] + carry;
             carry = (this.data[i] / 2) | 0;
             this.data[i] %= 2;
@@ -58,33 +60,31 @@ class Int64 {
     }
 
     complement() {
-        for (let i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.SIZE; ++i) {
             this.data[i] = this.data[i] == 0 ? 1 : 0;
         }
 
         return this;
     }
 
-    mulBy(other) {
-        let originalData = _.cloneDeep(this.data);
-        let otherData = _.cloneDeep(other.data);
+    mul(other) {
+        let newData = [];
 
-        for (let i = 0; i < this.size; ++i) {
-            this.data[i] = 0;
+        for (let i = 0; i < this.SIZE; ++i) {
+            newData[i] = 0;
         }
 
-        for (let i = 0; i < this.size; ++i) {
-            if (originalData[i] == 0) {
+        for (let i = 0; i < this.SIZE; ++i) {
+            if (this.data[i] === 0) {
                 continue;
             }
 
-            for (let j = 0; j < this.size; ++j) {
-                if (i + j < this.size) {
-                    this.data[i + j] += originalData[i] * otherData[j];
-                }
+            for (let j = 0; j < this.SIZE - i; ++j) {
+                newData[i + j] += this.data[i] * other.data[j];
             }
         }
 
+        this.data = newData;
         this._carryOverAll();
 
         return this;
@@ -111,7 +111,7 @@ class Int64 {
 
         let decPower = [1];
         let decRes = [0];
-        for (let i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.SIZE; ++i) {
             let carry = 0;
             if (copyOfThis.data[i]) {
                 for (let j = 0; j < decPower.length; ++j) {
@@ -148,7 +148,7 @@ class Int64 {
 
     _carryOverAll() {
         let carry = 0;
-        for (let i = 0; i < this.size; ++i) {
+        for (let i = 0; i < this.SIZE; ++i) {
             this.data[i] += carry;
             carry = (this.data[i] / 2) | 0;
             this.data[i] %= 2;
@@ -161,10 +161,10 @@ function pyHashStringAndUnicode(s) {
     let magic = new Int64(1000003);
 
     for (let i = 0; i < s.length; ++i) {
-        res = res.mulBy(magic).xorBy(new Int64(s.charCodeAt(i)));
+        res.mul(magic).xor(new Int64(s.charCodeAt(i)));
     }
 
-    res.xorBy(new Int64(s.length));
+    res.xor(new Int64(s.length));
 
     if (res.eq(new Int64(-1))) {
         res = new Int64(-2);
