@@ -354,6 +354,7 @@ class BaseBoxesComponent extends React.PureComponent {
             modificationId: 0,
         };
         this.ref = React.createRef();
+        this.gcTimeout = null;
     }
 
     static getDerivedStateFromProps(nextProps, state) {
@@ -517,6 +518,7 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     garbageCollectAfterAnimationDone(targetModId) {
+        this.gcTimeout = null;
         this.setState(state => {
             const removed = [];
 
@@ -552,7 +554,10 @@ class BaseBoxesComponent extends React.PureComponent {
             /*console.log("Scheduling garbage collection");
             console.log(this.state);*/
             const currentModificationId = this.state.modificationId;
-            setTimeout(
+            if (this.gcTimeout) {
+                clearTimeout(this.gcTimeout);
+            }
+            this.gcTimeout = setTimeout(
                 () => this.garbageCollectAfterAnimationDone(currentModificationId),
                 BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
             );
