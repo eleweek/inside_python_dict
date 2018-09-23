@@ -292,6 +292,7 @@ class GenerateProbingLinks extends BreakpointFunction {
         }
 
         this.idx = computeIdx(this.hash, this.slotsCount);
+        this.startIdx = this.idx;
         this.addBP('compute-idx');
         this.visitedIdx = new ImmutableSet();
         this.addBP('create-empty-set');
@@ -433,7 +434,9 @@ class ProbingVisualizationImpl extends React.Component {
         const boxSize = 30;
         const boxMargin = 8;
 
-        let links = this.props.breakpoints[this.props.bpIdx].links.toJS();
+        const bp = this.props.breakpoints[this.props.bpIdx];
+        let links = bp.links.toJS();
+        let startBoxIdx = bp.startIdx != null ? bp.startIdx : null;
 
         let linksStartIdx = [];
         for (let i = 0; i < links.length; ++i) {
@@ -478,15 +481,18 @@ class ProbingVisualizationImpl extends React.Component {
             })
             .curve(d3.curveMonotoneX); // TODO: better curve
 
-        g.selectAll('rect')
-            .data(d3.range(slotsCount))
+        let rects = g.selectAll('rect').data(d3.range(slotsCount));
+        rects
             .enter()
             .append('rect')
             .style('fill', '#ededed')
             .attr('x', (d, i) => (boxSize + boxMargin) * i)
             .attr('y', topSpace)
             .attr('width', boxSize)
-            .attr('height', boxSize);
+            .attr('height', boxSize)
+            .merge(rects)
+            .style('stroke', (d, i) => (i === startBoxIdx ? 'blue' : 'none'))
+            .style('stroke-width', 1);
 
         const arrowLinePointsAsArray = (i1, i2) => {
             let ystart, yend, ymid;
