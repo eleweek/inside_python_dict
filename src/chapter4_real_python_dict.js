@@ -362,14 +362,13 @@ class ProbingVisualizationImpl extends React.Component {
             shouldUpdate = true;
         } else if (
             nextProps.bpIdx != nextState.bpIdx &&
-            (this.state.transitionToBpIdx == null || nextProps.bpIdx != this.state.transitionToBpIdx)
+            (nextState.transitionToBpIdx == null || nextProps.bpIdx != nextState.transitionToBpIdx)
         ) {
             shouldUpdate = true;
             waitForTransition =
-                this.state.transitionToBpIdx != null &&
-                ((this.state.bpIdx > this.state.transitionToBpIdx && nextProps.bpIdx > this.state.transitionToBpIdx) ||
-                    (this.state.bpIdx < this.state.transitionFromBpIdx &&
-                        nextProps.bpIdx < this.state.transitionToBpIdx));
+                nextState.transitionToBpIdx != null &&
+                ((nextState.bpIdx > nextState.transitionToBpIdx && nextProps.bpIdx > nextState.transitionToBpIdx) ||
+                    (nextState.bpIdx < nextState.transitionToBpIdx && nextProps.bpIdx < nextState.transitionToBpIdx));
         }
 
         return shouldUpdate && (!nextState.transitionRunning || !waitForTransition);
