@@ -335,11 +335,9 @@ function ProbingVisualization({links}) {
 }
 
 class ProbingVisualizationImpl extends React.Component {
-    TRANSITION_TIME = 3000;
+    TRANSITION_TIME = 500;
 
     transitionId = null;
-    transitionFromBpIdx = null;
-    transitionToBpIdx = null;
 
     constructor() {
         super();
@@ -347,6 +345,7 @@ class ProbingVisualizationImpl extends React.Component {
         this.state = {
             firstRender: true,
             transitionRunning: false,
+            transitionToBpIdx: null,
         };
     }
 
@@ -355,37 +354,24 @@ class ProbingVisualizationImpl extends React.Component {
     };
 
     shouldComponentUpdate(nextProps, nextState) {
-        console.log('shouldComponentUpdate()');
-        console.log(nextProps);
-        console.log(nextState);
-        console.log('transition', this.transitionFromBpIdx, '->', this.transitionToBpIdx);
         let waitForTransition = false;
         let shouldUpdate = false;
 
         if (nextProps.breakpoints !== nextState.breakpoints) {
             waitForTransition = true;
             shouldUpdate = true;
-        } else if (nextProps.bpIdx != nextState.bpIdx && nextProps.bpIdx != this.transitionToBpIdx) {
+        } else if (
+            nextProps.bpIdx != nextState.bpIdx &&
+            (this.state.transitionToBpIdx == null || nextProps.bpIdx != this.state.transitionToBpIdx)
+        ) {
             shouldUpdate = true;
-            console.log(
-                '1',
-                this.transitionFromBpIdx > this.transitionToBpIdx && nextProps.bpIdx > this.transitionToBpIdx
-            );
-            console.log('1.1', this.transitionFromBpIdx > this.transitionToBpIdx);
-            console.log('1.2', nextProps.bpIdx > this.transitionToBpIdx);
-            console.log(
-                '2',
-                this.transitionToBpIdx > this.transitionFromBpIdx && nextProps.bpIdx > this.transitionFromBpIdx
-            );
             waitForTransition =
-                !!this.transitionFromBpIdx &&
-                !!this.transitionToBpIdx &&
-                ((this.transitionFromBpIdx > this.transitionToBpIdx && nextProps.bpIdx > this.transitionToBpIdx) ||
-                    (this.transitionToBpIdx > this.transitionFromBpIdx && nextProps.bpIdx < this.transitionToBpIdx));
+                this.state.transitionToBpIdx != null &&
+                ((this.state.bpIdx > this.state.transitionToBpIdx && nextProps.bpIdx > this.state.transitionToBpIdx) ||
+                    (this.state.bpIdx < this.state.transitionFromBpIdx &&
+                        nextProps.bpIdx < this.state.transitionToBpIdx));
         }
 
-        console.log('shouldUpdate', shouldUpdate);
-        console.log('waitForTransition', waitForTransition);
         return shouldUpdate && (!nextState.transitionRunning || !waitForTransition);
     }
 
@@ -426,28 +412,21 @@ class ProbingVisualizationImpl extends React.Component {
     }
 
     transitionEnd() {
-        console.log('transitionEnd() start');
         const newBpIdx = this.transitionToBpIdx;
-        console.log('transitionEnd() newBpIdx', newBpIdx);
-        this.transitionFromBpIdx = null;
-        this.transitionToBpIdx = null;
         this.transitionId = null;
+        // TODO: looks very suspicious, probably need a better way to call setState asynchronously
         setTimeout(
             () =>
                 this.setState({
                     transitionRunning: false,
-                    bpIdx: newBpIdx,
+                    bpIdx: this.state.transitionToBpIdx,
+                    transitionToBpIdx: null,
                 }),
             0
         );
-        console.log('transitionEnd() end');
     }
 
     d3render() {
-        console.log('d3render()');
-        console.log(this.props);
-        console.log(this.state);
-
         const slotsCount = this.props.slotsCount;
 
         const topSpace = 50;
@@ -455,18 +434,39 @@ class ProbingVisualizationImpl extends React.Component {
         const boxSize = 30;
         const boxMargin = 8;
 
-        console.log(this.props.breakpoints);
-        console.log(this.props.bpIdx);
         let links = this.props.breakpoints[this.props.bpIdx].links.toJS();
-        if (!this.transitionFromBpIdx) {
-            this.transitionFromBpIdx = this.state.bpIdx;
-            this.transitionToBpIdx = this.props.bpIdx;
-        } else {
-            // The actual index does not matter, only relative order of indexes matters
-            this.transitionFromBpIdx = this.transitionToBpIdx;
-            this.transitionToBpIdx = this.props.bpIdx;
+
+        let linksStartIdx = [];
+        for (let i = 0; i < links.length; ++i) {
+            for (let j = 0; j < links[i].length; ++j) {
+                linksStartIdx.push([i, j]);
+            }
         }
-        console.log('still d3render()', links, this.transitionFromBpIdx, this.transitionToBpIdx);
+
+        const oldLinks = this.oldLinks;
+
+        let transitionTime;
+        let newState = {
+            transitionToBpIdx: this.props.bpIdx,
+        };
+        if (this.state.firstRender) {
+            newState['firstRender'] = false;
+            transitionTime = 0;
+        } else {
+            transitionTime = this.TRANSITION_TIME;
+            newState['transitionRunning'] = true;
+        }
+
+        let t = d3.transition().duration(transitionTime);
+
+        this.transitionId++;
+        let transitionId = this.transitionId;
+
+        t.on('end', () => {
+            if (this.transitionId === transitionId) {
+                this.transitionEnd();
+            }
+        });
 
         let g = d3.select(this.gChild);
         let lineFunction = d3
@@ -516,36 +516,6 @@ class ProbingVisualizationImpl extends React.Component {
 
         const toPoints = array => array.map(([x, y]) => ({x, y}));
         const arrowLinePoints = (i1, i2) => toPoints(arrowLinePointsAsArray(i1, i2));
-
-        let linksStartIdx = [];
-        for (let i = 0; i < links.length; ++i) {
-            for (let j = 0; j < links[i].length; ++j) {
-                linksStartIdx.push([i, j]);
-            }
-        }
-
-        const oldLinks = this.oldLinks;
-
-        let transitionTime;
-        let newState = {};
-        if (this.state.firstRender) {
-            newState['firstRender'] = false;
-            transitionTime = 0;
-        } else {
-            transitionTime = this.TRANSITION_TIME;
-            newState['transitionRunning'] = true;
-        }
-
-        let t = d3.transition().duration(transitionTime);
-
-        this.transitionId++;
-        let transitionId = this.transitionId;
-
-        t.on('end', () => {
-            if (this.transitionId === transitionId) {
-                this.transitionEnd();
-            }
-        });
 
         let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
         const enterPaths = updatePaths.enter();
@@ -614,7 +584,6 @@ class ProbingVisualizationImpl extends React.Component {
             });
 
         this.oldLinks = links;
-        console.log('d3render callling setState()', newState);
         this.setState(newState);
     }
 
