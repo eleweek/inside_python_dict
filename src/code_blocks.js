@@ -148,7 +148,7 @@ class ActiveBoxSelectionThrottled extends React.Component {
     };
 
     shouldComponentUpdate() {
-        return !this.transitionRunning;
+        return !this.state.transitionRunning;
     }
 
     render() {
