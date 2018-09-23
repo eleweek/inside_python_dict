@@ -902,7 +902,13 @@ export class VisualizedCode extends React.Component {
                             />
                         </div>
                     </div>
-                    <StateVisualization bp={bp} />
+                    <StateVisualization
+                        bp={bp}
+                        /* the breakpoints and bpIdx is for chapter4 probing visualization */ breakpoints={
+                            this.props.breakpoints
+                        }
+                        bpIdx={this.state.time}
+                    />
                 </div>
             </MyErrorBoundary>
         );
