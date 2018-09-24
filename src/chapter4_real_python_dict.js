@@ -305,7 +305,9 @@ class GenerateProbingLinks extends BreakpointFunction {
             } else {
                 throw new Error(`Unknown probing algorithm: ${algo}`);
             }
-            this.links = this.links.set(this.idx, this.links.get(this.idx).push(nIdx));
+
+            const perturbLink = this.perturb != null && !this.perturb.eq(0);
+            this.links = this.links.set(this.idx, this.links.get(this.idx).push({nextIdx: nIdx, perturbLink}));
             this.idx = nIdx;
             this.addBP('next-idx');
             if (algo === 'python') {
@@ -384,18 +386,21 @@ class ProbingVisualizationImpl extends React.Component {
             <div className="col">
                 <svg width={10 + this.props.slotsCount * (30 + 8)} height={150}>
                     <defs>
-                        <marker
-                            id="arrow"
-                            markerUnits="strokeWidth"
-                            markerWidth="10"
-                            markerHeight="10"
-                            viewBox="0 0 12 12"
-                            refX="6"
-                            refY="6"
-                            orient="auto"
-                        >
-                            <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{fill: 'blue'}} />
-                        </marker>
+                        {['blue', 'green'].map(color => (
+                            <marker
+                                id={`arrow-${color}`}
+                                key={`arrow-${color}`}
+                                markerUnits="strokeWidth"
+                                markerWidth="10"
+                                markerHeight="10"
+                                viewBox="0 0 12 12"
+                                refX="6"
+                                refY="6"
+                                orient="auto"
+                            >
+                                <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style={{fill: color}} />
+                            </marker>
+                        ))}
                     </defs>
                     <g ref={this.setRef} transform={'translate(0, 10)'} />
                 </svg>
@@ -483,7 +488,7 @@ class ProbingVisualizationImpl extends React.Component {
             .attr('width', boxSize)
             .attr('height', boxSize)
             .merge(rects)
-            .style('stroke', (d, i) => (i === startBoxIdx ? 'blue' : 'none'))
+            .style('stroke', (d, i) => (i === startBoxIdx ? 'green' : 'none'))
             .style('stroke-width', 1);
 
         const arrowLinePointsAsArray = (i1, i2) => {
@@ -513,6 +518,13 @@ class ProbingVisualizationImpl extends React.Component {
 
         const toPoints = array => array.map(([x, y]) => ({x, y}));
         const arrowLinePoints = (i1, i2) => toPoints(arrowLinePointsAsArray(i1, i2));
+        const getLinkColor = ([start, idx]) => {
+            const perturbLink = links[start][idx].perturbLink;
+            return perturbLink ? 'green' : 'blue';
+        };
+        const getLinkArrow = ([start, idx]) => {
+            return `url(#arrow-${getLinkColor([start, idx])})`;
+        };
 
         let updatePaths = g.selectAll('path').data(linksStartIdx, d => d);
         const enterPaths = updatePaths.enter();
@@ -520,15 +532,15 @@ class ProbingVisualizationImpl extends React.Component {
 
         enterPaths
             .append('path')
-            .style('stroke', 'blue')
+            .style('stroke', getLinkColor)
             .style('stroke-width', 1)
             .style('fill', 'none')
             .attr('d', ([start, idx]) => {
-                let end = links[start][idx];
+                let end = links[start][idx].nextIdx;
                 const lp = arrowLinePoints(start, end);
                 return lineFunction(lp);
             })
-            .each(function() {
+            .each(function(d, i) {
                 const node = this;
                 const totalLength = node.getTotalLength();
                 const selected = d3.select(node);
@@ -539,7 +551,7 @@ class ProbingVisualizationImpl extends React.Component {
                     .transition(t)
                     .attr('stroke-dashoffset', 0)
                     .on('end', () => {
-                        selected.attr('marker-end', 'url(#arrow)');
+                        selected.attr('marker-end', getLinkArrow(d));
                         selected.classed('entering', false);
                     });
             });
@@ -547,20 +559,23 @@ class ProbingVisualizationImpl extends React.Component {
         updatePaths
             .filter(function(d, i) {
                 const [start, idx] = d;
-                return !d3.select(this).classed('entering') || oldLinks[start][idx] != links[start][idx];
+                return (
+                    !d3.select(this).classed('entering') || oldLinks[start][idx].nextIdx != links[start][idx].nextIdx
+                );
             })
+            .style('stroke', getLinkColor)
             .attr('stroke-dasharray', null)
             .attr('stroke-dashoffset', null)
             .transition(t)
             .attrTween('d', ([start, idx]) => {
-                let end = links[start][idx];
-                let oldEnd = oldLinks[start][idx];
+                let end = links[start][idx].nextIdx;
+                let oldEnd = oldLinks[start][idx].nextIdx;
                 const oldLp = arrowLinePoints(start, oldEnd);
                 const lp = arrowLinePoints(start, end);
                 const ip = d3.interpolateArray(oldLp, lp);
                 return t => lineFunction(ip(t));
             })
-            .attr('marker-end', 'url(#arrow)');
+            .attr('marker-end', getLinkArrow);
 
         exitPaths
             .filter(function(d, i) {
@@ -786,6 +801,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     breakpoints={probingPython.bp}
                     formatBpDesc={dummyFormat}
                     stateVisualization={ProbingStateVisualization}
+                    keepTimeOnNewBreakpoints={true}
                     {...this.props}
                 />
                 <p>

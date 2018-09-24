@@ -868,8 +868,9 @@ export class VisualizedCode extends React.Component {
         });
     };
 
+    // TODO: getDerivedStateFromProps
     componentWillReceiveProps(nextProps) {
-        if (nextProps.breakpoints !== this.props.breakpoints) {
+        if (nextProps.breakpoints !== this.props.breakpoints && !this.props.keepTimeOnNewBreakpoints) {
             this.setState({
                 time: nextProps.breakpoints.length - 1,
             });
@@ -879,6 +880,10 @@ export class VisualizedCode extends React.Component {
     render() {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
+
+        let time = this.props.keepTimeOnNewBreakpoints
+            ? Math.min(this.state.time, this.props.length - 1)
+            : this.state.time;
 
         return (
             <MyErrorBoundary>
