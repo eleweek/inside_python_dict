@@ -230,12 +230,6 @@ export class Dict32 {
 }
 
 // TODO: check code
-const SIGNED_TO_UNSIGNED_CODE = [
-    ['def signed_to_unsigned(hash_code):', 'def-signed-to-unsigned', 0],
-    ['    return 2**64 + hash_code if hash_code < 0 else hash_code', 'run-signed-to-unsigned', 1],
-];
-
-// TODO: check code
 const PROBING_IDX_PLUS_ONE_CODE = [
     ['def probe_all(key):', 'def-probe-all', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
@@ -260,12 +254,10 @@ const PROBING_FIVE_IDX_PLUS_ONE_CODE = [
 // TODO: check code
 // TODO: move break condition?
 const PROBING_PYTHON_CODE = [
-    ...SIGNED_TO_UNSIGNED_CODE,
-    ['', '', 0],
     ['PERTURB_SHIFT = 5', '', 0],
     ['def probe_all(key):', 'def-probel-all', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
-    ['    perturb = self.signed_to_unsigned(hash_code)', 'compute-perturb', 1],
+    ['    perturb = 2**64 + hash_code if hash_code < 0 else hash_code', 'compute-perturb', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
     ['    visited = set()', 'create-empty-set', 1],
     ['    while len(visited) < len(self.slots):', 'while-loop', 1],
@@ -712,44 +704,41 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>We will discuss the core ideas first, and then we will discuss evolution. </p>
                 <h5>Probing algorithm</h5>
                 <p>
-                    The major difference in python dict from <code>AlmostPythonDict</code> is the probing algorithm. The
-                    problem with simple linear probing is that it doesn't mix up the values well for many real-world
-                    patterns in the data. For example, a pattern like <code>16</code>, <code>0</code>, <code>1</code>,{' '}
-                    <code>2</code>, <code>3</code>, <code>4</code>
+                    The problem with simple linear probing is that it doesn't mix up the values well for many real-world
+                    data patterns. Real world data tends to be regular. And a pattern like <code>16</code>,{' '}
+                    <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
                     ... would lead to many collisions.
                 </p>
                 <p>
-                    It is fairly prone to clustering, which is a fancy way of saying that once you get a "clump" of keys
-                    this "clump" is prone to growing. Large "clumps" are detrimental to performance.
-                </p>
-                <blockquote className="blockquote">
-                    <p className="mb-0">
-                        Robert Lafore has given a nice example: it's like the crowd that gathers when someone faints at
-                        the shopping mall. The first arrivals come because they saw the victim fall; later arrivals
-                        gather because they wondered what everyone else was looking at. The larger the crowd grows, the
-                        more people are attracted to it.
-                    </p>
-                    <footer className="blockquote-footer">
-                        Yogesh Umesh Vaity on{' '}
-                        <cite title="Source Title">
-                            <a href="https://stackoverflow.com/questions/17386138/quadratic-probing-over-linear-probing">
-                                stackoverflow
-                            </a>
-                        </cite>
-                    </footer>
-                </blockquote>
-                <p>
-                    However, nothing prevents us from using a different algorithm that scrambles indexes better. The
-                    first requirements is that algorithm should be determensitic. The second requirement is that the
-                    algorithm would hit an empty slot if it exists, even if it takes it a lot of steps. Although,
-                    ideally we don't want any collisions, we still need the worst case to work.{' '}
+                    Linear probing is fairly prone to clustering: once you get a "clump" of keys the clump tends to
+                    grow, which causes more collisions, which cause the clump to grow further. This is detrimental to
+                    performance.
                 </p>
                 <p>
-                    Compare linear probing (<code>idx = (idx + 1) % size</code>)
+                    It is possible to address this problem by using a better hash function, especially for integers
+                    (remember, <code>hash(x)</code> == <code>x</code> for small integers in python). But it is also
+                    possible to address this problem by using a different probing algorithm - and this is what CPython
+                    developers chose.
+                </p>
+                <p>There are two requirements for a probing algorithm:</p>
+                <ol>
+                    <li> It should be determensitic. </li>
+                    <li>
+                        It should always hit an empty slot eventually (even if it'd take a lot of steps). We need it to
+                        work even in the worst possible scenario, where there is a collision with every non-empty slot.{' '}
+                    </li>
+                </ol>
+                <p>
+                    Let's take a look at linear probing first. If we repeatedly run it recurrence (
+                    <code>idx = (idx + 1) % size</code>) until we end up hitting the same slot twice, we get the
+                    following picture.
                 </p>
                 <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
                 <p>
-                    To the following reccurrence: <code>idx = (5 * idx + 1) % size</code>
+                    It does not matter what slot we start from, the picture would look exactly the same. Linear probing
+                    is very regular and predictable. Now, let's change the recurrence to{' '}
+                    <code>idx = (5 * idx + 1) % size</code> (note the <code>5</code>
+                    ):
                 </p>
                 <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
                 <p>
@@ -758,21 +747,35 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     And the algorithm is obviously determenistic. This means it would work for probing.
                 </p>
                 <p>
-                    The probing algorithm in CPython takes this recurrence and adds even more index scrambling to it:{' '}
+                    This changes the algorithm quite a bit. It is determenistic (of course), but you can see it
+                    scrambling the order a bit. However, it is still regular and prone to clustering. One important
+                    feature of this algorithm is that it still guarantees to hit every slot if the number of slots is a
+                    power of two (as it is in almost-python-dict and real dict in python). The proof of this fact is
+                    beyond the scope of this chapter though.
                 </p>
-                TODO: initialize perturb and proper code
-                <pre>
-                    <code>{`
-idx = (5 * idx) + 1 + perturb;
-perturb >>= PERTURB_SHIFT;
-use j % 2**i as the next table index;`}</code>
-                </pre>
                 <p>
-                    The resulting probing algorithm uses some (pseudo)-randomness in the form of hash code - but it is
-                    still fully deterministic. <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
-                    <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot eventually.
+                    The probing algorithm in CPython takes this recurrence and adds even more index scrambling to it:{' '}
+                    <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
+                    though?
                 </p>
-                <p className="inline-block"> Let's see how this algorithm works for: </p>
+                <p>
+                    In C code, it is initialized as basicaly: <code> size_t perturb = hash_code</code>. Then, every
+                    iteration, it is right-shifted by <code>5</code> bits.
+                </p>
+                <p>
+                    The resulting probing algorithm uses some "randomness" in the form of bits from hash code - but it
+                    is still fully deterministic. <code>perturb</code> eventually reaches zero, and the recurrence
+                    becomes <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
+                </p>
+                <p>
+                    {' '}
+                    We can reimplement this algorithm in pure python. However, in python there are no unsigned (logical)
+                    bit shifts and there is also no built-in way to convert a 64-bit signed integer to a 64-bit unsigned
+                    integer. The solution is to simulate the conversion with the following one-liner:{' '}
+                    <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit shift
+                    (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
+                </p>
+                <p className="inline-block">Let's see how the algorithm works for the following object:</p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.keyForProbingVis}
@@ -786,34 +789,31 @@ use j % 2**i as the next table index;`}</code>
                     {...this.props}
                 />
                 <p>
-                    It looks like adding noise (in the form of <code>perturb</code>) could make things slower when hash
-                    table is full. And that's actually true - the worst scenario case becomes a bit worse (compared to{' '}
+                    It looks like adding noise (in the form of <code>perturb</code>) makes things slower when hash table
+                    is full. And that's true - the worst scenario case becomes even worse (compared to{' '}
                     <code>(5 * idx) + 1</code>
-                    ). However, in practice, our dicts are relatively sparse (we're capping fill factor at around{' '}
-                    <code>66%</code>
-                    ), so we don't expect a lot of collisions. And the initial noise prevents clustering and extra
-                    collisions for regular patterns of keys (which are common in real-world data).
+                    ). However, in practice, dicts are quite sparse (since we're capping fill factor at around{' '}
+                    <code>2/3</code>
+                    ), so there are a lot of chances to hit an empty slot.
                 </p>
                 <p>
                     If you are interested in more subtleties and technical details, you can check{' '}
                     <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt">Objects/dictnotes.txt</a>{' '}
                     and{' '}
                     <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c">
-                        comments neart the top of Objects/dictobject.c
+                        comments near the top of Objects/dictobject.c
                     </a>
                 </p>
                 <h5>Python 3.2's dict</h5>
-                <p>
-                    The main distinction between almost-python-dict from chapter 3 and the real world implementation in
-                    python 3.2 is the probing algorithm. It is described above. But there are a couple more subtleties.
-                </p>
+                <p>There are a couple more changes to almost-python-dict</p>
                 <p>When you type a dict literal in your code, for example: </p>
                 <MySticky>
                     <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
                 <p>
-                    python actualy knows the size of the literal, and can pre-compute the optimal hash table size to
-                    completely avoid resizing.
+                    Python actually knows the number of key-value pairs, and tries to guess the optimal hash table size
+                    to possibly avoid some or all resizes. This is purely a performance optimization. The dict contents
+                    would look exactly the same with or without the optimization.
                 </p>
                 <p>Insert:</p>
                 <VisualizedCode
