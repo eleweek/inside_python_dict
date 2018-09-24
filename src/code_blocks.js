@@ -858,13 +858,16 @@ export class VisualizedCode extends React.Component {
         super(props);
         this.state = {
             time: props.breakpoints.length - 1,
+            userAdjustedToMax: true,
         };
         this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
     }
 
     handleTimeChange = time => {
+        const userAdjustedToMax = time === this.props.breakpoints.length - 1;
         this.setState({
             time: time,
+            userAdjustedToMax,
         });
     };
 
@@ -880,10 +883,14 @@ export class VisualizedCode extends React.Component {
     render() {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
+        console.log(this.state);
 
         let time = this.props.keepTimeOnNewBreakpoints
-            ? Math.min(this.state.time, this.props.length - 1)
+            ? this.state.userAdjustedToMax
+                ? this.props.breakpoints.length - 1
+                : Math.min(this.state.time, this.props.breakpoints.length - 1)
             : this.state.time;
+        console.log(time, '/', this.props.breakpoints.length - 1);
 
         return (
             <MyErrorBoundary>
@@ -892,7 +899,7 @@ export class VisualizedCode extends React.Component {
                         <div className="col-md-6 col-sm-12">
                             <TimeSlider
                                 handleTimeChange={this.handleTimeChangeThrottled}
-                                time={this.state.time}
+                                time={time}
                                 maxTime={this.props.breakpoints.length - 1}
                             />
                         </div>
@@ -900,7 +907,7 @@ export class VisualizedCode extends React.Component {
                     <div className="row code-block-row">
                         <div className="col">
                             <CodeBlockWithActiveLineAndAnnotations
-                                time={this.state.time}
+                                time={time}
                                 code={this.props.code}
                                 breakpoints={this.props.breakpoints}
                                 formatBpDesc={this.props.formatBpDesc}
@@ -912,7 +919,7 @@ export class VisualizedCode extends React.Component {
                         /* the breakpoints and bpIdx is for chapter4 probing visualization */ breakpoints={
                             this.props.breakpoints
                         }
-                        bpIdx={this.state.time}
+                        bpIdx={time}
                     />
                 </div>
             </MyErrorBoundary>

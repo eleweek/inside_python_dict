@@ -436,13 +436,24 @@ class ProbingVisualizationImpl extends React.Component {
         let startBoxIdx = bp.startIdx != null ? bp.startIdx : null;
 
         let linksStartIdx = [];
+        let nextIdxRepeatedAdjustment = [];
         for (let i = 0; i < links.length; ++i) {
+            let counter = {};
+            nextIdxRepeatedAdjustment.push([]);
             for (let j = 0; j < links[i].length; ++j) {
+                const nextIdx = links[i][j].nextIdx;
+                if (!(nextIdx in counter)) {
+                    counter[nextIdx] = 0;
+                } else {
+                    counter[nextIdx]++;
+                }
                 linksStartIdx.push([i, j]);
+                nextIdxRepeatedAdjustment[i].push(counter[nextIdx]);
             }
         }
 
         const oldLinks = this.oldLinks;
+        const oldNextIdxRepeatedAdjustment = this.oldNextIdxRepeatedAdjustment;
 
         let transitionTime;
         let newState = {
@@ -491,21 +502,21 @@ class ProbingVisualizationImpl extends React.Component {
             .style('stroke', (d, i) => (i === startBoxIdx ? 'green' : 'none'))
             .style('stroke-width', 1);
 
-        const arrowLinePointsAsArray = (i1, i2) => {
+        const arrowLinePointsAsArray = (i1, i2, repeatedAdj) => {
             let ystart, yend, ymid;
 
             let xstartAdjust, xendAdjust;
             if (i1 < i2) {
                 ystart = topSpace;
                 yend = topSpace;
-                ymid = topSpace * (1 - Math.max(i2 - i1, 1) / slotsCount);
+                ymid = topSpace * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
                 xstartAdjust = boxSize * 0.66;
                 xendAdjust = boxSize * 0.33;
             } else {
                 const yOffset = topSpace + boxSize;
                 ystart = yOffset;
                 yend = yOffset;
-                ymid = yOffset + bottomSpace * (Math.max(i1 - i2, 1) / slotsCount);
+                ymid = yOffset + bottomSpace * ((Math.max(i1 - i2, 1) + repeatedAdj) / slotsCount);
                 xstartAdjust = boxSize * 0.33;
                 xendAdjust = boxSize * 0.66;
             }
@@ -517,7 +528,7 @@ class ProbingVisualizationImpl extends React.Component {
         };
 
         const toPoints = array => array.map(([x, y]) => ({x, y}));
-        const arrowLinePoints = (i1, i2) => toPoints(arrowLinePointsAsArray(i1, i2));
+        const arrowLinePoints = (i1, i2, repeatedAdj) => toPoints(arrowLinePointsAsArray(i1, i2, repeatedAdj));
         const getLinkColor = ([start, idx]) => {
             const perturbLink = links[start][idx].perturbLink;
             return perturbLink ? 'green' : 'blue';
@@ -537,7 +548,8 @@ class ProbingVisualizationImpl extends React.Component {
             .style('fill', 'none')
             .attr('d', ([start, idx]) => {
                 let end = links[start][idx].nextIdx;
-                const lp = arrowLinePoints(start, end);
+                const repeatedAdj = nextIdxRepeatedAdjustment[start][idx];
+                const lp = arrowLinePoints(start, end, repeatedAdj);
                 return lineFunction(lp);
             })
             .each(function(d, i) {
@@ -570,8 +582,10 @@ class ProbingVisualizationImpl extends React.Component {
             .attrTween('d', ([start, idx]) => {
                 let end = links[start][idx].nextIdx;
                 let oldEnd = oldLinks[start][idx].nextIdx;
-                const oldLp = arrowLinePoints(start, oldEnd);
-                const lp = arrowLinePoints(start, end);
+                const oldRepeatedAdj = oldNextIdxRepeatedAdjustment[start][idx];
+                const repeatedAdj = nextIdxRepeatedAdjustment[start][idx];
+                const oldLp = arrowLinePoints(start, oldEnd, oldRepeatedAdj);
+                const lp = arrowLinePoints(start, end, repeatedAdj);
                 const ip = d3.interpolateArray(oldLp, lp);
                 return t => lineFunction(ip(t));
             })
@@ -596,6 +610,7 @@ class ProbingVisualizationImpl extends React.Component {
             });
 
         this.oldLinks = links;
+        this.oldNextIdxRepeatedAdjustment = nextIdxRepeatedAdjustment;
         this.setState(newState);
     }
 
