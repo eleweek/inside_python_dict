@@ -286,14 +286,17 @@ class GenerateProbingLinks extends BreakpointFunction {
         this.idx = computeIdx(this.hash, this.slotsCount);
         this.startIdx = this.idx;
         this.addBP('compute-idx');
-        this.visitedIdx = new ImmutableSet();
+        this.visitedIdx = new ImmutableMap();
         this.addBP('create-empty-set');
+        let prevPerturbLink = !!this.perturb && !this.perturb.eq(0);
         while (true) {
             this.addBP('while-loop');
             if (this.visitedIdx.size === this.slotsCount) {
                 break;
             }
-            this.visitedIdx = this.visitedIdx.add(this.idx);
+            if (!this.visitedIdx.has(this.idx)) {
+                this.visitedIdx = this.visitedIdx.set(this.idx, {perturbLink: prevPerturbLink});
+            }
             this.addBP('visited-add');
             let nIdx;
             if (algo === 'python') {
@@ -307,6 +310,7 @@ class GenerateProbingLinks extends BreakpointFunction {
             }
 
             const perturbLink = this.perturb != null && !this.perturb.eq(0);
+            prevPerturbLink = perturbLink;
             this.links = this.links.set(this.idx, this.links.get(this.idx).push({nextIdx: nIdx, perturbLink}));
             this.idx = nIdx;
             this.addBP('next-idx');
@@ -817,12 +821,17 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     formatBpDesc={dummyFormat}
                     stateVisualization={ProbingStateVisualization}
                     keepTimeOnNewBreakpoints={true}
+                    comment={
+                        <p className="text-muted">
+                            Arrows are color-coded: green means <code>perturb != 0</code> and blue means{' '}
+                            <code>perturb == 0</code>
+                        </p>
+                    }
                     {...this.props}
                 />
                 <p>
-                    It looks like adding noise (in the form of <code>perturb</code>) makes things slower when hash table
-                    is full. And that's true - the worst scenario case becomes even worse (compared to{' '}
-                    <code>(5 * idx) + 1</code>
+                    Adding noise (in the form of <code>perturb</code>) makes things slower when hash table is full. The
+                    worst scenario case becomes even worse (compared to <code>(5 * idx) + 1</code>
                     ). However, in practice, dicts are quite sparse (since we're capping fill factor at around{' '}
                     <code>2/3</code>
                     ), so there are a lot of chances to hit an empty slot.

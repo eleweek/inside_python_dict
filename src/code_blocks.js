@@ -921,6 +921,7 @@ export class VisualizedCode extends React.Component {
                         }
                         bpIdx={time}
                     />
+                    {this.props.comment}
                 </div>
             </MyErrorBoundary>
         );
