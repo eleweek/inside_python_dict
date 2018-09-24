@@ -761,8 +761,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <li>It should be deterministic.</li>
                     <li>
                         It should always hit an empty slot eventually (even if it takes many steps). We need it to work
-                        even in the worst possible scenario: when there is a collision with every non-empty slot. TODO:
-                        check terminology: a collision with/in a slot or with a key in a slot
+                        even in the worst possible scenario: when there is a collision in every non-empty slot.
                     </li>
                 </ol>
                 <p>
@@ -831,7 +830,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>
                     Adding noise (in the form of <code>perturb</code>) makes things slower when a hash table is full.
                     The worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
-                    ). However, in practice, dicts are quite sparse (since we're capping fill factor at around{' '}
+                    ). However, in practice, dicts are quite sparse (since we're capping load factor at around{' '}
                     <code>2/3</code>
                     ), so there are many chances to hit an empty slot.
                 </p>

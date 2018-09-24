@@ -291,10 +291,6 @@ export class Chapter3_HashClass extends ChapterComponent {
         return (
             <div className="chapter chapter3">
                 <p>TODO: check used grammar thing</p>
-                <p>
-                    TODO: check articles for python dict / the python dict / a python dict / the implementation of (a)
-                    python dict
-                </p>
                 <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
                 <p>
                     We now have all the building blocks that allow us to make <em>something like a python dict</em>. In
@@ -305,10 +301,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                     this code into python 3.2's version of dict by making changes to the probing algorithm.
                 </p>
                 <p>
-                    This section assumes you have a basic understanding of{' '}
+                    This chapter assumes you have a basic understanding of{' '}
                     <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a>{' '}
                     and how classes work in python. We will use classes to bundle data and functions together. Magic
-                    methods are special methods for "overloading" operators. So we can write <code>our_dict[key]</code>{' '}
+                    methods are special methods for overloading operators, so we can write <code>our_dict[key]</code>{' '}
                     instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets just look nicer.
                 </p>
                 <p>
@@ -331,19 +327,19 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <p>
                     How do we initialize an empty hash table? In previous chapters, we based the initial size of hash
                     tables on the original list. Since we now know how to resize tables, we can start with an empty
-                    table and grow. But what should be the initial size? The size shouldn't be too small or too big.
+                    table and grow it. But what should be the initial size? The size shouldn't be too small or too big.
                     Hash tables inside python dictionaries are size 8 when they are empty, so let's make ours that size.
                     Python hash table sizes are powers of 2, so we will also use powers of 2. Technically, nothing
-                    prevents us from using "non-round" values. The only reason for using "round" powers of 2 is
-                    efficiency: a (TODO: check article) modulo power of 2 can be implemented efficiently using bit
-                    operations. However, in our code we will keep using a modulo operations instead of bit ops for
-                    elegance.
+                    prevents us from using "non-round" values. The primary reason for using "round" powers of 2 is
+                    efficiency: computing <code>% 2**n</code> can be implemented using bit operations (
+                    <code>{'& (1 << n)'}</code>
+                    ). However, in our code we will keep using a modulo operations instead of bit ops for elegance.
                 </p>
                 <p>
-                    You can see that we are already starting to imitate certain aspects of python dict. In this chapter,
-                    we will get pretty close to python dict, but we will not get there fully. In the next chapter we
-                    will start exploring the actual(TODO: real?) implementation of python dict. But for now, please bear
-                    with me.
+                    You may notice that we already started to imitate the interface and certain implementation details
+                    of the real python dict. In this chapter, we will get pretty close to python dict, but we will not
+                    get there fully. In the next chapter we will start exploring the actual implementation of python
+                    dict. But for now, please bear with me.
                 </p>
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>

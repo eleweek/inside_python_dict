@@ -781,23 +781,23 @@ EMPTY = EmptyValueClass()
                     resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized
                     when it is around 66% full.
                 </p>
-                <p>TODO: load factor or fill factor?</p>
                 <p>
                     The number of non-empty slots (including dummy/tombstone slots) is called <em>fill</em>. The ratio
-                    between fill and table size is called the <em>fill factor</em>. So, using the new terms, we can say
-                    that a hash table is resized when the fill factor reaches 66%. By what factor should the size
-                    change? Normally, the size of a table is increased by a factor of 2 or 4. But, we may also need to
-                    shrink the table in case there are a lot of dummy placeholders. TODO: rewrite it because 1.5x, 2x,
-                    4x discussed before
+                    between fill and table size is called the <em>load factor</em> (also, sometimes:{' '}
+                    <em>load factor</em> or <em>fill ratio</em>
+                    ). So, using the new terms, we can say that a hash table is resized when the load factor reaches
+                    66%. By what factor should the size change? Normally, the size of a table is increased by a factor
+                    of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders.
+                    TODO: rewrite it because 1.5x, 2x, 4x discussed before
                 </p>
                 <p>
-                    To implement this efficiently, we need to track the fill factor. So, we will need two counters for
+                    To implement this efficiently, we need to track the load factor. So, we will need two counters for
                     tracking fill and usage. With the current code structure, tracking these counters would be messy
                     because we would need to pass these counters to and from every function. A much cleaner solution
                     would be using classes.
                 </p>
                 // TODO: remove this sentence?{' '}
-                <p>A separate insertion function would need to check for fill factor and do resizing.</p>
+                <p>A separate insertion function would need to check for load factor and do resizing.</p>
                 <p>TODO: maybe insert HASH_INSERT_CODE here?</p>
             </div>
         );
