@@ -727,49 +727,52 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         return (
             <div className="chapter chapter4">
-                <h2> Chapter 4. How does python dict *really* work internally? </h2>
+                <h2>Chapter 4. How does python dict *really* work internally? </h2>
                 <p>Now it is (finally!) time to explore how the dict works in python!</p>
                 <p>
                     This explanation is about the dict in CPython (the most popular, "default", implementation of
-                    python). CPython evolved over time, and so did its dictionary implementation. The core ideas stayed
-                    the same, and implementations in all versions are similar to each other and to almost-python-dict
-                    implementation from chapter 3.
+                    python). CPython evolved over time, and so did its dictionary implementation. But, the core ideas
+                    stayed the same, and implementations in all versions are similar to each other.
                 </p>
-                <p>We will discuss the core ideas first, and then we will discuss evolution. </p>
-                <h5>Probing algorithm</h5>
                 <p>
-                    The problem with simple linear probing is that it doesn't mix up the values well for many real-world
-                    data patterns. Real world data tends to be regular. And a pattern like <code>16</code>,{' '}
+                    The main difference between almost-python-dict from the chapter 3 and real python dict is the
+                    probing algorithm.{' '}
+                </p>
+                <h5>The probing algorithm</h5>
+                <p>
+                    The problem with simple linear probing is that it doesn't mix up the keys well in many real-world
+                    data patterns. Real world data patterns tend to be regular and a pattern like <code>16</code>,{' '}
                     <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
-                    ... would lead to many collisions.
+                    <code>...</code> would lead to many collisions.
                 </p>
                 <p>
                     Linear probing is fairly prone to clustering: once you get a "clump" of keys the clump tends to
-                    grow, which causes more collisions, which cause the clump to grow further. This is detrimental to
-                    performance.
+                    grow, which causes more collisions, which cause the clump to grow further, which causes even more
+                    collisions. This is detrimental to performance.
                 </p>
                 <p>
-                    It is possible to address this problem by using a better hash function, especially for integers
-                    (remember, <code>hash(x)</code> == <code>x</code> for small integers in python). But it is also
+                    It is possible to address this problem by using a better hash function, in particular when it comes
+                    to integers (<code>hash(x)</code> == <code>x</code> for small integers in python). But it is also
                     possible to address this problem by using a different probing algorithm - and this is what CPython
-                    developers chose.
+                    developers decided.
                 </p>
                 <p>There are two requirements for a probing algorithm:</p>
                 <ol>
-                    <li> It should be determensitic. </li>
+                    <li>It should be deterministic.</li>
                     <li>
-                        It should always hit an empty slot eventually (even if it'd take a lot of steps). We need it to
-                        work even in the worst possible scenario, where there is a collision with every non-empty slot.{' '}
+                        It should always hit an empty slot eventually (even if it takes many steps). We need it to work
+                        even in the worst possible scenario: when there is a collision with every non-empty slot. TODO:
+                        check terminology: a collision with/in a slot or with a key in a slot
                     </li>
                 </ol>
                 <p>
-                    Let's take a look at linear probing first. If we repeatedly run it recurrence (
-                    <code>idx = (idx + 1) % size</code>) until we end up hitting the same slot twice, we get the
-                    following picture.
+                    Let's take a look at linear probing first. If we repeatedly run its recurrence (
+                    <code>idx = (idx + 1) % size</code>) until we end up hitting a slot twice, we get the following
+                    picture:
                 </p>
                 <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
                 <p>
-                    It does not matter what slot we start from, the picture would look exactly the same. Linear probing
+                    It does not matter what slot we start from, the picture will look exactly the same. Linear probing
                     is very regular and predictable. Now, let's change the recurrence to{' '}
                     <code>idx = (5 * idx + 1) % size</code> (note the <code>5</code>
                     ):
@@ -777,24 +780,20 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
                 <p>
                     <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
-                    <code>size</code> is a power of two (the proof of this fact is outside of the scope of this page).
-                    And the algorithm is obviously determenistic. This means it would work for probing.
+                    <code>size</code> is a power of two (the proof of this fact is outside the scope of this page).
+                    Also, the algorithm is obviously deterministic. So, both requirements for a probing algorithm are
+                    satisfied. This algorithm scrambles the order of indexes quite a bit. However, it is still regular
+                    and prone to clustering.
                 </p>
                 <p>
-                    This changes the algorithm quite a bit. It is determenistic (of course), but you can see it
-                    scrambling the order a bit. However, it is still regular and prone to clustering. One important
-                    feature of this algorithm is that it still guarantees to hit every slot if the number of slots is a
-                    power of two (as it is in almost-python-dict and real dict in python). The proof of this fact is
-                    beyond the scope of this chapter though.
-                </p>
-                <p>
-                    The probing algorithm in CPython takes this recurrence and adds even more index scrambling to it:{' '}
+                    The probing algorithm in CPython takes this recurrence and adds even more scrambling to it:{' '}
                     <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
                     though?
                 </p>
                 <p>
-                    In C code, it is initialized as basicaly: <code> size_t perturb = hash_code</code>. Then, every
-                    iteration, it is right-shifted by <code>5</code> bits.
+                    In C code, it is initialized as basicaly this: <code> size_t perturb = hash_code</code>. Then, in
+                    every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb <<= 5'}</code>
+                    ).
                 </p>
                 <p>
                     The resulting probing algorithm uses some "randomness" in the form of bits from hash code - but it
@@ -802,7 +801,6 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     becomes <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
                 </p>
                 <p>
-                    {' '}
                     We can reimplement this algorithm in pure python. However, in python there are no unsigned (logical)
                     bit shifts and there is also no built-in way to convert a 64-bit signed integer to a 64-bit unsigned
                     integer. The solution is to simulate the conversion with the following one-liner:{' '}
