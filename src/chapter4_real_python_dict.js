@@ -852,8 +852,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 </MySticky>
                 <p>
                     Python actually knows the number of key-value pairs, and tries to guess the optimal hash table size
-                    to possibly avoid some or all resizes. This is purely a performance optimization. The dict contents
-                    would look exactly the same with or without the optimization.
+                    to possibly avoid some or all resizes (and then inserts all pairs). This performs better than just
+                    starting with the size of <code>8</code>. In most cases, the resulting hash table ends up being the
+                    same size or smaller. However, in some cases the resulting hash table may actually be larger, if
+                    there are a lot of repeated keys (e.g.{' '}
+                    <code>{'{1: 1, 1: 2, 1: 3, 1: 4, 1: 5, 1: 6, 1: 7, 1: 8, 1: 9}'}</code>)
                 </p>
                 <p>Insert:</p>
                 <VisualizedCode
