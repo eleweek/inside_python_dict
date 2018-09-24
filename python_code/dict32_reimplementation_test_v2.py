@@ -1,6 +1,7 @@
 import random
 import argparse
 import string
+import json
 
 from common import EMPTY
 from dictinfo32 import dictobject, dump_py_dict
@@ -8,8 +9,19 @@ from dict32_reimplementation import PyDictReimplementation, dump_reimpl_dict
 from js_reimplementation_interface import Dict32JsImpl, AlmostPythonDictRecyclingJsImpl, AlmostPythonDictNoRecyclingJsImpl
 import hash_chapter3_class_impl
 
+
+def dict_factory(pairs):
+    # quick&dirty
+    def to_string(x):
+        return json.dumps(x) if x is not None else "None"
+    d = eval("{" + ", ".join("{}:{}".format(to_string(k), to_string(v)) for [k, v] in pairs) + "}")
+    dump = dump_py_dict(dictobject(d))
+    print("Initial dict size", len(dump[0]))
+    return d
+
+
 IMPLEMENTATIONS = {
-    "dict32_actual": (dict, lambda d: dump_py_dict(dictobject(d))),
+    "dict32_actual": (dict_factory, lambda d: dump_py_dict(dictobject(d))),
     "dict32_reimpl_py": (PyDictReimplementation, dump_reimpl_dict),
     "dict32_reimpl_js": (Dict32JsImpl, dump_reimpl_dict),
 
@@ -106,14 +118,14 @@ class AllKeyValueFactory(object):
         return self._generate_obj()
 
 
-def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_inserts, extra_checks, key_value_factory):
+def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_inserts, extra_checks, key_value_factory, initial_state):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
 
     removed = set()
-    d = ref_impl_factory()
-    dreimpl = test_impl_factory()
+    d = ref_impl_factory(initial_state)
+    dreimpl = test_impl_factory(initial_state)
     print("Starting test")
 
     for i in range(n_inserts):
@@ -182,6 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('--num-inserts',  type=int, default=500)
     parser.add_argument('--forever', action='store_true')
     parser.add_argument('--kv', choices=["numbers", "all"], required=True)
+    parser.add_argument('--initial-size', type=int, default=-1)
     args = parser.parse_args()
 
     if args.kv == "numbers":
@@ -193,7 +206,13 @@ if __name__ == "__main__":
     test_impl = IMPLEMENTATIONS[args.test_implementation]
 
     def test_iteration():
-        run(*(ref_impl + test_impl), n_inserts=args.num_inserts, extra_checks=args.extra_checks, key_value_factory=kv_factory)
+        initial_size = args.initial_size if args.initial_size > 0 else random.randint(0, 100)
+        initial_state = [(kv_factory.generate_key(), kv_factory.generate_value()) for _ in range(initial_size)]
+        run(*(ref_impl + test_impl),
+            n_inserts=args.num_inserts,
+            extra_checks=args.extra_checks,
+            key_value_factory=kv_factory,
+            initial_state=initial_state)
 
     if args.forever:
         while True:

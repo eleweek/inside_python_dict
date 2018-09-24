@@ -7,8 +7,12 @@ class PyDictReimplementation(BaseDictImpl):
     START_SIZE = 8
     PERTURB_SHIFT = 5
 
-    def __init__(self):
+    def __init__(self, pairs):
         BaseDictImpl.__init__(self)
+        start_size = self.find_optimal_size(len(pairs))
+        self.slots = [Slot() for _ in range(start_size)]
+        for k, v in pairs:
+            self[k] = v
 
     def __setitem__(self, key, value):
         hash_code = hash(key)
@@ -69,10 +73,9 @@ class PyDictReimplementation(BaseDictImpl):
         raise KeyError()
 
     def resize(self):
-        # TODO: proper target size (it is sometimes 2, sometimes 4 -- based on used)
-        quot = 4
         old_slots = self.slots
-        new_size = self.find_optimal_size(quot)
+        # TODO: proper target size (it is sometimes 2, sometimes 4 -- based on used)
+        new_size = self.find_optimal_size(self.used * 4)
         self.slots = [Slot() for _ in range(new_size)]
         self.fill = self.used
         for slot in old_slots:

@@ -14,9 +14,9 @@ class BaseDictImpl(object):
         self.fill = 0
         self.used = 0
 
-    def find_optimal_size(self, quot):
+    def find_optimal_size(self, minused):
         new_size = 8
-        while new_size <= quot * self.used:
+        while new_size <= minused:
             new_size *= 2
 
         return new_size

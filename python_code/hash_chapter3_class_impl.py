@@ -36,7 +36,7 @@ class AlmostPythonDictBase(BaseDictImpl):
 
     def resize(self):
         old_slots = self.slots
-        new_size = self.find_optimal_size(2)
+        new_size = self.find_optimal_size(2 * self.used)
         self.slots = [Slot() for _ in range(new_size)]
 
         for slot in old_slots:
