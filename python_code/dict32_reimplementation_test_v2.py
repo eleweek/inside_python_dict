@@ -27,6 +27,7 @@ IMPLEMENTATIONS = {
 
     "almost_python_dict_recycling_py": (hash_chapter3_class_impl.AlmostPythonDictImplementationRecycling, dump_reimpl_dict),
     "almost_python_dict_no_recycling_py": (hash_chapter3_class_impl.AlmostPythonDictImplementationNoRecycling, dump_reimpl_dict),
+    "almost_python_dict_no_recycling_py_simpler": (hash_chapter3_class_impl.AlmostPythonDictImplementationNoRecyclingSimplerVersion, dump_reimpl_dict),
     "almost_python_dict_recycling_js": (AlmostPythonDictRecyclingJsImpl, dump_reimpl_dict),
     "almost_python_dict_no_recycling_js": (AlmostPythonDictNoRecyclingJsImpl, dump_reimpl_dict),
 }
@@ -124,8 +125,17 @@ def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_in
     MASS_REMOVE_COEFF = 0.8
 
     removed = set()
-    d = ref_impl_factory(initial_state)
-    dreimpl = test_impl_factory(initial_state)
+
+    if initial_state:
+        d = ref_impl_factory(initial_state)
+    else:
+        d = ref_impl_factory()
+
+    if initial_state:
+        dreimpl = test_impl_factory(initial_state)
+    else:
+        dreimpl = test_impl_factory()
+
     print("Starting test")
 
     for i in range(n_inserts):
@@ -206,7 +216,7 @@ if __name__ == "__main__":
     test_impl = IMPLEMENTATIONS[args.test_implementation]
 
     def test_iteration():
-        initial_size = args.initial_size if args.initial_size > 0 else random.randint(0, 100)
+        initial_size = args.initial_size if args.initial_size >= 0 else random.randint(0, 100)
         initial_state = [(kv_factory.generate_key(), kv_factory.generate_value()) for _ in range(initial_size)]
         run(*(ref_impl + test_impl),
             n_inserts=args.num_inserts,
