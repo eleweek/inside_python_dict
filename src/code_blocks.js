@@ -883,14 +883,12 @@ export class VisualizedCode extends React.Component {
     render() {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
-        console.log(this.state);
 
         let time = this.props.keepTimeOnNewBreakpoints
             ? this.state.userAdjustedToMax
                 ? this.props.breakpoints.length - 1
                 : Math.min(this.state.time, this.props.breakpoints.length - 1)
             : this.state.time;
-        console.log(time, '/', this.props.breakpoints.length - 1);
 
         return (
             <MyErrorBoundary>

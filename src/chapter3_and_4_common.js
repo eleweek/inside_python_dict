@@ -252,8 +252,10 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
         this.addBP('compute-hash');
 
         this.computeIdxAndSave(this.hashCode, this.self.get('slots').size);
-        this.targetIdx = null;
-        this.addBP('target-idx-none');
+        if (useRecycling) {
+            this.targetIdx = null;
+            this.addBP('target-idx-none');
+        }
 
         while (true) {
             this.addBP('check-collision');
@@ -270,8 +272,10 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
             ) {
                 this.addBP('check-dup-key');
                 if (EQ(this.self.get('slots').get(this.idx).key, this.key)) {
-                    this.targetIdx = this.idx;
-                    this.addBP('set-target-idx-found');
+                    if (useRecycling) {
+                        this.targetIdx = this.idx;
+                        this.addBP('set-target-idx-found');
+                    }
                     this.addBP('check-dup-break');
                     break;
                 }
@@ -288,14 +292,17 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
             this.nextIdxAndSave();
         }
 
-        this.addBP('check-target-idx-is-none');
-        if (this.targetIdx === null) {
-            this.targetIdx = this.idx;
-            this.addBP('after-probing-assign-target-idx');
+        if (useRecycling) {
+            this.addBP('check-target-idx-is-none');
+            if (this.targetIdx === null) {
+                this.targetIdx = this.idx;
+                this.addBP('after-probing-assign-target-idx');
+            }
         }
 
         this.addBP('check-used-fill-increased');
-        if (this.self.get('slots').get(this.targetIdx).key === null) {
+        let idx = useRecycling ? this.targetIdx : this.idx;
+        if (this.self.get('slots').get(idx).key === null) {
             this.self = this.self.set('used', this.self.get('used') + 1);
             this.addBP('inc-used');
 
@@ -304,7 +311,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
         } else {
             if (useRecycling) {
                 this.addBP('check-recycle-used-increased');
-                if (this.self.get('slots').get(this.targetIdx).key === DUMMY) {
+                if (this.self.get('slots').get(idx).key === DUMMY) {
                     this.self = this.self.set('used', this.self.get('used') + 1);
                     this.addBP('inc-used-2');
                 }
@@ -312,7 +319,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
         }
 
         this.self = this.self.setIn(
-            ['slots', this.targetIdx],
+            ['slots', idx],
             new Slot({hashCode: this.hashCode, key: this.key, value: this.value})
         );
 
