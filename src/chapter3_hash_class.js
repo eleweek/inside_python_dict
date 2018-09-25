@@ -293,8 +293,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     this section, we'll make functions track the <code>fill</code> and <code>used</code> counters, so we
                     know when a table overflows. We will also handle values (in addition to keys) and make a class that
                     supports all basic operations from <code>dict</code>. On the inside, this class would work
-                    differently from the actual implementation of python dict. In the following chapter we will turn
-                    this code into python 3.2's version of dict by making changes to the probing algorithm.
+                    differently from the actual implementation of dict. In the following chapter we will turn this code
+                    into python 3.2's version of dict by making changes to the probing algorithm.
                 </p>
                 <p>
                     This chapter assumes you have a basic understanding of{' '}
@@ -333,9 +333,9 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <p>
                     You may notice that we already started to imitate the interface and certain implementation details
-                    of the real python dict. In this chapter, we will get pretty close to python dict, but we will not
-                    get there fully. In the next chapter we will start exploring the actual implementation of python
-                    dict. But for now, please bear with me.
+                    of the real dict. In this chapter, we will get pretty close to it, but we will not get there fully.
+                    In the next chapter we will start exploring the actual implementation of python dict. But for now,
+                    please bear with me.
                 </p>
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>
@@ -393,7 +393,12 @@ export class Chapter3_HashClass extends ChapterComponent {
                     slots are filled with dummy placeholders).
                 </p>
 
-                <p>Let's say we want to create an almost-dict from the following pairs:</p>
+                <p>
+                    Since we now have a class, we can also move the <code>for</code> loop from <code>create_new()</code>{' '}
+                    to the <code>__init__</code> method. The code in __init__ also assumes that the dict contents are
+                    passed as a list of pairs (rather than actual dict - which we are reimplemting).{' '}
+                </p>
+                <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
                 <MySticky bottomBoundary=".chapter3">
                     <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
@@ -452,8 +457,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                 />
 
                 <p>
-                    So we now have a replacement for python dict. Before we move on to the next chapter, let's disccuss
-                    a cool trick for inserting new items.
+                    So we now have a class that emulates the basic part of dict interface. Before we move on to the next
+                    chapter, let's disccuss a cool trick for inserting new items.
                 </p>
                 <h5> Recycling dummy keys. </h5>
                 <p>
@@ -471,11 +476,16 @@ export class Chapter3_HashClass extends ChapterComponent {
                     In the absence of dummy slots, the code works exactly the same. So, even though we built the table
                     with a simpler version of <code>__setitem__</code>, it would look exactly the same.
                 </p>
-                <p>
-                    However, let's say that TODO is removed. Let's take a look at how inserting TODO would work. (TODO:
-                    add some sort of preface | Can you come up with an item that would replace the dummy object?).
+                <p className="inline-block">
+                    Remember that we removed{' '}
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                    ?
                 </p>
-                <p> Let's say we want to insert the following key value pair: </p>
+                <p class="inline-block">Let's see what happens after we insert the following key-value pair:</p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.keyToSetRecycling}
