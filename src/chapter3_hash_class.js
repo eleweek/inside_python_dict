@@ -172,7 +172,7 @@ const HASH_CLASS_SETITEM_RECYCLING_CODE = [
 const HASH_CLASS_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
-    ['    new_size = self.find_optimal_size(quot)', 'compute-new-size', 1],
+    ['    new_size = self.find_nearest_size(self.used * 2)', 'compute-new-size', 1],
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
@@ -377,22 +377,25 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <p>
                     When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is no
-                    definitive one-size-fits-all answer, so we will just double the size.
+                    definitive one-size-fits-all answer, so we just try to find the nearest power of two that is greater{' '}
+                    <code>2 * self.used</code>:<br />
+                    <code>self.find_nearest_size(2 * self.minused)</code>
                 </p>
                 <SimpleCodeBlock>
-                    {`def find_optimal_size(self):
+                    {`def find_nearest_size(self, minused):
     new_size = 8
-    while new_size <= 2 * self.used:
+    while new_size <= minused:
         new_size *= 2
 
     return new_size
 `}
                 </SimpleCodeBlock>
                 <p>
-                    This code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way.
-                    This means that the table could potentially shrink if most slots are filled with dummy placeholders.
+                    The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way.
+                    This means that even though generally we aim to double the size of the table, it can potentially
+                    shrink if <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most
+                    slots are filled with dummy placeholders).
                 </p>
-                <p>TODO: nice component displaying the relationship between fill/used ?</p>
 
                 <p>Let's say we want to create an almost-dict from the following pairs:</p>
                 <MySticky bottomBoundary=".chapter3">
@@ -417,15 +420,16 @@ export class Chapter3_HashClass extends ChapterComponent {
                     {...this.props}
                 />
                 <p>
-                    The code for removing and searching is pretty much the same, because, in order to remove an element
-                    we need to find it first. This means that we can reorganize the code so that the removing and
-                    searching functions share much of the same code. We will call the common function{' '}
+                    In the previous chapter, the code for removing and the code for searching were very similar,
+                    because, in order to remove an element we need to find it first. We can reorganize the code so that
+                    the removing and searching functions share much of the same code. We will call the common function{' '}
                     <code>lookdict()</code>.
                 </p>
                 <p>
-                    Other than that, removing a key will look pretty much the same. <code>__delitem__</code> magic
-                    method is now used for realism, so we can do <code>del almost_dict[42]</code>. And we decrement the{' '}
-                    <code>self.used</code> counter if we end up finding the element and removing it.
+                    Other than that, removing a key will look pretty much the same as in previous chapter.{' '}
+                    <code>__delitem__</code> magic method is now used for realism, so we can do{' '}
+                    <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up
+                    finding the element and removing it.
                 </p>
                 <p className="inline-block">For example, let's say we want to remove </p>
                 <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
@@ -438,8 +442,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     {...this.props}
                 />
                 <p>
-                    After using new <code>lookdict</code> function, search function <code>__getitem__</code> looks
-                    pretty much the same as <code>__delitem__</code>
+                    After using new <code>lookdict</code> function, search function <code>__getitem__</code> also gets
+                    very short.
                 </p>
                 <p className="inline-block">Searching for</p>
                 <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
@@ -456,17 +460,16 @@ export class Chapter3_HashClass extends ChapterComponent {
                     a cool trick for inserting new items.
                 </p>
                 <h5> Recycling dummy keys. </h5>
-                <p>TODO: check dummy keys / dummy elements / dummy slots terminology</p>
-                <p>TODO: inserting a key / inserting an element / inserting a pair / inserting an item</p>
                 <p>
                     Dummy keys are used as placeholders. The main purpose of a dummy slot is to prevent a probing
                     algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
-                    something, be it a dummy slot or a normal slot. This means that while inserting an item, if we end
-                    up hitting a dummy slot, we can put the item in that dummy slot (assuming the key does not exist
-                    elsewhere in the dictionary). So, we still need to do a full look up, but we will also save an index
-                    of the first dummy slot to <code>target_idx</code> (if we encounter it). If we find that a key
-                    already exists, we save the index to <code>target_idx</code>. If we find neither a dummy slot, nor
-                    the key, then we just insert it in the first empty slot - as we did before.
+                    something, be it a dummy placeholder or a normal item. This means that while inserting an item, if
+                    we end up hitting a slot with a dummy placeholder, we can put the item in the slot (assuming the key
+                    does not exist elsewhere in the dictionary). So, we still need to do a full look up, but we will
+                    also save an index of the first dummy slot to <code>target_idx</code> (if we encounter it). If we
+                    find that a key already exists, we save the index to <code>target_idx</code> and break. If we find
+                    neither a dummy slot, nor the key, then we just insert it in the first empty slot - as we did
+                    before.
                 </p>
                 <p>
                     In the absence of dummy slots, the code works exactly the same. So, even though we built the table

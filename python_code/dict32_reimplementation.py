@@ -9,7 +9,7 @@ class PyDictReimplementation(BaseDictImpl):
 
     def __init__(self, pairs):
         BaseDictImpl.__init__(self)
-        start_size = self.find_optimal_size(len(pairs))
+        start_size = self.find_nearest_size(len(pairs))
         self.slots = [Slot() for _ in range(start_size)]
         for k, v in pairs:
             self[k] = v
@@ -74,8 +74,7 @@ class PyDictReimplementation(BaseDictImpl):
 
     def resize(self):
         old_slots = self.slots
-        # TODO: proper target size (it is sometimes 2, sometimes 4 -- based on used)
-        new_size = self.find_optimal_size(self.used * 4)
+        new_size = self.find_nearest_size(self.used * (4 if self.used <= 50000 else 2))
         self.slots = [Slot() for _ in range(new_size)]
         self.fill = self.used
         for slot in old_slots:

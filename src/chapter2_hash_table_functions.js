@@ -585,7 +585,6 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         let {hashCodes, keys} = newRes;
 
         // TODO: make results of operations connected to each other ?
-        // TODO: searchObj
         const searchRes = this.runSearch(hashCodes, keys, this.state.searchedObj);
         const removeRes = this.runRemove(hashCodes, keys, this.state.objToRemove);
         const resizeRes = this.runResize(hashCodes, keys);

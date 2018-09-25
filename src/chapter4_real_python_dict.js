@@ -139,7 +139,7 @@ const DICT32_SETITEM = [
 const DICT32_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
-    ['    new_size = self.find_optimal_size(quot)', 'compute-new-size', 1],
+    ['    new_size = self.find_nearest_size(self.used * (4 if self.used <= 50000 else 2))', 'compute-new-size', 1],
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
