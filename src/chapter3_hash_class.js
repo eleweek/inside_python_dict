@@ -329,13 +329,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                     prevents us from using "non-round" values. The primary reason for using "round" powers of 2 is
                     efficiency: computing <code>% 2**n</code> can be implemented using bit operations (
                     <code>{'& (1 << n)'}</code>
-                    ). However, in our code we will keep using a modulo operations instead of bit ops for elegance.
+                    ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
                 </p>
                 <p>
-                    You may notice that we already started to imitate the interface and certain implementation details
-                    of the real dict. In this chapter, we will get pretty close to it, but we will not get there fully.
-                    In the next chapter we will start exploring the actual implementation of python dict. But for now,
-                    please bear with me.
+                    You may notice that we have already started to imitate the interface and certain implementation
+                    details of the real dict. In this chapter, we will get pretty close to it, but we will not get there
+                    fully. In the next chapter we will start exploring the actual implementation of python dict. But for
+                    now, please bear with me.
                 </p>
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>
@@ -373,7 +373,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <p>
                     When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is no
-                    definitive one-size-fits-all answer, so we just try to find the nearest power of two that is greater{' '}
+                    definitive one-size-fits-all answer, so we just find the nearest power of two that is greater{' '}
                     <code>2 * self.used</code>:<br />
                     <code>self.find_nearest_size(2 * self.minused)</code>
                 </p>
@@ -388,15 +388,15 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </SimpleCodeBlock>
                 <p>
                     The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way.
-                    This means that even though generally we aim to double the size of the table, it can potentially
-                    shrink if <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most
-                    slots are filled with dummy placeholders).
+                    This means that even though usually the size of the table doubles, it can also potentially shrink if{' '}
+                    <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most slots are
+                    filled with dummy placeholders).
                 </p>
 
                 <p>
                     Since we now have a class, we can also move the <code>for</code> loop from <code>create_new()</code>{' '}
                     to the <code>__init__</code> method. The code in __init__ also assumes that the dict contents are
-                    passed as a list of pairs (rather than actual dict - which we are reimplemting).{' '}
+                    passed as a list of pairs (rather than as an actual dict - which we are reimplementing).
                 </p>
                 <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
                 <MySticky bottomBoundary=".chapter3">
@@ -422,12 +422,12 @@ export class Chapter3_HashClass extends ChapterComponent {
                 />
                 <p>
                     In the previous chapter, the code for removing and the code for searching were very similar,
-                    because, in order to remove an element we need to find it first. We can reorganize the code so that
+                    because, in order to remove an element, we need to find it first. We can reorganize the code so that
                     the removing and searching functions share much of the same code. We will call the common function{' '}
                     <code>lookdict()</code>.
                 </p>
                 <p>
-                    Other than that, removing a key will look pretty much the same as in previous chapter.{' '}
+                    Other than that, removing a key will look pretty much the same as in the previous chapter.{' '}
                     <code>__delitem__</code> magic method is now used for realism, so we can do{' '}
                     <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up
                     finding the element and removing it.
@@ -443,8 +443,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     {...this.props}
                 />
                 <p>
-                    After using new <code>lookdict</code> function, search function <code>__getitem__</code> also gets
-                    very short.
+                    After using the new <code>lookdict</code> function, search function <code>__getitem__</code> also
+                    gets very short.
                 </p>
                 <p className="inline-block">Searching for</p>
                 <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
@@ -457,8 +457,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                 />
 
                 <p>
-                    So we now have a class that emulates the basic part of dict interface. Before we move on to the next
-                    chapter, let's disccuss a cool trick for inserting new items.
+                    So we now have a class that emulates the basic part of the dict interface. Before we move on to the
+                    next chapter, let's disccuss a cool trick for inserting new items.
                 </p>
                 <h5> Recycling dummy keys. </h5>
                 <p>
