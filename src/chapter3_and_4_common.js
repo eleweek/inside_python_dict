@@ -127,11 +127,13 @@ export function formatHashClassSetItemAndCreate(bp) {
             }
         case 'after-probing-assign-target-idx':
             return `So we'll put the item in the current slot (<code>${bp.idx}</code>), which is empty`;
-        case 'check-used-fill-increased':
+        case 'check-used-fill-increased': {
+            const _idxOrTargetIdx = bp.targetIdx !== undefined ? bp.targetIdx : bp.idx;
             return (
                 "If we're putting the item in an empty slot " +
-                (bp.self.slots[bp.targetIdx].key == null ? '(and we are)' : "(and we aren't)")
+                (bp.self.slots[_idxOrTargetIdx].key == null ? '(and we are)' : "(and we aren't)")
             );
+        }
         case 'inc-used':
         case 'inc-used-2':
             return `Then we need to increment used, which makes it <code>${bp.self.used}</code>`;
