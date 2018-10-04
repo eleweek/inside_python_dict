@@ -438,7 +438,6 @@ export class Chapter3_HashClass extends ChapterComponent {
                     code={HASH_CLASS_DELITEM}
                     breakpoints={delRes.bpTransformed}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
-                    formatBpDesc={dummyFormat}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}
                 />
