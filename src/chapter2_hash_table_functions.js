@@ -137,9 +137,9 @@ function formatHashCreateNewAndInsert(bp) {
             }</code>`;
         case 'check-collision':
             if (bp.keys[bp.idx] === null) {
-                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
             }
         case 'check-dup-hash':
             if (EQ(bp.hashCodes[bp.idx], bp.hashCode)) {
@@ -404,7 +404,7 @@ function formatHashResize(bp) {
             return 'So skip it';
         case 'check-collision':
             if (bp.newKeys[bp.idx] === null) {
-                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }

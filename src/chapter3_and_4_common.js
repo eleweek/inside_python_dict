@@ -29,9 +29,9 @@ export function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
         case 'check-not-found':
             if (bp.self.slots[bp.idx].key === null) {
-                return `The slot <code>${bp.idx}</code> is empty, no more slots to check`;
+                return `Slot <code>${bp.idx}</code> is empty, no more slots to check`;
             } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied, so check it`;
+                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied, so check it`;
             }
         case 'check-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
@@ -50,7 +50,7 @@ export function formatHashClassLookdictRelated(bp) {
             }
         }
         case 'return-idx':
-            return `Return current index, <code>${bp.idx}</code>`;
+            return `Return the current index, <code>${bp.idx}</code>`;
         case 'raise':
             return `Throw an exception, because no key was found`;
         /* __delitem__ */
@@ -59,9 +59,9 @@ export function formatHashClassLookdictRelated(bp) {
                 bp.self.used
             }`;
         case 'replace-key-dummy':
-            return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
+            return `Replace key at <code>${bp.idx}</code> with a <code>DUMMY</code> placeholder`;
         case 'replace-value-empty':
-            return `Replace value at <code>${bp.idx}</code> with EMPTY`;
+            return `Replace value at <code>${bp.idx}</code> with <code>EMPTY</code>`;
         /* __getitem__ */
         case 'return-value':
             return `Return <code>${bp.self.slots[bp.idx].value}</code>`;
@@ -79,9 +79,9 @@ export function formatHashClassSetItemAndCreate(bp) {
             return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
         case 'check-collision':
             if (bp.self.slots[bp.idx].key === null) {
-                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
             }
         case 'check-dup-hash': {
             const slotHash = bp.self.slots[bp.idx].hashCode;
@@ -116,7 +116,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'set-target-idx-recycle':
             return `So save its index`;
         case 'set-target-idx-found':
-            return `We will put the value in the slot <code>${bp.targetIdx}</code>`;
+            return `We will put the value in slot <code>${bp.targetIdx}</code>`;
         case 'check-dup-break':
             return 'Because the key is found, stop';
         case 'check-target-idx-is-none':
@@ -136,7 +136,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         }
         case 'inc-used':
         case 'inc-used-2':
-            return `Then we need to increment used, which makes it <code>${bp.self.used}</code>`;
+            return `Then we need to increment <code>self.used</code>, which makes it <code>${bp.self.used}</code>`;
         case 'inc-fill':
             return `and increment fill, which makes it <code>${bp.self.fill}</code>`;
         case 'check-recycle-used-increased':
@@ -145,7 +145,7 @@ export function formatHashClassSetItemAndCreate(bp) {
                 (bp.self.slots[bp.targetIdx].key === DUMMY ? '(and we are)' : "(and we aren't)")
             );
         case 'assign-slot':
-            return `Put the item in the slot <code>${bp.targetIdx}</code>`;
+            return `Put the item in slot <code>${bp.targetIdx}</code>`;
         case 'check-resize': {
             const fillQ = bp.self.fill * 3;
             const sizeQ = bp.self.slots.length * 2;
@@ -177,20 +177,20 @@ export function formatHashClassSetItemAndCreate(bp) {
 export function formatHashClassResize(bp) {
     switch (bp.point) {
         case 'assign-old-slots':
-            return 'Copy reference to slots (no actual copying is done)';
+            return 'Copy the reference to slots (no actual copying is done)';
         case 'assign-fill':
             return `Set fill to <code>${
                 bp.self.used
             }</code>, because we know we'll be filtering out any removed "dummy" slots`;
         case 'compute-new-size':
-            return `Compute an optimal size: <code>${bp.newSize}</code>. TODO: explain calculation`;
+            return `Compute the optimal size: <code>${bp.newSize}</code>. TODO: explain calculation`;
         case 'new-empty-slots':
-            return `Create new list of empty slots of size <code>${bp.self.slots.length}</code>`;
+            return `Create a new list of empty slots of size <code>${bp.self.slots.length}</code>`;
         case 'for-loop': {
             const {key, hashCode} = bp.oldSlots[bp.oldIdx];
             return `[${bp.oldIdx + 1}/${bp.oldSlots.length}] The current key to insert is <code>${
                 key === null ? 'EMPTY' : key
-            }</code>, its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
+            }</code> and its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
         }
         case 'check-skip-empty-dummy': {
             const slotKey = bp.oldSlots[bp.oldIdx].key;
@@ -206,12 +206,12 @@ export function formatHashClassResize(bp) {
             return 'So skip it';
         case 'check-collision':
             if (bp.self.slots[bp.idx].key === null) {
-                return `The slot <code>${bp.idx}</code> is empty, so don't loop`;
+                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
+                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
             }
         case 'assign-slot':
-            return `Put the item in the empty slot ${bp.idx}`;
+            return `Put the item in slot ${bp.idx}`;
         case 'done-no-return':
         case 'start-execution':
             return '';

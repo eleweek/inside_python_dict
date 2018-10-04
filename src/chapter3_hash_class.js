@@ -476,16 +476,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                     In the absence of dummy slots, the code works exactly the same. So, even though we built the table
                     with a simpler version of <code>__setitem__</code>, it would look exactly the same.
                 </p>
-                <p className="inline-block">
-                    Remember that we removed{' '}
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
-                    ?
-                </p>
-                <p class="inline-block">Let's see what happens after we insert the following key-value pair:</p>
+                <p className="inline-block">Remember that we removed </p>
+                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
+                <p className="inline-block">?{'\u00A0'}</p>
+                <p className="inline-block">Let's see what happens after we insert the following key-value pair:</p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.keyToSetRecycling}

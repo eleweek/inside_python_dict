@@ -93,6 +93,7 @@ class ParsableInput extends React.Component {
             });
             const divClassNames = classNames('parsable-input-with-error-div', {
                 'parsable-input-inline': this.props.inline,
+                'parsable-input-block': !this.props.inline,
             });
             return (
                 <div className={divClassNames}>
