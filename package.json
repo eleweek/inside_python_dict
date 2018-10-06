@@ -49,6 +49,7 @@
     "react-dom": "^16.4.2",
     "react-error-boundary": "^1.2.3",
     "react-input-autosize": "^2.2.1",
+    "react-popper": "^1.0.2",
     "react-smooth-scrollbar": "^8.0.6",
     "react-stickynode": "^2.0.1",
     "rehype": "^5.0.1",

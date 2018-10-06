@@ -12,7 +12,10 @@ import {
 
 import classNames from 'classnames';
 import AutosizeInput from 'react-input-autosize';
+import {Manager, Reference, Popper} from 'react-popper';
 
+// TODO: rewrite, this is super ugly
+// TODO: this should be split into 3 separate components
 class ParsableInput extends React.Component {
     constructor(props) {
         super(props);
@@ -74,18 +77,21 @@ class ParsableInput extends React.Component {
         } else {
             let error;
             if (this.state.error) {
-                const errorText = this.props.inline
-                    ? this.state.error.message
-                    : this.formatErrorMessageForBlock(this.state.error);
-                error = (
-                    <div
-                        className={classNames('invalid-feedback', {
-                            'invalid-feedback-block-parsable-input': !this.props.inline,
-                        })}
-                    >
-                        {errorText}
-                    </div>
-                );
+                if (this.props.inline) {
+                    const errorText = this.state.error.message;
+                    error = errorText;
+                } else {
+                    const errorText = this.formatErrorMessageForBlock(this.state.error);
+                    error = (
+                        <div
+                            className={classNames('invalid-feedback', {
+                                'invalid-feedback-block-parsable-input': !this.props.inline,
+                            })}
+                        >
+                            {errorText}
+                        </div>
+                    );
+                }
             }
             const className = classNames('parsable-input', 'form-control', {
                 'fc-inline': this.props.inline,
@@ -95,12 +101,55 @@ class ParsableInput extends React.Component {
                 'parsable-input-inline': this.props.inline,
                 'parsable-input-block': !this.props.inline,
             });
-            return (
-                <div className={divClassNames}>
-                    <input type="text" className={className} value={this.state.value} onChange={this.handleChange} />
-                    {error}
-                </div>
-            );
+            if (!this.props.inline) {
+                return (
+                    <div className={divClassNames}>
+                        <input
+                            type="text"
+                            className={className}
+                            value={this.state.value}
+                            onChange={this.handleChange}
+                        />
+                        {error}
+                    </div>
+                );
+            } else {
+                return (
+                    <div className={divClassNames}>
+                        <Manager>
+                            <Reference>
+                                {({ref}) => (
+                                    <input
+                                        ref={ref}
+                                        type="text"
+                                        className={className}
+                                        value={this.state.value}
+                                        onChange={this.handleChange}
+                                    />
+                                )}
+                            </Reference>
+                            <Popper placement="bottom">
+                                {({ref, style, placement, arrowProps}) => (
+                                    <div
+                                        ref={ref}
+                                        style={style}
+                                        data-placement={placement}
+                                        className={classNames(
+                                            'popover',
+                                            'bs-popover-bottom',
+                                            error ? 'show' : 'hide',
+                                            'fade'
+                                        )}
+                                    >
+                                        <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
+                                        <div className="popover-body">{error}</div>
+                                    </div>
+                                )}
+                            </Popper>
+                        </Manager>
+                    </div>
+                );
+            }
         }
     }
 }
