@@ -804,19 +804,85 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     }
 }
 
-class TimeSlider extends React.PureComponent {
+// TODO: remove time from state?
+class TimeSliderWithControls extends React.PureComponent {
+    AUTOPLAY_TIMEOUT = 1000;
+
     constructor() {
         super();
-        this.state = {value: null};
+        this.state = {time: null, autoPlaying: false};
+        this.timeoutId = null;
     }
 
     static getDerivedStateFromProps(nextProps, state) {
         return {time: nextProps.time};
     }
 
-    handleValueChange = value => {
+    handleSliderValueChange = value => {
+        this.setState({autoPlaying: false});
+        this.handleTimeChange(value);
+    };
+
+    handleTimeChange = value => {
         this.props.handleTimeChange(value);
         this.setState({time: value});
+    };
+
+    prevStep = () => {
+        this.stop();
+        if (this.state.time > 0) {
+            const newTime = this.state.time - 1;
+            this.props.handleTimeChange(newTime);
+        }
+    };
+
+    nextStep = () => {
+        this.stop();
+        if (this.state.time < this.props.maxTime) {
+            const newTime = this.state.time + 1;
+            this.props.handleTimeChange(newTime);
+        }
+    };
+
+    firstStep = () => {
+        this.stop();
+        this.handleTimeChange(0);
+    };
+
+    lastStep = () => {
+        this.stop();
+        this.handleTimeChange(this.props.maxTime);
+    };
+
+    autoPlayNextStep = () => {
+        console.log('this.autoPlayNextStep()');
+        if (this.state.time < this.props.maxTime) {
+            const newTime = this.state.time + 1;
+            let newState = {time: newTime};
+            this.handleTimeChange(newTime);
+            if (newState.time < this.props.maxTime) {
+                console.log('Setting timeout', this.timeoutId);
+                this.timeoutId = setTimeout(this.autoPlayNextStep, this.AUTOPLAY_TIMEOUT);
+            } else {
+                this.timeoutId = null;
+                newState.autoPlaying = false;
+            }
+            console.log(this.timeoutId, newState);
+            this.setState(newState);
+        }
+    };
+
+    autoPlay = () => {
+        this.autoPlayNextStep();
+        this.setState({autoPlaying: true});
+    };
+
+    stop = () => {
+        if (this.timeoutId != null) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+            this.setState({autoPlaying: false});
+        }
     };
 
     render() {
@@ -827,28 +893,47 @@ class TimeSlider extends React.PureComponent {
             }
         }
         const time = this.state.time != null ? this.state.time : this.props.time;
+        let buttons = [];
+        const button = (label, onClick) => (
+            <button type="button" class="btn btn-outline-primary btn-sm" onClick={onClick}>
+                {label}
+            </button>
+        );
+        buttons.push(button('First step', this.firstStep));
+        buttons.push(button('Previous step', this.prevStep));
+        if (!this.state.autoPlaying) {
+            buttons.push(button('Play', this.autoPlay));
+        } else {
+            buttons.push(button('Stop', this.stop));
+        }
+        buttons.push(button('Next step', this.nextStep));
+        buttons.push(button('Last step', this.lastStep));
+
         return (
-            <Slider
-                marks={marks}
-                onChange={this.handleValueChange}
-                min={0}
-                max={this.props.maxTime}
-                value={time}
-                dotStyle={{
-                    top: -2,
-                    height: 14,
-                    width: 14,
-                }}
-                handleStyle={{
-                    height: 20,
-                    width: 20,
-                    marginTop: -6,
-                }}
-                railStyle={{height: 10}}
-                trackStyle={{
-                    height: 10,
-                }}
-            />
+            <div>
+                <div>{buttons}</div>
+                <Slider
+                    marks={marks}
+                    onChange={this.handleSliderValueChange}
+                    min={0}
+                    max={this.props.maxTime}
+                    value={time}
+                    dotStyle={{
+                        top: -2,
+                        height: 14,
+                        width: 14,
+                    }}
+                    handleStyle={{
+                        height: 20,
+                        width: 20,
+                        marginTop: -6,
+                    }}
+                    railStyle={{height: 10}}
+                    trackStyle={{
+                        height: 10,
+                    }}
+                />
+            </div>
         );
     }
 }
@@ -895,7 +980,7 @@ export class VisualizedCode extends React.Component {
                 <div className="visualized-code">
                     <div className="row slider-row">
                         <div className="col-md-6 col-sm-12">
-                            <TimeSlider
+                            <TimeSliderWithControls
                                 handleTimeChange={this.handleTimeChangeThrottled}
                                 time={time}
                                 maxTime={this.props.breakpoints.length - 1}
