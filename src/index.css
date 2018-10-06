@@ -252,3 +252,11 @@ blockquote.blockquote {
 .inline-block {
     display: inline-block;
 }
+
+.slider-controls {
+    margin-bottom: 10px;
+}
+
+.slider-controls-button {
+    width: 100px;
+}

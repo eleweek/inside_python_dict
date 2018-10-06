@@ -927,26 +927,30 @@ class TimeSliderWithControls extends React.PureComponent {
         const button = (label, onClick, iconId, iconOnTheRight) => {
             let elems = [<FontAwesomeIcon icon={iconId} />, label];
             return (
-                <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClick}>
+                <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm slider-controls-button"
+                    onClick={onClick}
+                >
                     {iconOnTheRight ? elems.reverse() : elems}
                 </button>
             );
         };
 
         buttons.push(button(' First step', this.firstStep, 'fast-backward'));
-        buttons.push(button(' Previous step', this.prevStep, 'step-backward'));
+        buttons.push(button(' step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
             const playIcon = this.state.time === this.props.maxTime ? 'redo-alt' : 'play';
             buttons.push(button(' Play', this.autoPlay, playIcon));
         } else {
             buttons.push(button(' Pause', this.stop, 'pause'));
         }
-        buttons.push(button('Next step ', this.nextStep, 'step-forward', true));
+        buttons.push(button('step ', this.nextStep, 'step-forward', true));
         buttons.push(button('Last step ', this.lastStep, 'fast-forward', true));
 
         return (
             <div>
-                <div>{buttons}</div>
+                <div className="slider-controls">{buttons}</div>
                 <Slider
                     marks={marks}
                     onChange={this.handleSliderValueChange}
