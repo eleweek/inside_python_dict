@@ -72,14 +72,16 @@ export class PyObjParser {
         return this.parseStringOrNumber(allowedSeparators);
     }
 
-    parseStringOrNumber(allowedSeparators) {
+    parseStringOrNumber(allowedSeparators, fromDict = true) {
         this.skipWhitespace();
         const c = this.current();
-        if (c === '{' || c === '[') {
-            this.throwErr('Nested lists and dictionaries are not supported. Only strings and ints are.');
-        }
-        if (c == null) {
-            this.throwErr('Dict literal added abruptly - expected value');
+        if (fromDict) {
+            if (c === '{' || c === '[') {
+                this.throwErr('Nested lists and dictionaries are not supported. Only strings and ints are.');
+            }
+            if (c == null) {
+                this.throwErr('Dict literal added abruptly - expected value');
+            }
         }
 
         if (digitsMinusPlus.includes(c)) {
@@ -242,7 +244,7 @@ export function parsePyList(s) {
 
 export function parsePyStringOrNumber(s) {
     let parser = new PyObjParser(s);
-    return parser.parseStringOrNumber();
+    return parser.parseStringOrNumber(null, false);
 }
 
 // TODO: Dump functions are very hacky right now
