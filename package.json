@@ -29,12 +29,16 @@
     "trailingComma": "es5"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.4",
+    "@fortawesome/free-solid-svg-icons": "^5.3.1",
+    "@fortawesome/react-fontawesome": "^0.1.3",
     "bignumber.js": "^7.2.1",
     "bootstrap": "^4.0.0",
     "classnames": "^2.2.6",
     "d3": "^5.7.0",
     "d3-selection-multi": "^1.0.1",
     "detect-browser": "^3.0.0",
+    "i": "^0.3.6",
     "immutable": "^3.8.2",
     "lodash": "^4.17.5",
     "lowlight": "^1.9.1",

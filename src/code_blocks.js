@@ -22,6 +22,26 @@ import SmoothScrollbar from 'react-smooth-scrollbar';
 import {MyErrorBoundary, getUxSettings} from './util';
 import {isNone, isDummy} from './hash_impl_common';
 
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {
+    faPlay,
+    faStepForward,
+    faStepBackward,
+    faFastForward,
+    faFastBackward,
+    faPause,
+    faRedoAlt,
+} from '@fortawesome/free-solid-svg-icons';
+
+library.add(faPlay);
+library.add(faStepForward);
+library.add(faStepBackward);
+library.add(faFastForward);
+library.add(faFastBackward);
+library.add(faPause);
+library.add(faRedoAlt);
+
 function doubleRAF(callback) {
     window.requestAnimationFrame(() => {
         window.requestAnimationFrame(callback);
@@ -872,9 +892,19 @@ class TimeSliderWithControls extends React.PureComponent {
         }
     };
 
-    autoPlay = () => {
-        this.autoPlayNextStep();
+    repeatPlay = () => {
         this.setState({autoPlaying: true});
+        this.handleTimeChange(0);
+        this.timeoutId = setTimeout(this.autoPlayNextStep, this.AUTOPLAY_TIMEOUT);
+    };
+
+    autoPlay = () => {
+        if (this.state.time < this.props.maxTime) {
+            this.autoPlayNextStep();
+            this.setState({autoPlaying: true});
+        } else {
+            this.repeatPlay();
+        }
     };
 
     stop = () => {
@@ -894,20 +924,25 @@ class TimeSliderWithControls extends React.PureComponent {
         }
         const time = this.state.time != null ? this.state.time : this.props.time;
         let buttons = [];
-        const button = (label, onClick) => (
-            <button type="button" class="btn btn-outline-primary btn-sm" onClick={onClick}>
-                {label}
-            </button>
-        );
-        buttons.push(button('First step', this.firstStep));
-        buttons.push(button('Previous step', this.prevStep));
+        const button = (label, onClick, iconId, iconOnTheRight) => {
+            let elems = [<FontAwesomeIcon icon={iconId} />, label];
+            return (
+                <button type="button" className="btn btn-outline-primary btn-sm" onClick={onClick}>
+                    {iconOnTheRight ? elems.reverse() : elems}
+                </button>
+            );
+        };
+
+        buttons.push(button(' First step', this.firstStep, 'fast-backward'));
+        buttons.push(button(' Previous step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
-            buttons.push(button('Play', this.autoPlay));
+            const playIcon = this.state.time === this.props.maxTime ? 'redo-alt' : 'play';
+            buttons.push(button(' Play', this.autoPlay, playIcon));
         } else {
-            buttons.push(button('Stop', this.stop));
+            buttons.push(button(' Pause', this.stop, 'pause'));
         }
-        buttons.push(button('Next step', this.nextStep));
-        buttons.push(button('Last step', this.lastStep));
+        buttons.push(button('Next step ', this.nextStep, 'step-forward', true));
+        buttons.push(button('Last step ', this.lastStep, 'fast-forward', true));
 
         return (
             <div>
