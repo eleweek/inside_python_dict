@@ -5,9 +5,11 @@ from dict_reimpl_common import BaseDictImpl, Slot
 class AlmostPythonDictBase(BaseDictImpl):
     START_SIZE = 8
 
-    def __init__(self):
+    def __init__(self, pairs=None):
         BaseDictImpl.__init__(self)
         self._keys_set = set()
+        for k, v in pairs:
+            self[k] = v
 
     def lookdict(self, key):
         hash_code = hash(key)
