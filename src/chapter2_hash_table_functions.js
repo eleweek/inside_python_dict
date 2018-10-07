@@ -219,7 +219,7 @@ function formatHashRemoveSearch(bp) {
                 return `<code>${bp.keys[bp.idx]} != ${bp.key}</code>, so there is a different key with the same hash`;
             }
         case 'assign-dummy':
-            return `Replace key at <code>${bp.idx}</code> with DUMMY placeholder`;
+            return `Replace key in slot <code>${bp.idx}</code> with <code>DUMMY</code> placeholder`;
         case 'return':
             return `The key is removed, now return`;
         case 'next-idx':
@@ -623,8 +623,21 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     delibirate design decision by Python Core Developers.
                 </p>
                 <p>
-                    For large("long") integers, python uses a different algorithm. Try typing a really big number, for
-                    example TODO to see this.
+                    For big("long") integers, python uses a different algorithm. Try typing a fairly big number, for
+                    example <code>12345678901234567890</code> to see this.
+                </p>
+                <h5>hash() implementation notes</h5>
+                <p>
+                    This chapter and the next two chapters will use <code>hash()</code> implementation from python 3.2
+                    (running on a x86_64 system). So if you run python 3.2 on your x86_64 system, you should see the
+                    same hash values for integers and strings (and the same data structure states).{' '}
+                    <code>hash(None)</code> changes between runs, but this page does not change <code>hash(None)</code>{' '}
+                    between refreshes, and assumes that <code>hash(None) == -9223372036581563745</code>
+                </p>
+                <p>
+                    Why python 3.2? Because dict implementation changed over time, but python 3.2's dict implements all
+                    major ideas, and thus python 3.2 is a perfect starting point for exploring implementations of python
+                    dict. Eventually we will get to the most recent version of python.
                 </p>
                 <h5> Unhashable types </h5>
                 <p>
@@ -636,6 +649,15 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     Hashing and using lists as keys in dicts would lead to many accidental bugs, so developers of python
                     chose not to allow this.
                 </p>
+                <h5>A note on the word "hash"</h5>
+                <p>
+                    Because hash tables use hash functions and because hash tables mix up inserted elements, they are
+                    called hash tables. Sometimes people shorten "hash table" to simply "hash". The output of a hash
+                    function is sometimes called "hash value" or "hash code", but very often it is shortened to simple
+                    "hash". Also, python's built-in hash function is called <code>hash()</code>. Because people really
+                    like to shorten things, three different (but related) concepts end up having the same shortened
+                    name. This can get a bit confusing sometimes.
+                </p>
                 <h5> Using hash functions for hash tables </h5>
                 <p>
                     Recall that we started with a simple problem: searching efficiently in a list of distinct numbers.
@@ -643,17 +665,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     handle duplicates and support removing and adding keys (and therefore resizing). We will see how to
                     handle values in the next chapter, but for now let's assume we only need to search for keys.
                 </p>
-                <p>Let's say we have a mixed list of strings and integers:</p>
-                <MySticky bottomBoundary=".chapter2">
-                    <PyListInput value={this.state.array} onChange={this.setter('array')} />
-                </MySticky>
-                <p>TODO: move the next sentence somewhere:</p>
-                <p>
-                    Hash tables are called hash tables because they use hash functions and because they also "mix up"
-                    the order of input elements.
-                </p>
-                <p>TODO: explain that "hashes" is short for "hash function values"</p>
-                <h5> How does using hash functions change the insertion algorithm? </h5>
+                <p>How does using hash functions change the insertion algorithm?</p>
                 <p>
                     Obviously, we have to use <code>hash()</code> function to convert objects into integers for
                     indexing.
@@ -696,6 +708,10 @@ EMPTY = EmptyValueClass()
                     Now, let's see this algorithm in action. We'll use a separate list called <code>hash_codes</code>{' '}
                     for caching values of hash functions.
                 </p>
+                <p>Let's say we have a mixed list of strings and integers:</p>
+                <MySticky bottomBoundary=".chapter2">
+                    <PyListInput value={this.state.array} onChange={this.setter('array')} />
+                </MySticky>
                 <VisualizedCode
                     code={HASH_CREATE_NEW_CODE}
                     breakpoints={newRes.bpTransformed}

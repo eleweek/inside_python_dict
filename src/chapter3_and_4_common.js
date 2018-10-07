@@ -144,8 +144,10 @@ export function formatHashClassSetItemAndCreate(bp) {
                 `If we're putting the item in dummy slot ` +
                 (bp.self.slots[bp.targetIdx].key === DUMMY ? '(and we are)' : "(and we aren't)")
             );
-        case 'assign-slot':
-            return `Put the item in slot <code>${bp.targetIdx}</code>`;
+        case 'assign-slot': {
+            const _idxOrTargetIdx = bp.targetIdx !== undefined ? bp.targetIdx : bp.idx;
+            return `Put the item in slot <code>${_idxOrTargetIdx}</code>`;
+        }
         case 'check-resize': {
             const fillQ = bp.self.fill * 3;
             const sizeQ = bp.self.slots.length * 2;
@@ -179,11 +181,11 @@ export function formatHashClassResize(bp) {
         case 'assign-old-slots':
             return 'Copy the reference to slots (no actual copying is done)';
         case 'assign-fill':
-            return `Set fill to <code>${
-                bp.self.used
-            }</code>, because we know we'll be filtering out any removed "dummy" slots`;
+            return `Set fill to <code>${bp.self.used}</code>, since we will drop any removed "dummy" slots`;
         case 'compute-new-size':
-            return `Compute the optimal size: <code>${bp.newSize}</code>. TODO: explain calculation`;
+            return `Find the smallest power of two greater than <code>${bp.self.used} * 2</code>. It is <code>${
+                bp.newSize
+            }</code>`;
         case 'new-empty-slots':
             return `Create a new list of empty slots of size <code>${bp.self.slots.length}</code>`;
         case 'for-loop': {
@@ -211,7 +213,7 @@ export function formatHashClassResize(bp) {
                 return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
             }
         case 'assign-slot':
-            return `Put the item in slot ${bp.idx}`;
+            return `Put the item in slot <code>${bp.idx}</code>`;
         case 'done-no-return':
         case 'start-execution':
             return '';

@@ -31,7 +31,7 @@ import {
 } from './code_blocks';
 
 import {PyDictInput, PyStringOrNumberInput} from './inputs';
-import {MySticky, ChapterComponent} from './util';
+import {MySticky, ChapterComponent, singularOrPlural} from './util';
 
 import memoizeOne from 'memoize-one';
 
@@ -298,7 +298,6 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         return (
             <div className="chapter chapter3">
-                <p>TODO: check used grammar thing</p>
                 <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
                 <p>
                     We now have all the building blocks that allow us to make <em>something like a python dict</em>. In
@@ -356,7 +355,7 @@ export class Chapter3_HashClass extends ChapterComponent {
         self.slots = [Slot() for _ in range(8)]
         self.fill = 0
         self.used = 0
-        # Insert all pairs. [] automatically calls __setitem__
+        # Insert all initial pairs. [] automatically calls __setitem__
         for k, v in pairs:
             self[k] = v
 
@@ -426,8 +425,11 @@ export class Chapter3_HashClass extends ChapterComponent {
                     {...this.props}
                 />
 
-                <p>TODO: conditional here: i.e. resize after step X.</p>
-                <p>Let's look at the first resize in depth:</p>
+                <p>
+                    While elements were being inserted, {newRes.resizes.length}{' '}
+                    {singularOrPlural(newRes.resizes.length, 'resize', 'resizes')} happened. Let's look at{' '}
+                    {newRes.resizes.length ? 'it' : 'the first resize'} in depth:{' '}
+                </p>
                 <VisualizedCode
                     code={HASH_CLASS_RESIZE_CODE}
                     breakpoints={resizeRes.bpTransformed}

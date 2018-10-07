@@ -143,7 +143,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
         case 'create-new-list':
             return `Create a new list of size <code>${bp.newList.length}</code>`;
         case 'for-loop':
-            return `[${bp.originalListIdx}/${bp.originalList.length}] The number to insert is <code>${
+            return `[${bp.originalListIdx + 1}/${bp.originalList.length}] The number to insert is <code>${
                 bp.number
             }</code>`;
         case 'compute-idx':

@@ -39,13 +39,13 @@ export function MySticky(props) {
 }
 
 export class ChapterComponent extends React.Component {
-    setterFuncs = {}
+    setterFuncs = {};
 
     setter(name) {
         if (!(name in this.setterFuncs)) {
             this.setterFuncs[name] = value => this.setState({[name]: value});
         }
-        return this.setterFuncs[name]
+        return this.setterFuncs[name];
     }
 }
 
@@ -100,4 +100,8 @@ export function getUxSettings() {
         return defaultUxSettings;
     }
     return window.insidePythonDictUxSettings;
+}
+
+export function singularOrPlural(num, singular, plural) {
+    return num === 1 ? singular : plural;
 }
