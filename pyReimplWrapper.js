@@ -25,6 +25,16 @@ function parseSimplePyObj(obj) {
     }
 }
 
+function parsePairs(pairs) {
+    let res = [];
+
+    for (let [k, v] of pairs) {
+        res.push([parseSimplePyObj(k), parseSimplePyObj(v)]);
+    }
+
+    return res;
+}
+
 function dumpSimplePyObj(obj) {
     if (obj === DUMMY) {
         return {
@@ -90,10 +100,10 @@ function dumpPyDictState(pySelf) {
     return data;
 }
 
-function dict32RunOp(pySelf, op, key, value) {
+function dict32RunOp(pySelf, op, key, value, pairs) {
     switch (op) {
         case '__init__':
-            pySelf = Dict32.__init__().pySelf;
+            pySelf = Dict32.__init__(pairs).pySelf;
             return {pySelf};
         case '__getitem__': {
             const {result, isException} = Dict32.__getitem__(pySelf, key);
@@ -113,10 +123,10 @@ function dict32RunOp(pySelf, op, key, value) {
     }
 }
 
-function almostPyDictRunOp(pySelf, op, key, value) {
+function almostPyDictRunOp(pySelf, op, key, value, pairs) {
     switch (op) {
         case '__init__':
-            pySelf = AlmostPythonDict.__init__().pySelf;
+            pySelf = AlmostPythonDict.__init__(pairs).pySelf;
             return {pySelf};
         case '__getitem__': {
             const {result, isException} = AlmostPythonDict.__getitem__(pySelf, key);
@@ -154,19 +164,23 @@ const server = net.createServer(c => {
         let pySelf = restorePyDictState(data.self);
         const dictType = data.dict;
         const op = data.op;
-        let {key, value} = data.args;
+        let {key, value, pairs} = data.args;
         if (key !== undefined) {
             key = parseSimplePyObj(key);
         }
         if (value !== undefined) {
             value = parseSimplePyObj(value);
         }
-        console.log(op, key, value);
+        if (pairs !== undefined) {
+            pairs = parsePairs(pairs);
+        }
+
+        console.log(op, data.args);
         let isException, result;
         if (dictType === 'dict32') {
-            ({pySelf, isException, result} = dict32RunOp(pySelf, op, key, value));
+            ({pySelf, isException, result} = dict32RunOp(pySelf, op, key, value, pairs));
         } else if (dictType === 'almost_python_dict') {
-            ({pySelf, isException, result} = almostPyDictRunOp(pySelf, op, key, value));
+            ({pySelf, isException, result} = almostPyDictRunOp(pySelf, op, key, value, pairs));
         } else {
             throw new Error('Unknown dict type');
         }

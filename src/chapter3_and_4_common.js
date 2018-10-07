@@ -19,7 +19,7 @@ export function postBpTransform(bp) {
     cloned.self = cloned.self.toJS();
 
     if (bp.oldSlots) {
-        cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : cloned.oldSlots;
+        cloned.oldSlots = cloned.oldSlots ? cloned.oldSlots.toJS() : null;
     }
 
     return cloned;
@@ -218,9 +218,9 @@ export function formatHashClassResize(bp) {
     }
 }
 
-export function hashClassConstructor() {
+export function hashClassConstructor(size = 8) {
     let slotsTemp = [];
-    for (let i = 0; i < 8; ++i) {
+    for (let i = 0; i < size; ++i) {
         slotsTemp.push(new Slot());
     }
 
@@ -235,9 +235,9 @@ export function hashClassConstructor() {
 
 export const Slot = Record({hashCode: null, key: null, value: null});
 
-export function findOptimalSize(used, quot = 2) {
+export function findNearestSize(minused) {
     let newSize = 8;
-    while (newSize <= quot * used) {
+    while (newSize <= minused) {
         newSize *= 2;
     }
 
@@ -496,7 +496,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
         this.addBP('start-execution');
         this.oldSlots = this.self.get('slots');
         this.addBP('assign-old-slots');
-        this.newSize = findOptimalSize(this.self.get('used'), optimalSizeQuot);
+        this.newSize = findNearestSize(this.self.get('used') * optimalSizeQuot);
         this.addBP('compute-new-size');
 
         let slotsTemp = [];

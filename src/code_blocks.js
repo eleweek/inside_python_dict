@@ -640,7 +640,7 @@ export class Tetris extends React.PureComponent {
             elems.push(
                 <div className="tetris-row" key={`row-${i}`}>
                     <div className="tetris-row-label-div">
-                        <p className="tetris-row-label"> {dataLabel ? dataLabel + ':' : ''} </p>
+                        <p className="tetris-row-label">{dataLabel ? dataLabel + ':' : ''}</p>
                     </div>
                     <Component array={deepGet(props.bp, dataName)} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />
                 </div>

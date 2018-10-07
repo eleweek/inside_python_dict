@@ -9,7 +9,7 @@ class PyDictReimplementation(BaseDictImpl):
 
     def __init__(self, pairs):
         BaseDictImpl.__init__(self)
-        start_size = self.find_nearest_size(len(pairs))
+        start_size = self.find_nearest_size(len(pairs)) if pairs else self.START_SIZE
         self.slots = [Slot() for _ in range(start_size)]
         for k, v in pairs:
             self[k] = v

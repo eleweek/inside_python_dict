@@ -16,6 +16,7 @@ import {
     formatHashClassLookdictRelated,
     formatHashClassResize,
     postBpTransform,
+    findNearestSize,
 } from './chapter3_and_4_common';
 import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
@@ -189,11 +190,20 @@ let DICT32_DELITEM = DICT32_LOOKDICT.concat([
 
 export class Dict32 {
     static __init__(pairs) {
-        let pySelf = hashClassConstructor();
+        if (pairs && pairs.length >= 50000) {
+            throw new Error("Too many pairs, it's hard to visualize them anyway");
+        }
+        let pySelf = hashClassConstructor(pairs && pairs.length > 0 ? findNearestSize(pairs.length) : 8);
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
-            // TODO: 4 or 2 -- depends on dict size
-            pySelf = ia.run(pySelf, pairs, true, Dict32SetItem, Dict32Resize, 4);
+            pySelf = ia.run(
+                pySelf,
+                pairs,
+                true,
+                Dict32SetItem,
+                Dict32Resize,
+                4 /* Depends on the dict size, but an exception is thrown anyway if the dict is too largy */
+            );
             const bp = ia.getBreakpoints();
             const resizes = ia.getResizes();
 

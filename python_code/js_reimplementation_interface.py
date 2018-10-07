@@ -28,6 +28,14 @@ def dump_simple_py_obj(obj):
     return obj
 
 
+def dump_pairs(pairs):
+    res = []
+    for k, v in pairs:
+        res.append([dump_simple_py_obj(k), dump_simple_py_obj(v)])
+
+    return res
+
+
 def parse_simple_py_obj(obj):
     if isinstance(obj, dict):
         assert obj["type"] in ["DUMMY", "None", "int"]
@@ -44,7 +52,7 @@ def parse_simple_py_obj(obj):
 class JsImplBase(object):
     SOCK_FILENAME = '../pynode.sock'
 
-    def __init__(self):
+    def __init__(self, pairs=None):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(self.SOCK_FILENAME)
         self.sockfile = self.sock.makefile('r')
@@ -53,7 +61,7 @@ class JsImplBase(object):
         self.fill = None
         self.used = None
 
-        self.run_op("__init__")
+        self.run_op("__init__", pairs=pairs)
 
     def dump_slots(self):
         def dump_slot(slot):
@@ -93,7 +101,10 @@ class JsImplBase(object):
 
     def run_op(self, op, **kwargs):
         for name in kwargs:
-            kwargs[name] = dump_simple_py_obj(kwargs[name])
+            if name != 'pairs':
+                kwargs[name] = dump_simple_py_obj(kwargs[name])
+            else:
+                kwargs[name] = dump_pairs(kwargs[name])
 
         data = {
             "dict": self.dict_type,
