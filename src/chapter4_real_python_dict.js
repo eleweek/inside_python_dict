@@ -103,11 +103,23 @@ function formatDict32IdxRelatedBp(bp) {
     }
 }
 
-const DICT32_SETITEM = [
+const STATICMETHOD_SIGNED_TO_UNSIGNED = [
     ['@staticmethod', ''],
     ['def signed_to_unsigned(hash_code):', ''],
     ['    return 2**64 + hash_code if hash_code < 0 else hash_code', ''],
     ['', ''],
+];
+
+const DICT32_INIT = [
+    ['def __init__(self, pairs):', ''],
+    ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', ''],
+    ['    self.slots = [Slot() for _ in range(start_size)]', ''],
+    ['    for k, v in pairs:', ''],
+    ['        self[k] = v', ''],
+    ['', ''],
+];
+
+const DICT32_SETITEM = [
     ['def __setitem__(self, key, value):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -136,6 +148,8 @@ const DICT32_SETITEM = [
     ['        self.resize()', 'resize', 1],
     ['', 'done-no-return', 0],
 ];
+
+const DICT32_SETITEM_WITH_INIT = [...STATICMETHOD_SIGNED_TO_UNSIGNED, ...DICT32_INIT, ...DICT32_SETITEM];
 
 const DICT32_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
@@ -195,6 +209,7 @@ export class Dict32 {
         }
         let pySelf = hashClassConstructor(pairs && pairs.length > 0 ? findNearestSize(pairs.length) : 8);
         if (pairs && pairs.length > 0) {
+            console.log(pairs);
             const ia = new HashClassInsertAll();
             pySelf = ia.run(
                 pySelf,
@@ -723,7 +738,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
 
-        let resizeRes = this.selectResize(newRes.resizes);
+        // TODO
+        // let resizeRes = this.selectResize(newRes.resizes);
 
         let delRes = this.runDelItem(pySelf, this.state.keyToDel);
         pySelf = delRes.pySelf;
@@ -868,7 +884,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 </p>
                 <p>Insert:</p>
                 <VisualizedCode
-                    code={DICT32_SETITEM}
+                    code={DICT32_SETITEM_WITH_INIT}
                     breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
@@ -907,13 +923,13 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     After running <code>__setitem__</code> multiple times for these pairs, we can take a look at the
                     resize in-depth:{' '}
                 </p>
-                <VisualizedCode
+                {/*<VisualizedCode
                     code={DICT32_RESIZE_CODE}
                     breakpoints={resizeRes.bpTransformed}
                     formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                     {...this.props}
-                />
+                />*/}
                 <h5>Brief history of changes in the following versions</h5>
                 <p>
                     In 3.3 there were major changes to the internal structure of dicts (
