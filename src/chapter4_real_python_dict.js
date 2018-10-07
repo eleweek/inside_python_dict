@@ -3,6 +3,7 @@ import * as React from 'react';
 import {BigNumber} from 'bignumber.js';
 import {
     hashClassConstructor,
+    HashClassInitEmpty,
     HashClassResizeBase,
     HashClassSetItemBase,
     HashClassDelItem,
@@ -15,6 +16,7 @@ import {
     formatHashClassSetItemAndCreate,
     formatHashClassLookdictRelated,
     formatHashClassResize,
+    formatHashClassInit,
     postBpTransform,
     findNearestSize,
 } from './chapter3_and_4_common';
@@ -111,18 +113,18 @@ const STATICMETHOD_SIGNED_TO_UNSIGNED = [
 ];
 
 const DICT32_INIT = [
-    ['def __init__(self, pairs):', ''],
-    ['    self.used = 0', ''],
-    ['    self.fill = 0', ''],
-    ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', ''],
-    ['    self.slots = [Slot() for _ in range(start_size)]', ''],
-    ['    for k, v in pairs:', ''],
-    ['        self[k] = v', ''],
+    ['def __init__(self, pairs):', 'start-execution', 0],
+    ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', 'init-start-size', 1],
+    ['    self.slots = [Slot() for _ in range(start_size)]', 'init-slots', 1],
+    ['    self.used = 0', 'init-used', 1],
+    ['    self.fill = 0', 'init-fill', 1],
+    ['    for k, v in pairs:', 'for-pairs', 1],
+    ['        self[k] = v', 'run-setitem', 2],
     ['', ''],
 ];
 
 const DICT32_SETITEM = [
-    ['def __setitem__(self, key, value):', 'start-execution', 0],
+    ['def __setitem__(self, key, value):', 'setitem-def', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
     ['    perturb = self.signed_to_unsigned(hash_code)', 'compute-perturb', 1],
@@ -209,9 +211,25 @@ export class Dict32 {
         if (pairs && pairs.length >= 50000) {
             throw new Error("Too many pairs, it's hard to visualize them anyway");
         }
-        let pySelf = hashClassConstructor(pairs && pairs.length > 0 ? findNearestSize(pairs.length) : 8);
+        console.log('__init__', pairs);
+        let startSize;
+        let pairsLength;
+        if (pairs && pairs.length > 0) {
+            startSize = findNearestSize(pairs.length);
+            pairsLength = pairs.length;
+        } else {
+            startSize = 8;
+            pairsLength = 0;
+        }
+
+        const ie = new HashClassInitEmpty();
+        console.log('startSize and pairsLength', startSize, pairsLength);
+        let pySelf = ie.run(startSize, pairsLength);
+        let bp = ie.getBreakpoints();
+
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
+            console.log('Before', pySelf.toJS());
             pySelf = ia.run(
                 pySelf,
                 pairs,
@@ -220,12 +238,13 @@ export class Dict32 {
                 Dict32Resize,
                 4 /* Depends on the dict size, but an exception is thrown anyway if the dict is too largy */
             );
-            const bp = ia.getBreakpoints();
+            console.log('ia.run()', pySelf.toJS());
+            bp = [...bp, ...ia.getBreakpoints()];
             const resizes = ia.getResizes();
 
             return {resizes: resizes, bp: bp, pySelf};
         } else {
-            return {resizes: [], bp: [], pySelf};
+            return {resizes: [], bp: bp, pySelf};
         }
     }
 
@@ -249,7 +268,17 @@ export class Dict32 {
 
     static __setitem__(pySelf, key, value) {
         let si = new Dict32SetItem();
-        pySelf = si.run(pySelf, key, value, true, Dict32Resize, 4 /* FIXME */);
+        if (pySelf.get('slots').size >= 50000) {
+            throw new Error("Too much inserts, can't visualize this anyway");
+        }
+        pySelf = si.run(
+            pySelf,
+            key,
+            value,
+            true,
+            Dict32Resize,
+            4 /* should depend on the size but an exception is throw before condition is reached */
+        );
         const bp = si.getBreakpoints();
         return {bp, pySelf};
     }
@@ -887,7 +916,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <VisualizedCode
                     code={DICT32_SETITEM_WITH_INIT}
                     breakpoints={newRes.bpTransformed}
-                    formatBpDesc={[formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
+                    formatBpDesc={[formatHashClassInit, formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
                     {...this.props}
                 />

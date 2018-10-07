@@ -391,7 +391,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 newKeyBox[key] = state.keyBox[key];
             }
 
-            const nextArray = nextProps.array;
+            const nextArray = nextProps.array || [];
             let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
             let nextKeysSet = new Set();

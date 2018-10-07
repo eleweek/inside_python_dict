@@ -6,6 +6,7 @@ import {HashBreakpointFunction, pyHash} from './hash_impl_common';
 import {BigNumber} from 'bignumber.js';
 import {
     hashClassConstructor,
+    HashClassInitEmpty,
     HashClassResizeBase,
     HashClassSetItemBase,
     HashClassDelItem,
@@ -18,6 +19,7 @@ import {
     formatHashClassSetItemAndCreate,
     formatHashClassLookdictRelated,
     formatHashClassResize,
+    formatHashClassInit,
     postBpTransform,
 } from './chapter3_and_4_common';
 
@@ -54,17 +56,19 @@ class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 
 export class AlmostPythonDict {
     static __init__(pairs) {
-        let pySelf = hashClassConstructor();
+        const ie = new HashClassInitEmpty();
+        let pySelf = ie.run(null, pairs.length);
+        let bp = ie.getBreakpoints();
 
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
             pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
-            const bp = ia.getBreakpoints();
+            bp = [...bp, ...ia.getBreakpoints()];
             const resizes = ia.getResizes();
 
             return {pySelf, resizes: resizes, bp: bp};
         } else {
-            return {pySelf, resizes: [], bp: []};
+            return {pySelf, resizes: [], bp: bp};
         }
     }
 
@@ -118,7 +122,7 @@ function formatHashClassChapter3IdxRelatedBp(bp) {
 }
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
-    ['def __setitem__(self, key, value):', 'start-execution', 0],
+    ['def __setitem__(self, key, value):', 'setitem-def', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
     ['    while self.slots[idx].key is not EMPTY:', 'check-collision', 2],
@@ -138,12 +142,12 @@ const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
 ];
 
 const HASH_CLASS_INIT_CODE = [
-    ['def __init__(self):', ''],
-    ['    self.slots = [Slot() for _ in range(self.START_SIZE)]', ''],
-    ['    self.fill = 0', ''],
-    ['    self.used = 0', ''],
-    ['    for k, v in pairs:', ''],
-    ['        self[k] = v', ''],
+    ['def __init__(self):', 'start-execution', 0],
+    ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 1],
+    ['    self.fill = 0', 'init-fill', 1],
+    ['    self.used = 0', 'init-used', 1],
+    ['    for k, v in pairs:', 'for-pairs', 1],
+    ['        self[k] = v', 'run-setitem', 2],
     ['', ''],
 ];
 
@@ -420,7 +424,11 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
                     breakpoints={newRes.bpTransformed}
-                    formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
+                    formatBpDesc={[
+                        formatHashClassInit,
+                        formatHashClassSetItemAndCreate,
+                        formatHashClassChapter3IdxRelatedBp,
+                    ]}
                     stateVisualization={HashClassInsertAllVisualization}
                     {...this.props}
                 />

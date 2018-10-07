@@ -12,7 +12,7 @@ import {
     dummyFormat,
 } from './code_blocks';
 
-import {HashBreakpointFunction, pyHash, DUMMY, EQ} from './hash_impl_common';
+import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ} from './hash_impl_common';
 
 export function postBpTransform(bp) {
     let cloned = _.clone(bp);
@@ -220,6 +220,27 @@ export function formatHashClassResize(bp) {
     }
 }
 
+export function formatHashClassInit(bp) {
+    switch (bp.point) {
+        case 'init-start-size':
+            return `Find the smallest power of two greater than <code>${bp.pairsLength} * 2</code>. It is <code>${
+                bp.startSize
+            }</code>`;
+        case 'init-slots':
+            return `Start by creating a list of empty slots of size <code>8</code>`;
+        case 'init-fill':
+            return `Set <code>fill</code> to <code>0</code>, because there are no items (yet)`;
+        case 'init-used':
+            return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
+        case 'for-pairs':
+            return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${bp.oldKey}</code> and <code>${
+                bp.oldValue
+            }</code>`;
+        case 'run-setitem':
+            return `Call self.__setitem__(${bp.oldKey}, ${bp.oldValue})`;
+    }
+}
+
 export function hashClassConstructor(size = 8) {
     let slotsTemp = [];
     for (let i = 0; i < size; ++i) {
@@ -233,6 +254,39 @@ export function hashClassConstructor(size = 8) {
     });
 
     return self;
+}
+
+export class HashClassInitEmpty extends BreakpointFunction {
+    run(initStartSize = null, pairsLength = null) {
+        // This is a hack
+        if (pairsLength != null) {
+            this.pairsLength = pairsLength;
+        }
+
+        this.self = Map({slots: []});
+        let startSize;
+        if (initStartSize != null) {
+            startSize = initStartSize;
+            this.startSize = startSize;
+            this.addBP('init-start-size');
+        } else {
+            startSize = 8;
+        }
+
+        let slotsTemp = [];
+        for (let i = 0; i < startSize; ++i) {
+            slotsTemp.push(new Slot());
+        }
+
+        this.self = this.self.set('slots', new List(slotsTemp));
+        this.addBP('init-slots');
+        this.self = this.self.set('fill', 0);
+        this.addBP('init-fill');
+        this.self = this.self.set('used', 0);
+        this.addBP('init-used');
+
+        return this.self;
+    }
 }
 
 export const Slot = Record({hashCode: null, key: null, value: null});
@@ -438,14 +492,16 @@ export class HashClassInsertAll extends HashBreakpointFunction {
     run(_self, _pairs, useRecycling, SetItem, Resize, optimalSizeQuot) {
         this.self = _self;
         this.pairs = _pairs;
-        let fromKeys = this.pairs.map(p => p[0]);
-        let fromValues = this.pairs.map(p => p[1]);
+        this.fromKeys = this.pairs.map(p => p[0]);
+        this.fromValues = this.pairs.map(p => p[1]);
         for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
+            this.addBP('for-pairs');
+            this.addBP('run-setitem');
             let hcsi = new SetItem();
             hcsi.setExtraBpContext({
                 oldIdx: this.oldIdx,
-                fromKeys: fromKeys,
-                fromValues: fromValues,
+                fromKeys: this.fromKeys,
+                fromValues: this.fromValues,
             });
             this.self = hcsi.run(this.self, this.oldKey, this.oldValue, useRecycling, Resize, optimalSizeQuot);
             if (hcsi.getResize()) {
