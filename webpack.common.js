@@ -21,7 +21,11 @@ class HackySSR {
             });
         } else {
             compiler.plugin('emit', (compilation, cb) => {
-                exec('npx babel-node ssr.js', function(error, stdout, stderr) {
+                exec('npx babel-node --presets env,react --plugins transform-class-properties ssr.js', function(
+                    error,
+                    stdout,
+                    stderr
+                ) {
                     compilation.assets[name] = new RawSource(stdout);
                     cb();
                 });

@@ -7,6 +7,7 @@
     "test": "jest --env=node",
     "start": "webpack-dev-server --config webpack.dev.js --host 0.0.0.0",
     "build": "webpack --config webpack.prod.js",
+    "dictserver": "rm pynode.sock ; npx babel-node --presets env,react --plugins transform-class-properties pyReimplWrapper.js; rm pynode.sock",
     "precommit": "pretty-quick --staged"
   },
   "repository": {
