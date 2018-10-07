@@ -731,7 +731,7 @@ EMPTY = EmptyValueClass()
                     value={this.state.searchedObj}
                     onChange={this.setter('searchedObj')}
                 />
-                and see what happens
+                <p className="inline-block">and see what happens:</p>
                 <VisualizedCode
                     code={HASH_SEARCH_CODE}
                     breakpoints={searchRes.bpTransformed}
@@ -749,7 +749,16 @@ EMPTY = EmptyValueClass()
                     a key, we replace it with a "dummy" object (another term for this object is "tombstone"). This
                     object acts as a placeholder that indicates we shouldn't stop probing during a search.
                 </p>
-                <p className="inline-block">Let's see this in action. Let's say we want to remove </p>
+                <p>
+                    We can create this placeholder object just like we created <code>EMPTY</code>:
+                </p>
+                <SimpleCodeBlock>{`
+class DummyValueClass(object):
+    pass
+
+DUMMY = DummyValueClass()
+              `}</SimpleCodeBlock>
+                <p className="inline-block">Let's see removing in action. Let's say we want to remove: </p>
                 <PyStringOrNumberInput
                     inline={true}
                     value={this.state.objToRemove}
@@ -770,9 +779,9 @@ EMPTY = EmptyValueClass()
                 <h5>Resizing hash tables</h5>
                 <p>
                     How do we resize a hash table? The index of each element depends on the table size, so it may change
-                    if the size of a table changes. Moreover, because of linear probing, each index may depend on the
-                    indexes of other objects (which, in turn, also depend on the size of a table and the indexes of
-                    other objects). This is a tangled mess.
+                    if the size of a table changes. Moreover, because of collisions and linear probing, each index may
+                    depend on the indexes of other objects (which, in turn, also depend on the size of a table and the
+                    indexes of other objects). This is a tangled mess.
                 </p>
                 <p>
                     There is a way to disentangle this Gordian Knot, however. We can create a new, bigger table and
@@ -780,9 +789,9 @@ EMPTY = EmptyValueClass()
                     expensive. And, it <em>is</em> expensive. But, the thing is, we don't have to resize the table after
                     every operation. If we make the new table size 1.5x, 2x or even 4x the size of the old table, we
                     will do the resize operation rarely enough that the heavy cost of it will amortize (spread out) over
-                    many insertions/deletions. But, more on this later.
+                    many insertions/deletions.
                 </p>
-                <p>Now, let's see how we could resize the current table</p>
+                <p>Let's see how we could resize the current table</p>
                 <VisualizedCode
                     code={HASH_RESIZE_CODE}
                     breakpoints={resizeRes.bpTransformed}
@@ -801,19 +810,15 @@ EMPTY = EmptyValueClass()
                     between fill and table size is called the <em>load factor</em> (also, sometimes:{' '}
                     <em>fill factor</em> or <em>fill ratio</em>
                     ). So, using the new terms, we can say that a hash table is resized when the load factor reaches
-                    66%. By what factor should the size change? Normally, the size of a table is increased by a factor
-                    of 2 or 4. But, we may also need to shrink the table in case there are a lot of dummy placeholders.
-                    TODO: rewrite it because 1.5x, 2x, 4x discussed before
+                    66%. Usually the size is increased, we may also need to shrink the table in case there are a lot of
+                    dummy placeholders.
                 </p>
                 <p>
                     To implement this efficiently, we need to track the load factor. So, we will need two counters for
-                    tracking fill and usage. With the current code structure, tracking these counters would be messy
-                    because we would need to pass these counters to and from every function. A much cleaner solution
-                    would be using classes.
+                    tracking fill and "real" usage. With the current code structure, tracking these counters would be
+                    messy because we would need to pass these counters to and from every function. A much cleaner
+                    solution would be using classes.
                 </p>
-                // TODO: remove this sentence?{' '}
-                <p>A separate insertion function would need to check for load factor and do resizing.</p>
-                <p>TODO: maybe insert HASH_INSERT_CODE here?</p>
             </div>
         );
     }
