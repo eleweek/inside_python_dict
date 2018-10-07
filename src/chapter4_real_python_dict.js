@@ -112,6 +112,8 @@ const STATICMETHOD_SIGNED_TO_UNSIGNED = [
 
 const DICT32_INIT = [
     ['def __init__(self, pairs):', ''],
+    ['    self.used = 0', ''],
+    ['    self.fill = 0', ''],
     ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', ''],
     ['    self.slots = [Slot() for _ in range(start_size)]', ''],
     ['    for k, v in pairs:', ''],
@@ -209,7 +211,6 @@ export class Dict32 {
         }
         let pySelf = hashClassConstructor(pairs && pairs.length > 0 ? findNearestSize(pairs.length) : 8);
         if (pairs && pairs.length > 0) {
-            console.log(pairs);
             const ia = new HashClassInsertAll();
             pySelf = ia.run(
                 pySelf,

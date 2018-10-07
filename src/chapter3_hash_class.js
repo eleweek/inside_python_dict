@@ -137,6 +137,18 @@ const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ['', 'done-no-return', 0],
 ];
 
+const HASH_CLASS_INIT_CODE = [
+    ['def __init__(self):', ''],
+    ['    self.slots = [Slot() for _ in range(self.START_SIZE)]', ''],
+    ['    self.fill = 0', ''],
+    ['    self.used = 0', ''],
+    ['    for k, v in pairs:', ''],
+    ['        self[k] = v', ''],
+    ['', ''],
+];
+
+const HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE = [...HASH_CLASS_INIT_CODE, ...HASH_CLASS_SETITEM_SIMPLIFIED_CODE];
+
 const HASH_CLASS_SETITEM_RECYCLING_CODE = [
     ['def __setitem__(self, key, value):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
@@ -340,10 +352,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>
                     {`class AlmostDict(object):
-    def __init__(self):
+    def __init__(self, pairs):
         self.slots = [Slot() for _ in range(8)]
         self.fill = 0
         self.used = 0
+        # Insert all pairs. [] automatically calls __setitem__
+        for k, v in pairs:
+            self[k] = v
 
     def __setitem__(self, key, value):
         # Allows us to set a value in a dict-like fashion
@@ -404,7 +419,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </MySticky>
 
                 <VisualizedCode
-                    code={HASH_CLASS_SETITEM_SIMPLIFIED_CODE}
+                    code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
                     breakpoints={newRes.bpTransformed}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
