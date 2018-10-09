@@ -826,11 +826,11 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
 // TODO: remove time from state?
 class TimeSliderWithControls extends React.PureComponent {
-    AUTOPLAY_TIMEOUT = 1000;
+    AUTOPLAY_BASE_TIMEOUT = 1000;
 
     constructor() {
         super();
-        this.state = {time: null, autoPlaying: false};
+        this.state = {time: null, autoPlaying: false, speed: 1};
         this.timeoutId = null;
     }
 
@@ -874,6 +874,10 @@ class TimeSliderWithControls extends React.PureComponent {
         this.handleTimeChange(this.props.maxTime);
     };
 
+    getAutoplayTimeout = () => {
+        return this.AUTOPLAY_BASE_TIMEOUT / this.state.speed;
+    };
+
     autoPlayNextStep = () => {
         console.log('this.autoPlayNextStep()');
         if (this.state.time < this.props.maxTime) {
@@ -882,7 +886,7 @@ class TimeSliderWithControls extends React.PureComponent {
             this.handleTimeChange(newTime);
             if (newState.time < this.props.maxTime) {
                 console.log('Setting timeout', this.timeoutId);
-                this.timeoutId = setTimeout(this.autoPlayNextStep, this.AUTOPLAY_TIMEOUT);
+                this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
             } else {
                 this.timeoutId = null;
                 newState.autoPlaying = false;
@@ -895,7 +899,7 @@ class TimeSliderWithControls extends React.PureComponent {
     repeatPlay = () => {
         this.setState({autoPlaying: true});
         this.handleTimeChange(0);
-        this.timeoutId = setTimeout(this.autoPlayNextStep, this.AUTOPLAY_TIMEOUT);
+        this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
     };
 
     autoPlay = () => {
@@ -915,6 +919,10 @@ class TimeSliderWithControls extends React.PureComponent {
         }
     };
 
+    setSpeed = speed => {
+        this.setState({speed: speed});
+    };
+
     render() {
         let marks = {};
         if (this.props.maxTime < 30) {
@@ -923,56 +931,82 @@ class TimeSliderWithControls extends React.PureComponent {
             }
         }
         const time = this.state.time != null ? this.state.time : this.props.time;
-        let buttons = [];
+
         const button = (label, onClick, iconId, iconOnTheRight) => {
-            let elems = [<FontAwesomeIcon icon={iconId} />, label];
+            let elems = [];
+            if (iconId) {
+                elems.push(<FontAwesomeIcon icon={iconId} />);
+            }
+            elems.push(label);
             return (
-                <button
-                    type="button"
-                    className="btn btn-outline-primary btn-sm slider-controls-button"
-                    onClick={onClick}
-                >
+                <button type="button" className="btn btn-outline-primary slider-controls-button" onClick={onClick}>
                     {iconOnTheRight ? elems.reverse() : elems}
                 </button>
             );
         };
 
-        buttons.push(button(' First step', this.firstStep, 'fast-backward'));
-        buttons.push(button(' step', this.prevStep, 'step-backward'));
+        let timeControls = [];
+        timeControls.push(button(' First step', this.firstStep, 'fast-backward'));
+        timeControls.push(button(' step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
             const playIcon = this.state.time === this.props.maxTime ? 'redo-alt' : 'play';
-            buttons.push(button(' Play', this.autoPlay, playIcon));
+            timeControls.push(button(' Play', this.autoPlay, playIcon));
         } else {
-            buttons.push(button(' Pause', this.stop, 'pause'));
+            timeControls.push(button(' Pause', this.stop, 'pause'));
         }
-        buttons.push(button('step ', this.nextStep, 'step-forward', true));
-        buttons.push(button('Last step ', this.lastStep, 'fast-forward', true));
+        timeControls.push(button('step ', this.nextStep, 'step-forward', true));
+        timeControls.push(button('Last step ', this.lastStep, 'fast-forward', true));
+
+        let speedControls = [];
+
+        const speeds = [0.5, 1, 2, 4];
+        for (let i = 0; i < speeds.length; ++i) {
+            const speed = speeds[i];
+            const isActive = speed === this.state.speed;
+            let label = i === 0 ? `Autoplay speed ${speed}x` : `${speed}x`;
+            speedControls.push(
+                <label className={classNames('btn', 'btn-outline-primary', {active: isActive})}>
+                    <input type="radio" checked={isActive} onClick={() => this.setSpeed(speed)} /> {label}
+                </label>
+            );
+        }
 
         return (
-            <div>
-                <div className="slider-controls btn-group">{buttons}</div>
-                <Slider
-                    marks={marks}
-                    onChange={this.handleSliderValueChange}
-                    min={0}
-                    max={this.props.maxTime}
-                    value={time}
-                    dotStyle={{
-                        top: -2,
-                        height: 14,
-                        width: 14,
-                    }}
-                    handleStyle={{
-                        height: 20,
-                        width: 20,
-                        marginTop: -6,
-                    }}
-                    railStyle={{height: 10}}
-                    trackStyle={{
-                        height: 10,
-                    }}
-                />
-            </div>
+            <React.Fragment>
+                <div className="row">
+                    <div className="col-sm-12 col-md-12">
+                        <div className="btn-toolbar slider-controls">
+                            <div className="btn-group btn-group-sm mr-2">{timeControls}</div>
+                            <div className="btn-group btn-group-sm btn-group-toggle mr-2">{speedControls}</div>
+                        </div>
+                    </div>
+                </div>
+                <div className="row slider-row">
+                    <div className="col-md-6 col-sm-12">
+                        <Slider
+                            marks={marks}
+                            onChange={this.handleSliderValueChange}
+                            min={0}
+                            max={this.props.maxTime}
+                            value={time}
+                            dotStyle={{
+                                top: -2,
+                                height: 14,
+                                width: 14,
+                            }}
+                            handleStyle={{
+                                height: 20,
+                                width: 20,
+                                marginTop: -6,
+                            }}
+                            railStyle={{height: 10}}
+                            trackStyle={{
+                                height: 10,
+                            }}
+                        />
+                    </div>
+                </div>
+            </React.Fragment>
         );
     }
 }
@@ -1017,15 +1051,11 @@ export class VisualizedCode extends React.Component {
         return (
             <MyErrorBoundary>
                 <div className="visualized-code">
-                    <div className="row slider-row">
-                        <div className="col-md-6 col-sm-12">
-                            <TimeSliderWithControls
-                                handleTimeChange={this.handleTimeChangeThrottled}
-                                time={time}
-                                maxTime={this.props.breakpoints.length - 1}
-                            />
-                        </div>
-                    </div>
+                    <TimeSliderWithControls
+                        handleTimeChange={this.handleTimeChangeThrottled}
+                        time={time}
+                        maxTime={this.props.breakpoints.length - 1}
+                    />
                     <div className="row code-block-row">
                         <div className="col">
                             <CodeBlockWithActiveLineAndAnnotations
