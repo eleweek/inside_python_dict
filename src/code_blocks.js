@@ -950,7 +950,7 @@ class TimeSliderWithControls extends React.PureComponent {
 
         return (
             <div>
-                <div className="slider-controls">{buttons}</div>
+                <div className="slider-controls btn-group">{buttons}</div>
                 <Slider
                     marks={marks}
                     onChange={this.handleSliderValueChange}
