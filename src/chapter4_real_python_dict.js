@@ -99,9 +99,46 @@ function formatDict32IdxRelatedBp(bp) {
                 bp.self.slots.length
             }</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Mixing up <code>perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${
+            return `Shifting perturb <code>perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${
                 bp.perturb
             }</code>`;
+    }
+}
+
+function formatPythonProbing(bp) {
+    switch (bp.point) {
+        case 'const-perturb':
+            return `<code>PERTURB_SHIFT</code> needs to be greater than 0, set it to <code>${
+                this.PERTURB_SHIFT
+            }</code> `;
+        case 'compute-hash':
+            return `Compute the hash code: <code>${bp.hashCode}</code>`;
+        case 'compute-idx':
+            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.slotsCount}</code> == <code>${
+                bp.idx
+            }</code>`;
+        case 'compute-perturb':
+            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${
+                bp.perturb
+            }</code>`;
+        case 'next-idx':
+            return `The next slot will be <code>bp.idx</code> == <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
+                bp.slotsCount
+            }</code>`;
+        case 'perturb-shift':
+            return `Shifting perturb <code>perturb</code>: <code>${bp._prevBp.perturb} >> 5</code> == <code>${
+                bp.perturb
+            }</code>`;
+        case 'create-empty-set':
+            return 'Initialize the set of visited slots';
+        case 'visited-add':
+            return `Add slot <code>${bp.idx}</code> to the set of visited slots`;
+        case 'while-loop':
+            if (bp.visitedIdx.size === bp.slotsCount) {
+                return `all ${bp.visitedIdx.size} / ${bp.slotsCount} lots are visited &mdash; stop`;
+            } else {
+                return `Visited ${bp.visitedIdx.size} / ${bp.slotsCount} slots, keep looping until all are visited`;
+            }
     }
 }
 
@@ -285,37 +322,15 @@ export class Dict32 {
 }
 
 // TODO: check code
-const PROBING_IDX_PLUS_ONE_CODE = [
-    ['def probe_all(key):', 'def-probe-all', 0],
-    ['    hash_code = hash(key)', 'compute-hash', 1],
-    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
-    ['    visited = set()', 'create-empty-set', 1],
-    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
-    ['        visited.add(idx)', 'visited-add', 2],
-    ['        idx = (idx + 1) % len(self.slots)', 'next-idx', 2],
-];
-
-// TODO: check code
-const PROBING_FIVE_IDX_PLUS_ONE_CODE = [
-    ['def probe_all(key):', 'def-probel-all', 0],
-    ['    hash_code = hash(key)', 'compute-hash', 1],
-    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
-    ['    visited = set()', 'create-empty-set', 1],
-    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
-    ['        visited.add(idx)', 'visited-add', 2],
-    ['        idx = (5 * idx + 1) % len(self.slots)', 'next-idx', 2],
-];
-
-// TODO: check code
 // TODO: move break condition?
 const PROBING_PYTHON_CODE = [
-    ['PERTURB_SHIFT = 5', '', 0],
+    ['PERTURB_SHIFT = 5', 'const-perturb', 0],
     ['def probe_all(key):', 'def-probel-all', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    perturb = 2**64 + hash_code if hash_code < 0 else hash_code', 'compute-perturb', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
     ['    visited = set()', 'create-empty-set', 1],
-    ['    while len(visited) < len(self.slots):', 'while-loop', 1],
+    ['    while len(visited) < len(self.slots):', 'while-loop', 2],
     ['        visited.add(idx)', 'visited-add', 2],
     ['        idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 2],
     ['        perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 2],
@@ -323,6 +338,9 @@ const PROBING_PYTHON_CODE = [
 
 class GenerateProbingLinks extends BreakpointFunction {
     run(_slotsCount, _key, algo) {
+        if (algo === 'python') {
+            this.PERTURB_SHIFT = 5;
+        }
         this.slotsCount = _slotsCount;
         this.key = _key;
         this.links = new ImmutableList();
@@ -330,15 +348,15 @@ class GenerateProbingLinks extends BreakpointFunction {
             this.links = this.links.set(i, new ImmutableList());
         }
 
-        this.hash = pyHash(this.key);
+        this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
         if (algo === 'python') {
-            this.perturb = computePerturb(this.hash);
+            this.perturb = computePerturb(this.hashCode);
             this.addBP('compute-perturb');
         }
 
-        this.idx = computeIdx(this.hash, this.slotsCount);
+        this.idx = computeIdx(this.hashCode, this.slotsCount);
         this.startIdx = this.idx;
         this.addBP('compute-idx');
         this.visitedIdx = new ImmutableMap();
@@ -872,7 +890,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <VisualizedCode
                     code={PROBING_PYTHON_CODE}
                     breakpoints={probingPython.bp}
-                    formatBpDesc={dummyFormat}
+                    formatBpDesc={[formatPythonProbing, dummyFormat]}
                     stateVisualization={ProbingStateVisualization}
                     keepTimeOnNewBreakpoints={true}
                     comment={
