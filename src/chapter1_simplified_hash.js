@@ -2,10 +2,12 @@ import * as React from 'react';
 import _ from 'lodash';
 import {List} from 'immutable';
 
-import {BreakpointFunction} from './hash_impl_common';
+import {EQ, BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
+
+import {BigNumber} from 'bignumber.js';
 
 import memoizeOne from 'memoize-one';
 
@@ -23,7 +25,7 @@ function simpleListSearch(l, key) {
     let defaultBPInfo = {
         type: 'breakpoint',
         arg: key,
-        data: _.cloneDeep(l),
+        data: l,
         size: l.length,
     };
     let breakpoints = [];
@@ -39,7 +41,7 @@ function simpleListSearch(l, key) {
         if (idx >= l.length) {
             break;
         }
-        if (l[idx] === key) {
+        if (EQ(l[idx], key)) {
             breakpoints.push(newBP('check-found', idx, {found: true}));
             breakpoints.push(newBP('found-key', idx));
 
@@ -248,7 +250,16 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         super();
 
         this.state = {
-            numbers: [14, 8, 19, 15, 13, 42, 46, 22],
+            numbers: [
+                BigNumber(14),
+                BigNumber(8),
+                BigNumber(19),
+                BigNumber(15),
+                BigNumber(13),
+                BigNumber(42),
+                BigNumber(46),
+                BigNumber(22),
+            ],
             simpleSearchNumber: 46,
             simplifiedHashSearchNumber: 46,
         };
