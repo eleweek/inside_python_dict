@@ -395,9 +395,9 @@ class BaseBoxesComponent extends React.PureComponent {
         super();
 
         this.state = {
-            status: {},
-            keyModId: {},
-            keyBox: {},
+            status: null,
+            keyModId: null,
+            keyBox: null,
             activeBoxSelection1: null,
             activeBoxSelection1status: null,
             activeBoxSelection2: null,
@@ -424,12 +424,9 @@ class BaseBoxesComponent extends React.PureComponent {
 
         let newState;
         if (!state.firstRender) {
-            let newStatus = _.clone(state.status);
-            let newKeyModId = _.clone(state.keyModId);
-            let newKeyBox = {};
-            for (let key in state.keyBox) {
-                newKeyBox[key] = state.keyBox[key];
-            }
+            let newStatus = state.status;
+            let newKeyModId = state.keyModId;
+            let newKeyBox = state.keyBox;
 
             let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
@@ -440,28 +437,31 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (const [key, someProps] of idxBoxesProps) {
                     nextKeysSet.add(key);
                     let status;
-                    if (!(key in state.status)) {
+                    if (!state.status.has(key)) {
                         status = 'created';
                         // console.log("Creating", key);
                         needProcessCreatedAfterRender = true;
-                        newKeyBox[key] = <Box idx={idx} status={status} key={key} {...someProps} />;
+                        newKeyBox = newKeyBox.set(key, <Box idx={idx} status={status} key={key} {...someProps} />);
                     } else {
                         status = 'adding';
-                        newKeyBox[key] = React.cloneElement(state.keyBox[key], {idx, status, ...someProps});
+                        newKeyBox = newKeyBox.set(
+                            key,
+                            React.cloneElement(state.keyBox.get(key), {idx, status, ...someProps})
+                        );
                     }
-                    newStatus[key] = status;
-                    newKeyModId[key] = modificationId;
+                    newStatus = newStatus.set(key, status);
+                    newKeyModId = newKeyModId.set(key, modificationId);
                 }
             }
 
             let needGarbageCollection = false;
-            for (let key in state.keyBox) {
-                const status = newStatus[key];
+            for (let key of state.keyBox.keys()) {
+                const status = newStatus.get(key);
                 if (!nextKeysSet.has(key)) {
                     if (status !== 'removing') {
-                        newStatus[key] = 'removing';
-                        newKeyModId[key] = modificationId;
-                        newKeyBox[key] = React.cloneElement(state.keyBox[key], {status: 'removing'});
+                        newStatus = newStatus.set(key, 'removing');
+                        newKeyModId = newKeyModId.set(key, modificationId);
+                        newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'removing'}));
                         needGarbageCollection = true;
                     }
                 }
@@ -477,17 +477,17 @@ class BaseBoxesComponent extends React.PureComponent {
                 modificationId: modificationId,
             };
         } else {
-            let newStatus = {};
-            let newKeyModId = {};
-            let newKeyBox = {};
+            let newStatus = new ImmutableMap();
+            let newKeyModId = new ImmutableMap();
+            let newKeyBox = new ImmutableMap();
             let arrayBoxKeys = nextProps.getKeys(nextArray);
             for (let [idx, value] of nextArray.entries()) {
                 const keys = arrayBoxKeys[idx];
                 const idxBoxesProps = boxFactory(keys, value);
                 for (const [key, someProps] of idxBoxesProps) {
-                    newStatus[key] = 'adding';
-                    newKeyModId[key] = modificationId;
-                    newKeyBox[key] = <Box idx={idx} key={key} status={'adding'} {...someProps} />;
+                    newStatus = newStatus.set(key, 'adding');
+                    newKeyModId = newKeyModId.set(key, modificationId);
+                    newKeyBox = newKeyBox.set(key, <Box idx={idx} key={key} status={'adding'} {...someProps} />);
                 }
             }
 
@@ -581,8 +581,8 @@ class BaseBoxesComponent extends React.PureComponent {
         this.setState(state => {
             const removed = [];
 
-            for (const [key, modId] of Object.entries(state.keyModId)) {
-                if (state.status[key] === 'removing' && modId <= targetModId) {
+            for (const [key, modId] of state.keyModId.entries()) {
+                if (state.status.get(key) === 'removing' && modId <= targetModId) {
                     removed.push(key);
                 }
             }
@@ -591,11 +591,11 @@ class BaseBoxesComponent extends React.PureComponent {
             console.log(removed);
             */
             if (removed.length > 0) {
-                let {status, keyBox, keyModId} = _.clone(state);
-                for (const key of removed) {
-                    delete status[key];
-                    delete keyModId[key];
-                    delete keyBox[key];
+                let {status, keyBox, keyModId} = state;
+                for (let key of removed) {
+                    status = status.delete(key);
+                    keyModId = keyModId.delete(key);
+                    keyBox = keyBox.delete(key);
                 }
 
                 return {status, keyBox, keyModId, needGarbageCollection: false};
@@ -623,8 +623,8 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         const boxes = [];
-        for (let key in this.state.keyBox) {
-            boxes.push(this.state.keyBox[key]);
+        for (let key of this.state.keyBox.keys()) {
+            boxes.push(this.state.keyBox.get(key));
         }
 
         if (this.state.activeBoxSelection1) {
@@ -647,13 +647,13 @@ class BaseBoxesComponent extends React.PureComponent {
             reflow(node);
 
             this.setState(state => {
-                let newStatus = _.clone(state.status);
-                for (let [key, status] of Object.entries(newStatus)) {
+                let newStatus = state.status;
+                for (let [key, status] of newStatus.entries()) {
                     if (status === 'created') {
-                        newStatus[key] = 'adding';
+                        newStatus = newStatus.set(key, 'adding');
                     }
                 }
-                return {status: newStatus};
+                return {status: newStatus, needProcessCreatedAfterRender: false};
             });
         }
     }
