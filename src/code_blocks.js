@@ -287,7 +287,7 @@ class Box extends React.PureComponent {
             } else {
                 shortenedValue = [
                     s.substring(0, cutCharsCount),
-                    '\u22EF',
+                    '\u2026',
                     s.substring(s.length - cutCharsCount, s.length),
                 ];
             }
