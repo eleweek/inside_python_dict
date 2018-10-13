@@ -205,7 +205,7 @@ let HASH_CLASS_LOOKDICT = [
     ['           self.slots[idx].key == key:', 'check-key', 2],
     ['            return idx', 'return-idx', 3],
     ['', ''],
-    ['        idx = (idx + 1) % len(self.slots)', 'next-idx', 1],
+    ['        idx = (idx + 1) % len(self.slots)', 'next-idx', 2],
     ['', ''],
     ['    raise KeyError()', 'raise', 1],
     ['', ''],
