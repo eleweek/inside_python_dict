@@ -44,9 +44,9 @@ export function formatHashClassLookdictRelated(bp) {
             return `Throw an exception, because no key was found`;
         /* __delitem__ */
         case 'dec-used':
-            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${
-                bp.self.used
-            }`;
+            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${bp.self.get(
+                'used'
+            )}`;
         case 'replace-key-dummy':
             return `Replace key at <code>${bp.idx}</code> with a <code>DUMMY</code> placeholder`;
         case 'replace-value-empty':
@@ -127,9 +127,11 @@ export function formatHashClassSetItemAndCreate(bp) {
         }
         case 'inc-used':
         case 'inc-used-2':
-            return `Then we need to increment <code>self.used</code>, which makes it <code>${bp.self.used}</code>`;
+            return `Then we need to increment <code>self.used</code>, which makes it <code>${bp.self.get(
+                'used'
+            )}</code>`;
         case 'inc-fill':
-            return `and increment fill, which makes it <code>${bp.self.fill}</code>`;
+            return `and increment fill, which makes it <code>${bp.self.get('fill')}</code>`;
         case 'check-recycle-used-increased':
             return (
                 `If we're putting the item in dummy slot ` +
