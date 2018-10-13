@@ -87,16 +87,16 @@ function formatDict32IdxRelatedBp(bp) {
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.self.slots.length}</code> == <code>${
-                bp.idx
-            }</code>`;
+            return `Compute the starting slot index: <code>${bp.hashCode} % ${
+                bp.self.get('slots').size
+            }</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
             return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${
                 bp.perturb
             }</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
-                bp.self.slots.length
+                bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
             return `Shifting perturb <code>perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${
@@ -728,8 +728,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     }
 
     runCreateNew = memoizeOne(pairs => {
-        const {bp, bpTransformed, resizes, pySelf} = Dict32.__init__(pairs);
-        return {bp, pySelf, resizes, bpTransformed: bp.map(postBpTransform)};
+        const {bp, resizes, pySelf} = Dict32.__init__(pairs);
+        return {bp, pySelf, resizes};
     });
 
     selectResize = memoizeOne(resizes => {
@@ -739,17 +739,17 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
             resize = resizes[0];
         }
         const bp = resize.breakpoints;
-        return {resize, bp, bpTransformed: bp.map(postBpTransform)};
+        return {resize, bp};
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
         const {bp, pySelf: newPySelf} = Dict32.__delitem__(pySelf, key);
-        return {bp, pySelf: newPySelf, bpTransformed: bp.map(postBpTransform)};
+        return {bp, pySelf: newPySelf};
     });
 
     runGetItem = memoizeOne((pySelf, key) => {
         const {bp} = Dict32.__getitem__(pySelf, key);
-        return {bp, bpTransformed: bp.map(postBpTransform)};
+        return {bp};
     });
 
     runProbingSimple = memoizeOne(slotsCount => {
@@ -933,7 +933,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>Insert:</p>
                 <VisualizedCode
                     code={DICT32_SETITEM_WITH_INIT}
-                    breakpoints={newRes.bpTransformed}
+                    breakpoints={newRes.bp}
                     formatBpDesc={[formatHashClassInit, formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassInsertAllVisualization}
                     {...this.props}
@@ -943,7 +943,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
                 <VisualizedCode
                     code={DICT32_DELITEM}
-                    breakpoints={delRes.bpTransformed}
+                    breakpoints={delRes.bp}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}
@@ -954,7 +954,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
                 <VisualizedCode
                     code={DICT32_GETITEM}
-                    breakpoints={getRes.bpTransformed}
+                    breakpoints={getRes.bp}
                     formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}
@@ -973,7 +973,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 </p>
                 {/*<VisualizedCode
                     code={DICT32_RESIZE_CODE}
-                    breakpoints={resizeRes.bpTransformed}
+                    breakpoints={resizeRes.bp}
                     formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                     {...this.props}

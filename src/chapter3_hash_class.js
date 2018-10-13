@@ -20,7 +20,6 @@ import {
     formatHashClassLookdictRelated,
     formatHashClassResize,
     formatHashClassInit,
-    postBpTransform,
 } from './chapter3_and_4_common';
 
 import {
@@ -112,11 +111,11 @@ function formatHashClassChapter3IdxRelatedBp(bp) {
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
             return `Compute the starting slot index: <code>${bp.idx}</code> == <code>${bp.hashCode} % ${
-                bp.self.slots.length
+                bp.self.get('slots').size
             }</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
-                bp.self.slots.length
+                bp.self.get('slots').size
             }</code>`;
     }
 }
@@ -253,23 +252,23 @@ export class Chapter3_HashClass extends ChapterComponent {
     }
 
     runCreateNew = memoizeOne(pairs => {
-        const {bp, bpTransformed, resizes, pySelf} = AlmostPythonDict.__init__(pairs);
-        return {bp, pySelf, resizes, bpTransformed: bp.map(postBpTransform)};
+        const {bp, resizes, pySelf} = AlmostPythonDict.__init__(pairs);
+        return {bp, pySelf, resizes};
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
         const {bp, pySelf: newPySelf} = AlmostPythonDict.__delitem__(pySelf, key);
-        return {bp, pySelf: newPySelf, bpTransformed: bp.map(postBpTransform)};
+        return {bp, pySelf: newPySelf};
     });
 
     runGetItem = memoizeOne((pySelf, key) => {
         const {bp} = AlmostPythonDict.__getitem__(pySelf, key);
-        return {bp, bpTransformed: bp.map(postBpTransform)};
+        return {bp};
     });
 
     runSetItemRecycling = memoizeOne((pySelf, key, value) => {
         const {bp, pySelf: newPySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key, value);
-        return {pySelf: newPySelf, bp, bpTransformed: bp.map(postBpTransform)};
+        return {pySelf: newPySelf, bp};
     });
 
     selectResize = memoizeOne(resizes => {
@@ -279,7 +278,7 @@ export class Chapter3_HashClass extends ChapterComponent {
             resize = resizes[0];
         }
         const bp = resize.breakpoints;
-        return {resize, bp, bpTransformed: bp.map(postBpTransform)};
+        return {resize, bp};
     });
 
     render() {
@@ -423,7 +422,7 @@ export class Chapter3_HashClass extends ChapterComponent {
 
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
-                    breakpoints={newRes.bpTransformed}
+                    breakpoints={newRes.bp}
                     formatBpDesc={[
                         formatHashClassInit,
                         formatHashClassSetItemAndCreate,
@@ -440,7 +439,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <VisualizedCode
                     code={HASH_CLASS_RESIZE_CODE}
-                    breakpoints={resizeRes.bpTransformed}
+                    breakpoints={resizeRes.bp}
                     formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                     {...this.props}
@@ -461,7 +460,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
                 <VisualizedCode
                     code={HASH_CLASS_DELITEM}
-                    breakpoints={delRes.bpTransformed}
+                    breakpoints={delRes.bp}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}
@@ -474,7 +473,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
                 <VisualizedCode
                     code={HASH_CLASS_GETITEM}
-                    breakpoints={getRes.bpTransformed}
+                    breakpoints={getRes.bp}
                     formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}
@@ -516,7 +515,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 />
                 <VisualizedCode
                     code={HASH_CLASS_SETITEM_RECYCLING_CODE}
-                    breakpoints={setRecyclingRes.bpTransformed}
+                    breakpoints={setRecyclingRes.bp}
                     formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                     stateVisualization={HashClassNormalStateVisualization}
                     {...this.props}

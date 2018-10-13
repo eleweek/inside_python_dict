@@ -33,6 +33,7 @@ import {
     faPause,
     faRedoAlt,
 } from '@fortawesome/free-solid-svg-icons';
+import {List as ImmutableList, Map as ImmutableMap} from 'immutable';
 
 library.add(faPlay);
 library.add(faStepForward);
@@ -279,9 +280,9 @@ class Box extends React.PureComponent {
             if (cutCharsCount === 4) {
                 shortenedValue = [
                     s.substring(0, cutCharsCount),
-                    <br />,
+                    <br key="br1" />,
                     '\u22EF',
-                    <br />,
+                    <br key="br2" />,
                     s.substring(s.length - cutCharsCount, s.length),
                 ];
             } else {
@@ -306,7 +307,6 @@ class Box extends React.PureComponent {
         let content;
         if (value != null) {
             const {shortenedValue, extraType} = this.shortDisplayedString(value);
-            console.log('SSS', shortenedValue, extraType);
             const extraTypeSpan = extraType ? <span className="box-content-extra-type">(str)</span> : null;
             classes.push('box-full');
             content = (
@@ -416,6 +416,11 @@ class BaseBoxesComponent extends React.PureComponent {
         const modificationId = state.modificationId + 1;
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
+        let nextArray = nextProps.array || [];
+        if (isImmutableListOrMap(nextArray)) {
+            // TODO: use Immutable.js api?
+            nextArray = nextArray.toJS();
+        }
 
         let newState;
         if (!state.firstRender) {
@@ -426,7 +431,6 @@ class BaseBoxesComponent extends React.PureComponent {
                 newKeyBox[key] = state.keyBox[key];
             }
 
-            const nextArray = nextProps.array || [];
             let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
             let nextKeysSet = new Set();
@@ -476,8 +480,8 @@ class BaseBoxesComponent extends React.PureComponent {
             let newStatus = {};
             let newKeyModId = {};
             let newKeyBox = {};
-            let arrayBoxKeys = nextProps.getKeys(nextProps.array);
-            for (let [idx, value] of nextProps.array.entries()) {
+            let arrayBoxKeys = nextProps.getKeys(nextArray);
+            for (let [idx, value] of nextArray.entries()) {
                 const keys = arrayBoxKeys[idx];
                 const idxBoxesProps = boxFactory(keys, value);
                 for (const [key, someProps] of idxBoxesProps) {
@@ -655,11 +659,19 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 }
 
+function isImmutableListOrMap(obj) {
+    return ImmutableList.isList(obj) || ImmutableMap.isMap(obj);
+}
+
 function deepGet(obj, path) {
     const parts = path.split('.');
     let node = obj;
     for (const part of parts) {
-        node = node[part];
+        if (isImmutableListOrMap(node)) {
+            node = node.get(part);
+        } else {
+            node = node[part];
+        }
     }
 
     return node;
@@ -970,11 +982,16 @@ class TimeSliderWithControls extends React.PureComponent {
         const button = (label, onClick, iconId, iconOnTheRight) => {
             let elems = [];
             if (iconId) {
-                elems.push(<FontAwesomeIcon icon={iconId} />);
+                elems.push(<FontAwesomeIcon key={`font-awesome-${iconId}`} icon={iconId} />);
             }
             elems.push(label);
             return (
-                <button type="button" className="btn btn-outline-primary slider-controls-button" onClick={onClick}>
+                <button
+                    key={label}
+                    type="button"
+                    className="btn btn-outline-primary slider-controls-button"
+                    onClick={onClick}
+                >
                     {iconOnTheRight ? elems.reverse() : elems}
                 </button>
             );
@@ -1000,8 +1017,8 @@ class TimeSliderWithControls extends React.PureComponent {
             const isActive = speed === this.state.speed;
             let label = i === 0 ? `Autoplay speed ${speed}x` : `${speed}x`;
             speedControls.push(
-                <label className={classNames('btn', 'btn-outline-primary', {active: isActive})}>
-                    <input type="radio" checked={isActive} onClick={() => this.setSpeed(speed)} /> {label}
+                <label key={label} className={classNames('btn', 'btn-outline-primary', {active: isActive})}>
+                    <input type="radio" checked={isActive} onChange={() => this.setSpeed(speed)} /> {label}
                 </label>
             );
         }
