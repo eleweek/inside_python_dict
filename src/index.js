@@ -36,6 +36,18 @@ class CrossFade extends React.Component {
     }
 }
 
+function GithubForkMe() {
+    return (
+        <a href="https://github.com/eleweek/inside_python_dict">
+            <img
+                style={{position: 'absolute', top: 0, right: 0, border: 0}}
+                src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+                alt="Fork me on GitHub"
+            />
+        </a>
+    );
+}
+
 export class App extends React.Component {
     constructor() {
         super();
@@ -78,6 +90,8 @@ export class App extends React.Component {
         const {windowWidth, windowHeight} = this.state;
         return (
             <div className="app-container container-fluid">
+                <GithubForkMe />
+
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
                 <MyErrorBoundary>
                     <Chapter1_SimplifiedHash windowWidth={windowWidth} windowHeight={windowHeight} />
