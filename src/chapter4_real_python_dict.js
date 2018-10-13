@@ -815,13 +815,13 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <h5>The probing algorithm</h5>
                 <p>
                     The problem with simple linear probing is that it doesn't mix up the keys well in many real-world
-                    data patterns. Real world data patterns tend to be regular and a pattern like <code>16</code>,{' '}
+                    data patterns. Real world data patterns tend to be regular, and a pattern like <code>16</code>,{' '}
                     <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
                     <code>...</code> would lead to many collisions.
                 </p>
                 <p>
-                    Linear probing is fairly prone to clustering: once you get a "clump" of keys the clump tends to
-                    grow, which causes more collisions, which cause the clump to grow further, which causes even more
+                    Linear probing is prone to clustering: once you get a "clump" of keys, the clump tends to grow,
+                    which causes more collisions, which cause the clump to grow further, which causes even more
                     collisions. This is detrimental to performance.
                 </p>
                 <p>
@@ -864,20 +864,20 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     though?
                 </p>
                 <p>
-                    In C code, it is initialized as basicaly this: <code> size_t perturb = hash_code</code>. Then, in
+                    In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>. Then, in
                     every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb <<= 5'}</code>
                     ).
                 </p>
                 <p>
                     This probing algorithm uses some "randomness" in the form of bits from the hash code - but it is
-                    still fully deterministic, because hash functions by their nature are deterministic.{' '}
+                    still fully deterministic because hash functions by their nature are deterministic.{' '}
                     <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
                     <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
                 </p>
                 <p>
                     We can reimplement this algorithm in pure python. However, in python there are no unsigned (logical)
-                    bit shifts and there is also no built-in way to convert a 64-bit signed integer to a 64-bit unsigned
-                    integer. The solution is to do the conversion with the following one-liner:{' '}
+                    bit shifts, and there is also no built-in way to convert a 64-bit signed integer to a 64-bit
+                    unsigned integer. The solution is to do the conversion with the following one-liner:{' '}
                     <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit shift
                     (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
                 </p>
@@ -923,7 +923,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
                 </MySticky>
                 <p>
-                    Python actually knows the number of key-value pairs, and tries to guess the optimal hash table size
+                    Python actually knows the number of key-value pairs and tries to guess the optimal hash table size
                     to possibly avoid some or all resizes. This is because it performs better than just starting with
                     the size of <code>8</code>. In most cases, the resulting hash table ends up being the same size or
                     smaller. However, in some cases the resulting hash table may actually be larger if there are a lot
@@ -978,9 +978,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     stateVisualization={HashClassResizeVisualization}
                     {...this.props}
                 />*/}
-                <h5>Brief history of changes in the following versions</h5>
+                <h5>A brief history of changes in the following versions</h5>
                 <p>
-                    In 3.3 there were major changes to the internal structure of dicts (
+                    In 3.3 there were significant changes to the internal structure of dicts (
                     <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
                     memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't
                     get the same hash() for the same object if you relaunched the python interpreter (object hashes are

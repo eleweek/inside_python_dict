@@ -315,14 +315,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a>{' '}
                     and how classes work in python. We will use classes to bundle data and functions together. Magic
                     methods are special methods for overloading operators, so we can write <code>our_dict[key]</code>{' '}
-                    instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets just look nicer.
+                    instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets look nicer.
                 </p>
                 <p>
                     To handle values we could add another list (in addition to <code>hash_codes</code> and{' '}
                     <code>keys</code>
                     ). This would totally work. Another alternative is to bundle <code>hash_code</code>,{' '}
-                    <code>key</code>, <code>value</code> corresponding to each slot in a single object. In order to do
-                    this, we'll need to make a class:
+                    <code>key</code>, <code>value</code> corresponding to each slot in a single object. To do this,
+                    we'll need to create a class:
                 </p>
                 <SimpleCodeBlock>
                     {`class Slot(object):
@@ -346,10 +346,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                     ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
                 </p>
                 <p>
-                    You may notice that we have already started to imitate the interface and certain implementation
-                    details of the real dict. In this chapter, we will get pretty close to it, but we will not get there
-                    fully. In the next chapter we will start exploring the actual implementation of python dict. But for
-                    now, please bear with me.
+                    We have already started to imitate the interface and some implementation details of the real dict.
+                    In this chapter, we will get pretty close to it, but we will not get there fully. In the next
+                    chapter we will start exploring the actual implementation of python dict. But for now, please bear
+                    with me.
                 </p>
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>
@@ -390,7 +390,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <p>
                     When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is no
-                    definitive one-size-fits-all answer, so we just find the nearest power of two that is greater{' '}
+                    definitive one-size-fits-all answer, so we find the nearest power of two that is greater{' '}
                     <code>2 * self.used</code>:<br />
                     <code>self.find_nearest_size(2 * self.minused)</code>
                 </p>
@@ -446,13 +446,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                 />
                 <p>
                     In the previous chapter, the code for removing and the code for searching were very similar,
-                    because, in order to remove an element, we need to find it first. We can reorganize the code so that
-                    the removing and searching functions share much of the same code. We will call the common function{' '}
+                    because, to remove an element, we need to find it first. We can reorganize the code so that the
+                    removing and searching functions share much of the same code. We will call the common function{' '}
                     <code>lookdict()</code>.
                 </p>
                 <p>
                     Other than that, removing a key will look pretty much the same as in the previous chapter.{' '}
-                    <code>__delitem__</code> magic method is now used for realism, so we can do{' '}
+                    <code>__delitem__</code> magic method is now used for realism so that we can do{' '}
                     <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up
                     finding the element and removing it.
                 </p>
@@ -481,23 +481,22 @@ export class Chapter3_HashClass extends ChapterComponent {
 
                 <p>
                     So we now have a class that emulates the basic part of the dict interface. Before we move on to the
-                    next chapter, let's disccuss a cool trick for inserting new items.
+                    next chapter, let's discuss a neat trick for inserting new items.
                 </p>
                 <h5> Recycling dummy keys. </h5>
                 <p>
-                    Dummy keys are used as placeholders. The main purpose of a dummy slot is to prevent a probing
+                    Dummy keys are used as placeholders. The only purpose of a dummy slot is to prevent a probing
                     algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
                     something, be it a dummy placeholder or a normal item. This means that while inserting an item, if
                     we end up hitting a slot with a dummy placeholder, we can put the item in the slot (assuming the key
                     does not exist elsewhere in the dictionary). So, we still need to do a full look up, but we will
                     also save an index of the first dummy slot to <code>target_idx</code> (if we encounter it). If we
                     find that a key already exists, we save the index to <code>target_idx</code> and break. If we find
-                    neither a dummy slot, nor the key, then we just insert it in the first empty slot - as we did
-                    before.
+                    neither a dummy slot nor the key, then we insert it in the first empty slot - as we did before.
                 </p>
                 <p>
-                    In the absence of dummy slots, the code works exactly the same. So, even though we built the table
-                    with a simpler version of <code>__setitem__</code>, it would look exactly the same.
+                    In the absence of dummy slots, the code works the same. So, even though we built the table with a
+                    simpler version of <code>__setitem__</code>, it would look exactly the same.
                 </p>
                 <p className="inline-block">Remember that we removed </p>
                 <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />

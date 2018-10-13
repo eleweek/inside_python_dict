@@ -590,10 +590,10 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     objects? We can if we find a way to turn objects into numbers for indexing. We don't need a perfect
                     one-to-one correspondence between objects and integers. In fact, it is totally fine if two unrelated
                     objects are turned into the same number &mdash; we can use linear probing to resolve this collision
-                    anyway! However, if we simply turn all objects into the same number, for example, <code>42</code>,
-                    our hash table would work, but its performance would severely degrade. So, for performance reasons
-                    it is desirable to usually get distinct numbers for distinct objects. The transformation also needs
-                    to be completely predictable and deterministic, we need to always get the same value for the same
+                    anyway! However, if we turn all objects into the same number, for example, <code>42</code>, our hash
+                    table would work, but its performance would severely degrade. So, for performance reasons it is
+                    desirable to get distinct numbers for distinct objects usually. The transformation also needs to be
+                    completely predictable and deterministic, i.e. we need to always get the same value for the same
                     object. In other words, something like <code>random()</code> would not work, because we would
                     "forget" where we placed our objects and we wouldn't be able to locate them during a search.
                 </p>
@@ -603,33 +603,33 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     domain, hence the name "hash".
                 </p>
                 <p>
-                    In python there are built-in implementations of hash functions for many built-in types. They are all
-                    available through a single interface: python function <code>hash()</code>. This python function can
-                    take any python object as an input and call an appropriate implementation (if it exists).
+                    In python, there are built-in implementations of hash functions for many built-in types. They are
+                    all available through a single interface: python function <code>hash()</code>. This python function
+                    can take any python object as an input and call an appropriate implementation (if it exists).
                 </p>
                 <HashExamples />
                 <p>
                     As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results, as
-                    it should. One major exception is integers, you can notice that <code>hash(x) == x</code> for small
+                    it should. One major exception is integers; you can notice that <code>hash(x) == x</code> for small
                     numbers. This fact may seem surprising to people familiar with hash functions, however it is a
-                    delibirate design decision by Python Core Developers.
+                    deliberate design decision by Python Core Developers.
                 </p>
                 <p>
-                    For big("long") integers, python uses a different algorithm. Try typing a fairly big number, for
-                    example <code>12345678901234567890</code> to see this.
+                    For big("long") integers, python uses a different algorithm. Try typing a relatively big number, for
+                    example, <code>12345678901234567890</code> to see this.
                 </p>
                 <h5>hash() implementation notes</h5>
                 <p>
                     This chapter and the next two chapters will use <code>hash()</code> implementation from python 3.2
-                    (running on a x86_64 system). So if you run python 3.2 on your x86_64 system, you should see the
+                    (running on an x86_64 system). So if you run python 3.2 on your x86_64 system, you should see the
                     same hash values for integers and strings (and the same data structure states).{' '}
                     <code>hash(None)</code> changes between runs, but this page does not change <code>hash(None)</code>{' '}
-                    between refreshes, and assumes that <code>hash(None) == -9223372036581563745</code>
+                    between refreshes and assumes that <code>hash(None) == -9223372036581563745</code>
                 </p>
                 <p>
                     Why python 3.2? Because dict implementation changed over time, but python 3.2's dict implements all
                     major ideas, and thus python 3.2 is a perfect starting point for exploring implementations of python
-                    dict. Eventually we will get to the most recent version of python.
+                    dict. Eventually, we will get to the most recent version of python.
                 </p>
                 <h5> Unhashable types </h5>
                 <p>
@@ -646,9 +646,9 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     Because hash tables use hash functions and because hash tables mix up inserted elements, they are
                     called hash tables. Sometimes people shorten "hash table" to simply "hash". The output of a hash
                     function is sometimes called "hash value" or "hash code", but very often it is shortened to simple
-                    "hash". Also, python's built-in hash function is called <code>hash()</code>. Because people really
-                    like to shorten things, three different (but related) concepts end up having the same shortened
-                    name. This can get a bit confusing sometimes.
+                    "hash". Also, python's built-in hash function is called <code>hash()</code>. Because people like to
+                    shorten things, three different (but related) concepts end up having the same shortened name. This
+                    can get a bit confusing sometimes.
                 </p>
                 <h5> Using hash functions for hash tables </h5>
                 <p>
@@ -675,17 +675,17 @@ EMPTY = EmptyValueClass()
               `}</SimpleCodeBlock>
                 <p>
                     We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to
-                    safely insert <code>None</code> in the hash table.
+                    insert <code>None</code> in the hash table safely.
                 </p>
                 <p>
-                    But here is one important and subtle thing: checking for equality of objects can be expensive. For
-                    example, comparing strings of length 10000 may require up to 10000 comparision operations - one per
+                    But here is one critical and subtle thing: checking for equality of objects can be expensive. For
+                    example, comparing strings of length 10000 may require up to 10000 comparison operations - one per
                     each pair of corresponding characters. And, we may end up doing several equality checks when doing
                     linear probing.
                 </p>
                 <p>
                     When we only had integers, we didn't have this problem, because comparing integers is cheap. But
-                    here is a cool trick we can use to improve the performance in the case of arbitrary objects. We
+                    here is a neat trick we can use to improve the performance in the case of arbitrary objects. We
                     still get numbers from hash functions. So, we can cache these numbers and compare them before
                     comparing actual objects. When comparing hashes, there are two different outcomes. First, the hashes
                     are different; in this case, we can safely conclude that the objects are different as well. Second,
@@ -766,7 +766,7 @@ DUMMY = DummyValueClass()
                 <p>
                     Removing a lot of objects may lead to a table being filled with these dummy objects. What if a table
                     overflows with dummy objects? There is a way to clean them up. But first, let's see what happens if
-                    a table overflows with normal objects.
+                    a table overflows with ordinary objects.
                 </p>
                 <h5>Resizing hash tables</h5>
                 <p>
@@ -792,7 +792,7 @@ DUMMY = DummyValueClass()
                     {...this.props}
                 />
                 <p>
-                    There is still one more important question. What condition should trigger the resizing opration? If
+                    There is still one more important question. What condition should trigger the resizing operation? If
                     we postpone resizing until a table is nearly full, the performance will severely degrade. If we
                     resize a table when it is still sparse, we will waste memory. Typically, a hash table is resized
                     when it is around 66% full.
@@ -802,7 +802,7 @@ DUMMY = DummyValueClass()
                     between fill and table size is called the <em>load factor</em> (also, sometimes:{' '}
                     <em>fill factor</em> or <em>fill ratio</em>
                     ). So, using the new terms, we can say that a hash table is resized when the load factor reaches
-                    66%. Usually the size is increased, we may also need to shrink the table in case there are a lot of
+                    66%. Usually, the size is increased, we may also need to shrink the table in case there are a lot of
                     dummy placeholders.
                 </p>
                 <p>

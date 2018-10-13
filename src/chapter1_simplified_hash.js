@@ -293,8 +293,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <h2>Chapter 1: searching efficiently in a list</h2>
                 <p>
                     Before we begin, here are a couple of notes. First, this is <em>an explorable explanation</em> of
-                    python dictionaries. This page is dynamic and interactive &mdash; you can plug in your own data and
-                    see how the algorithms work on it.
+                    python dictionaries. This page is dynamic and interactive &mdash; you can plug in your and see how
+                    the algorithms work on it.
                 </p>
                 <p>
                     Second, this page discusses <code>dict</code> as it is implemented in{' '}
@@ -326,8 +326,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <p className="text-muted">
                     (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever
                     want to see the difference between two versions of data and don't want the page to update while you
-                    type the changes, just uncheck the "Instant updates", and you'll be able to manually tell the page
-                    when to update)
+                    type the changes, uncheck the "Instant updates", and you'll be able to manually tell the page when
+                    to update)
                 </p>
                 <p>
                     Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
@@ -363,21 +363,20 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     have a million distinct numbers? Scanning the entire million would be slow.
                 </p>
                 <p>
-                    In order to do this faster, what we need to do is organize our data in a clever way. Here's how.
-                    Let's begin by creating a new list. You can picture this list as a list of slots. Each slot will
-                    hold a number from the original list. But, we'll use the number itself to compute an index of a
-                    slot. The simplest way to do this is to just take the slot <code>number % len(the_list)</code> and
-                    put our number in there. Would this approach work, however? Not entirely. For example, two numbers
-                    (TODO: compute it) would be put in the same slot. Situtations like these are called{' '}
-                    <em>collisions</em>.
+                    In order to do this faster, what we need to do is cleverly organize our data. Here's how. Let's
+                    begin by creating a new list. You can picture this list as a list of slots. Each slot will hold a
+                    number from the original list. But, we'll use the number itself to compute an index of a slot. The
+                    simplest way to do this is to just take the slot <code>number % len(the_list)</code> and put our
+                    number in there. Would this approach work, however? Not entirely. For example, two numbers (TODO:
+                    compute it) would be put in the same slot. Situations like these are called <em>collisions</em>.
                 </p>
                 <p>
-                    To make this approach viable we need to somehow <em>resolve collisions</em>. Let's do the following.
-                    If the slot is already occupied by some other number, we'll just check the slot that comes right
-                    after it. And if that slot is empty, we'll put the number there. But, what if that slot is also
-                    occupied? We'll simply repeat the process until we finally hit an empty slot! This process of
-                    searching for an empty slot is called <em> probing </em>. And because we do it linearly, it is
-                    called <em> linear probing</em>.
+                    To make this approach viable, we need to somehow <em>resolve collisions</em>. Let's do the
+                    following. If the slot is already occupied by some other number, we'll just check the slot that
+                    comes right after it. And if that slot is empty, we'll put the number there. But, what if that slot
+                    is also occupied? We'll repeat the process until we finally hit an empty slot! This process of
+                    searching for an empty slot is called <em>probing</em>. And because we do it linearly, it is called{' '}
+                    <em>linear probing</em>.
                 </p>
                 <p>
                     If we make the new list the same size as the original list, we'll have too many collisions. So what
@@ -398,9 +397,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     {...this.props}
                 />
                 <p>
-                    To search for a number, we simply retrace all the steps necessary to insert it. So we start from the
-                    slot <code>number % len(new_list)</code> and do linear probing. We either end up finding the number
-                    or hitting an empty slot. The latter situation means that the number is not present.
+                    To search for a number, we retrace all the steps necessary to insert it. So we start from the slot{' '}
+                    <code>number % len(new_list)</code> and do linear probing. We either end up finding the number or
+                    hitting an empty slot. The latter situation means that the number is not present.
                 </p>
                 <p>Here is how the search process would look:</p>
                 <p className="inline-block">Let's say we want to search for</p>
@@ -418,9 +417,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 />
                 <p>
                     Calculating an index based on the values of numbers and doing linear probing in the case of a
-                    collision is incredibly powerful. If you understand this idea, you will understand 25% of what a
-                    python dict is. What we've just implemented is a super simple <em>hash table</em>. Python dict uses
-                    a hash table internally, albeit a more complex variant.
+                    collision is incredibly powerful. And this idea is a major one behind python dict. What we've just
+                    implemented is a super simple <em>hash table</em>. Python dict uses a hash table internally, albeit
+                    a more complex variant.
                 </p>
                 <p>
                     We still haven't discussed adding more elements (what happens if a table overflows?), removing
