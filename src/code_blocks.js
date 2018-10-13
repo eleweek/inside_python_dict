@@ -270,17 +270,30 @@ class Box extends React.PureComponent {
         const maxLen = extraType ? 8 : 13;
         // TODO: add hover?
         let s = pyObjToDisplayedString(value, false);
+        let shortenedValue;
         if (s.length <= maxLen) {
-            return {
-                shortenedValue: s,
-                extraType,
-            };
+            shortenedValue = [s];
+        } else {
+            const cutCharsCount = extraType ? 3 : 4;
+
+            if (cutCharsCount === 4) {
+                shortenedValue = [
+                    s.substring(0, cutCharsCount),
+                    <br />,
+                    '\u22EF',
+                    <br />,
+                    s.substring(s.length - cutCharsCount, s.length),
+                ];
+            } else {
+                shortenedValue = [
+                    s.substring(0, cutCharsCount),
+                    '\u22EF',
+                    s.substring(s.length - cutCharsCount, s.length),
+                ];
+            }
         }
-
-        const cutCharsCount = extraType ? 3 : 4;
-
         return {
-            shortenedValue: s.substring(0, cutCharsCount) + '\u22EF' + s.substring(s.length - cutCharsCount, s.length),
+            shortenedValue,
             extraType,
         };
     }
