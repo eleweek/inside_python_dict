@@ -19,17 +19,6 @@ const SIMPLE_LIST_SEARCH = [
     ['    return False', 'found-nothing', 1],
 ];
 
-function postBpTransform(bp) {
-    let cloned = _.clone(bp);
-    cloned.newList = cloned.newList.toJS();
-
-    if (bp.originalList) {
-        cloned.originalList = cloned.originalList.toJS();
-    }
-
-    return cloned;
-}
-
 function simpleListSearch(l, key) {
     let defaultBPInfo = {
         type: 'breakpoint',
@@ -141,22 +130,22 @@ class SimplifiedInsertAll extends BreakpointFunction {
 let formatSimplifiedInsertAllDescription = function(bp) {
     switch (bp.point) {
         case 'create-new-list':
-            return `Create a new list of size <code>${bp.newList.length}</code>`;
+            return `Create a new list of size <code>${bp.newList.size}</code>`;
         case 'for-loop':
-            return `[${bp.originalListIdx + 1}/${bp.originalList.length}] The number to insert is <code>${
+            return `[${bp.originalListIdx + 1}/${bp.originalList.size}] The number to insert is <code>${
                 bp.number
             }</code>`;
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
-                bp.newList.length
+                bp.newList.size
             }</code>`;
         case 'check-collision':
             if (bp.newList[bp.newListIdx] === null) {
                 return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `A collision in slot <code>${bp.newListIdx}</code> with the number <code>${
-                    bp.newList[bp.newListIdx]
-                }</code>`;
+                return `A collision in slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList.get(
+                    bp.newListIdx
+                )}</code>`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code>`;
@@ -222,20 +211,24 @@ let formatSimplifiedSearchDescription = function(bp) {
     switch (bp.point) {
         case 'compute-idx':
             return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
-                bp.newList.length
+                bp.newList.size
             }</code>`;
         case 'check-not-found':
             if (bp.newList[bp.newListIdx] === null) {
                 return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
-                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList[bp.newListIdx]}</code>`;
+                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList.get(
+                    bp.newListIdx
+                )}</code>`;
             }
         case 'check-found':
             let found = bp.newList[bp.newListIdx] === bp.number;
             if (found) {
-                return `The number is found: <code>${bp.newList[bp.newListIdx]} == ${bp.number}</code>`;
+                return `The number is found: <code>${bp.newList.get(bp.newListIdx)} == ${bp.number}</code>`;
             } else {
-                return `The number has not been found yet: <code>${bp.newList[bp.newListIdx]} != ${bp.number}</code>`;
+                return `The number has not been found yet: <code>${bp.newList.get(bp.newListIdx)} != ${
+                    bp.number
+                }</code>`;
             }
         case 'found-key':
             return 'Now simply return true';
@@ -265,14 +258,14 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         let sia = new SimplifiedInsertAll();
         let data = sia.run(numbers);
         let bp = sia.getBreakpoints();
-        return {data, bp, bpTransformed: bp.map(postBpTransform)};
+        return {data, bp};
     });
 
     runSimplifiedSearch = memoizeOne((data, number) => {
         let ss = new SimplifiedSearch();
         ss.run(data, number);
         let bp = ss.getBreakpoints();
-        return {bp, bpTransformed: bp.map(postBpTransform)};
+        return {bp};
     });
 
     runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {
@@ -388,7 +381,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 </p>
                 <VisualizedCode
                     code={SIMPLIFIED_INSERT_ALL_CODE}
-                    breakpoints={siaRes.bpTransformed}
+                    breakpoints={siaRes.bp}
                     formatBpDesc={formatSimplifiedInsertAllDescription}
                     stateVisualization={SimplifiedInsertStateVisualization}
                     {...this.props}
@@ -407,7 +400,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 />
                 <VisualizedCode
                     code={SIMPLIFIED_SEARCH_CODE}
-                    breakpoints={ssRes.bpTransformed}
+                    breakpoints={ssRes.bp}
                     formatBpDesc={formatSimplifiedSearchDescription}
                     stateVisualization={SimplifiedSearchStateVisualization}
                     {...this.props}
