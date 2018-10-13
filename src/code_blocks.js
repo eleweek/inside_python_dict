@@ -424,13 +424,13 @@ class BaseBoxesComponent extends React.PureComponent {
 
         let newState;
         if (!state.firstRender) {
-            let newStatus = state.status;
-            let newKeyModId = state.keyModId;
-            let newKeyBox = state.keyBox;
-
             let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
             let nextKeysSet = new Set();
+
+            let toMergeStatus = {};
+            let toMergeKeyBox = {};
+            let toMergeKeyModId = {};
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = nextArrayKeys[idx];
                 const idxBoxesProps = boxFactory(keys, nextArray[idx]);
@@ -438,23 +438,21 @@ class BaseBoxesComponent extends React.PureComponent {
                     nextKeysSet.add(key);
                     let status;
                     if (!state.status.has(key)) {
-                        status = 'created';
-                        // console.log("Creating", key);
                         needProcessCreatedAfterRender = true;
-                        newKeyBox = newKeyBox.set(key, <Box idx={idx} status={status} key={key} {...someProps} />);
-                        newStatus = newStatus.set(key, status);
-                        newKeyModId = newKeyModId.set(key, modificationId);
+                        toMergeKeyBox[key] = <Box idx={idx} status={'created'} key={key} {...someProps} />;
+                        toMergeStatus[key] = 'created';
+                        toMergeKeyModId[key] = modificationId;
                     } else {
                         const box = state.keyBox.get(key);
                         // potential FIXME: does not compare someProps
                         if (state.status.get(key) !== 'adding' || box.idx !== idx) {
-                            status = 'adding';
-                            newKeyBox = newKeyBox.set(
-                                key,
-                                React.cloneElement(state.keyBox.get(key), {idx, status, ...someProps})
-                            );
-                            newStatus = newStatus.set(key, status);
-                            newKeyModId = newKeyModId.set(key, modificationId);
+                            toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {
+                                idx,
+                                status: 'adding',
+                                ...someProps,
+                            });
+                            toMergeStatus[key] = 'adding';
+                            toMergeKeyModId[key] = modificationId;
                         }
                     }
                 }
@@ -462,14 +460,18 @@ class BaseBoxesComponent extends React.PureComponent {
 
             let needGarbageCollection = false;
             for (let key of state.keyBox.keys()) {
-                const status = newStatus.get(key);
+                const status = state.status.get(key);
                 if (!nextKeysSet.has(key) && status !== 'removing') {
-                    newStatus = newStatus.set(key, 'removing');
-                    newKeyModId = newKeyModId.set(key, modificationId);
-                    newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'removing'}));
+                    toMergeStatus[key] = 'removing';
+                    toMergeKeyModId[key] = modificationId;
+                    toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
                     needGarbageCollection = true;
                 }
             }
+
+            let newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
+            let newStatus = state.status.merge(toMergeStatus);
+            let newKeyModId = state.keyModId.merge(toMergeKeyModId);
 
             newState = {
                 firstRender: false,
