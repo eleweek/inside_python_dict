@@ -101,19 +101,17 @@ class Int64 {
         return res;
     }
 
-    toString() {
-        let copyOfThis = _.cloneDeep(this);
-
-        let sign = copyOfThis.sign();
-        if (copyOfThis.sign() < 0) {
-            copyOfThis.complement().inc();
+    toStringDestroying() {
+        let sign = this.sign();
+        if (sign < 0) {
+            this.complement().inc();
         }
 
         let decPower = [1];
         let decRes = [0];
         for (let i = 0; i < this.SIZE; ++i) {
             let carry = 0;
-            if (copyOfThis.data[i]) {
+            if (this.data[i]) {
                 for (let j = 0; j < decPower.length; ++j) {
                     if (j >= decRes.length) decRes.push(0);
 
@@ -137,13 +135,15 @@ class Int64 {
             }
         }
 
-        let res = '';
-        if (sign < 0) res += '-';
+        this.data = null;
+
+        let res = [];
+        if (sign < 0) res.push('-');
         for (let j = decRes.length - 1; j >= 0; j--) {
-            res += String.fromCharCode('0'.charCodeAt(0) + decRes[j]);
+            res.push(String.fromCharCode('0'.charCodeAt(0) + decRes[j]));
         }
 
-        return res;
+        return res.join('');
     }
 
     _carryOverAll() {
@@ -167,10 +167,10 @@ function pyHashStringAndUnicode(s) {
     res.xor(new Int64(s.length));
 
     if (res.eq(new Int64(-1))) {
-        res = new Int64(-2);
+        return '-2';
+    } else {
+        return res.toStringDestroying();
     }
-
-    return res.toString();
 }
 
 export function pyHashString(s) {
