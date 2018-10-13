@@ -84,7 +84,7 @@ export function initUxSettings() {
         case 'firefox':
             settings.TIME_SLIDER_THROTTLE_TIME = 150;
             // Firefox doesn't seems to tolerate auto-scrolling
-            settings.CODE_SCROLL_DEBOUNCE_TIME = 550;
+            settings.CODE_SCROLL_DEBOUNCE_TIME = 200;
             settings.DYNAMIC_SELECTION_TRANSITION_DURATION = false;
             break;
         default:
