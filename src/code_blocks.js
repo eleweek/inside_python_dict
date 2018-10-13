@@ -439,7 +439,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     let status;
                     if (!state.status.has(key)) {
                         needProcessCreatedAfterRender = true;
-                        toMergeKeyBox[key] = <Box idx={idx} status={'created'} key={key} {...someProps} />;
+                        toMergeKeyBox[key] = <Box idx={idx} status="created" key={key} {...someProps} />;
                         toMergeStatus[key] = 'created';
                         toMergeKeyModId[key] = modificationId;
                     } else {
@@ -483,25 +483,25 @@ class BaseBoxesComponent extends React.PureComponent {
                 modificationId: modificationId,
             };
         } else {
-            let newStatus = new ImmutableMap();
-            let newKeyModId = new ImmutableMap();
-            let newKeyBox = new ImmutableMap();
+            let status = {};
+            let keyModId = {};
+            let keyBox = {};
             let arrayBoxKeys = nextProps.getKeys(nextArray);
             for (let [idx, value] of nextArray.entries()) {
                 const keys = arrayBoxKeys[idx];
                 const idxBoxesProps = boxFactory(keys, value);
                 for (const [key, someProps] of idxBoxesProps) {
-                    newStatus = newStatus.set(key, 'adding');
-                    newKeyModId = newKeyModId.set(key, modificationId);
-                    newKeyBox = newKeyBox.set(key, <Box idx={idx} key={key} status="adding" {...someProps} />);
+                    status[key] = 'adding';
+                    keyModId[key] = modificationId;
+                    keyBox[key] = <Box idx={idx} key={key} status="adding" {...someProps} />;
                 }
             }
 
             newState = {
                 firstRender: false,
-                status: newStatus,
-                keyBox: newKeyBox,
-                keyModId: newKeyModId,
+                status: new ImmutableMap(status),
+                keyBox: new ImmutableMap(keyBox),
+                keyModId: new ImmutableMap(keyModId),
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
                 modificationId: modificationId,
