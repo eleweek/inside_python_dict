@@ -12,7 +12,7 @@ import {
     dummyFormat,
 } from './code_blocks';
 
-import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ} from './hash_impl_common';
+import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
 
 export function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
@@ -33,9 +33,11 @@ export function formatHashClassLookdictRelated(bp) {
         case 'check-key': {
             const slotKey = bp.self.get('slots').get(bp.idx).key;
             if (slotKey == bp.key) {
-                return `<code>${slotKey} == ${bp.key}</code>, so the key is found`;
+                return `<code>${displayStr(slotKey)} == ${displayStr(bp.key)}</code>, so the key is found`;
             } else {
-                return `<code>${slotKey} != ${bp.key}</code>, so there is a different key with the same hash`;
+                return `<code>${displayStr(slotKey)} != ${displayStr(
+                    bp.key
+                )}</code>, so there is a different key with the same hash`;
             }
         }
         case 'return-idx':
@@ -54,7 +56,7 @@ export function formatHashClassLookdictRelated(bp) {
         /* __getitem__ */
         case 'return-value': {
             const slotValue = bp.self.get('slots').get(bp.idx).value;
-            return `Return <code>${slotValue}</code>`;
+            return `Return <code>${displayStr(slotValue)}</code>`;
         }
         /* misc common */
         case 'start-execution-lookdict':
@@ -87,9 +89,11 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-dup-key': {
             const slotKey = bp.self.get('slots').get(bp.idx).key;
             if (EQ(slotKey, bp.key)) {
-                return `<code>${slotKey} == ${bp.key}</code>, so the key is already present in the table`;
+                return `<code>${displayStr(slotKey)} == ${displayStr(
+                    bp.key
+                )}</code>, so the key is already present in the table`;
             } else {
-                return `<code>${slotKey} != ${bp.key}</code>, so there is a collision`;
+                return `<code>${displayStr(slotKey)} != ${displayStr(bp.key)}</code>, so there is a collision`;
             }
         }
         case 'check-should-recycle': {
@@ -99,7 +103,9 @@ export function formatHashClassSetItemAndCreate(bp) {
                     bp.targetIdx
                 }</code> - we have already found a dummy slot that we may replace`;
             } else if (slotKey !== DUMMY) {
-                return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${slotKey}, i.e. not dummy</code>`;
+                return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${displayStr(
+                    slotKey
+                )}, i.e. not dummy</code>`;
             } else {
                 return `We found the first dummy slot,`;
             }
@@ -184,7 +190,7 @@ export function formatHashClassResize(bp) {
         case 'for-loop': {
             const {key, hashCode} = bp.oldSlots.get(bp.oldIdx);
             return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current key to insert is <code>${
-                key === null ? 'EMPTY' : key
+                key === null ? 'EMPTY' : displayStr(key)
             }</code> and its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
         }
         case 'check-skip-empty-dummy': {
@@ -194,7 +200,9 @@ export function formatHashClassResize(bp) {
             } else if (slotKey === DUMMY) {
                 return `The current slot contains the <code>DUMMY</code> placeholder`;
             } else {
-                return `The current slot is a normal slot containing an item`;
+                return `The current slot is a normal slot containing an item (with key == <code>${displayStr(
+                    slotKey
+                )}</code>)`;
             }
         }
         case 'continue' /* FIXME not currently used */:
@@ -226,12 +234,12 @@ export function formatHashClassInit(bp) {
         case 'init-used':
             return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
         case 'for-pairs':
-            return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${bp.oldKey}</code> and <code>${
-                bp.oldValue
-            }</code>`;
+            return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${displayStr(
+                bp.oldKey
+            )}</code> and <code>${displayStr(bp.oldValue)}</code>`;
         case 'run-setitem':
             // TODO: better formatting here
-            return `Call self.__setitem__(${bp.oldKey}, ${bp.oldValue})`;
+            return `Call self.__setitem__(${displayStr(bp.oldKey)}, ${displayStr(bp.oldValue)})`;
     }
 }
 

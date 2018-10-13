@@ -20,7 +20,7 @@ import 'rc-slider/assets/index.css';
 import SmoothScrollbar from 'react-smooth-scrollbar';
 
 import {MyErrorBoundary, getUxSettings} from './util';
-import {isNone, isDummy} from './hash_impl_common';
+import {isNone, isDummy, displayStr} from './hash_impl_common';
 
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -110,22 +110,6 @@ function pyObjToReactKey(obj) {
     }
 
     return JSON.stringify(res);
-}
-
-function pyObjToDisplayedString(obj, quoteString = true) {
-    if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
-        return obj.toString();
-    } else if (BigNumber.isBigNumber(obj)) {
-        return obj.toFixed();
-    } else if (typeof obj === 'string') {
-        if (quoteString) {
-            return JSON.stringify(obj);
-        } else {
-            return obj;
-        }
-    } else {
-        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
-    }
 }
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
@@ -270,7 +254,7 @@ class Box extends React.PureComponent {
             value === 'DUMMY' || value === 'EMPTY' || (typeof value === 'string' && /^[-+]?[0-9]+$/.test(value));
         const maxLen = extraType ? 8 : 12;
         // TODO: add hover?
-        let s = pyObjToDisplayedString(value, false);
+        let s = displayStr(value, false);
         let shortenedValue;
         if (s.length <= maxLen) {
             shortenedValue = [s];

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import {BigNumber} from 'bignumber.js';
 
 import {List} from 'immutable';
-import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ} from './hash_impl_common';
+import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent} from './util';
@@ -108,7 +108,9 @@ function formatHashCreateNewAndInsert(bp) {
         case 'create-new-empty-keys':
             return `Create a new list of size <code>${bp.keys.size}</code> for keys`;
         case 'for-loop':
-            return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.size}] Current key to insert is <code>${bp.key}</code>`;
+            return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.size}] Current key to insert is <code>${displayStr(
+                bp.key
+            )}</code>`;
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
@@ -116,7 +118,7 @@ function formatHashCreateNewAndInsert(bp) {
                 bp.idx
             }</code>`;
         case 'check-collision':
-            if (bp.keys[bp.idx] === null) {
+            if (bp.keys.get(bp.idx) === null) {
                 return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
             } else {
                 return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
@@ -133,9 +135,13 @@ function formatHashCreateNewAndInsert(bp) {
             }
         case 'check-dup-key':
             if (EQ(bp.keys[bp.idx], bp.key)) {
-                return `<code>${bp.keys.get(bp.idx)} == ${bp.key}</code>, so the key is already in the table`;
+                return `<code>${displayStr(bp.keys.get(bp.idx))} == ${displayStr(
+                    bp.key
+                )}</code>, so the key is already in the table`;
             } else {
-                return `<code>${bp.keys.get(bp.idx)} != ${bp.key}</code>, so there is a collision`;
+                return `<code>${displayStr(bp.keys.get(bp.idx))} != ${displayStr(
+                    bp.key
+                )}</code>, so there is a collision`;
             }
         case 'check-dup-break':
             return 'Because the key is found, stop';
@@ -145,11 +151,11 @@ function formatHashCreateNewAndInsert(bp) {
             return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
         case 'assign-elem':
             if (bp._prevBp.keys.get(bp.idx) === null) {
-                return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot <code>${
-                    bp.idx
-                }</code>`;
+                return `Put <code>${displayStr(bp.key)}</code> and its hash <code>${
+                    bp.hashCode
+                }</code> in the empty slot <code>${bp.idx}</code>`;
             } else {
-                return `<code>${bp.key}</code> and its hash <code>${
+                return `<code>${displayStr(bp.key)}</code> and its hash <code>${
                     bp.hashCode
                 }</code> is already in the slot, overwriting it anyway`;
             }
@@ -196,9 +202,9 @@ function formatHashRemoveSearch(bp) {
             }
         case 'check-key':
             if (EQ(bp.keys.get(bp.idx), bp.key)) {
-                return `<code>${bp.keys.get(bp.idx)} == ${bp.key}</code>, so the key is found`;
+                return `<code>${displayStr(bp.keys.get(bp.idx))} == ${displayStr(bp.key)}</code>, so the key is found`;
             } else {
-                return `<code>${bp.keys.get(bp.idx)} != ${
+                return `<code>${displayStr(bp.keys.get(bp.idx))} != ${
                     bp.key
                 }</code>, so there is a different key with the same hash`;
             }
@@ -395,7 +401,9 @@ function formatHashResize(bp) {
         case 'next-idx':
             return `Keep probing, the next slot will be ${bp.idx}`;
         case 'assign-elem':
-            return `Put <code>${bp.key}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${bp.idx}`;
+            return `Put <code>${displayStr(bp.key)}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${
+                bp.idx
+            }`;
         case 'return-lists':
             return `The hash table has been rebuilt, return the lists`;
     }

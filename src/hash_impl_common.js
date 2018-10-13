@@ -156,6 +156,22 @@ class Int64 {
     }
 }
 
+export function displayStr(obj, quoteString = true) {
+    if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
+        return obj.toString();
+    } else if (BigNumber.isBigNumber(obj)) {
+        return obj.toFixed();
+    } else if (typeof obj === 'string') {
+        if (quoteString) {
+            return JSON.stringify(obj);
+        } else {
+            return obj;
+        }
+    } else {
+        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
+    }
+}
+
 function pyHashStringAndUnicode(s) {
     let res = new Int64(s.charCodeAt(0) << 7);
     let magic = new Int64(1000003);
