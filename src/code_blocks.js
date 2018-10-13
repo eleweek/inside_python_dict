@@ -653,21 +653,22 @@ class BaseBoxesComponent extends React.PureComponent {
             reflow(node);
 
             this.setState(state => {
-                let newStatus = state.status;
-                let newKeyBox = state.keyBox;
-                let newKeyModId = state.keyModId;
                 const modificationId = state.modificationId + 1;
-                for (let [key, status] of newStatus.entries()) {
+
+                let toMergeStatus = {};
+                let toMergeKeyBox = {};
+                let toMergeKeyModId = {};
+                for (let [key, status] of state.status.entries()) {
                     if (status === 'created') {
-                        newStatus = newStatus.set(key, 'adding');
-                        newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'adding'}));
-                        newKeyModId = newKeyModId.set(key, modificationId);
+                        toMergeStatus[key] = 'adding';
+                        toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'adding'});
+                        toMergeKeyModId[key] = modificationId;
                     }
                 }
                 return {
-                    status: newStatus,
-                    keyBox: newKeyBox,
-                    keyModId: newKeyModId,
+                    status: state.status.merge(toMergeStatus),
+                    keyBox: state.keyBox.merge(new ImmutableMap(toMergeKeyBox)),
+                    keyModId: state.keyModId.merge(toMergeKeyModId),
                     needProcessCreatedAfterRender: false,
                     modificationId,
                 };
