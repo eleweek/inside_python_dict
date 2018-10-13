@@ -101,6 +101,11 @@ div.hash-example-instance {
     min-width: 0;
 }
 
+.box-content-extra-type {
+    color: grey;
+    font-size: 9px;
+}
+
 .box-empty {
     background: #f4f4f4;
     z-index: -1;

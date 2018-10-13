@@ -111,13 +111,17 @@ function pyObjToReactKey(obj) {
     return JSON.stringify(res);
 }
 
-function pyObjToDisplayedString(obj) {
+function pyObjToDisplayedString(obj, quoteString = true) {
     if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
         return obj.toString();
     } else if (BigNumber.isBigNumber(obj)) {
         return obj.toFixed();
     } else if (typeof obj === 'string') {
-        return JSON.stringify(obj);
+        if (quoteString) {
+            return JSON.stringify(obj);
+        } else {
+            return obj;
+        }
     } else {
         throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
     }
@@ -261,13 +265,24 @@ class ActiveBoxSelectionDynamicTransition extends React.Component {
 
 class Box extends React.PureComponent {
     shortDisplayedString(value) {
+        const extraType =
+            value === 'DUMMY' || value === 'EMPTY' || (typeof value === 'string' && /^[-+]?[0-9]+$/.test(value));
+        const maxLen = extraType ? 8 : 13;
         // TODO: add hover?
-        let s = pyObjToDisplayedString(value);
-        if (s.length <= 13) {
-            return s;
+        let s = pyObjToDisplayedString(value, false);
+        if (s.length <= maxLen) {
+            return {
+                shortenedValue: s,
+                extraType,
+            };
         }
 
-        return s.substring(0, 4) + '\u22EF' + s.substring(s.length - 4, s.length);
+        const cutCharsCount = extraType ? 3 : 4;
+
+        return {
+            shortenedValue: s.substring(0, cutCharsCount) + '\u22EF' + s.substring(s.length - cutCharsCount, s.length),
+            extraType,
+        };
     }
 
     render() {
@@ -277,8 +292,15 @@ class Box extends React.PureComponent {
         let classes = ['box', 'box-animated'];
         let content;
         if (value != null) {
+            const {shortenedValue, extraType} = this.shortDisplayedString(value);
+            console.log('SSS', shortenedValue, extraType);
+            const extraTypeSpan = extraType ? <span className="box-content-extra-type">(str)</span> : null;
             classes.push('box-full');
-            content = <span className="box-content">{this.shortDisplayedString(value)}</span>;
+            content = (
+                <span className="box-content">
+                    {shortenedValue} {extraTypeSpan}
+                </span>
+            );
         } else {
             classes.push('box-empty');
         }
