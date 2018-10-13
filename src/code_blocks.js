@@ -442,28 +442,32 @@ class BaseBoxesComponent extends React.PureComponent {
                         // console.log("Creating", key);
                         needProcessCreatedAfterRender = true;
                         newKeyBox = newKeyBox.set(key, <Box idx={idx} status={status} key={key} {...someProps} />);
+                        newStatus = newStatus.set(key, status);
+                        newKeyModId = newKeyModId.set(key, modificationId);
                     } else {
-                        status = 'adding';
-                        newKeyBox = newKeyBox.set(
-                            key,
-                            React.cloneElement(state.keyBox.get(key), {idx, status, ...someProps})
-                        );
+                        const box = state.keyBox.get(key);
+                        // potential FIXME: does not compare someProps
+                        if (state.status.get(key) !== 'adding' || box.idx !== idx) {
+                            status = 'adding';
+                            newKeyBox = newKeyBox.set(
+                                key,
+                                React.cloneElement(state.keyBox.get(key), {idx, status, ...someProps})
+                            );
+                            newStatus = newStatus.set(key, status);
+                            newKeyModId = newKeyModId.set(key, modificationId);
+                        }
                     }
-                    newStatus = newStatus.set(key, status);
-                    newKeyModId = newKeyModId.set(key, modificationId);
                 }
             }
 
             let needGarbageCollection = false;
             for (let key of state.keyBox.keys()) {
                 const status = newStatus.get(key);
-                if (!nextKeysSet.has(key)) {
-                    if (status !== 'removing') {
-                        newStatus = newStatus.set(key, 'removing');
-                        newKeyModId = newKeyModId.set(key, modificationId);
-                        newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'removing'}));
-                        needGarbageCollection = true;
-                    }
+                if (!nextKeysSet.has(key) && status !== 'removing') {
+                    newStatus = newStatus.set(key, 'removing');
+                    newKeyModId = newKeyModId.set(key, modificationId);
+                    newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'removing'}));
+                    needGarbageCollection = true;
                 }
             }
 
@@ -487,7 +491,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (const [key, someProps] of idxBoxesProps) {
                     newStatus = newStatus.set(key, 'adding');
                     newKeyModId = newKeyModId.set(key, modificationId);
-                    newKeyBox = newKeyBox.set(key, <Box idx={idx} key={key} status={'adding'} {...someProps} />);
+                    newKeyBox = newKeyBox.set(key, <Box idx={idx} key={key} status="adding" {...someProps} />);
                 }
             }
 
@@ -648,12 +652,23 @@ class BaseBoxesComponent extends React.PureComponent {
 
             this.setState(state => {
                 let newStatus = state.status;
+                let newKeyBox = state.keyBox;
+                let newKeyModId = state.keyModId;
+                const modificationId = state.modificationId + 1;
                 for (let [key, status] of newStatus.entries()) {
                     if (status === 'created') {
                         newStatus = newStatus.set(key, 'adding');
+                        newKeyBox = newKeyBox.set(key, React.cloneElement(state.keyBox.get(key), {status: 'adding'}));
+                        newKeyModId = newKeyModId.set(key, modificationId);
                     }
                 }
-                return {status: newStatus, needProcessCreatedAfterRender: false};
+                return {
+                    status: newStatus,
+                    keyBox: newKeyBox,
+                    keyModId: newKeyModId,
+                    needProcessCreatedAfterRender: false,
+                    modificationId,
+                };
             });
         }
     }
