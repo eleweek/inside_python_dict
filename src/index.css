@@ -1,6 +1,7 @@
-/* TODO: remove unnessary fonts */
+/* TODO: remove unnessary fonts/font-weights */
 @import url(https://fonts.googleapis.com/css?family=Montserrat:700|Roboto:400, 400italic, 700);
-@import url('https://fonts.googleapis.com/css?family=Fira+Mono|Roboto+Mono');
+/*@import url('https://fonts.googleapis.com/css?family=Fira+Mono:400,500,700');*/
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,500,500i,700,700i');
 
 /* FROM: https://stackoverflow.com/questions/12502234/how-to-prevent-webkit-text-rendering-change-during-css-transition */
 @media screen and (-webkit-min-device-pixel-ratio: 2) {
@@ -33,7 +34,7 @@ h6 {
 code,
 .parsable-input,
 .invalid-feedback.invalid-feedback-block-parsable-input {
-    font-family: 'Fira Mono', monospace;
+    font-family: 'Roboto Mono', monospace;
     font-display: optional;
 }
 
@@ -81,7 +82,7 @@ div.hash-example-instance {
 
 .box {
     display: flex;
-    font-family: 'Fira Mono', monospace;
+    font-family: 'Roboto Mono', monospace;
     position: absolute;
     width: 40px;
     height: 40px;

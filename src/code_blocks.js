@@ -267,7 +267,7 @@ class Box extends React.PureComponent {
     shortDisplayedString(value) {
         const extraType =
             value === 'DUMMY' || value === 'EMPTY' || (typeof value === 'string' && /^[-+]?[0-9]+$/.test(value));
-        const maxLen = extraType ? 8 : 13;
+        const maxLen = extraType ? 8 : 12;
         // TODO: add hover?
         let s = pyObjToDisplayedString(value, false);
         let shortenedValue;
