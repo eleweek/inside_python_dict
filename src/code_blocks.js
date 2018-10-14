@@ -20,7 +20,7 @@ import 'rc-slider/assets/index.css';
 import SmoothScrollbar from 'react-smooth-scrollbar';
 
 import {MyErrorBoundary, getUxSettings} from './util';
-import {isNone, isDummy, displayStr} from './hash_impl_common';
+import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
 
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -33,7 +33,7 @@ import {
     faPause,
     faRedoAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import {List as ImmutableList, Map as ImmutableMap} from 'immutable';
+import {List as ImmutableList, Map as ImmutableMap, fromJS as immutableFromJS} from 'immutable';
 
 library.add(faPlay);
 library.add(faStepForward);
@@ -94,22 +94,7 @@ function computeBoxTransformProperty(idx, y) {
 }
 
 function pyObjToReactKey(obj) {
-    let res;
-    if (typeof obj === 'number') {
-        res = ['int', obj];
-    } else if (typeof obj === 'string') {
-        res = ['string', obj];
-    } else if (isNone(obj)) {
-        res = ['none'];
-    } else if (isDummy(obj)) {
-        res = ['dummy'];
-    } else if (BigNumber.isBigNumber(obj)) {
-        res = ['bignumber.js', obj.toFixed()];
-    } else {
-        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
-    }
-
-    return JSON.stringify(res);
+    return repr(obj, false);
 }
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
@@ -391,6 +376,10 @@ class BaseBoxesComponent extends React.PureComponent {
             needProcessCreatedAfterRender: false,
             firstRender: true,
             modificationId: 0,
+            lastBoxId: 0,
+            remappedKeyId: null,
+            removingValueToGroupToKeyToId: null,
+            keyToValueAndGroup: null,
         };
         this.ref = React.createRef();
         this.gcTimeout = null;
@@ -404,28 +393,39 @@ class BaseBoxesComponent extends React.PureComponent {
         if (isImmutableListOrMap(nextArray)) {
             // TODO: use Immutable.js api?
             nextArray = nextArray.toJS();
+        } else {
+            // console.warn("nextArray non-immutable");
         }
+        let lastBoxId = state.lastBoxId;
 
         let newState;
         if (!state.firstRender) {
+            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId;
             let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
-            let nextKeysSet = new Set();
 
             let toMergeStatus = {};
             let toMergeKeyBox = {};
             let toMergeKeyModId = {};
+            let toMergeRemappedKeyId = {};
+            let toMergeKeyToValueAndGroup = {};
+
+            let nextKeysSet = new Set();
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = nextArrayKeys[idx];
                 const idxBoxesProps = boxFactory(keys, nextArray[idx]);
-                for (const [key, someProps] of idxBoxesProps) {
+                for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
+                    const value = someProps.value;
                     nextKeysSet.add(key);
                     let status;
                     if (!state.status.has(key)) {
                         needProcessCreatedAfterRender = true;
-                        toMergeKeyBox[key] = <Box idx={idx} status="created" key={key} {...someProps} />;
+                        const keyId = ++lastBoxId;
+                        toMergeRemappedKeyId[key] = keyId;
+                        toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
                         toMergeStatus[key] = 'created';
                         toMergeKeyModId[key] = modificationId;
+                        toMergeKeyToValueAndGroup[key] = {group, value};
                     } else {
                         const box = state.keyBox.get(key);
                         // potential FIXME: does not compare someProps
@@ -449,6 +449,12 @@ class BaseBoxesComponent extends React.PureComponent {
                     toMergeStatus[key] = 'removing';
                     toMergeKeyModId[key] = modificationId;
                     toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
+                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                    newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
+                        [repr(value, true), group, key],
+                        state.remappedKeyId.get(key)
+                    );
                     needGarbageCollection = true;
                 }
             }
@@ -456,6 +462,8 @@ class BaseBoxesComponent extends React.PureComponent {
             let newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
             let newStatus = state.status.merge(toMergeStatus);
             let newKeyModId = state.keyModId.merge(toMergeKeyModId);
+            let newRemappedKeyId = state.remappedKeyId.merge(toMergeRemappedKeyId);
+            let newKeyToValueAndGroup = state.keyToValueAndGroup.merge(toMergeKeyToValueAndGroup);
 
             newState = {
                 firstRender: false,
@@ -465,19 +473,29 @@ class BaseBoxesComponent extends React.PureComponent {
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
                 needGarbageCollection: needGarbageCollection,
                 modificationId: modificationId,
+                lastBoxId: lastBoxId,
+                remappedKeyId: newRemappedKeyId,
+                removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId,
+                keyToValueAndGroup: newKeyToValueAndGroup,
             };
         } else {
             let status = {};
             let keyModId = {};
             let keyBox = {};
+            let remappedKeyId = {};
             let arrayBoxKeys = nextProps.getKeys(nextArray);
-            for (let [idx, value] of nextArray.entries()) {
+            let keyToValueAndGroup = {};
+            for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = arrayBoxKeys[idx];
-                const idxBoxesProps = boxFactory(keys, value);
-                for (const [key, someProps] of idxBoxesProps) {
+                const idxBoxesProps = boxFactory(keys, nextArray[idx]);
+                for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
+                    const value = someProps.value;
+                    const keyId = ++lastBoxId;
+                    remappedKeyId[key] = keyId;
                     status[key] = 'adding';
                     keyModId[key] = modificationId;
-                    keyBox[key] = <Box idx={idx} key={key} status="adding" {...someProps} />;
+                    keyBox[key] = <Box idx={idx} key={keyId} status="adding" {...someProps} />;
+                    keyToValueAndGroup[key] = {group, value};
                 }
             }
 
@@ -489,6 +507,10 @@ class BaseBoxesComponent extends React.PureComponent {
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
                 modificationId: modificationId,
+                lastBoxId: lastBoxId,
+                remappedKeyId: new ImmutableMap(remappedKeyId),
+                keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
+                removingValueToGroupToKeyToId: new ImmutableMap(),
             };
         }
 
@@ -579,26 +601,79 @@ class BaseBoxesComponent extends React.PureComponent {
 
             /*console.log(`garbage collecting older than ${targetModId}`);
             console.log(removed);
-            */
+            console.log("state before");
+            this.debugLogState();*/
+
             if (removed.length > 0) {
-                let {status, keyBox, keyModId} = state;
+                let {
+                    status,
+                    keyBox,
+                    keyModId,
+                    remappedKeyId,
+                    keyToValueAndGroup,
+                    removingValueToGroupToKeyToId,
+                } = state;
                 for (let key of removed) {
                     status = status.delete(key);
                     keyModId = keyModId.delete(key);
                     keyBox = keyBox.delete(key);
+                    remappedKeyId = remappedKeyId.delete(key);
+                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
+
+                    const notSoDeepDel = (m, [e1, e2, e3]) => {
+                        m = m.deleteIn([e1, e2, e3]);
+                        let subm2 = m.getIn([e1, e2]);
+                        if (subm2 !== undefined && subm2.size === 0) {
+                            m = m.deleteIn([e1, e2]);
+                            let subm1 = m.get(e1);
+                            if (subm1.size === 0) {
+                                m = m.delete(e1);
+                            }
+                        }
+                        return m;
+                    };
+
+                    removingValueToGroupToKeyToId = notSoDeepDel(removingValueToGroupToKeyToId, [
+                        repr(value, true),
+                        group,
+                        key,
+                    ]);
+                    keyToValueAndGroup.delete(key);
                 }
 
-                return {status, keyBox, keyModId, needGarbageCollection: false};
+                return {
+                    status,
+                    keyBox,
+                    keyModId,
+                    remappedKeyId,
+                    removingValueToGroupToKeyToId,
+                    keyToValueAndGroup,
+                    needGarbageCollection: false,
+                };
             } else {
                 return state;
             }
         });
     }
 
+    debugLogState = () => {
+        console.log('~~~~~~~~~~~~~~~');
+        console.log('debugLogState()');
+        for (let [k, v] of Object.entries(this.state)) {
+            console.log(k, v != null && typeof v.toJS === 'function' ? v.toJS() : v);
+            if (isImmutableListOrMap(v)) {
+                if (v.size > 200) {
+                    console.warn(`debugLogState(): ${k} size is too big: ${v.size}`);
+                }
+            }
+        }
+        console.log('~~~~~~~~~~~~~~~');
+    };
+
     render() {
-        /*console.log("BaseBoxesComponent.render()")
-        console.log(this.state);
-        console.log(this.props);*/
+        /*console.log("BaseBoxesComponent.render()");
+        this.debugLogState();*/
         if (this.state.needGarbageCollection) {
             /*console.log("Scheduling garbage collection");
             console.log(this.state);*/
@@ -938,20 +1013,17 @@ class TimeSliderWithControls extends React.PureComponent {
     };
 
     autoPlayNextStep = () => {
-        console.log('this.autoPlayNextStep()');
         if (this.state.time < this.props.maxTime) {
             const newTime = this.state.time + 1;
             let newState = {time: newTime};
             this.handleTimeChange(newTime);
             if (newState.time < this.props.maxTime) {
-                console.log('Setting timeout', this.timeoutId);
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
                 this.timeoutStarted = this.time();
             } else {
                 this.timeoutId = null;
                 newState.autoPlaying = false;
             }
-            console.log(this.timeoutId, newState);
             this.setState(newState);
         }
     };

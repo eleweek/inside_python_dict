@@ -2,6 +2,43 @@ import _ from 'lodash';
 
 import {BigNumber} from 'bignumber.js';
 
+export function repr(obj, allowNull = false) {
+    let res;
+    if (typeof obj === 'number') {
+        res = ['int', obj];
+    } else if (typeof obj === 'string') {
+        res = ['string', obj];
+    } else if (isNone(obj)) {
+        res = ['none'];
+    } else if (isDummy(obj)) {
+        res = ['dummy'];
+    } else if (BigNumber.isBigNumber(obj)) {
+        res = ['bignumber.js', obj.toFixed()];
+    } else if (obj === null && allowNull) {
+        res = ['jsnull', obj];
+    } else {
+        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
+    }
+
+    return JSON.stringify(res);
+}
+
+export function displayStr(obj, quoteString = true) {
+    if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
+        return obj.toString();
+    } else if (BigNumber.isBigNumber(obj)) {
+        return obj.toFixed();
+    } else if (typeof obj === 'string') {
+        if (quoteString) {
+            return JSON.stringify(obj);
+        } else {
+            return obj;
+        }
+    } else {
+        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
+    }
+}
+
 class Int64 {
     SIZE = 64;
     JS_NUM_MAX_SIZE = 32;
@@ -153,22 +190,6 @@ class Int64 {
             carry = (this.data[i] / 2) | 0;
             this.data[i] %= 2;
         }
-    }
-}
-
-export function displayStr(obj, quoteString = true) {
-    if (typeof obj === 'number' || isNone(obj) || isDummy(obj)) {
-        return obj.toString();
-    } else if (BigNumber.isBigNumber(obj)) {
-        return obj.toFixed();
-    } else if (typeof obj === 'string') {
-        if (quoteString) {
-            return JSON.stringify(obj);
-        } else {
-            return obj;
-        }
-    } else {
-        throw new Error(`Unknown key: ${JSON.stringify(obj)}`);
     }
 }
 
