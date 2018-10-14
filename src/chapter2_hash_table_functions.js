@@ -148,7 +148,9 @@ function formatHashCreateNewAndInsert(bp) {
         case 'check-dup-return':
             return 'Because the key is found, stop';
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.idx}</code>`;
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+                bp.keys.size
+            }</code>`;
         case 'assign-elem':
             if (bp._prevBp.keys.get(bp.idx) === null) {
                 return `Put <code>${displayStr(bp.key)}</code> and its hash <code>${
@@ -213,14 +215,16 @@ function formatHashRemoveSearch(bp) {
         case 'return':
             return `The key is removed, now return`;
         case 'next-idx':
-            return `Keep probing, the next slot will be ${bp.idx}`;
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+                bp.keys.size
+            }</code>`;
         case 'throw-key-error':
             return `Throw an exception, because no key was found`;
         /* search */
         case 'return-true':
-            return `So return true`;
+            return `So return <code>True</code>`;
         case 'return-false':
-            return `So return false`;
+            return `So return <code>False</code>`;
     }
 }
 
@@ -399,7 +403,9 @@ function formatHashResize(bp) {
                 return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
             }
         case 'next-idx':
-            return `Keep probing, the next slot will be ${bp.idx}`;
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+                bp.keys.size
+            }</code>`;
         case 'assign-elem':
             return `Put <code>${displayStr(bp.key)}</code> and its hash <code>${bp.hashCode}</code> in the empty slot ${
                 bp.idx

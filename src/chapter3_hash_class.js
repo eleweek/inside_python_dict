@@ -187,7 +187,7 @@ const HASH_CLASS_RESIZE_CODE = [
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
-    ['        if slot.key is not EMPTY:', 'check-skip-empty-dummy', 2],
+    ['        if slot.key is not EMPTY and slot.key is not DUMMY:', 'check-skip-empty-dummy', 2],
     ['              idx = slot.hash_code % len(self.slots)', 'compute-idx', 2],
     ['              while self.slots[idx].key is not EMPTY:', 'check-collision', 3],
     ['                  idx = (idx + 1) % len(self.slots)', 'next-idx', 3],

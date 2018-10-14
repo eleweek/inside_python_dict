@@ -729,11 +729,13 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         let lines = [];
         let maxLen = _.max(this.props.code.map(([line, bpPoint]) => line.length));
 
+        let isLineHighlighted = false;
         for (let [line, bpPoint] of this.props.code) {
             let className = activeBp.point;
             let explanation = '';
             if (bpPoint === activeBp.point) {
                 className += ' code-highlight';
+                isLineHighlighted = true;
             }
 
             if (bpPoint in visibleBreakpoints) {
@@ -763,6 +765,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
             let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
             formattedLine += explanation + '<br>';
             lines.push(formattedLine);
+        }
+        if (!isLineHighlighted) {
+            throw new Error(`No line found corresponding to "${activeBp.point}`);
         }
 
         return lines;
@@ -1008,7 +1013,7 @@ class TimeSliderWithControls extends React.PureComponent {
                 <button
                     key={label}
                     type="button"
-                    className="btn btn-outline-primary slider-controls-button"
+                    className="btn btn-outline-dark slider-controls-button"
                     onClick={onClick}
                 >
                     {iconOnTheRight ? elems.reverse() : elems}
@@ -1018,14 +1023,14 @@ class TimeSliderWithControls extends React.PureComponent {
 
         let timeControls = [];
         timeControls.push(button(' First step', this.firstStep, 'fast-backward'));
-        timeControls.push(button(' step', this.prevStep, 'step-backward'));
+        timeControls.push(button(' Step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
             const playIcon = this.state.time === this.props.maxTime ? 'redo-alt' : 'play';
             timeControls.push(button(' Play', this.autoPlay, playIcon));
         } else {
             timeControls.push(button(' Pause', this.stop, 'pause'));
         }
-        timeControls.push(button('step ', this.nextStep, 'step-forward', true));
+        timeControls.push(button('Step ', this.nextStep, 'step-forward', true));
         timeControls.push(button('Last step ', this.lastStep, 'fast-forward', true));
 
         let speedControls = [];
@@ -1036,7 +1041,7 @@ class TimeSliderWithControls extends React.PureComponent {
             const isActive = speed === this.state.speed;
             let label = i === 0 ? `Autoplay speed ${speed}x` : `${speed}x`;
             speedControls.push(
-                <label key={label} className={classNames('btn', 'btn-outline-primary', {active: isActive})}>
+                <label key={label} className={classNames('btn', 'btn-outline-dark', {active: isActive})}>
                     <input type="radio" checked={isActive} onChange={() => this.setSpeed(speed)} /> {label}
                 </label>
             );

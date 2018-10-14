@@ -142,7 +142,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
                 bp.newList.size
             }</code>`;
         case 'check-collision':
-            if (bp.newList[bp.newListIdx] === null) {
+            if (bp.newList.get(bp.newListIdx) === null) {
                 return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
             } else {
                 return `A collision in slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList.get(
@@ -150,7 +150,9 @@ let formatSimplifiedInsertAllDescription = function(bp) {
                 )}</code>`;
             }
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.newListIdx}</code>`;
+            return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
+                bp._prevBp.newListIdx
+            } + 1) % ${bp.newList.size}</code>`;
         case 'assign-elem':
             return `Put <code>${bp.number}</code> in slot <code>${bp.newListIdx}</code>, which is empty`;
         case 'return-created-list':

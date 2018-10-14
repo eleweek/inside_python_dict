@@ -238,8 +238,9 @@ export function formatHashClassInit(bp) {
                 bp.oldKey
             )}</code> and <code>${displayStr(bp.oldValue)}</code>`;
         case 'run-setitem':
-            // TODO: better formatting here
-            return `Call self.__setitem__(${displayStr(bp.oldKey)}, ${displayStr(bp.oldValue)})`;
+            return `Call self.__setitem__(<code>${displayStr(bp.oldKey)}</code>, <code>${displayStr(
+                bp.oldValue
+            )}</code>)`;
     }
 }
 
@@ -579,7 +580,6 @@ export class HashClassResizeBase extends HashBreakpointFunction {
             this.addBP('for-loop');
             this.addBP('check-skip-empty-dummy');
             if (this.slot.key === null || this.slot.key === DUMMY) {
-                this.addBP('continue');
                 continue;
             }
             this.computeIdxAndSave(this.slot.hashCode, this.self.get('slots').size);
