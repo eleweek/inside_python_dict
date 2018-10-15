@@ -400,10 +400,9 @@ class BaseBoxesComponent extends React.PureComponent {
 
         let newState;
         if (!state.firstRender) {
-            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId;
-            let needProcessCreatedAfterRender = false;
             const nextArrayKeys = nextProps.getKeys(nextArray);
 
+            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId;
             let toMergeStatus = {};
             let toMergeKeyBox = {};
             let toMergeKeyModId = {};
@@ -411,6 +410,32 @@ class BaseBoxesComponent extends React.PureComponent {
             let toMergeKeyToValueAndGroup = {};
 
             let nextKeysSet = new Set();
+            for (let idx = 0; idx < nextArray.length; ++idx) {
+                const keys = nextArrayKeys[idx];
+                for (let key of keys) {
+                    nextKeysSet.add(key);
+                }
+            }
+
+            let needGarbageCollection = false;
+            for (let key of state.keyBox.keys()) {
+                const status = state.status.get(key);
+                if (!nextKeysSet.has(key) && status !== 'removing') {
+                    toMergeStatus[key] = 'removing';
+                    toMergeKeyModId[key] = modificationId;
+                    toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
+                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                    newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
+                        [repr(value, true), group, key],
+                        state.remappedKeyId.get(key)
+                    );
+                    needGarbageCollection = true;
+                }
+            }
+
+            let needProcessCreatedAfterRender = false;
+
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = nextArrayKeys[idx];
                 const idxBoxesProps = boxFactory(keys, nextArray[idx]);
@@ -439,23 +464,6 @@ class BaseBoxesComponent extends React.PureComponent {
                             toMergeKeyModId[key] = modificationId;
                         }
                     }
-                }
-            }
-
-            let needGarbageCollection = false;
-            for (let key of state.keyBox.keys()) {
-                const status = state.status.get(key);
-                if (!nextKeysSet.has(key) && status !== 'removing') {
-                    toMergeStatus[key] = 'removing';
-                    toMergeKeyModId[key] = modificationId;
-                    toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
-                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                    newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
-                        [repr(value, true), group, key],
-                        state.remappedKeyId.get(key)
-                    );
-                    needGarbageCollection = true;
                 }
             }
 
