@@ -33,7 +33,7 @@ export function MyErrorBoundary(props) {
 export function MySticky(props) {
     return (
         <Sticky innerZ={10} bottomBoundary={props.bottomBoundary}>
-            {props.children}
+            <div className="my-sticky-wrapper">{props.children}</div>
         </Sticky>
     );
 }
