@@ -11,25 +11,37 @@ class HackySSR {
         this.options = options;
     }
     apply(compiler) {
-        const name = 'index.html';
+        // TODO: this duplicates mustache jsons. There should probably be a single source of truth
+        const files = {
+            'all.html': '["chapter1", "chapter2", "chapter3", "chapter4"]',
+            'chapter1.html': '["chapter1"]',
+            'chapter2.html': '["chapter2"]',
+            'chapter3.html': '["chapter3"]',
+            'chapter4.html': '["chapter4"]',
+        };
+
         if (compiler.options.mode === 'development') {
-            compiler.plugin('emit', (compilation, cb) => {
-                fs.readFile('src/index.html', 'utf8', function(err, file) {
-                    compilation.assets[name] = new RawSource(file);
-                    cb();
+            for (let name in files) {
+                console.log('emit', name);
+                compiler.plugin('emit', (compilation, cb) => {
+                    fs.readFile(`build/${name}`, 'utf8', function(err, file) {
+                        compilation.assets[name] = new RawSource(file);
+                        cb();
+                    });
                 });
-            });
+            }
         } else {
-            compiler.plugin('emit', (compilation, cb) => {
-                exec('npx babel-node --presets env,react --plugins transform-class-properties ssr.js', function(
-                    error,
-                    stdout,
-                    stderr
-                ) {
-                    compilation.assets[name] = new RawSource(stdout);
-                    cb();
+            for (let [name, chapters] of Object.entries(files)) {
+                compiler.plugin('emit', (compilation, cb) => {
+                    exec(
+                        `npx babel-node --presets env,react --plugins transform-class-properties ssr.js build/${name} '${chapters}'`,
+                        function(error, stdout, stderr) {
+                            compilation.assets[name] = new RawSource(stdout);
+                            cb();
+                        }
+                    );
                 });
-            });
+            }
         }
     }
 }
@@ -37,7 +49,7 @@ class HackySSR {
 module.exports = {
     entry: './src/index.js',
     output: {
-        filename: 'browser-bundle.js',
+        filename: 'app-bundle.js',
         path: path.resolve(__dirname, 'dist'),
     },
     module: {

@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <script type="text/javascript" src="browser-bundle.js"></script>
+    <script type="text/javascript">window.insidePythonDictChapters={{{chapters}}}</script>
+    <script type="text/javascript" src="app-bundle.js"></script>
     <link rel="stylesheet" href="bundle.css" type="text/css">
   </head>
   <body>

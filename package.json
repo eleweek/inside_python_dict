@@ -1,12 +1,13 @@
 {
   "name": "inside_python_dict",
   "version": "1.0.0",
-  "description": "",
+  "description": "Inside python dict - an explorable explanation",
   "main": "index.js",
   "scripts": {
     "test": "jest --env=node",
-    "start": "webpack-dev-server --config webpack.dev.js --host 0.0.0.0",
-    "build": "webpack --config webpack.prod.js",
+    "build:html": "mkdir -p build && (for i in {all,chapter1,chapter2,chapter3,chapter4}; do mustache src/mustache/$i.json src/page.html.template > build/$i.html; done)",
+    "start": "npm run build:html && webpack-dev-server --config webpack.dev.js --host 0.0.0.0",
+    "build:all": "npm run build:html && webpack --config webpack.prod.js",
     "dictserver": "rm pynode.sock ; npx babel-node --presets env,react --plugins transform-class-properties pyReimplWrapper.js; rm pynode.sock",
     "precommit": "pretty-quick --staged"
   },
@@ -73,6 +74,7 @@
     "ignore-styles": "^5.0.1",
     "jest": "^23.4.2",
     "mini-css-extract-plugin": "^0.4.1",
+    "mustache": "^3.0.0",
     "npm": "^6.4.1",
     "prettier": "1.14.2",
     "pretty-quick": "^1.6.0",

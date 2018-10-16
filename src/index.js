@@ -1,5 +1,5 @@
 import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
-import indexCss from './index.css';
+import stylesCss from './styles.css';
 
 import * as React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,6 +11,13 @@ import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import {MyErrorBoundary, initUxSettings} from './util';
+
+export const CHAPTER_ID_TO_COMPONENT = {
+    chapter1: Chapter1_SimplifiedHash,
+    chapter2: Chapter2_HashTableFunctions,
+    chapter3: Chapter3_HashClass,
+    chapter4: Chapter4_RealPythonDict,
+};
 
 function logViewportStats() {
     console.log('window: ' + window.innerWidth + 'x' + window.innerHeight);
@@ -88,23 +95,19 @@ export class App extends React.Component {
 
     render() {
         const {windowWidth, windowHeight} = this.state;
+        let chapters = [];
+        for (let Chapter of this.props.chapters) {
+            chapters.push(
+                <MyErrorBoundary>
+                    <Chapter windowWidth={windowWidth} windowHeight={windowHeight} />
+                </MyErrorBoundary>
+            );
+        }
         return (
             <div className="app-container container-fluid">
                 <GithubForkMe />
-
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                <MyErrorBoundary>
-                    <Chapter1_SimplifiedHash windowWidth={windowWidth} windowHeight={windowHeight} />
-                </MyErrorBoundary>
-                <MyErrorBoundary>
-                    <Chapter2_HashTableFunctions windowWidth={windowWidth} windowHeight={windowHeight} />
-                </MyErrorBoundary>
-                <MyErrorBoundary>
-                    <Chapter3_HashClass windowWidth={windowWidth} windowHeight={windowHeight} />
-                </MyErrorBoundary>
-                <MyErrorBoundary>
-                    <Chapter4_RealPythonDict windowWidth={windowWidth} windowHeight={windowHeight} />
-                </MyErrorBoundary>
+                {chapters}
             </div>
         );
     }
@@ -133,10 +136,12 @@ if (typeof window !== 'undefined') {
         const root = document.getElementById('root');
         const isSSR = root.hasChildNodes();
 
+        const chapters = window.insidePythonDictChapters.map(chapterId => CHAPTER_ID_TO_COMPONENT[chapterId]);
+
         if (isSSR) {
-            ReactDOM.hydrate(<App />, root);
+            ReactDOM.hydrate(<App chapters={chapters} />, root);
         } else {
-            ReactDOM.render(<App />, root);
+            ReactDOM.render(<App chapters={chapters} />, root);
         }
         // Seems to fix stickynode not stickying on page reload
         fixSticky();
