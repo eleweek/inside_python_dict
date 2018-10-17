@@ -49,7 +49,7 @@ blockquote {
 
 .parsable-input,
 .parsable-input-autosize {
-    font-size: 14px;
+    /*font-size: 14px;*/
 }
 
 div.hash-example-instance {

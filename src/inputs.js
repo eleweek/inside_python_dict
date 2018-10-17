@@ -93,7 +93,7 @@ class ParsableInput extends React.Component {
                     );
                 }
             }
-            const className = classNames('parsable-input', 'form-control', {
+            const className = classNames('parsable-input', 'form-control', 'form-control-sm', {
                 'fc-inline': this.props.inline,
                 'is-invalid': !!error,
             });
@@ -186,4 +186,78 @@ export function PyStringInput(props) {
 
 export function PyStringOrNumberInput(props) {
     return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyStringOrNumber} />;
+}
+
+export class BlockInputToolbar extends React.PureComponent {
+    constructor() {
+        super();
+
+        this.state = {
+            value: null,
+            lastUpdateValue: null,
+            instantUpdates: true,
+        };
+    }
+
+    handleChange = value => {
+        if (this.state.instantUpdates) {
+            this.props.onChange(value);
+            this.setState({value, lastUpdateValue: value});
+        } else {
+            this.setState({value});
+        }
+    };
+
+    onChangeIfNecessary = () => {
+        if (this.state.lastUpdateValue !== this.state.value) {
+            this.props.onChange(this.state.value);
+            this.setState({lastUpdateValue: value});
+        }
+    };
+
+    handleUpdateClick = () => {
+        this.onChangeIfNecessary();
+    };
+
+    handleIUChange = () => {
+        this.setState({
+            instantUpdates: !this.state.instantUpdates,
+        });
+        this.onChangeIfNecessary();
+    };
+
+    render() {
+        const Input = this.props.input;
+        return (
+            <div className="row">
+                <div className="col">
+                    <Input value={this.props.initialValue} onChange={this.handleChange} />
+                </div>
+                <div className="col-auto">
+                    <div className="btn-toolbar">
+                        <div className="form-check-inline form-check mr-3">
+                            <input
+                                type="checkbox"
+                                className="form-check-input"
+                                checked={this.state.instantUpdates}
+                                onChange={this.handleIUChange}
+                            />
+                            <label className="form-check-label">Instant updates</label>
+                        </div>
+                        <div className="btn-group ml-3">
+                            <button
+                                type="button"
+                                className={classNames('btn', 'btn-primary', 'btn-sm', {
+                                    invisible: this.state.instantUpdates,
+                                })}
+                                onClick={this.handleUpdateClick}
+                            >
+                                Update
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }

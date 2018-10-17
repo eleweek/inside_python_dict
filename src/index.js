@@ -99,7 +99,7 @@ export class App extends React.Component {
         for (let [i, Chapter] of this.props.chapters.entries()) {
             chapters.push(
                 <MyErrorBoundary key={`error-boundary-${i}`}>
-                    ><Chapter windowWidth={windowWidth} windowHeight={windowHeight} />
+                    <Chapter windowWidth={windowWidth} windowHeight={windowHeight} />
                 </MyErrorBoundary>
             );
         }

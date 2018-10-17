@@ -31,7 +31,7 @@ import {
     dummyFormat,
 } from './code_blocks';
 
-import {PyDictInput, PyStringOrNumberInput} from './inputs';
+import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent, singularOrPlural} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -417,7 +417,11 @@ export class Chapter3_HashClass extends ChapterComponent {
                 </p>
                 <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
                 <MySticky bottomBoundary=".chapter3">
-                    <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
+                    <BlockInputToolbar
+                        input={PyDictInput}
+                        initialValue={this.state.pairs}
+                        onChange={this.setter('pairs')}
+                    />
                 </MySticky>
 
                 <VisualizedCode
