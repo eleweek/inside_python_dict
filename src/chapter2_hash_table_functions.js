@@ -6,7 +6,7 @@ import {BigNumber} from 'bignumber.js';
 import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
-import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput} from './inputs';
+import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -708,7 +708,11 @@ EMPTY = EmptyValueClass()
                 </p>
                 <p>Let's say we have a mixed list of strings and integers:</p>
                 <MySticky bottomBoundary=".chapter2">
-                    <PyListInput value={this.state.array} onChange={this.setter('array')} />
+                    <BlockInputToolbar
+                        input={PyListInput}
+                        initialValue={this.state.array}
+                        onChange={this.setter('array')}
+                    />
                 </MySticky>
                 <VisualizedCode
                     code={HASH_CREATE_NEW_CODE}

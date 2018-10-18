@@ -4,7 +4,7 @@ import {List} from 'immutable';
 
 import {EQ, BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
-import {PyListInput, PyShortIntInput} from './inputs';
+import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
 import {BigNumber} from 'bignumber.js';
@@ -323,7 +323,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 </p>
                 <p>Let's say we have a simple list of numbers:</p>
                 <MySticky bottomBoundary=".chapter1">
-                    <PyListInput value={this.state.numbers} onChange={this.setter('numbers')} />
+                    <BlockInputToolbar
+                        input={PyListInput}
+                        initialValue={this.state.numbers}
+                        onChange={this.setter('numbers')}
+                    />
                 </MySticky>
                 <p className="text-muted">
                     (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever

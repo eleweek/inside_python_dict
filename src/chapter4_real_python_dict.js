@@ -23,7 +23,7 @@ import {
 import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
 import {VisualizedCode} from './code_blocks';
-import {PyDictInput, PyStringOrNumberInput} from './inputs';
+import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
@@ -920,7 +920,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 <p>There are a couple more changes to almost-python-dict, but they are small. </p>
                 <p>When you type a dict literal in your code, for example: </p>
                 <MySticky>
-                    <PyDictInput value={this.state.pairs} onChange={this.setter('pairs')} />
+                    <BlockInputToolbar
+                        input={PyDictInput}
+                        initialValue={this.state.pairs}
+                        onChange={this.setter('pairs')}
+                    />
                 </MySticky>
                 <p>
                     Python actually knows the number of key-value pairs and tries to guess the optimal hash table size
