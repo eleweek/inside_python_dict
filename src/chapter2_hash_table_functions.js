@@ -322,15 +322,6 @@ const HASH_RESIZE_CODE = [
 ];
 
 class HashResize extends HashBreakpointFunction {
-    constructor() {
-        super(
-            {
-                newHashCodes: hcs => hcs.map(hc => (hc !== null ? hc.toString() : null)),
-            },
-            ['newHashCodes']
-        );
-    }
-
     run(_hashCodes, _keys) {
         this.hashCodes = _hashCodes;
         this.keys = _keys;

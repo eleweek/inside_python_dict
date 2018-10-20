@@ -797,7 +797,6 @@ class BaseBoxesComponent extends React.PureComponent {
             labelsDiv = (
                 <div className="hash-vis-labels-wrapper">
                     {this.props.labels.map(label => {
-                        console.log(props);
                         return (
                             <div
                                 className="hash-vis-label-div"
