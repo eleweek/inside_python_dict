@@ -24,6 +24,7 @@ class ParsableInput extends React.Component {
         this.state = {
             value: this.props.dumpValue(this.props.value),
             error: null,
+            lastError: null,
         };
     }
 
@@ -33,6 +34,7 @@ class ParsableInput extends React.Component {
         });
         try {
             this.setState({
+                lastError: this.state.error || this.state.lastError,
                 error: null,
             });
             let value = this.props.parseValue(event.target.value);
@@ -40,6 +42,7 @@ class ParsableInput extends React.Component {
         } catch (e) {
             this.setState({
                 error: e,
+                lastError: this.state.error || this.state.lastError,
                 fml: true,
             });
         }
@@ -142,7 +145,9 @@ class ParsableInput extends React.Component {
                                         )}
                                     >
                                         <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
-                                        <div className="popover-body">{error}</div>
+                                        <div className="popover-body">
+                                            {error || (this.state.lastError && this.state.lastError.message)}
+                                        </div>
                                     </div>
                                 )}
                             </Popper>
