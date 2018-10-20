@@ -92,9 +92,12 @@ function HashCreateNewStateVisualization(props) {
     return (
         <Tetris
             lines={[
-                [LineOfBoxesComponent, ['from_keys', 'fromKeys', 'fromKeysIdx']],
-                [HashBoxesComponent, ['hash_codes', 'hashCodes', 'idx']],
-                [HashBoxesComponent, ['keys', 'keys', 'idx']],
+                [
+                    LineOfBoxesComponent,
+                    [null, 'fromKeys', 'fromKeysIdx', undefined, {labels: ['from_keys'], labelWidth: 120}],
+                ],
+                [HashBoxesComponent, [null, 'hashCodes', 'idx', undefined, {labels: ['hash_codes'], labelWidth: 120}]],
+                [HashBoxesComponent, [null, 'keys', 'idx', undefined, {labels: ['keys'], labelWidth: 120}]],
             ]}
             {...props}
         />
@@ -232,8 +235,8 @@ function HashNormalStateVisualization(props) {
     return (
         <Tetris
             lines={[
-                [HashBoxesComponent, ['hash_codes', 'hashCodes', 'idx']],
-                [HashBoxesComponent, ['keys', 'keys', 'idx']],
+                [HashBoxesComponent, [null, 'hashCodes', 'idx', undefined, {labels: ['hash_codes'], labelWidth: 120}]],
+                [HashBoxesComponent, [null, 'keys', 'idx', undefined, {labels: ['keys'], labelWidth: 120}]],
             ]}
             {...props}
         />
@@ -419,10 +422,16 @@ function HashResizeStateVisualization(props) {
     return (
         <Tetris
             lines={[
-                [HashBoxesComponent, ['hash_codes', 'hashCodes', 'oldIdx']],
-                [HashBoxesComponent, ['keys', 'keys', 'oldIdx']],
-                [HashBoxesComponent, ['new_hash_codes', 'newHashCodes', 'idx']],
-                [HashBoxesComponent, ['new_keys', 'newKeys', 'idx']],
+                [
+                    HashBoxesComponent,
+                    [null, 'hashCodes', 'oldIdx', undefined, {labels: ['hash_codes'], labelWidth: 155}],
+                ],
+                [HashBoxesComponent, [null, 'keys', 'oldIdx', undefined, {labels: ['keys'], labelWidth: 155}]],
+                [
+                    HashBoxesComponent,
+                    [null, 'newHashCodes', 'idx', undefined, {labels: ['new_hash_codes'], labelWidth: 155}],
+                ],
+                [HashBoxesComponent, [null, 'newKeys', 'idx', undefined, {labels: ['new_keys'], labelWidth: 155}]],
             ]}
             {...props}
         />

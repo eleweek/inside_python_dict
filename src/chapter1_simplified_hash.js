@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {List} from 'immutable';
 
 import {EQ, BreakpointFunction} from './hash_impl_common';
-import {LineOfBoxesComponent, HashBoxesComponent, TetrisSingleRowWrap, Tetris, VisualizedCode} from './code_blocks';
+import {LineOfBoxesComponent, HashBoxesComponent, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent} from './util';
 
@@ -82,7 +82,14 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
     }
 };
 
-const SimpleListSearchStateVisualization = TetrisSingleRowWrap(LineOfBoxesComponent, 'simple_list');
+function SimpleListSearchStateVisualization(props) {
+    return (
+        <Tetris
+            lines={[[LineOfBoxesComponent, [null, 'data', 'idx', undefined, {labels: ['simple_list']}]]]}
+            {...props}
+        />
+    );
+}
 
 const SIMPLIFIED_INSERT_ALL_CODE = [
     ['def build_insert_all(original_list):', 'start-execution', 0],
@@ -163,10 +170,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 function SimplifiedInsertStateVisualization(props) {
     return (
         <Tetris
-            lines={[
-                [LineOfBoxesComponent, ['original_list', 'originalList', 'originalListIdx']],
-                [HashBoxesComponent, ['new_list', 'newList', 'newListIdx']],
-            ]}
+            lines={[[HashBoxesComponent, [null, 'newList', 'newListIdx', undefined, {labels: ['new_list']}]]]}
             {...props}
         />
     );
@@ -245,7 +249,14 @@ let formatSimplifiedSearchDescription = function(bp) {
     }
 };
 
-const SimplifiedSearchStateVisualization = TetrisSingleRowWrap(HashBoxesComponent, 'new_list', 'newList', 'newListIdx');
+function SimplifiedSearchStateVisualization(props) {
+    return (
+        <Tetris
+            lines={[[HashBoxesComponent, [null, 'newList', 'newListIdx', undefined, {labels: ['new_list']}]]]}
+            {...props}
+        />
+    );
+}
 
 export class Chapter1_SimplifiedHash extends ChapterComponent {
     constructor() {

@@ -801,6 +801,7 @@ class BaseBoxesComponent extends React.PureComponent {
                         return (
                             <div
                                 className="hash-vis-label-div"
+                                key={label}
                                 style={{
                                     width: props.labelWidth,
                                     height: props.labelHeight,
@@ -922,14 +923,6 @@ export class Tetris extends React.PureComponent {
             </SmoothScrollbar>
         );
     }
-}
-
-export function TetrisSingleRowWrap(component, dataLabel, dataName, idxName) {
-    return class extends React.Component {
-        render() {
-            return <Tetris lines={[[component, [dataLabel, dataName || 'data', idxName || 'idx']]]} {...this.props} />;
-        }
-    };
 }
 
 // TODO: parts of this function may be optimized/memoized
@@ -1390,6 +1383,8 @@ export class HashBoxesComponent extends React.PureComponent {
                 boxFactory={oneBox}
                 selectionClass={ActiveBoxSelection}
                 height={HashBoxesComponent.HEIGHT}
+                labelHeight={BOX_SIZE}
+                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }

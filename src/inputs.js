@@ -370,7 +370,7 @@ export class BlockInputToolbar extends React.PureComponent {
                                 disabled={undoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'undo-alt'} /> Undo{' '}
-                                <span class="badge badge-light">{undoCount}</span>
+                                <span className="badge badge-light">{undoCount}</span>
                             </button>
                             <button
                                 type="button"
@@ -379,7 +379,7 @@ export class BlockInputToolbar extends React.PureComponent {
                                 disabled={redoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'redo-alt'} /> Redo{' '}
-                                <span class="badge badge-light">{redoCount}</span>
+                                <span className="badge badge-light">{redoCount}</span>
                             </button>
                         </div>
                     </div>

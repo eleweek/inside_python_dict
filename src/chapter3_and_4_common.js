@@ -521,7 +521,23 @@ export class HashClassInsertAll extends HashBreakpointFunction {
 }
 
 export function HashClassNormalStateVisualization(props) {
-    return <Tetris lines={[[HashSlotsComponent, ['self.slots', 'self.slots', 'idx', 'targetIdx']]]} {...props} />;
+    return (
+        <Tetris
+            lines={[
+                [
+                    HashSlotsComponent,
+                    [
+                        null,
+                        'self.slots',
+                        'idx',
+                        'targetIdx',
+                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 140},
+                    ],
+                ],
+            ]}
+            {...props}
+        />
+    );
 }
 
 export function HashClassInsertAllVisualization(props) {
@@ -556,8 +572,26 @@ export function HashClassResizeVisualization(props) {
     return (
         <Tetris
             lines={[
-                [HashSlotsComponent, ['oldSlots', 'oldSlots', 'oldIdx']],
-                [HashSlotsComponent, ['self.slots', 'self.slots', 'idx']],
+                [
+                    HashSlotsComponent,
+                    [
+                        null,
+                        'oldSlots',
+                        'oldIdx',
+                        undefined,
+                        {labels: ['oldSlots/hashCode', 'oldSlots/key', 'oldSlots/value'], labelWidth: 167},
+                    ],
+                ],
+                [
+                    HashSlotsComponent,
+                    [
+                        null,
+                        'self.slots',
+                        'idx',
+                        undefined,
+                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 167},
+                    ],
+                ],
             ]}
             {...props}
         />
