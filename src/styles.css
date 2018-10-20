@@ -16,9 +16,13 @@
     padding-left: 30px;
 }
 
-/* .chapter > p, .chapter > h2, .chapter > h3, .chapter > h4, .chapter > h5, .chapter > h6 {
-    max-width: 700px;
-}*/
+.chapter > p, /*.chapter > h2,*/ .chapter > h3, .chapter > h4, .chapter > h5, .chapter > h6 {
+    max-width: 768px;
+}
+
+.my-full-width {
+    max-width: none !important;
+}
 
 h1,
 h2,

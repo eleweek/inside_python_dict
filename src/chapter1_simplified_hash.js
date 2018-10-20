@@ -340,7 +340,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         onChange={this.setter('numbers')}
                     />
                 </MySticky>
-                <p className="text-muted">
+                <p className="text-muted my-full-width">
                     (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you ever
                     want to see the difference between two versions of data and don't want the page to update while you
                     type the changes, uncheck the "Instant updates", and you'll be able to manually tell the page when
