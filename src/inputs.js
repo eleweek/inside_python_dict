@@ -13,6 +13,14 @@ import {
 import classNames from 'classnames';
 import AutosizeInput from 'react-input-autosize';
 import {Manager, Reference, Popper} from 'react-popper';
+import {List as ImmutableList} from 'immutable';
+
+import {faUndoAlt, faRedoAlt} from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {library} from '@fortawesome/fontawesome-svg-core';
+
+library.add(faUndoAlt);
+library.add(faRedoAlt);
 
 // TODO: rewrite, this is super ugly
 // TODO: this should be split into 3 separate components
@@ -26,6 +34,13 @@ class ParsableInput extends React.Component {
             error: null,
             lastError: null,
         };
+    }
+
+    forceSetValue(value) {
+        // TODO: set raw?
+        this.setState({
+            value: this.props.dumpValue(value),
+        });
     }
 
     handleChange = event => {
@@ -43,7 +58,6 @@ class ParsableInput extends React.Component {
             this.setState({
                 error: e,
                 lastError: this.state.error || this.state.lastError,
-                fml: true,
             });
         }
     };
@@ -159,16 +173,18 @@ class ParsableInput extends React.Component {
     }
 }
 
-export function PyListInput(props) {
-    return <ParsableInput {...props} dumpValue={dumpPyList} parseValue={parsePyList} />;
+export function PyListInput({inputComponentRef, ...restProps}) {
+    return <ParsableInput {...restProps} dumpValue={dumpPyList} parseValue={parsePyList} ref={inputComponentRef} />;
 }
 
-export function PyDictInput(props) {
-    return <ParsableInput {...props} dumpValue={dumpPyDict} parseValue={parsePyDict} />;
+export function PyDictInput({inputComponentRef, ...restProps}) {
+    return <ParsableInput {...restProps} dumpValue={dumpPyDict} parseValue={parsePyDict} ref={inputComponentRef} />;
 }
 
-export function PyNumberInput(props) {
-    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyNumber} />;
+export function PyNumberInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={parsePyNumber} ref={inputComponentRef} />
+    );
 }
 
 function _parseShortInt(value) {
@@ -181,16 +197,27 @@ function _parseShortInt(value) {
     return +b.toString();
 }
 
-export function PyShortIntInput(props) {
-    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={_parseShortInt} />;
+export function PyShortIntInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={_parseShortInt} ref={inputComponentRef} />
+    );
 }
 
-export function PyStringInput(props) {
-    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyString} />;
+export function PyStringInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={parsePyString} ref={inputComponentRef} />
+    );
 }
 
-export function PyStringOrNumberInput(props) {
-    return <ParsableInput {...props} dumpValue={JSON.stringify} parseValue={parsePyStringOrNumber} />;
+export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput
+            {...restProps}
+            dumpValue={JSON.stringify}
+            parseValue={parsePyStringOrNumber}
+            ref={inputComponentRef}
+        />
+    );
 }
 
 export class BlockInputToolbar extends React.PureComponent {
@@ -198,66 +225,161 @@ export class BlockInputToolbar extends React.PureComponent {
         super();
 
         this.state = {
+            valuesStack: new ImmutableList(),
+            valuesStackIndex: 0,
             value: null,
-            lastUpdateValue: null,
             instantUpdates: true,
         };
+
+        this.inputComponentRef = null;
+    }
+
+    setInputComponentRef = ref => {
+        console.log('setInputComponentRef', ref);
+        this.inputComponentRef = ref;
+    };
+
+    static getDerivedStateFromProps(props, state) {
+        if (state.valuesStack.isEmpty()) {
+            return {
+                valuesStack: state.valuesStack.push(props.initialValue),
+            };
+        } else {
+            return state;
+        }
+    }
+
+    _updateStack(value) {
+        let stack = this.state.valuesStack;
+        let idx = this.state.valuesStackIndex;
+        if (!stack.isEmpty() && stack.get(idx) === value) {
+            return;
+        }
+
+        stack = stack.slice(0, idx + 1).push(value);
+        idx = stack.size - 1;
+
+        this.setState({valuesStack: stack, valuesStackIndex: idx, value});
     }
 
     handleChange = value => {
         if (this.state.instantUpdates) {
+            this._updateStack(value);
             this.props.onChange(value);
-            this.setState({value, lastUpdateValue: value});
         } else {
             this.setState({value});
         }
     };
 
-    onChangeIfNecessary = () => {
-        if (this.state.lastUpdateValue !== this.state.value) {
+    commitValueIfNecessary = () => {
+        if (this.state.value && this.state.valuesStack.get(this.state.valuesStackIndex) !== this.state.value) {
+            this._updateStack(this.state.value);
             this.props.onChange(this.state.value);
-            this.setState({lastUpdateValue: value});
         }
     };
 
     handleUpdateClick = () => {
-        this.onChangeIfNecessary();
+        this.commitValueIfNecessary();
     };
 
     handleIUChange = () => {
         this.setState({
             instantUpdates: !this.state.instantUpdates,
         });
-        this.onChangeIfNecessary();
+        this.commitValueIfNecessary();
+    };
+
+    handleUndoClick = () => {
+        console.log(this.state.valuesStack.toJS());
+        console.log(this.state.valuesStackIndex);
+        let idx = this.state.valuesStackIndex;
+        if (idx > 0) {
+            idx--;
+            const value = this.state.valuesStack.get(idx);
+            this.props.onChange(value);
+            this.inputComponentRef.forceSetValue(value);
+            this.setState({
+                valuesStackIndex: idx,
+                value,
+            });
+        }
+    };
+
+    handleRedoClick = () => {
+        console.log(this.state.valuesStack.toJS());
+        console.log(this.state.valuesStackIndex);
+        let idx = this.state.valuesStackIndex;
+        if (idx < this.state.valuesStack.size - 1) {
+            idx++;
+            const value = this.state.valuesStack.get(idx);
+            this.props.onChange(value);
+            this.inputComponentRef.forceSetValue(value);
+            this.setState({
+                valuesStackIndex: idx,
+                value,
+            });
+        }
     };
 
     render() {
         const Input = this.props.input;
+        const stack = this.state.valuesStack;
+        const idx = this.state.valuesStackIndex;
+        const undoCount = idx;
+        const redoCount = stack.size - idx - 1;
+        const updateDisabled = this.state.value == null || this.state.value === stack.get(idx);
         return (
             <div className="row">
                 <div className="col">
-                    <Input value={this.props.initialValue} onChange={this.handleChange} />
+                    <Input
+                        inputComponentRef={this.setInputComponentRef}
+                        value={this.props.initialValue}
+                        onChange={this.handleChange}
+                    />
                 </div>
                 <div className="col-auto">
                     <div className="btn-toolbar">
                         <div className="form-check-inline form-check mr-3">
-                            <input
-                                type="checkbox"
-                                className="form-check-input"
-                                checked={this.state.instantUpdates}
-                                onChange={this.handleIUChange}
-                            />
-                            <label className="form-check-label">Instant updates</label>
+                            <label className="form-check-label">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input"
+                                    checked={this.state.instantUpdates}
+                                    onChange={this.handleIUChange}
+                                />
+                                Instant updates
+                            </label>
                         </div>
-                        <div className="btn-group ml-3">
+                        <div className="btn-group btn-group-sm ml-3">
                             <button
                                 type="button"
-                                className={classNames('btn', 'btn-primary', 'btn-sm', {
+                                className={classNames('btn', 'btn-primary', {
                                     invisible: this.state.instantUpdates,
                                 })}
                                 onClick={this.handleUpdateClick}
+                                disabled={updateDisabled}
                             >
                                 Update
+                            </button>
+                        </div>
+                        <div className="btn-group btn-group-sm ml-3">
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={this.handleUndoClick}
+                                disabled={undoCount === 0}
+                            >
+                                <FontAwesomeIcon icon={'undo-alt'} /> Undo{' '}
+                                <span class="badge badge-light">{undoCount}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={this.handleRedoClick}
+                                disabled={redoCount === 0}
+                            >
+                                <FontAwesomeIcon icon={'redo-alt'} /> Redo{' '}
+                                <span class="badge badge-light">{redoCount}</span>
                             </button>
                         </div>
                     </div>
