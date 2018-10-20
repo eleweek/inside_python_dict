@@ -591,6 +591,12 @@ class ProbingVisualizationImpl extends React.Component {
                 ymid = this.TOP_SPACE * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
                 xstartAdjust = this.BOX_SIZE * 0.66;
                 xendAdjust = this.BOX_SIZE * 0.33;
+            } else if (i1 == i2) {
+                ystart = this.TOP_SPACE;
+                yend = this.TOP_SPACE;
+                ymid = this.TOP_SPACE * (1 - (1 + repeatedAdj) / slotsCount);
+                xstartAdjust = this.BOX_SIZE * 0.33;
+                xendAdjust = this.BOX_SIZE * 0.66;
             } else {
                 const yOffset = this.TOP_SPACE + this.BOX_SIZE;
                 ystart = yOffset;
