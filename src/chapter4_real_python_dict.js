@@ -248,7 +248,6 @@ export class Dict32 {
         if (pairs && pairs.length >= 50000) {
             throw new Error("Too many pairs, it's hard to visualize them anyway");
         }
-        console.log('__init__', pairs);
         let startSize;
         let pairsLength;
         if (pairs && pairs.length > 0) {
@@ -260,13 +259,11 @@ export class Dict32 {
         }
 
         const ie = new HashClassInitEmpty();
-        console.log('startSize and pairsLength', startSize, pairsLength);
         let pySelf = ie.run(startSize, pairsLength);
         let bp = ie.getBreakpoints();
 
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
-            console.log('Before', pySelf.toJS());
             pySelf = ia.run(
                 pySelf,
                 pairs,
@@ -275,7 +272,6 @@ export class Dict32 {
                 Dict32Resize,
                 4 /* Depends on the dict size, but an exception is thrown anyway if the dict is too largy */
             );
-            console.log('ia.run()', pySelf.toJS());
             bp = [...bp, ...ia.getBreakpoints()];
             const resizes = ia.getResizes();
 
@@ -791,6 +787,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     });
 
     render() {
+        const t1 = performance.now();
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
 
@@ -806,6 +803,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         const probingSimple = this.runProbingSimple(slotsCount);
         const probing5iPlus1 = this.runProbing5iPlus1(slotsCount);
         const probingPython = this.runProbingPython(slotsCount, this.state.keyForProbingVis);
+
+        console.log('Chapter4 render timing', performance.now() - t1);
 
         return (
             <div className="chapter chapter4">

@@ -579,6 +579,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
     });
 
     render() {
+        const t1 = performance.now();
         const newRes = this.runCreateNew(this.state.array);
         let {hashCodes, keys} = newRes;
 
@@ -587,6 +588,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         const removeRes = this.runRemove(hashCodes, keys, this.state.objToRemove);
         const resizeRes = this.runResize(hashCodes, keys);
         const insertRes = this.runInsert(hashCodes, keys, this.state.objToInsert);
+        console.log('Chapter2 render timing', performance.now() - t1);
 
         return (
             <div className="chapter chapter2">

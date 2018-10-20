@@ -386,6 +386,7 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     static getDerivedStateFromProps(nextProps, state) {
+        const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
 
         const modificationId = state.modificationId + 1;
@@ -665,6 +666,7 @@ class BaseBoxesComponent extends React.PureComponent {
         newState.activeBoxSelection1 = activeBoxSelection1;
         newState.activeBoxSelection2 = activeBoxSelection2;
 
+        console.log('BaseBoxesComponent.getDerivedStateFromProps timing', performance.now() - t1);
         return newState;
     }
 
@@ -684,6 +686,7 @@ class BaseBoxesComponent extends React.PureComponent {
     garbageCollectAfterAnimationDone(targetModId) {
         this.gcTimeout = null;
         this.setState(state => {
+            const t1 = performance.now();
             const removed = [];
 
             for (const [key, modId] of state.keyModId.entries()) {
@@ -697,6 +700,7 @@ class BaseBoxesComponent extends React.PureComponent {
             /*console.log("state before");
             this.debugLogState();*/
 
+            let newState;
             if (removed.length > 0) {
                 let {
                     status,
@@ -722,7 +726,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     ]);
                 }
 
-                return {
+                newState = {
                     status,
                     keyBox,
                     keyModId,
@@ -732,8 +736,10 @@ class BaseBoxesComponent extends React.PureComponent {
                     needGarbageCollection: false,
                 };
             } else {
-                return state;
+                newState = state;
             }
+            console.log('BaseBoxesComponent.garbageCollectAfterAnimationDone setState timing', performance.now() - t1);
+            return newState;
         });
     }
 
@@ -794,6 +800,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
     componentDidUpdate() {
         if (this.state.needProcessCreatedAfterRender) {
+            const t1 = performance.now();
             const node = this.ref.current;
             reflow(node);
 
@@ -818,6 +825,10 @@ class BaseBoxesComponent extends React.PureComponent {
                     modificationId,
                 };
             });
+            console.log(
+                'BaseBoxesComponent.garbageCollectAfterAnimationDone needProcessCreatedAfterRender==true timing',
+                performance.now() - t1
+            );
         }
     }
 }

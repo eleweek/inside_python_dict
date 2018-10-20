@@ -282,6 +282,7 @@ export class Chapter3_HashClass extends ChapterComponent {
     });
 
     render() {
+        const t1 = performance.now();
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
 
@@ -298,6 +299,7 @@ export class Chapter3_HashClass extends ChapterComponent {
             this.state.valueToSetRecycling
         );
         pySelf = setRecyclingRes.pySelf;
+        console.log('Chapter3 render timing', performance.now() - t1);
 
         return (
             <div className="chapter chapter3">

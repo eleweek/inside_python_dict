@@ -1,4 +1,5 @@
 console.log = () => {}; // Do not log to stdout
+global.performance = {now: () => 0};
 import 'ignore-styles';
 
 import * as React from 'react';
