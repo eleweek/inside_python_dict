@@ -408,6 +408,10 @@ function ProbingVisualization({links}) {
 
 class ProbingVisualizationImpl extends React.Component {
     TRANSITION_TIME = 500;
+    TOP_SPACE = 66;
+    BOTTOM_SPACE = 66;
+    BOX_SIZE = 35;
+    BOX_SPACING = 8;
 
     transitionId = null;
 
@@ -461,7 +465,10 @@ class ProbingVisualizationImpl extends React.Component {
     render() {
         return (
             <div className="col">
-                <svg width={10 + this.props.slotsCount * (30 + 8)} height={150}>
+                <svg
+                    width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)}
+                    height={this.BOX_SIZE + this.TOP_SPACE + this.BOTTOM_SPACE + 10}
+                >
                     <defs>
                         {['blue', 'green'].map(color => (
                             <marker
@@ -502,11 +509,6 @@ class ProbingVisualizationImpl extends React.Component {
 
     d3render() {
         const slotsCount = this.props.slotsCount;
-
-        const topSpace = 50;
-        const bottomSpace = 50;
-        const boxSize = 30;
-        const boxMargin = 8;
 
         const bp = this.props.breakpoints[this.props.bpIdx];
         let links = bp.links.toJS();
@@ -564,17 +566,17 @@ class ProbingVisualizationImpl extends React.Component {
             .y(function(d) {
                 return d.y;
             })
-            .curve(d3.curveMonotoneX); // TODO: better curve
+            .curve(d3.curveMonotoneX);
 
         let rects = g.selectAll('rect').data(d3.range(slotsCount));
         rects
             .enter()
             .append('rect')
             .style('fill', '#ededed')
-            .attr('x', (d, i) => (boxSize + boxMargin) * i)
-            .attr('y', topSpace)
-            .attr('width', boxSize)
-            .attr('height', boxSize)
+            .attr('x', (d, i) => (this.BOX_SIZE + this.BOX_SPACING) * i)
+            .attr('y', this.TOP_SPACE)
+            .attr('width', this.BOX_SIZE)
+            .attr('height', this.BOX_SIZE)
             .merge(rects)
             .style('stroke', (d, i) => (i === startBoxIdx ? 'green' : 'none'))
             .style('stroke-width', 1);
@@ -584,21 +586,21 @@ class ProbingVisualizationImpl extends React.Component {
 
             let xstartAdjust, xendAdjust;
             if (i1 < i2) {
-                ystart = topSpace;
-                yend = topSpace;
-                ymid = topSpace * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = boxSize * 0.66;
-                xendAdjust = boxSize * 0.33;
+                ystart = this.TOP_SPACE;
+                yend = this.TOP_SPACE;
+                ymid = this.TOP_SPACE * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
+                xstartAdjust = this.BOX_SIZE * 0.66;
+                xendAdjust = this.BOX_SIZE * 0.33;
             } else {
-                const yOffset = topSpace + boxSize;
+                const yOffset = this.TOP_SPACE + this.BOX_SIZE;
                 ystart = yOffset;
                 yend = yOffset;
-                ymid = yOffset + bottomSpace * ((Math.max(i1 - i2, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = boxSize * 0.33;
-                xendAdjust = boxSize * 0.66;
+                ymid = yOffset + this.BOTTOM_SPACE * ((Math.max(i1 - i2, 1) + repeatedAdj) / slotsCount);
+                xstartAdjust = this.BOX_SIZE * 0.33;
+                xendAdjust = this.BOX_SIZE * 0.66;
             }
-            const xstart = (boxSize + boxMargin) * i1 + xstartAdjust;
-            const xend = (boxSize + boxMargin) * i2 + xendAdjust;
+            const xstart = (this.BOX_SIZE + this.BOX_SPACING) * i1 + xstartAdjust;
+            const xend = (this.BOX_SIZE + this.BOX_SPACING) * i2 + xendAdjust;
             const xmid = (xstart + xend) / 2;
 
             return [[xstart, ystart], [xmid, ymid], [xend, yend]];
