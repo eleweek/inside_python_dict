@@ -791,9 +791,37 @@ class BaseBoxesComponent extends React.PureComponent {
             boxes.push(this.state.activeBoxSelection2);
         }
 
+        let labelsDiv;
+        const props = this.props;
+        if (this.props.labels) {
+            labelsDiv = (
+                <div className="hash-vis-labels-wrapper">
+                    {this.props.labels.map(label => {
+                        console.log(props);
+                        return (
+                            <div
+                                className="hash-vis-label-div"
+                                style={{
+                                    width: props.labelWidth,
+                                    height: props.labelHeight,
+                                    marginBottom: props.labelMarginBottom,
+                                }}
+                            >
+                                <span className="hash-vis-label">{label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // TODO: set proper width
         return (
-            <div className="hash-vis" style={{height: this.props.height, width: 1000}} ref={this.ref}>
-                {boxes}
+            <div className="hash-vis-wrapper" style={{height: this.props.height, width: 1000}}>
+                {labelsDiv}
+                <div className="hash-vis" ref={this.ref}>
+                    {boxes}
+                </div>
             </div>
         );
     }
@@ -857,15 +885,31 @@ export class Tetris extends React.PureComponent {
         let elems = [];
         const transformedBp = props.bp;
         this.height = 0;
-        for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name]]] of props.lines.entries()) {
-            elems.push(
-                <div className="tetris-row" key={`row-${i}`}>
-                    <div className="tetris-row-label-div">
-                        <p className="tetris-row-label">{dataLabel ? dataLabel + ':' : ''}</p>
-                    </div>
-                    <Component array={deepGet(props.bp, dataName)} idx={props.bp[idxName]} idx2={props.bp[idx2Name]} />
-                </div>
+        for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
+            const component = (
+                <Component
+                    array={deepGet(props.bp, dataName)}
+                    idx={props.bp[idxName]}
+                    idx2={props.bp[idx2Name]}
+                    {...subProps}
+                />
             );
+            if (dataLabel != null) {
+                elems.push(
+                    <div className="tetris-row" key={`row-${i}`}>
+                        <div className="tetris-row-label-div">
+                            <p className="tetris-row-label">{dataLabel ? dataLabel + ':' : ''}</p>
+                        </div>
+                        {component}
+                    </div>
+                );
+            } else {
+                elems.push(
+                    <div className="tetris-row" key={`row-${i}`}>
+                        {component}
+                    </div>
+                );
+            }
         }
 
         // TODO: width/height stuff here
@@ -1382,6 +1426,8 @@ export class HashSlotsComponent extends React.PureComponent {
                 boxFactory={slotBoxes}
                 selectionClass={SlotSelection}
                 height={HashSlotsComponent.HEIGHT}
+                labelHeight={BOX_SIZE}
+                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }
@@ -1417,6 +1463,8 @@ export class LineOfBoxesComponent extends React.PureComponent {
                 boxFactory={oneBox}
                 selectionClass={ActiveBoxSelection}
                 height={LineOfBoxesComponent.HEIGHT}
+                labelHeight={BOX_SIZE}
+                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }

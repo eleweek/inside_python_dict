@@ -528,9 +528,24 @@ export function HashClassInsertAllVisualization(props) {
     return (
         <Tetris
             lines={[
-                [LineOfBoxesComponent, ['from_keys', 'fromKeys', 'oldIdx']],
-                [LineOfBoxesComponent, ['from_values', 'fromValues', 'oldIdx']],
-                [HashSlotsComponent, ['self.slots', 'self.slots', 'idx']],
+                [
+                    LineOfBoxesComponent,
+                    [null, 'fromKeys', 'oldIdx', undefined, {labels: ['from_values'], labelWidth: 140}],
+                ],
+                [
+                    LineOfBoxesComponent,
+                    [null, 'fromValues', 'oldIdx', undefined, {labels: ['from_keys'], labelWidth: 140}],
+                ],
+                [
+                    HashSlotsComponent,
+                    [
+                        null,
+                        'self.slots',
+                        'idx',
+                        undefined,
+                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 140},
+                    ],
+                ],
             ]}
             {...props}
         />
