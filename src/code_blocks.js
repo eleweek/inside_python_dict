@@ -356,9 +356,9 @@ class SlotSelection extends React.PureComponent {
 }
 
 class BaseBoxesComponent extends React.PureComponent {
-    // Use slightly lower number than the actual 1000
+    // Use slightly lower number than the actual 1400
     // Because it seems to produce less "stupid" looking results
-    static ANIMATION_DURATION_TIMEOUT = 900;
+    static ANIMATION_DURATION_TIMEOUT = 1200;
 
     constructor() {
         super();
