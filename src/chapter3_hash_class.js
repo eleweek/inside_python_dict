@@ -141,7 +141,7 @@ export const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
 ];
 
 export const HASH_CLASS_INIT_CODE = [
-    ['def __init__(self, pairs):', 'start-execution', 0],
+    ['def __init__(self, pairs=None):', 'start-execution', 0],
     ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 1],
     ['    self.fill = 0', 'init-fill', 1],
     ['    self.used = 0', 'init-used', 1],

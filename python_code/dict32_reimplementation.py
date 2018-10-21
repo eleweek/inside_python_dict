@@ -7,12 +7,13 @@ class PyDictReimplementation(BaseDictImpl):
     START_SIZE = 8
     PERTURB_SHIFT = 5
 
-    def __init__(self, pairs):
+    def __init__(self, pairs=None):
         BaseDictImpl.__init__(self)
         start_size = self.find_nearest_size(len(pairs)) if pairs else self.START_SIZE
         self.slots = [Slot() for _ in range(start_size)]
-        for k, v in pairs:
-            self[k] = v
+        if pairs:
+            for k, v in pairs:
+                self[k] = v
 
     def __setitem__(self, key, value):
         hash_code = hash(key)

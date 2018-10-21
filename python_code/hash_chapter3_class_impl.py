@@ -8,8 +8,9 @@ class AlmostPythonDictBase(BaseDictImpl):
     def __init__(self, pairs=None):
         BaseDictImpl.__init__(self)
         self._keys_set = set()
-        for k, v in pairs:
-            self[k] = v
+        if pairs:
+            for k, v in pairs:
+                self[k] = v
 
     def lookdict(self, key):
         hash_code = hash(key)
