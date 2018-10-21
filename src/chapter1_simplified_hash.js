@@ -5,17 +5,17 @@ import {List} from 'immutable';
 import {EQ, BreakpointFunction} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent} from './util';
+import {MySticky, ChapterComponent, singularOrPlural} from './util';
 
 import {BigNumber} from 'bignumber.js';
 
 import memoizeOne from 'memoize-one';
 
 const SIMPLE_LIST_SEARCH = [
-    ['def has_key(l, key):', '', 0],
+    ['def has_key(simple_list, key):', '', 0],
     ['    idx = 0', 'start-from-zero', 1],
-    ['    while idx < len(l):', 'check-boundary', 2],
-    ['        if l[idx].key == key:', 'check-found', 2],
+    ['    while idx < len(simple_list):', 'check-boundary', 2],
+    ['        if simple_list[idx].key == key:', 'check-found', 2],
     ['            return True', 'found-key', 2],
     ['        idx += 1', 'next-idx', 2],
     ['    return False', 'found-nothing', 1],
@@ -91,6 +91,16 @@ function SimpleListSearchStateVisualization(props) {
     );
 }
 
+const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
+    ['def build_not_quite_what_we_want(original_list):', 'start-execution', 0],
+    ['    new_list = [None for i in range(2 * len(original_list))]', 'create-new-list', 1],
+    ['', ''],
+    ['    for number in original_list:', 'for-loop', 2],
+    ['        idx = number % len(new_list)', 'compute-idx', 2],
+    ['        new_list[idx] = number', 'assign-elem', 2],
+    ['    return new_list', 'return-created-list', 1],
+];
+
 const SIMPLIFIED_INSERT_ALL_CODE = [
     ['def build_insert_all(original_list):', 'start-execution', 0],
     ['    new_list = [None for i in range(2 * len(original_list))]', 'create-new-list', 1],
@@ -104,28 +114,43 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 ];
 
 class SimplifiedInsertAll extends BreakpointFunction {
-    run(_originalList) {
+    run(_originalList, isBroken) {
         this.originalList = new List(_originalList);
         this.newList = new List();
-
+        if (isBroken) {
+            this.fmtMissingNumbers = new List();
+        }
         for (let i = 0; i < this.originalList.size * 2; ++i) {
             this.newList = this.newList.push(null);
         }
         this.addBP('create-new-list', true);
 
         for ([this.originalListIdx, this.number] of this.originalList.entries()) {
+            this.fmtCollisionCount = 0;
+
             this.addBP('for-loop');
             this.newListIdx = this.number % this.newList.size;
             this.addBP('compute-idx');
-            while (true) {
-                this.addBP('check-collision');
-                if (this.newList.get(this.newListIdx) === null) {
-                    break;
-                }
+            if (!isBroken) {
+                while (true) {
+                    this.addBP('check-collision');
+                    if (this.newList.get(this.newListIdx) === null) {
+                        break;
+                    }
 
-                this.newListIdx = (this.newListIdx + 1) % this.newList.size;
-                this.addBP('next-idx');
+                    this.fmtCollisionCount += 1;
+                    this.newListIdx = (this.newListIdx + 1) % this.newList.size;
+                    this.addBP('next-idx');
+                }
             }
+            const prevNumber = this.newList.get(this.newListIdx);
+            if (prevNumber != null) {
+                if (!isBroken) {
+                    throw new Error(`!isBroken and overwriting a number - this should not happen`);
+                }
+                this.fmtMissingNumbers = this.fmtMissingNumbers.push(prevNumber);
+            }
+
             this.newList = this.newList.set(this.newListIdx, this.number);
             this.addBP('assign-elem', true);
         }
@@ -149,21 +174,47 @@ let formatSimplifiedInsertAllDescription = function(bp) {
                 bp.newList.size
             }</code>`;
         case 'check-collision':
-            if (bp.newList.get(bp.newListIdx) === null) {
-                return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
+            if (bp.newList.get(bp.newListIdx) == null) {
+                if (bp.fmtCollisionCount > 0) {
+                    return `After ${bp.fmtCollisionCount} ${singularOrPlural(
+                        bp.fmtCollisionCount,
+                        'collision',
+                        'collisions'
+                    )}, an empty slot (at <code>${bp.newListIdx}</code>) is found: ${singularOrPlural(
+                        bp.fmtCollisionCount,
+                        'the collision is',
+                        'the collisions are'
+                    )} successfully resolved`;
+                } else {
+                    return `Slot <code>${bp.newListIdx}</code> is empty: no need to do collision resolution`;
+                }
             } else {
-                return `A collision in slot <code>${bp.newListIdx}</code> with the number <code>${bp.newList.get(
+                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList.get(
                     bp.newListIdx
-                )}</code>`;
+                )}</code>: a collision occurred`;
             }
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
                 bp._prevBp.newListIdx
             } + 1) % ${bp.newList.size}</code>`;
-        case 'assign-elem':
-            return `Put <code>${bp.number}</code> in slot <code>${bp.newListIdx}</code>, which is empty`;
+        case 'assign-elem': {
+            const prevNumber = bp._prevBp.newList.get(bp.newListIdx);
+            if (prevNumber != null) {
+                return `Collision of <code>${bp.number}</code> with <code>${prevNumber}</code> in slot <code>${
+                    bp.newListIdx
+                }</code> - the number is overwritten`;
+            } else {
+                return `Put <code>${bp.number}</code> in slot <code>${bp.newListIdx}</code>`;
+            }
+        }
         case 'return-created-list':
-            return `Return created list`;
+            if (bp.fmtMissingNumbers && bp.fmtMissingNumbers.size > 0) {
+                return `Return created list with some numbers missing: ${bp.fmtMissingNumbers
+                    .map(number => `<code>${number}</code>`)
+                    .join(', ')}`;
+            } else {
+                return `Return created list with all original numbers present`;
+            }
     }
 };
 
@@ -191,6 +242,7 @@ class SimplifiedSearch extends BreakpointFunction {
         this.newList = new List(_newList);
         this.number = _number;
 
+        this.fmtCollisionCount = 0;
         this.newListIdx = this.number % this.newList.size;
         this.addBP('compute-idx');
 
@@ -200,11 +252,12 @@ class SimplifiedSearch extends BreakpointFunction {
                 break;
             }
             this.addBP('check-found');
-            if (this.newList.get(this.newListIdx) === this.number) {
+            if (EQ(this.newList.get(this.newListIdx), this.number)) {
                 this.addBP('found-key');
                 return true;
             }
 
+            this.fmtCollisionCount += 1;
             this.newListIdx = (this.newListIdx + 1) % this.newList.size;
             this.addBP('next-idx');
         }
@@ -221,16 +274,20 @@ let formatSimplifiedSearchDescription = function(bp) {
             return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
                 bp.newList.size
             }</code>`;
-        case 'check-not-found':
-            if (bp.newList[bp.newListIdx] === null) {
-                return `Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
+        case 'check-not-found': {
+            const tryN = bp.fmtCollisionCount + 1;
+            if (bp.newList.get(bp.newListIdx) == null) {
+                if (bp.fmtCollisionCount == 0) {
+                    return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
+                } else {
+                    return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is empty, stop looping`;
+                }
             } else {
-                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList.get(
-                    bp.newListIdx
-                )}</code>`;
+                return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is occupied, so check it`;
             }
+        }
         case 'check-found':
-            let found = bp.newList[bp.newListIdx] === bp.number;
+            let found = EQ(bp.newList.get(bp.newListIdx), bp.number);
             if (found) {
                 return `The number is found: <code>${bp.newList.get(bp.newListIdx)} == ${bp.number}</code>`;
             } else {
@@ -239,9 +296,9 @@ let formatSimplifiedSearchDescription = function(bp) {
                 }</code>`;
             }
         case 'found-key':
-            return 'Now simply return true';
+            return 'Now simply return <code>True</code>';
         case 'found-nothing':
-            return 'Now simply return false';
+            return 'Now simply return <code>False</code>';
         case 'next-idx':
             return `Keep retracing probing steps, the next slot will be <code>${bp.newListIdx}</code>`;
         case 'return-created-list':
@@ -265,13 +322,13 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         this.state = {
             numbers: [
                 BigNumber(14),
-                BigNumber(8),
-                BigNumber(19),
-                BigNumber(15),
+                BigNumber(147),
+                BigNumber(21),
                 BigNumber(13),
-                BigNumber(42),
+                BigNumber(174),
                 BigNumber(46),
-                BigNumber(22),
+                BigNumber(27),
+                BigNumber(15),
             ],
             simpleSearchNumber: 46,
             simplifiedHashSearchNumber: 46,
@@ -283,6 +340,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         let data = sia.run(numbers);
         let bp = sia.getBreakpoints();
         return {data, bp};
+    });
+
+    runSimplifiedInsertAllBroken = memoizeOne(numbers => {
+        let sia = new SimplifiedInsertAll();
+        let data = sia.run(numbers, true);
+        return {bp: sia.getBreakpoints()};
     });
 
     runSimplifiedSearch = memoizeOne((data, number) => {
@@ -298,6 +361,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
 
     render() {
         const slsRes = this.runSimpleListSearch(this.state.numbers, this.state.simpleSearchNumber);
+        const siaBrokenRes = this.runSimplifiedInsertAllBroken(this.state.numbers);
         const siaRes = this.runSimplifiedInsertAll(this.state.numbers);
         const ssRes = this.runSimplifiedSearch(siaRes.data, this.state.simplifiedHashSearchNumber);
 
@@ -356,7 +420,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     Accessing an element by index is very fast. Appending to a list is fast too. But if there is no
                     order whatsoever, searching for a specific element will be slow. We may get lucky and find an
                     element in only a few iterations if it is near the beginning of the list. But if it is not there at
-                    all, we'll have to scan over the whole array.
+                    all, we'll have to scan over the whole list.
                 </p>
                 <p>This simple list scan can be visualized as follows.</p>
                 <p className="inline-block">For example, let's say we want to search for</p>
@@ -387,6 +451,13 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     number in there. Would this approach work, however? Not entirely. For example, two numbers (TODO:
                     compute it) would be put in the same slot. Situations like these are called <em>collisions</em>.
                 </p>
+                <VisualizedCode
+                    code={SIMPLIFIED_INSERT_ALL_BROKEN_CODE}
+                    breakpoints={siaBrokenRes.bp}
+                    formatBpDesc={formatSimplifiedInsertAllDescription}
+                    stateVisualization={SimplifiedInsertStateVisualization}
+                    {...this.props}
+                />
                 <p>
                     To make this approach viable, we need to somehow <em>resolve collisions</em>. Let's do the
                     following. If the slot is already occupied by some other number, we'll just check the slot that
