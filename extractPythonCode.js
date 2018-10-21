@@ -1,4 +1,5 @@
 import 'ignore-styles';
+
 import {
     DICT32_INIT,
     DICT32_SETITEM,
@@ -8,7 +9,19 @@ import {
     DICT32_LOOKDICT,
     STATICMETHOD_SIGNED_TO_UNSIGNED,
 } from './src/chapter4_real_python_dict';
-import {FIND_NEAREST_SIZE_CODE_STRING, SLOT_CLASS_CODE_STRING} from './src/chapter3_hash_class';
+
+import {
+    HASH_CLASS_INIT_CODE,
+    HASH_CLASS_SETITEM_RECYCLING_CODE,
+    HASH_CLASS_SETITEM_SIMPLIFIED_CODE,
+    _HASH_CLASS_GETITEM_ONLY,
+    _HASH_CLASS_DELITEM_ONLY,
+    HASH_CLASS_LOOKDICT,
+    HASH_CLASS_RESIZE_CODE,
+    FIND_NEAREST_SIZE_CODE_STRING,
+    SLOT_CLASS_CODE_STRING,
+} from './src/chapter3_hash_class';
+
 import fs from 'fs';
 import * as path from 'path';
 
@@ -35,7 +48,7 @@ function outputCode(filename, headers, importedCode) {
     fs.writeFileSync(filename, headers.join('\n') + '\n' + joinedLines);
 }
 
-const dict32imports = `import sys
+const commonImports = `import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'python_code'))
 from common import DUMMY, EMPTY
@@ -45,11 +58,11 @@ from common import DUMMY, EMPTY
 const dict32def = `
 class Dict32Extracted(object):`;
 
-const dir = 'build';
-const dict32path = path.join(dir, 'dict32js_extracted.py');
+const DIR = 'build';
+
 outputCode(
-    dict32path,
-    [dict32imports, SLOT_CLASS_CODE_STRING, dict32def],
+    path.join(DIR, 'dict32js_extracted.py'),
+    [commonImports, SLOT_CLASS_CODE_STRING, dict32def],
     [
         DICT32_INIT,
         FIND_NEAREST_SIZE_CODE_STRING,
@@ -59,5 +72,39 @@ outputCode(
         _DICT32_GETITEM_ONLY,
         _DICT32_DELITEM_ONLY,
         DICT32_LOOKDICT,
+    ]
+);
+
+const hashClassRecyclingDef = `
+class HashClassRecyclingExtracted(object):`;
+
+outputCode(
+    path.join(DIR, 'hash_class_recycling_extracted.py'),
+    [commonImports, SLOT_CLASS_CODE_STRING, hashClassRecyclingDef],
+    [
+        HASH_CLASS_INIT_CODE,
+        FIND_NEAREST_SIZE_CODE_STRING,
+        HASH_CLASS_SETITEM_RECYCLING_CODE,
+        HASH_CLASS_RESIZE_CODE,
+        _HASH_CLASS_GETITEM_ONLY,
+        _HASH_CLASS_DELITEM_ONLY,
+        HASH_CLASS_LOOKDICT,
+    ]
+);
+
+const hashClassNoRecyclingDef = `
+class HashClassNoRecyclingExtracted(object):`;
+
+outputCode(
+    path.join(DIR, 'hash_class_no_recycling_extracted.py'),
+    [commonImports, SLOT_CLASS_CODE_STRING, hashClassNoRecyclingDef],
+    [
+        HASH_CLASS_INIT_CODE,
+        FIND_NEAREST_SIZE_CODE_STRING,
+        HASH_CLASS_SETITEM_SIMPLIFIED_CODE,
+        HASH_CLASS_RESIZE_CODE,
+        _HASH_CLASS_GETITEM_ONLY,
+        _HASH_CLASS_DELITEM_ONLY,
+        HASH_CLASS_LOOKDICT,
     ]
 );

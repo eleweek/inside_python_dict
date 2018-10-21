@@ -141,12 +141,13 @@ export const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
 ];
 
 export const HASH_CLASS_INIT_CODE = [
-    ['def __init__(self):', 'start-execution', 0],
+    ['def __init__(self, pairs):', 'start-execution', 0],
     ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 1],
     ['    self.fill = 0', 'init-fill', 1],
     ['    self.used = 0', 'init-used', 1],
-    ['    for k, v in pairs:', 'for-pairs', 1],
-    ['        self[k] = v', 'run-setitem', 2],
+    ['    if pairs:', 'check-pairs', 1],
+    ['        for k, v in pairs:', 'for-pairs', 1],
+    ['            self[k] = v', 'run-setitem', 2],
     ['', ''],
 ];
 
@@ -188,11 +189,11 @@ export const HASH_CLASS_RESIZE_CODE = [
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
     ['        if slot.key is not EMPTY and slot.key is not DUMMY:', 'check-skip-empty-dummy', 2],
-    ['              idx = slot.hash_code % len(self.slots)', 'compute-idx', 2],
-    ['              while self.slots[idx].key is not EMPTY:', 'check-collision', 3],
-    ['                  idx = (idx + 1) % len(self.slots)', 'next-idx', 3],
+    ['            idx = slot.hash_code % len(self.slots)', 'compute-idx', 2],
+    ['            while self.slots[idx].key is not EMPTY:', 'check-collision', 3],
+    ['                idx = (idx + 1) % len(self.slots)', 'next-idx', 3],
     ['', ''],
-    ['              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)', 'assign-slot', 2],
+    ['            self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)', 'assign-slot', 2],
     ['', 'done-no-return', 0],
 ];
 
@@ -367,13 +368,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <p>Here is how our class is going to look:</p>
                 <SimpleCodeBlock>
                     {`class AlmostDict(object):
-    def __init__(self, pairs):
+    def __init__(self, pairs=None):
         self.slots = [Slot() for _ in range(8)]
         self.fill = 0
         self.used = 0
         # Insert all initial pairs. [] automatically calls __setitem__
-        for k, v in pairs:
-            self[k] = v
+        if pairs:
+            for k, v in pairs:
+                self[k] = v
 
     def __setitem__(self, key, value):
         # Allows us to set a value in a dict-like fashion

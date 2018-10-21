@@ -287,6 +287,7 @@ export class HashClassInitEmpty extends BreakpointFunction {
         this.addBP('init-fill');
         this.self = this.self.set('used', 0);
         this.addBP('init-used');
+        this.addBP('check-pairs');
 
         return this.self;
     }

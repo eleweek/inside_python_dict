@@ -150,13 +150,14 @@ export const STATICMETHOD_SIGNED_TO_UNSIGNED = [
 ];
 
 export const DICT32_INIT = [
-    ['def __init__(self, pairs):', 'start-execution', 0],
+    ['def __init__(self, pairs=None):', 'start-execution', 0],
     ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', 'init-start-size', 1],
     ['    self.slots = [Slot() for _ in range(start_size)]', 'init-slots', 1],
     ['    self.fill = 0', 'init-fill', 1],
     ['    self.used = 0', 'init-used', 1],
-    ['    for k, v in pairs:', 'for-pairs', 1],
-    ['        self[k] = v', 'run-setitem', 2],
+    ['    if pairs:', 'check-pairs', 1],
+    ['        for k, v in pairs:', 'for-pairs', 1],
+    ['            self[k] = v', 'run-setitem', 2],
     ['', ''],
 ];
 
