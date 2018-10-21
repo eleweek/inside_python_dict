@@ -142,14 +142,14 @@ function formatPythonProbing(bp) {
     }
 }
 
-const STATICMETHOD_SIGNED_TO_UNSIGNED = [
+export const STATICMETHOD_SIGNED_TO_UNSIGNED = [
     ['@staticmethod', ''],
     ['def signed_to_unsigned(hash_code):', ''],
     ['    return 2**64 + hash_code if hash_code < 0 else hash_code', ''],
     ['', ''],
 ];
 
-const DICT32_INIT = [
+export const DICT32_INIT = [
     ['def __init__(self, pairs):', 'start-execution', 0],
     ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', 'init-start-size', 1],
     ['    self.slots = [Slot() for _ in range(start_size)]', 'init-slots', 1],
@@ -160,7 +160,9 @@ const DICT32_INIT = [
     ['', ''],
 ];
 
-const DICT32_SETITEM = [
+export const DICT32_SETITEM = [
+    ['PERTURB_SHIFT = 5', '', 0],
+    ['', '', 0],
     ['def __setitem__(self, key, value):', 'setitem-def', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -192,7 +194,7 @@ const DICT32_SETITEM = [
 
 const DICT32_SETITEM_WITH_INIT = [...STATICMETHOD_SIGNED_TO_UNSIGNED, ...DICT32_INIT, ...DICT32_SETITEM];
 
-const DICT32_RESIZE_CODE = [
+export const DICT32_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
     ['    new_size = self.find_nearest_size(self.used * (4 if self.used <= 50000 else 2))', 'compute-new-size', 1],
@@ -200,17 +202,17 @@ const DICT32_RESIZE_CODE = [
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
     ['        if slot.key is not EMPTY and slot.key is not DUMMY:', 'check-skip-empty-dummy', 2],
-    ['              idx = slot.hash_code % len(self.slots)', 'compute-idx', 2],
-    ['              perturb = self.signed_to_unsigned(slot.hash_code)', 'compute-perturb', 2],
-    ['              while self.slots[idx].key is not EMPTY:', 'check-collision', 3],
-    ['                  idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 3],
-    ['                  perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 3],
+    ['            idx = slot.hash_code % len(self.slots)', 'compute-idx', 2],
+    ['            perturb = self.signed_to_unsigned(slot.hash_code)', 'compute-perturb', 2],
+    ['            while self.slots[idx].key is not EMPTY:', 'check-collision', 3],
+    ['                idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 3],
+    ['                perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 3],
     ['', ''],
-    ['              self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)', 'assign-slot', 2],
+    ['            self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)', 'assign-slot', 2],
     ['', 'done-no-return'],
 ];
 
-let DICT32_LOOKDICT = [
+export const DICT32_LOOKDICT = [
     ['def lookdict(self, key):', 'start-execution-lookdict', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -227,21 +229,25 @@ let DICT32_LOOKDICT = [
     ['', ''],
 ];
 
-let DICT32_GETITEM = DICT32_LOOKDICT.concat([
+export const _DICT32_GETITEM_ONLY = [
     ['def __getitem__(self, key):', 'start-execution-getitem', 0],
     ['    idx = self.lookdict(key)', '', 1],
     ['', ''],
     ['    return self.slots[idx].value', 'return-value', 1],
-]);
+];
 
-let DICT32_DELITEM = DICT32_LOOKDICT.concat([
+const DICT32_GETITEM = [...DICT32_LOOKDICT, ..._DICT32_GETITEM_ONLY];
+
+export const _DICT32_DELITEM_ONLY = [
     ['def __delitem__(self, key):', 'start-execution-delitem', 0],
     ['    idx = self.lookdict(key)', '', 1],
     ['', ''],
     ['    self.used -= 1', 'dec-used', 1],
     ['    self.slots[idx].key = DUMMY', 'replace-key-dummy', 1],
     ['    self.slots[idx].value = EMPTY', 'replace-value-empty', 1],
-]);
+];
+
+const DICT32_DELITEM = [...DICT32_LOOKDICT, ..._DICT32_DELITEM_ONLY];
 
 export class Dict32 {
     static __init__(pairs) {

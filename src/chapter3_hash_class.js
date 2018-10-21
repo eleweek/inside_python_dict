@@ -120,7 +120,7 @@ function formatHashClassChapter3IdxRelatedBp(bp) {
     }
 }
 
-const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
+export const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ['def __setitem__(self, key, value):', 'setitem-def', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -140,7 +140,7 @@ const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ['', 'done-no-return', 0],
 ];
 
-const HASH_CLASS_INIT_CODE = [
+export const HASH_CLASS_INIT_CODE = [
     ['def __init__(self):', 'start-execution', 0],
     ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 1],
     ['    self.fill = 0', 'init-fill', 1],
@@ -152,7 +152,7 @@ const HASH_CLASS_INIT_CODE = [
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE = [...HASH_CLASS_INIT_CODE, ...HASH_CLASS_SETITEM_SIMPLIFIED_CODE];
 
-const HASH_CLASS_SETITEM_RECYCLING_CODE = [
+export const HASH_CLASS_SETITEM_RECYCLING_CODE = [
     ['def __setitem__(self, key, value):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -180,7 +180,7 @@ const HASH_CLASS_SETITEM_RECYCLING_CODE = [
     ['', 'done-no-return', 0],
 ];
 
-const HASH_CLASS_RESIZE_CODE = [
+export const HASH_CLASS_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
     ['    new_size = self.find_nearest_size(self.used * 2)', 'compute-new-size', 1],
@@ -196,7 +196,7 @@ const HASH_CLASS_RESIZE_CODE = [
     ['', 'done-no-return', 0],
 ];
 
-let HASH_CLASS_LOOKDICT = [
+export const HASH_CLASS_LOOKDICT = [
     ['def lookdict(self, key):', 'start-execution-lookdict', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
@@ -211,21 +211,39 @@ let HASH_CLASS_LOOKDICT = [
     ['', ''],
 ];
 
-let HASH_CLASS_GETITEM = HASH_CLASS_LOOKDICT.concat([
+export const _HASH_CLASS_GETITEM_ONLY = [
     ['def __getitem__(self, key):', 'start-execution-getitem', 0],
     ['    idx = self.lookdict(key)', '', 1],
     ['', ''],
     ['    return self.slots[idx].value', 'return-value', 1],
-]);
+];
 
-let HASH_CLASS_DELITEM = HASH_CLASS_LOOKDICT.concat([
+const HASH_CLASS_GETITEM = [...HASH_CLASS_LOOKDICT, ..._HASH_CLASS_GETITEM_ONLY];
+
+export const _HASH_CLASS_DELITEM_ONLY = [
     ['def __delitem__(self, key):', 'start-execution-delitem', 0],
     ['    idx = self.lookdict(key)', '', 1],
     ['', ''],
     ['    self.used -= 1', 'dec-used', 1],
     ['    self.slots[idx].key = DUMMY', 'replace-key-dummy', 1],
     ['    self.slots[idx].value = EMPTY', 'replace-value-empty', 1],
-]);
+];
+
+const HASH_CLASS_DELITEM = [...HASH_CLASS_LOOKDICT, ..._HASH_CLASS_DELITEM_ONLY];
+
+export const FIND_NEAREST_SIZE_CODE_STRING = `def find_nearest_size(self, minused):
+    new_size = 8
+    while new_size <= minused:
+        new_size *= 2
+
+    return new_size`;
+
+export const SLOT_CLASS_CODE_STRING = `class Slot(object):
+    def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
+        self.hash_code = hash_code
+        self.key = key
+        self.value = value
+`;
 
 export class Chapter3_HashClass extends ChapterComponent {
     constructor() {
@@ -326,14 +344,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <code>key</code>, <code>value</code> corresponding to each slot in a single object. To do this,
                     we'll need to create a class:
                 </p>
-                <SimpleCodeBlock>
-                    {`class Slot(object):
-    def __init__(self, hash_code=EMPTY, key=EMPTY, value=EMPTY):
-        self.hash_code = hash_code
-        self.key = key
-        self.value = value
-`}
-                </SimpleCodeBlock>
+                <SimpleCodeBlock>{SLOT_CLASS_CODE_STRING}</SimpleCodeBlock>
                 <p>This is similar to how slots are organized in CPython.</p>
 
                 <p>
@@ -396,15 +407,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <code>2 * self.used</code>:<br />
                     <code>self.find_nearest_size(2 * self.minused)</code>
                 </p>
-                <SimpleCodeBlock>
-                    {`def find_nearest_size(self, minused):
-    new_size = 8
-    while new_size <= minused:
-        new_size *= 2
-
-    return new_size
-`}
-                </SimpleCodeBlock>
+                <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
                 <p>
                     The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way.
                     This means that even though usually the size of the table doubles, it can also potentially shrink if{' '}
