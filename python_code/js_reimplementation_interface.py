@@ -53,6 +53,8 @@ class JsImplBase(object):
     SOCK_FILENAME = '../pynode.sock'
 
     def __init__(self, pairs=None):
+        pairs = pairs or []
+
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(self.SOCK_FILENAME)
         self.sockfile = self.sock.makefile('r')

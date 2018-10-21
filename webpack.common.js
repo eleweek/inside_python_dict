@@ -33,13 +33,14 @@ class HackySSR {
         } else {
             for (let [name, chapters] of Object.entries(files)) {
                 compiler.plugin('emit', (compilation, cb) => {
-                    exec(
-                        `npx babel-node --presets env,react --plugins transform-class-properties ssr.js build/${name} '${chapters}'`,
-                        function(error, stdout, stderr) {
-                            compilation.assets[name] = new RawSource(stdout);
-                            cb();
-                        }
-                    );
+                    exec(`npm run babel-node scripts/ssr.js build/${name} '${chapters}'`, function(
+                        error,
+                        stdout,
+                        stderr
+                    ) {
+                        compilation.assets[name] = new RawSource(stdout);
+                        cb();
+                    });
                 });
             }
         }

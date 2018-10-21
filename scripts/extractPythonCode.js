@@ -8,7 +8,7 @@ import {
     _DICT32_DELITEM_ONLY,
     DICT32_LOOKDICT,
     STATICMETHOD_SIGNED_TO_UNSIGNED,
-} from './src/chapter4_real_python_dict';
+} from '../src/chapter4_real_python_dict';
 
 import {
     HASH_CLASS_INIT_CODE,
@@ -20,7 +20,7 @@ import {
     HASH_CLASS_RESIZE_CODE,
     FIND_NEAREST_SIZE_CODE_STRING,
     SLOT_CLASS_CODE_STRING,
-} from './src/chapter3_hash_class';
+} from '../src/chapter3_hash_class';
 
 import fs from 'fs';
 import * as path from 'path';

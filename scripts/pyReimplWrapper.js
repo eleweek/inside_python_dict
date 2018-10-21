@@ -3,10 +3,10 @@ const split = require('split');
 import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
-import {DUMMY, None} from './src/hash_impl_common';
-import {Dict32} from './src/chapter4_real_python_dict';
-import {AlmostPythonDict} from './src/chapter3_hash_class';
-import {Slot} from './src/chapter3_and_4_common';
+import {DUMMY, None} from '../src/hash_impl_common';
+import {Dict32} from '../src/chapter4_real_python_dict';
+import {AlmostPythonDict} from '../src/chapter3_hash_class';
+import {Slot} from '../src/chapter3_and_4_common';
 import {List} from 'immutable';
 
 function parseSimplePyObj(obj) {
