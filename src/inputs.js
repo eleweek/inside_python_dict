@@ -357,15 +357,15 @@ export class BlockInputToolbar extends React.PureComponent {
         const redoCount = stack.size - idx - 1;
         const updateDisabled = this.state.value == null || this.state.value === stack.get(idx);
         return (
-            <div className="row">
-                <div className="col">
+            <div className="row row-block-input-toolbar">
+                <div className="col col-input">
                     <Input
                         inputComponentRef={this.setInputComponentRef}
                         value={this.props.initialValue}
                         onChange={this.handleChange}
                     />
                 </div>
-                <div className="col-auto">
+                <div className="col-auto col-buttons">
                     <div className="btn-toolbar">
                         <div className="form-check-inline form-check mr-3">
                             <label className="form-check-label">

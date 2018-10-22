@@ -76,6 +76,10 @@ div.hash-example-instance {
     display: inline-block;
 }
 
+.parsable-input-block {
+    min-width: 300px;
+}
+
 .array-vis,
 .hash-vis-wrapper {
     width: 100%;
@@ -294,7 +298,6 @@ blockquote.blockquote {
 
 .my-sticky-wrapper {
     padding-top: 5px;
-    padding-bottom: 5px;
 }
 
 .sticky-outer-wrapper .my-sticky-wrapper {
@@ -312,4 +315,12 @@ blockquote.blockquote {
 .sticky-outer-wrapper:not(.active) .my-sticky-wrapper {
     border-top: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
+}
+
+.row-block-input-toolbar .col-input {
+    margin-bottom: 5px;
+}
+
+.row-block-input-toolbar .col-buttons {
+    margin-bottom: 5px;
 }
