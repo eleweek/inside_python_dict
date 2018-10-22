@@ -87,7 +87,7 @@ class ParsableInput extends React.Component {
             const relativePos = pos - visibleLeft;
             if (text.length < relativePos - 1) {
                 return _.padEnd(text + ' ', relativePos, '-') + '^';
-            } else if (totalVisible - relativePos - 5 < text.length) {
+            } else if (text.length + relativePos + 5 < totalVisible) {
                 return _.padStart('', relativePos, ' ') + '^--- ' + text;
             } else {
                 return [_.padStart('', relativePos - 1, ' ') + '^', <br />, text];
@@ -124,12 +124,15 @@ class ParsableInput extends React.Component {
                     const errorText = this.state.error.message;
                     error = errorText;
                 } else {
+                    // TODO: check if -1 is necessary
+                    const width = this.inputRef.current.offsetWidth - 1;
                     const errorText = this.formatErrorMessageForBlock(this.state.error);
                     error = (
                         <div
                             className={classNames('invalid-feedback', {
                                 'invalid-feedback-block-parsable-input': !this.props.inline,
                             })}
+                            style={{width}}
                         >
                             {errorText}
                         </div>
@@ -248,7 +251,7 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
     );
 }
 
-export class BlockInputToolbar extends React.PureComponent {
+export class BlockInputToolbar extends React.Component {
     constructor() {
         super();
 

@@ -192,7 +192,7 @@ export class PyObjParser {
         while (this.current() != null && this.current() !== quote) {
             if (this.current() === '\\') {
                 if (this.next() !== '\\' && this.next() !== '"') {
-                    this.throwErr('The only supported escape sequences are for \\\\ and \\"');
+                    this.throwErr('The only supported escape sequences are for \\\\ and \\"', this.pos + 1);
                 }
                 res.push(this.next());
                 this.pos += 2;
