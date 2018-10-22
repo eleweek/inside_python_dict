@@ -62,7 +62,9 @@ export class PyObjParser {
     }
 
     throwErr(text, pos) {
-        throw new PyParsingError(text, pos != null ? pos : this.pos);
+        let posToInclude = pos != null ? pos : this.pos;
+        posToInclude = Math.min(posToInclude, this.s.length - 1);
+        throw new PyParsingError(text, posToInclude);
     }
 
     parseStringOrNumberOrNone(allowedSeparators) {

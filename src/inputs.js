@@ -34,6 +34,8 @@ class ParsableInput extends React.Component {
             error: null,
             lastError: null,
         };
+        this.inputRef = React.createRef();
+        this.lastScrollLeft = null;
     }
 
     forceSetValue(value) {
@@ -67,18 +69,42 @@ class ParsableInput extends React.Component {
     }, 50);
 
     formatErrorMessageForBlock(e) {
+        const padding = 8; // TODO: unhardcode*/
+        const {scrollWidth, scrollLeft, clientWidth} = this.inputRef.current;
+        const charWidth = (scrollWidth - 2 * padding) / this.state.value.length;
+
+        const visibleLeft = Math.ceil(scrollLeft / charWidth);
+        const visibleRight = Math.floor((scrollLeft + clientWidth) / charWidth);
+        const totalVisible = visibleRight - visibleLeft;
+
         const text = e.message;
         const pos = e.pos;
         // TODO: check math for off-by-one type problems
-        // TODO: take input width in the account
-        if (text.length < pos - 1) {
-            return _.padEnd(text + ' ', pos, '-') + '^';
-        } else if (text.length - pos - 5 < text.length) {
-            return _.padStart('', pos, ' ') + '^--- ' + text;
+
+        // TODO: what if the error message does not fit on scren?
+        this.lastScrollLeft = scrollLeft;
+        if (visibleLeft <= pos && pos <= visibleRight) {
+            const relativePos = pos - visibleLeft;
+            if (text.length < relativePos - 1) {
+                return _.padEnd(text + ' ', relativePos, '-') + '^';
+            } else if (totalVisible - relativePos - 5 < text.length) {
+                return _.padStart('', relativePos, ' ') + '^--- ' + text;
+            } else {
+                return [_.padStart('', relativePos - 1, ' ') + '^', <br />, text];
+            }
+        } else if (pos < visibleLeft) {
+            return '<--- ' + text;
         } else {
-            return [_.padStart('', pos - 1, ' ') + '^', <br />, text];
+            return _.padEnd(text + ' ', totalVisible - 4, '-') + '>';
         }
     }
+
+    handleBlockSelect = () => {
+        const scrollLeft = this.inputRef.current.scrollLeft;
+        if (scrollLeft !== this.lastScrollLeft) {
+            this.forceUpdate();
+        }
+    };
 
     render() {
         if (this.props.autogrowing) {
@@ -126,6 +152,8 @@ class ParsableInput extends React.Component {
                             className={className}
                             value={this.state.value}
                             onChange={this.handleChange}
+                            ref={this.inputRef}
+                            onSelect={this.handleBlockSelect}
                         />
                         {error}
                     </div>
