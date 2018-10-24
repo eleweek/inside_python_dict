@@ -2,10 +2,10 @@ import * as React from 'react';
 import _ from 'lodash';
 import {List} from 'immutable';
 
-import {EQ, BreakpointFunction} from './hash_impl_common';
+import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent, singularOrPlural} from './util';
+import {MySticky, ChapterComponent, singularOrPlural, CrossFade} from './util';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -114,6 +114,12 @@ const SIMPLIFIED_INSERT_ALL_CODE = [
 ];
 
 class SimplifiedInsertAll extends BreakpointFunction {
+    constructor() {
+        super();
+
+        this._overwritten = [];
+    }
+
     run(_originalList, isBroken = false) {
         this.fmtIsBroken = isBroken;
         this.originalList = new List(_originalList);
@@ -151,6 +157,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
                     throw new Error(`!isBroken and overwriting a number - this should not happen`);
                 }
                 this.fmtMissingNumbers = this.fmtMissingNumbers.push(prevNumber);
+                this._overwritten.push([this.originalListIdx, prevNumber, this.number]);
             }
 
             this.newList = this.newList.set(this.newListIdx, this.number);
@@ -160,6 +167,10 @@ class SimplifiedInsertAll extends BreakpointFunction {
         this.addBP('return-created-list');
 
         return this.newList;
+    }
+
+    overwrittenNumbers() {
+        return this._overwritten;
     }
 }
 
@@ -223,7 +234,16 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 function SimplifiedInsertStateVisualization(props) {
     return (
         <Tetris
-            lines={[[HashBoxesComponent, [null, 'newList', 'newListIdx', undefined, {labels: ['new_list']}]]]}
+            lines={[
+                [
+                    LineOfBoxesComponent,
+                    [null, 'originalList', 'originalListIdx', undefined, {labels: ['original_list'], labelWidth: 100}],
+                ],
+                [
+                    HashBoxesComponent,
+                    [null, 'newList', 'newListIdx', undefined, {labels: ['new_list'], labelWidth: 100}],
+                ],
+            ]}
             {...props}
         />
     );
@@ -317,6 +337,45 @@ function SimplifiedSearchStateVisualization(props) {
     );
 }
 
+function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumber, overwrittenNumbers}) {
+    let exampleOverwrite;
+    let [idx, n1, n2] = overwrittenNumbers[0];
+    n1 = displayStr(n1);
+    n2 = displayStr(n2);
+    if (addedNumber === null) {
+        exampleOverwrite = (
+            <React.Fragment>
+                For example, <code>{n1}</code> will get the same slot index (<code>{idx}</code>) as <code>{n2}</code>,
+                and thus it will be overwritten.
+            </React.Fragment>
+        );
+    } else {
+        const anStr = displayStr(addedNumber);
+        exampleOverwrite = (
+            <React.Fragment>
+                For the current list (
+                <code dangerouslySetInnerHTML={{__html: '[' + originalNumbers.join(', ') + ']'}} />) it would work. But
+                if we append a single number to it, for example <code>{anStr}</code>, then <code>{n1}</code> would get
+                overwritten by <code>{n2}</code>, and the simple algorithm breaks.
+            </React.Fragment>
+        );
+        e;
+    }
+
+    // TODO: hacky margin hack
+    return (
+        <React.Fragment>
+            <CrossFade>
+                <p style={{marginBottom: 0}} key={`oe-p-${addedNumber}-${n1}-${n2}`}>
+                    Would this approach work, however? Not entirely. {exampleOverwrite} Situations like these are called{' '}
+                    <em>collisions</em>.
+                </p>
+            </CrossFade>
+            <p style={{marginBottom: 16}} />
+        </React.Fragment>
+    );
+}
+
 export class Chapter1_SimplifiedHash extends ChapterComponent {
     constructor() {
         super();
@@ -344,10 +403,26 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         return {data, bp};
     });
 
+    generateAlternativeDataForInsertAllBroken = memoizeOne(numbers => {
+        let {bp, overwrittenNumbers} = this.runSimplifiedInsertAllBroken(numbers);
+        if (overwrittenNumbers.length > 0) {
+            return {originalNumbers: numbers, numbers, bp, addedNumber: null, overwrittenNumbers};
+        } else {
+            const minNum = BigNumber.max(...numbers);
+
+            const addedNumber = minNum.plus(numbers.length + 1);
+            const newNumbers = [...numbers, addedNumber];
+            ({bp, overwrittenNumbers} = this.runSimplifiedInsertAllBroken(newNumbers));
+            console.log('numbers', newNumbers);
+            console.log('own', overwrittenNumbers);
+            return {originalNumbers: numbers, numbers: newNumbers, bp, addedNumber, overwrittenNumbers};
+        }
+    });
+
     runSimplifiedInsertAllBroken = memoizeOne(numbers => {
         let sia = new SimplifiedInsertAll();
         let data = sia.run(numbers, true);
-        return {bp: sia.getBreakpoints()};
+        return {bp: sia.getBreakpoints(), overwrittenNumbers: sia.overwrittenNumbers()};
     });
 
     runSimplifiedSearch = memoizeOne((data, number) => {
@@ -363,7 +438,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
 
     render() {
         const slsRes = this.runSimpleListSearch(this.state.numbers, this.state.simpleSearchNumber);
-        const siaBrokenRes = this.runSimplifiedInsertAllBroken(this.state.numbers);
+        const siaBrokenRes = this.generateAlternativeDataForInsertAllBroken(this.state.numbers);
         const siaRes = this.runSimplifiedInsertAll(this.state.numbers);
         const ssRes = this.runSimplifiedSearch(siaRes.data, this.state.simplifiedHashSearchNumber);
 
@@ -450,9 +525,10 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     begin by creating a new list. You can picture this list as a list of slots. Each slot will hold a
                     number from the original list. But, we'll use the number itself to compute an index of a slot. The
                     simplest way to do this is to just take the slot <code>number % len(the_list)</code> and put our
-                    number in there. Would this approach work, however? Not entirely. For example, two numbers (TODO:
-                    compute it) would be put in the same slot. Situations like these are called <em>collisions</em>.
+                    number in there. To check if the number is there we could compute the slot index again and see if it
+                    is empty.
                 </p>
+                <SimplifiedInsertAllBrokenOverwrittenExample key="overwritten-example-component" {...siaBrokenRes} />
                 <VisualizedCode
                     code={SIMPLIFIED_INSERT_ALL_BROKEN_CODE}
                     breakpoints={siaBrokenRes.bp}

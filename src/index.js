@@ -9,7 +9,6 @@ import {Chapter2_HashTableFunctions} from './chapter2_hash_table_functions.js';
 import {Chapter3_HashClass} from './chapter3_hash_class.js';
 import {Chapter4_RealPythonDict} from './chapter4_real_python_dict.js';
 
-import ReactCSSTransitionReplace from 'react-css-transition-replace';
 import {MyErrorBoundary, initUxSettings} from './util';
 
 export const CHAPTER_ID_TO_COMPONENT = {
@@ -27,20 +26,6 @@ function logViewportStats() {
             'x' +
             document.documentElement.clientHeight
     );
-}
-
-class CrossFade extends React.Component {
-    render() {
-        return (
-            <ReactCSSTransitionReplace
-                transitionName="cross-fade"
-                transitionEnterTimeout={350}
-                transitionLeaveTimeout={350}
-            >
-                {this.props.children}
-            </ReactCSSTransitionReplace>
-        );
-    }
 }
 
 function GithubForkMe() {

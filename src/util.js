@@ -3,6 +3,21 @@ import * as React from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import Sticky from 'react-stickynode';
 import {detect} from 'detect-browser';
+import ReactCSSTransitionReplace from 'react-css-transition-replace';
+
+export class CrossFade extends React.Component {
+    render() {
+        return (
+            <ReactCSSTransitionReplace
+                transitionName="cross-fade"
+                transitionEnterTimeout={200}
+                transitionLeaveTimeout={200}
+            >
+                {this.props.children}
+            </ReactCSSTransitionReplace>
+        );
+    }
+}
 
 function MyFallbackComponent({componentStack, error}) {
     return (

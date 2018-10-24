@@ -231,7 +231,7 @@ pre.code-line-container {
 
 .cross-fade-leave.cross-fade-leave-active {
     opacity: 0;
-    transition: opacity 0.35s ease-in;
+    transition: opacity 0.2s ease-in;
 }
 
 .cross-fade-enter {
@@ -239,7 +239,7 @@ pre.code-line-container {
 }
 .cross-fade-enter.cross-fade-enter-active {
     opacity: 1;
-    transition: opacity 0.35s ease-in;
+    transition: opacity 0.2s ease-in;
 }
 
 .cross-fade-height {
