@@ -24,15 +24,13 @@ import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
 
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {
-    faPlay,
-    faStepForward,
-    faStepBackward,
-    faFastForward,
-    faFastBackward,
-    faPause,
-    faRedoAlt,
-} from '@fortawesome/free-solid-svg-icons';
+import {faPlay} from '@fortawesome/free-solid-svg-icons/faPlay';
+import {faStepForward} from '@fortawesome/free-solid-svg-icons/faStepForward';
+import {faStepBackward} from '@fortawesome/free-solid-svg-icons/faStepBackward';
+import {faFastForward} from '@fortawesome/free-solid-svg-icons/faFastForward';
+import {faFastBackward} from '@fortawesome/free-solid-svg-icons/faFastBackward';
+import {faPause} from '@fortawesome/free-solid-svg-icons/faPause';
+import {faRedoAlt} from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import {List as ImmutableList, Map as ImmutableMap, fromJS as immutableFromJS} from 'immutable';
 
 library.add(faPlay);

@@ -64,7 +64,7 @@ module.exports = {
                         plugins: ['lodash'],
                     },
                 },
-                exclude: /node_modules/,
+                exclude: /node_modules\/(?!subscribe-ui-event)/,
             },
             {
                 test: /\.css$/,

@@ -15,7 +15,8 @@ import AutosizeInput from 'react-input-autosize';
 import {Manager, Reference, Popper} from 'react-popper';
 import {List as ImmutableList} from 'immutable';
 
-import {faUndoAlt, faRedoAlt} from '@fortawesome/free-solid-svg-icons';
+import {faUndoAlt} from '@fortawesome/free-solid-svg-icons/faUndoAlt';
+import {faRedoAlt} from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {library} from '@fortawesome/fontawesome-svg-core';
 
