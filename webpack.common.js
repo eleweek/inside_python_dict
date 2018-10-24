@@ -48,10 +48,31 @@ class HackySSR {
 }
 
 module.exports = {
-    entry: './src/index.js',
+    entry: {
+        chapter1: './src/entries/chapter1.js',
+        chapter2: './src/entries/chapter2.js',
+        chapter3: './src/entries/chapter3.js',
+        chapter4: './src/entries/chapter4.js',
+    },
     output: {
-        filename: 'app-bundle.js',
         path: path.resolve(__dirname, 'dist'),
+    },
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    name: 'commons',
+                    chunks: 'initial',
+                    minChunks: 2,
+                },
+                styles: {
+                    name: 'styles',
+                    test: /\.css$/,
+                    chunks: 'all',
+                    enforce: true,
+                },
+            },
+        },
     },
     module: {
         rules: [
@@ -77,7 +98,7 @@ module.exports = {
         Popper: ['popper.js', 'default'],
     }),*/
         new CleanWebpackPlugin(['dist']),
-        new MiniCssExtractPlugin({filename: 'bundle.css'}),
+        new MiniCssExtractPlugin({filename: '[name].css'}),
         new HackySSR(),
     ],
 };
