@@ -24,7 +24,7 @@ import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
 import {VisualizedCode} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent} from './util';
+import {MySticky, ChapterComponent, Subcontainerize} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
 import memoizeOne from 'memoize-one';
@@ -404,9 +404,13 @@ function ProbingStateVisualization({breakpoints, bpIdx}) {
     return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} />;
 }
 
-function ProbingVisualization({links}) {
-    // Pretty hacky
-    return <ProbingVisualizationImpl slotsCount={8} breakpoints={[{links}]} bpIdx={0} />;
+class ProbingVisualization extends React.Component {
+    static FULL_WIDTH = true;
+
+    render() {
+        // Pretty hacky passing links like this
+        return <ProbingVisualizationImpl slotsCount={8} breakpoints={[{links: this.props.links}]} bpIdx={0} />;
+    }
 }
 
 class ProbingVisualizationImpl extends React.Component {
@@ -816,207 +820,219 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         return (
             <div className="chapter chapter4">
                 <h2>Chapter 4. How does python dict *really* work internally? </h2>
-                <p>Now it is (finally!) time to explore how the dict works in python!</p>
-                <p>
-                    This explanation is about the dict in CPython (the most popular, "default", implementation of
-                    python). CPython evolved over time, and so did its dictionary implementation. But, the core ideas
-                    stayed the same, and implementations in all versions are similar to each other.
-                </p>
-                <p>
-                    The main difference between almost-python-dict from the chapter 3 and real python dict is the
-                    probing algorithm.{' '}
-                </p>
-                <h5>The probing algorithm</h5>
-                <p>
-                    The problem with simple linear probing is that it doesn't mix up the keys well in many real-world
-                    data patterns. Real world data patterns tend to be regular, and a pattern like <code>16</code>,{' '}
-                    <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
-                    <code>...</code> would lead to many collisions.
-                </p>
-                <p>
-                    Linear probing is prone to clustering: once you get a "clump" of keys, the clump tends to grow,
-                    which causes more collisions, which cause the clump to grow further, which causes even more
-                    collisions. This is detrimental to performance.
-                </p>
-                <p>
-                    It is possible to address this problem by using a better hash function, in particular when it comes
-                    to integers (<code>hash(x)</code> == <code>x</code> for small integers in python). But it is also
-                    possible to address this problem by using a different probing algorithm - and this is what CPython
-                    developers decided.
-                </p>
-                <p>There are two requirements for a probing algorithm:</p>
-                <ol>
-                    <li>It should be deterministic.</li>
-                    <li>
-                        It should always hit an empty slot eventually (even if it takes many steps). We need it to work
-                        even in the worst possible scenario: when there is a collision in every non-empty slot.
-                    </li>
-                </ol>
-                <p>
-                    Let's take a look at linear probing first. If we repeatedly run its recurrence (
-                    <code>idx = (idx + 1) % size</code>) until we end up hitting a slot twice, we get the following
-                    picture:
-                </p>
-                <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
-                <p>
-                    It does not matter what slot we start from, the picture will look exactly the same. Linear probing
-                    is very regular and predictable. Now, let's change the recurrence to{' '}
-                    <code>idx = (5 * idx + 1) % size</code> (note the <code>5</code>
-                    ):
-                </p>
-                <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
-                <p>
-                    <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
-                    <code>size</code> is a power of two (the proof of this fact is outside the scope of this page).
-                    Also, the algorithm is obviously deterministic. So, both requirements for a probing algorithm are
-                    satisfied. This algorithm scrambles the order of indexes quite a bit. However, it is still regular
-                    and prone to clustering.
-                </p>
-                <p>
-                    The probing algorithm in CPython takes this recurrence and adds even more scrambling to it:{' '}
-                    <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
-                    though?
-                </p>
-                <p>
-                    In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>. Then, in
-                    every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb <<= 5'}</code>
-                    ).
-                </p>
-                <p>
-                    This probing algorithm uses some "randomness" in the form of bits from the hash code - but it is
-                    still fully deterministic because hash functions by their nature are deterministic.{' '}
-                    <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
-                    <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
-                </p>
-                <p>
-                    We can reimplement this algorithm in pure python. However, in python there are no unsigned (logical)
-                    bit shifts, and there is also no built-in way to convert a 64-bit signed integer to a 64-bit
-                    unsigned integer. The solution is to do the conversion with the following one-liner:{' '}
-                    <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit shift
-                    (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
-                </p>
-                <p className="inline-block">Let's see how the algorithm works for the following key:</p>
-                <PyStringOrNumberInput
-                    inline={true}
-                    value={this.state.keyForProbingVis}
-                    onChange={this.setter('keyForProbingVis')}
-                />
-                <VisualizedCode
-                    code={PROBING_PYTHON_CODE}
-                    breakpoints={probingPython.bp}
-                    formatBpDesc={[formatPythonProbing, dummyFormat]}
-                    stateVisualization={ProbingStateVisualization}
-                    keepTimeOnNewBreakpoints={true}
-                    comment={
-                        <p className="text-muted">
-                            Arrows are color-coded: green means <code>perturb != 0</code> and blue means{' '}
-                            <code>perturb == 0</code>
-                        </p>
-                    }
-                    {...this.props}
-                />
-                <p>
-                    Adding noise (in the form of <code>perturb</code>) makes things slower when a hash table is full.
-                    The worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
-                    ). However, in practice, dicts are quite sparse (since we're capping load factor at around{' '}
-                    <code>2/3</code>
-                    ), so there are many chances to hit an empty slot.
-                </p>
-                <p>
-                    If you are interested in more subtleties and technical details, you can check{' '}
-                    <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt">Objects/dictnotes.txt</a>{' '}
-                    and{' '}
-                    <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c">
-                        comments near the top of Objects/dictobject.c
-                    </a>
-                </p>
-                <h5>Python 3.2's dict</h5>
-                <p>There are a couple more changes to almost-python-dict, but they are small. </p>
-                <p>When you type a dict literal in your code, for example: </p>
-                <MySticky>
-                    <BlockInputToolbar
-                        input={PyDictInput}
-                        initialValue={this.state.pairs}
-                        onChange={this.setter('pairs')}
+                <Subcontainerize>
+                    <p>Now it is (finally!) time to explore how the dict works in python!</p>
+                    <p>
+                        This explanation is about the dict in CPython (the most popular, "default", implementation of
+                        python). CPython evolved over time, and so did its dictionary implementation. But, the core
+                        ideas stayed the same, and implementations in all versions are similar to each other.
+                    </p>
+                    <p>
+                        The main difference between almost-python-dict from the chapter 3 and real python dict is the
+                        probing algorithm.{' '}
+                    </p>
+                    <h5>The probing algorithm</h5>
+                    <p>
+                        The problem with simple linear probing is that it doesn't mix up the keys well in many
+                        real-world data patterns. Real world data patterns tend to be regular, and a pattern like{' '}
+                        <code>16</code>, <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
+                        <code>...</code> would lead to many collisions.
+                    </p>
+                    <p>
+                        Linear probing is prone to clustering: once you get a "clump" of keys, the clump tends to grow,
+                        which causes more collisions, which cause the clump to grow further, which causes even more
+                        collisions. This is detrimental to performance.
+                    </p>
+                    <p>
+                        It is possible to address this problem by using a better hash function, in particular when it
+                        comes to integers (<code>hash(x)</code> == <code>x</code> for small integers in python). But it
+                        is also possible to address this problem by using a different probing algorithm - and this is
+                        what CPython developers decided.
+                    </p>
+                    <p>There are two requirements for a probing algorithm:</p>
+                    <ol>
+                        <li>It should be deterministic.</li>
+                        <li>
+                            It should always hit an empty slot eventually (even if it takes many steps). We need it to
+                            work even in the worst possible scenario: when there is a collision in every non-empty slot.
+                        </li>
+                    </ol>
+                    <p>
+                        Let's take a look at linear probing first. If we repeatedly run its recurrence (
+                        <code>idx = (idx + 1) % size</code>) until we end up hitting a slot twice, we get the following
+                        picture:
+                    </p>
+                    <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
+                    <p>
+                        It does not matter what slot we start from, the picture will look exactly the same. Linear
+                        probing is very regular and predictable. Now, let's change the recurrence to{' '}
+                        <code>idx = (5 * idx + 1) % size</code> (note the <code>5</code>
+                        ):
+                    </p>
+                    <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
+                    <p>
+                        <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
+                        <code>size</code> is a power of two (the proof of this fact is outside the scope of this page).
+                        Also, the algorithm is obviously deterministic. So, both requirements for a probing algorithm
+                        are satisfied. This algorithm scrambles the order of indexes quite a bit. However, it is still
+                        regular and prone to clustering.
+                    </p>
+                    <p>
+                        The probing algorithm in CPython takes this recurrence and adds even more scrambling to it:{' '}
+                        <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
+                        though?
+                    </p>
+                    <p>
+                        In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>. Then,
+                        in every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb <<= 5'}</code>
+                        ).
+                    </p>
+                    <p>
+                        This probing algorithm uses some "randomness" in the form of bits from the hash code - but it is
+                        still fully deterministic because hash functions by their nature are deterministic.{' '}
+                        <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
+                        <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
+                    </p>
+                    <p>
+                        We can reimplement this algorithm in pure python. However, in python there are no unsigned
+                        (logical) bit shifts, and there is also no built-in way to convert a 64-bit signed integer to a
+                        64-bit unsigned integer. The solution is to do the conversion with the following one-liner:{' '}
+                        <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit
+                        shift (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
+                    </p>
+                    <p className="inline-block">Let's see how the algorithm works for the following key:</p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyForProbingVis}
+                        onChange={this.setter('keyForProbingVis')}
                     />
-                </MySticky>
-                <p>
-                    Python actually knows the number of key-value pairs and tries to guess the optimal hash table size
-                    to possibly avoid some or all resizes. This is because it performs better than just starting with
-                    the size of <code>8</code>. In most cases, the resulting hash table ends up being the same size or
-                    smaller. However, in some cases the resulting hash table may actually be larger if there are a lot
-                    of repeated keys in the literal (e.g.{' '}
-                    <code>{'{1: 1, 1: 2, 1: 3, 1: 4, 1: 5, 1: 6, 1: 7, 1: 8, 1: 9}'}</code>)
-                </p>
-                <p>Insert:</p>
-                <VisualizedCode
-                    code={DICT32_SETITEM_WITH_INIT}
-                    breakpoints={newRes.bp}
-                    formatBpDesc={[formatHashClassInit, formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
-                    stateVisualization={HashClassInsertAllVisualization}
-                    {...this.props}
-                />
-                <p>Removing a key looks pretty much the same</p>
-                <p className="inline-block">Deleting</p>
-                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
-                <VisualizedCode
-                    code={DICT32_DELITEM}
-                    breakpoints={delRes.bp}
-                    formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
-                    stateVisualization={HashClassNormalStateVisualization}
-                    {...this.props}
-                />
-                <p className="inline-block">
-                    The search is mostly the same. Let's say we want to get the following key
-                </p>
-                <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
-                <VisualizedCode
-                    code={DICT32_GETITEM}
-                    breakpoints={getRes.bp}
-                    formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
-                    stateVisualization={HashClassNormalStateVisualization}
-                    {...this.props}
-                />
-                <p>
-                    {' '}
-                    To visualize a resize, we need to add more pairs. Here are some autogenerated pairs to insert so
-                    that the load factor goes over <code>2/3</code> and a resize is triggered: TODO. Let's run{' '}
-                    <code>__setitem__</code> on them
-                </p>
-                TODO
-                <p>
-                    {' '}
-                    After running <code>__setitem__</code> multiple times for these pairs, we can take a look at the
-                    resize in-depth:{' '}
-                </p>
-                {/*<VisualizedCode
+                    <VisualizedCode
+                        code={PROBING_PYTHON_CODE}
+                        breakpoints={probingPython.bp}
+                        formatBpDesc={[formatPythonProbing, dummyFormat]}
+                        stateVisualization={ProbingStateVisualization}
+                        keepTimeOnNewBreakpoints={true}
+                        comment={
+                            <p className="text-muted">
+                                Arrows are color-coded: green means <code>perturb != 0</code> and blue means{' '}
+                                <code>perturb == 0</code>
+                            </p>
+                        }
+                        {...this.props}
+                    />
+                    <p>
+                        Adding noise (in the form of <code>perturb</code>) makes things slower when a hash table is
+                        full. The worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
+                        ). However, in practice, dicts are quite sparse (since we're capping load factor at around{' '}
+                        <code>2/3</code>
+                        ), so there are many chances to hit an empty slot.
+                    </p>
+                    <p>
+                        If you are interested in more subtleties and technical details, you can check{' '}
+                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt">
+                            Objects/dictnotes.txt
+                        </a>{' '}
+                        and{' '}
+                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c">
+                            comments near the top of Objects/dictobject.c
+                        </a>
+                    </p>
+                    <h5>Python 3.2's dict</h5>
+                    <p>There are a couple more changes to almost-python-dict, but they are small. </p>
+                    <p>When you type a dict literal in your code, for example: </p>
+                    <MySticky>
+                        <BlockInputToolbar
+                            input={PyDictInput}
+                            initialValue={this.state.pairs}
+                            onChange={this.setter('pairs')}
+                        />
+                    </MySticky>
+                    <p>
+                        Python actually knows the number of key-value pairs and tries to guess the optimal hash table
+                        size to possibly avoid some or all resizes. This is because it performs better than just
+                        starting with the size of <code>8</code>. In most cases, the resulting hash table ends up being
+                        the same size or smaller. However, in some cases the resulting hash table may actually be larger
+                        if there are a lot of repeated keys in the literal (e.g.{' '}
+                        <code>{'{1: 1, 1: 2, 1: 3, 1: 4, 1: 5, 1: 6, 1: 7, 1: 8, 1: 9}'}</code>)
+                    </p>
+                    <p>Insert:</p>
+                    <VisualizedCode
+                        code={DICT32_SETITEM_WITH_INIT}
+                        breakpoints={newRes.bp}
+                        formatBpDesc={[formatHashClassInit, formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
+                        stateVisualization={HashClassInsertAllVisualization}
+                        {...this.props}
+                    />
+                    <p>Removing a key looks pretty much the same</p>
+                    <p className="inline-block">Deleting</p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                    <VisualizedCode
+                        code={DICT32_DELITEM}
+                        breakpoints={delRes.bp}
+                        formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
+                        stateVisualization={HashClassNormalStateVisualization}
+                        {...this.props}
+                    />
+                    <p className="inline-block">
+                        The search is mostly the same. Let's say we want to get the following key
+                    </p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToGet}
+                        onChange={this.setter('keyToGet')}
+                    />
+                    <VisualizedCode
+                        code={DICT32_GETITEM}
+                        breakpoints={getRes.bp}
+                        formatBpDesc={[formatHashClassLookdictRelated, formatDict32IdxRelatedBp]}
+                        stateVisualization={HashClassNormalStateVisualization}
+                        {...this.props}
+                    />
+                    <p>
+                        {' '}
+                        To visualize a resize, we need to add more pairs. Here are some autogenerated pairs to insert so
+                        that the load factor goes over <code>2/3</code> and a resize is triggered: TODO. Let's run{' '}
+                        <code>__setitem__</code> on them
+                    </p>
+                    TODO
+                    <p>
+                        {' '}
+                        After running <code>__setitem__</code> multiple times for these pairs, we can take a look at the
+                        resize in-depth:{' '}
+                    </p>
+                    {/*<VisualizedCode
                     code={DICT32_RESIZE_CODE}
                     breakpoints={resizeRes.bp}
                     formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
                     stateVisualization={HashClassResizeVisualization}
                     {...this.props}
                 />*/}
-                <h5>A brief history of changes in the following versions</h5>
-                <p>
-                    In 3.3 there were significant changes to the internal structure of dicts (
-                    <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
-                    memory consumption in certain cases. "Seed" for hash function was also randomized, so you wouldn't
-                    get the same hash() for the same object if you relaunched the python interpreter (object hashes are
-                    still stable within the same "run").
-                </p>
-                <p>
-                    In 3.4, the hash function itself was changed{' '}
-                    <a href="https://www.python.org/dev/peps/pep-0456/">to a more secure algorithm</a> which is more
-                    resistant to hash collision attacks.
-                </p>
-                <p>
-                    In 3.6{' '}
-                    <a href="https://bugs.python.org/issue27350">
-                        the dict internal structure became more compact and the dict became "ordered"
-                    </a>
-                    .
-                </p>
-                <p>However, the core idea has stayed the same throughout all versions so far.</p>
+                    <h5>A brief history of changes in the following versions</h5>
+                    <p>
+                        In 3.3 there were significant changes to the internal structure of dicts (
+                        <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
+                        memory consumption in certain cases. "Seed" for hash function was also randomized, so you
+                        wouldn't get the same hash() for the same object if you relaunched the python interpreter
+                        (object hashes are still stable within the same "run").
+                    </p>
+                    <p>
+                        In 3.4, the hash function itself was changed{' '}
+                        <a href="https://www.python.org/dev/peps/pep-0456/">to a more secure algorithm</a> which is more
+                        resistant to hash collision attacks.
+                    </p>
+                    <p>
+                        In 3.6{' '}
+                        <a href="https://bugs.python.org/issue27350">
+                            the dict internal structure became more compact and the dict became "ordered"
+                        </a>
+                        .
+                    </p>
+                    <p>However, the core idea has stayed the same throughout all versions so far.</p>
+                </Subcontainerize>
             </div>
         );
     }

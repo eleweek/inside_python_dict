@@ -45,12 +45,16 @@ export function MyErrorBoundary(props) {
     );
 }
 
-export function MySticky(props) {
-    return (
-        <Sticky innerZ={10} bottomBoundary={props.bottomBoundary}>
-            <div className="my-sticky-wrapper">{props.children}</div>
-        </Sticky>
-    );
+export class MySticky extends React.Component {
+    static FULL_WIDTH = true;
+
+    render() {
+        return (
+            <Sticky innerZ={10} bottomBoundary={this.props.bottomBoundary}>
+                <div className="my-sticky-wrapper">{this.props.children}</div>
+            </Sticky>
+        );
+    }
 }
 
 export class ChapterComponent extends React.Component {
@@ -62,6 +66,34 @@ export class ChapterComponent extends React.Component {
         }
         return this.setterFuncs[name];
     }
+}
+
+export function Subcontainerize({children}) {
+    let accumulatedChildren = [];
+    let res = [];
+    const dropAccumulated = () => {
+        if (accumulatedChildren.length > 0) {
+            res.push(
+                <div className="subcontainer" key={res.length}>
+                    {accumulatedChildren}
+                </div>
+            );
+            accumulatedChildren = [];
+        }
+    };
+    for (let child of children) {
+        console.log(child);
+        if (typeof child.type === 'string' || typeof child.type === 'undefined' || !child.type.FULL_WIDTH) {
+            accumulatedChildren.push(child);
+        } else {
+            dropAccumulated();
+            res.push(child);
+        }
+    }
+
+    dropAccumulated();
+
+    return res;
 }
 
 const defaultUxSettings = {

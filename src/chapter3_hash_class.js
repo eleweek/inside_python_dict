@@ -32,7 +32,7 @@ import {
 } from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
-import {MySticky, ChapterComponent, singularOrPlural} from './util';
+import {MySticky, ChapterComponent, singularOrPlural, Subcontainerize} from './util';
 
 import memoizeOne from 'memoize-one';
 
@@ -323,51 +323,56 @@ export class Chapter3_HashClass extends ChapterComponent {
         return (
             <div className="chapter chapter3">
                 <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
-                <p>
-                    We now have all the building blocks that allow us to make <em>something like a python dict</em>. In
-                    this section, we'll make functions track the <code>fill</code> and <code>used</code> counters, so we
-                    know when a table overflows. We will also handle values (in addition to keys) and make a class that
-                    supports all basic operations from <code>dict</code>. On the inside, this class would work
-                    differently from the actual implementation of dict. In the following chapter we will turn this code
-                    into python 3.2's version of dict by making changes to the probing algorithm.
-                </p>
-                <p>
-                    This chapter assumes you have a basic understanding of{' '}
-                    <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">magic methods</a>{' '}
-                    and how classes work in python. We will use classes to bundle data and functions together. Magic
-                    methods are special methods for overloading operators, so we can write <code>our_dict[key]</code>{' '}
-                    instead of writing <code>our_dict.__getitem__(key)</code>. The square brackets look nicer.
-                </p>
-                <p>
-                    To handle values we could add another list (in addition to <code>hash_codes</code> and{' '}
-                    <code>keys</code>
-                    ). This would totally work. Another alternative is to bundle <code>hash_code</code>,{' '}
-                    <code>key</code>, <code>value</code> corresponding to each slot in a single object. To do this,
-                    we'll need to create a class:
-                </p>
-                <SimpleCodeBlock>{SLOT_CLASS_CODE_STRING}</SimpleCodeBlock>
-                <p>This is similar to how slots are organized in CPython.</p>
+                <Subcontainerize>
+                    <p>
+                        We now have all the building blocks that allow us to make <em>something like a python dict</em>.
+                        In this section, we'll make functions track the <code>fill</code> and <code>used</code>{' '}
+                        counters, so we know when a table overflows. We will also handle values (in addition to keys)
+                        and make a class that supports all basic operations from <code>dict</code>. On the inside, this
+                        class would work differently from the actual implementation of dict. In the following chapter we
+                        will turn this code into python 3.2's version of dict by making changes to the probing
+                        algorithm.
+                    </p>
+                    <p>
+                        This chapter assumes you have a basic understanding of{' '}
+                        <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">
+                            magic methods
+                        </a>{' '}
+                        and how classes work in python. We will use classes to bundle data and functions together. Magic
+                        methods are special methods for overloading operators, so we can write{' '}
+                        <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square
+                        brackets look nicer.
+                    </p>
+                    <p>
+                        To handle values we could add another list (in addition to <code>hash_codes</code> and{' '}
+                        <code>keys</code>
+                        ). This would totally work. Another alternative is to bundle <code>hash_code</code>,{' '}
+                        <code>key</code>, <code>value</code> corresponding to each slot in a single object. To do this,
+                        we'll need to create a class:
+                    </p>
+                    <SimpleCodeBlock>{SLOT_CLASS_CODE_STRING}</SimpleCodeBlock>
+                    <p>This is similar to how slots are organized in CPython.</p>
 
-                <p>
-                    How do we initialize an empty hash table? In previous chapters, we based the initial size of hash
-                    tables on the original list. Since we now know how to resize tables, we can start with an empty
-                    table and grow it. But what should be the initial size? The size shouldn't be too small or too big.
-                    Hash tables inside python dictionaries are size 8 when they are empty, so let's make ours that size.
-                    Python hash table sizes are powers of 2, so we will also use powers of 2. Technically, nothing
-                    prevents us from using "non-round" values. The primary reason for using "round" powers of 2 is
-                    efficiency: computing <code>% 2**n</code> can be implemented using bit operations (
-                    <code>{'& (1 << n)'}</code>
-                    ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
-                </p>
-                <p>
-                    We have already started to imitate the interface and some implementation details of the real dict.
-                    In this chapter, we will get pretty close to it, but we will not get there fully. In the next
-                    chapter we will start exploring the actual implementation of python dict. But for now, please bear
-                    with me.
-                </p>
-                <p>Here is how our class is going to look:</p>
-                <SimpleCodeBlock>
-                    {`class AlmostDict(object):
+                    <p>
+                        How do we initialize an empty hash table? In previous chapters, we based the initial size of
+                        hash tables on the original list. Since we now know how to resize tables, we can start with an
+                        empty table and grow it. But what should be the initial size? The size shouldn't be too small or
+                        too big. Hash tables inside python dictionaries are size 8 when they are empty, so let's make
+                        ours that size. Python hash table sizes are powers of 2, so we will also use powers of 2.
+                        Technically, nothing prevents us from using "non-round" values. The primary reason for using
+                        "round" powers of 2 is efficiency: computing <code>% 2**n</code> can be implemented using bit
+                        operations (<code>{'& (1 << n)'}</code>
+                        ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
+                    </p>
+                    <p>
+                        We have already started to imitate the interface and some implementation details of the real
+                        dict. In this chapter, we will get pretty close to it, but we will not get there fully. In the
+                        next chapter we will start exploring the actual implementation of python dict. But for now,
+                        please bear with me.
+                    </p>
+                    <p>Here is how our class is going to look:</p>
+                    <SimpleCodeBlock>
+                        {`class AlmostDict(object):
     def __init__(self, pairs=None):
         self.slots = [Slot() for _ in range(8)]
         self.fill = 0
@@ -398,138 +403,153 @@ export class Chapter3_HashClass extends ChapterComponent {
         # d[1] raises KeyError now
         <implementation goes here>
 `}
-                </SimpleCodeBlock>
-                <p>
-                    Each method is going to update <code>self.fill</code> and <code>self.used</code>, so that the fill
-                    factor is tracked correctly.
-                </p>
-                <p>
-                    When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is no
-                    definitive one-size-fits-all answer, so we find the nearest power of two that is greater{' '}
-                    <code>2 * self.used</code>:<br />
-                    <code>self.find_nearest_size(2 * self.minused)</code>
-                </p>
-                <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
-                <p>
-                    The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any way.
-                    This means that even though usually the size of the table doubles, it can also potentially shrink if{' '}
-                    <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most slots are
-                    filled with dummy placeholders).
-                </p>
+                    </SimpleCodeBlock>
+                    <p>
+                        Each method is going to update <code>self.fill</code> and <code>self.used</code>, so that the
+                        fill factor is tracked correctly.
+                    </p>
+                    <p>
+                        When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is
+                        no definitive one-size-fits-all answer, so we find the nearest power of two that is greater{' '}
+                        <code>2 * self.used</code>:<br />
+                        <code>self.find_nearest_size(2 * self.minused)</code>
+                    </p>
+                    <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
+                    <p>
+                        The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any
+                        way. This means that even though usually the size of the table doubles, it can also potentially
+                        shrink if <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most
+                        slots are filled with dummy placeholders).
+                    </p>
 
-                <p>
-                    Since we now have a class, we can also move the <code>for</code> loop from <code>create_new()</code>{' '}
-                    to the <code>__init__</code> method. The code in __init__ also assumes that the dict contents are
-                    passed as a list of pairs (rather than as an actual dict - which we are reimplementing).
-                </p>
-                <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
-                <MySticky bottomBoundary=".chapter3">
-                    <BlockInputToolbar
-                        input={PyDictInput}
-                        initialValue={this.state.pairs}
-                        onChange={this.setter('pairs')}
+                    <p>
+                        Since we now have a class, we can also move the <code>for</code> loop from{' '}
+                        <code>create_new()</code> to the <code>__init__</code> method. The code in __init__ also assumes
+                        that the dict contents are passed as a list of pairs (rather than as an actual dict - which we
+                        are reimplementing).
+                    </p>
+                    <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
+                    <MySticky bottomBoundary=".chapter3">
+                        <BlockInputToolbar
+                            input={PyDictInput}
+                            initialValue={this.state.pairs}
+                            onChange={this.setter('pairs')}
+                        />
+                    </MySticky>
+
+                    <VisualizedCode
+                        code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
+                        breakpoints={newRes.bp}
+                        formatBpDesc={[
+                            formatHashClassInit,
+                            formatHashClassSetItemAndCreate,
+                            formatHashClassChapter3IdxRelatedBp,
+                        ]}
+                        stateVisualization={HashClassInsertAllVisualization}
+                        {...this.props}
                     />
-                </MySticky>
 
-                <VisualizedCode
-                    code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
-                    breakpoints={newRes.bp}
-                    formatBpDesc={[
-                        formatHashClassInit,
-                        formatHashClassSetItemAndCreate,
-                        formatHashClassChapter3IdxRelatedBp,
-                    ]}
-                    stateVisualization={HashClassInsertAllVisualization}
-                    {...this.props}
-                />
+                    <p>
+                        While elements were being inserted, {newRes.resizes.length}{' '}
+                        {singularOrPlural(newRes.resizes.length, 'resize', 'resizes')} happened. Let's look at{' '}
+                        {newRes.resizes.length ? 'it' : 'the first resize'} in depth:{' '}
+                    </p>
+                    <VisualizedCode
+                        code={HASH_CLASS_RESIZE_CODE}
+                        breakpoints={resizeRes.bp}
+                        formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
+                        stateVisualization={HashClassResizeVisualization}
+                        {...this.props}
+                    />
+                    <p>
+                        In the previous chapter, the code for removing and the code for searching were very similar,
+                        because, to remove an element, we need to find it first. We can reorganize the code so that the
+                        removing and searching functions share much of the same code. We will call the common function{' '}
+                        <code>lookdict()</code>.
+                    </p>
+                    <p>
+                        Other than that, removing a key will look pretty much the same as in the previous chapter.{' '}
+                        <code>__delitem__</code> magic method is now used for realism so that we can do{' '}
+                        <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end
+                        up finding the element and removing it.
+                    </p>
+                    <p className="inline-block">For example, let's say we want to remove </p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                    <VisualizedCode
+                        code={HASH_CLASS_DELITEM}
+                        breakpoints={delRes.bp}
+                        formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
+                        stateVisualization={HashClassNormalStateVisualization}
+                        {...this.props}
+                    />
+                    <p>
+                        After using the new <code>lookdict</code> function, search function <code>__getitem__</code>{' '}
+                        also gets very short.
+                    </p>
+                    <p className="inline-block">Searching for</p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToGet}
+                        onChange={this.setter('keyToGet')}
+                    />
+                    <VisualizedCode
+                        code={HASH_CLASS_GETITEM}
+                        breakpoints={getRes.bp}
+                        formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
+                        stateVisualization={HashClassNormalStateVisualization}
+                        {...this.props}
+                    />
 
-                <p>
-                    While elements were being inserted, {newRes.resizes.length}{' '}
-                    {singularOrPlural(newRes.resizes.length, 'resize', 'resizes')} happened. Let's look at{' '}
-                    {newRes.resizes.length ? 'it' : 'the first resize'} in depth:{' '}
-                </p>
-                <VisualizedCode
-                    code={HASH_CLASS_RESIZE_CODE}
-                    breakpoints={resizeRes.bp}
-                    formatBpDesc={[formatHashClassResize, formatHashClassChapter3IdxRelatedBp]}
-                    stateVisualization={HashClassResizeVisualization}
-                    {...this.props}
-                />
-                <p>
-                    In the previous chapter, the code for removing and the code for searching were very similar,
-                    because, to remove an element, we need to find it first. We can reorganize the code so that the
-                    removing and searching functions share much of the same code. We will call the common function{' '}
-                    <code>lookdict()</code>.
-                </p>
-                <p>
-                    Other than that, removing a key will look pretty much the same as in the previous chapter.{' '}
-                    <code>__delitem__</code> magic method is now used for realism so that we can do{' '}
-                    <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end up
-                    finding the element and removing it.
-                </p>
-                <p className="inline-block">For example, let's say we want to remove </p>
-                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
-                <VisualizedCode
-                    code={HASH_CLASS_DELITEM}
-                    breakpoints={delRes.bp}
-                    formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
-                    stateVisualization={HashClassNormalStateVisualization}
-                    {...this.props}
-                />
-                <p>
-                    After using the new <code>lookdict</code> function, search function <code>__getitem__</code> also
-                    gets very short.
-                </p>
-                <p className="inline-block">Searching for</p>
-                <PyStringOrNumberInput inline={true} value={this.state.keyToGet} onChange={this.setter('keyToGet')} />
-                <VisualizedCode
-                    code={HASH_CLASS_GETITEM}
-                    breakpoints={getRes.bp}
-                    formatBpDesc={[formatHashClassLookdictRelated, formatHashClassChapter3IdxRelatedBp]}
-                    stateVisualization={HashClassNormalStateVisualization}
-                    {...this.props}
-                />
-
-                <p>
-                    So we now have a class that emulates the basic part of the dict interface. Before we move on to the
-                    next chapter, let's discuss a neat trick for inserting new items.
-                </p>
-                <h5> Recycling dummy keys. </h5>
-                <p>
-                    Dummy keys are used as placeholders. The only purpose of a dummy slot is to prevent a probing
-                    algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
-                    something, be it a dummy placeholder or a normal item. This means that while inserting an item, if
-                    we end up hitting a slot with a dummy placeholder, we can put the item in the slot (assuming the key
-                    does not exist elsewhere in the dictionary). So, we still need to do a full look up, but we will
-                    also save an index of the first dummy slot to <code>target_idx</code> (if we encounter it). If we
-                    find that a key already exists, we save the index to <code>target_idx</code> and break. If we find
-                    neither a dummy slot nor the key, then we insert it in the first empty slot - as we did before.
-                </p>
-                <p>
-                    In the absence of dummy slots, the code works the same. So, even though we built the table with a
-                    simpler version of <code>__setitem__</code>, it would look exactly the same.
-                </p>
-                <p className="inline-block">Remember that we removed </p>
-                <PyStringOrNumberInput inline={true} value={this.state.keyToDel} onChange={this.setter('keyToDel')} />
-                <p className="inline-block">?{'\u00A0'}</p>
-                <p className="inline-block">Let's see what happens after we insert the following key-value pair:</p>
-                <PyStringOrNumberInput
-                    inline={true}
-                    value={this.state.keyToSetRecycling}
-                    onChange={this.setter('keyToSetRecycling')}
-                />
-                <PyStringOrNumberInput
-                    inline={true}
-                    value={this.state.valueToSetRecycling}
-                    onChange={this.setter('valueToSetRecycling')}
-                />
-                <VisualizedCode
-                    code={HASH_CLASS_SETITEM_RECYCLING_CODE}
-                    breakpoints={setRecyclingRes.bp}
-                    formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
-                    stateVisualization={HashClassNormalStateVisualization}
-                    {...this.props}
-                />
+                    <p>
+                        So we now have a class that emulates the basic part of the dict interface. Before we move on to
+                        the next chapter, let's discuss a neat trick for inserting new items.
+                    </p>
+                    <h5> Recycling dummy keys. </h5>
+                    <p>
+                        Dummy keys are used as placeholders. The only purpose of a dummy slot is to prevent a probing
+                        algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
+                        something, be it a dummy placeholder or a normal item. This means that while inserting an item,
+                        if we end up hitting a slot with a dummy placeholder, we can put the item in the slot (assuming
+                        the key does not exist elsewhere in the dictionary). So, we still need to do a full look up, but
+                        we will also save an index of the first dummy slot to <code>target_idx</code> (if we encounter
+                        it). If we find that a key already exists, we save the index to <code>target_idx</code> and
+                        break. If we find neither a dummy slot nor the key, then we insert it in the first empty slot -
+                        as we did before.
+                    </p>
+                    <p>
+                        In the absence of dummy slots, the code works the same. So, even though we built the table with
+                        a simpler version of <code>__setitem__</code>, it would look exactly the same.
+                    </p>
+                    <p className="inline-block">Remember that we removed </p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToDel}
+                        onChange={this.setter('keyToDel')}
+                    />
+                    <p className="inline-block">?{'\u00A0'}</p>
+                    <p className="inline-block">Let's see what happens after we insert the following key-value pair:</p>
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.keyToSetRecycling}
+                        onChange={this.setter('keyToSetRecycling')}
+                    />
+                    <PyStringOrNumberInput
+                        inline={true}
+                        value={this.state.valueToSetRecycling}
+                        onChange={this.setter('valueToSetRecycling')}
+                    />
+                    <VisualizedCode
+                        code={HASH_CLASS_SETITEM_RECYCLING_CODE}
+                        breakpoints={setRecyclingRes.bp}
+                        formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
+                        stateVisualization={HashClassNormalStateVisualization}
+                        {...this.props}
+                    />
+                </Subcontainerize>
             </div>
         );
     }

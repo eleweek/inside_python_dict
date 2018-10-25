@@ -16,7 +16,7 @@
     padding-left: 30px;
 }
 
-.chapter > p, /*.chapter > h2,*/ .chapter > h3, .chapter > h4, .chapter > h5, .chapter > h6 {
+.chapter > .subcontainer {
     max-width: 768px;
 }
 

@@ -1291,6 +1291,8 @@ class TimeSliderWithControls extends React.PureComponent {
 }
 
 export class VisualizedCode extends React.Component {
+    static FULL_WIDTH = true;
+
     constructor(props) {
         super(props);
         this.state = {
