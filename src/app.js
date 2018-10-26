@@ -5,6 +5,9 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 
 import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
+import {config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
+fontAwesomeConfig.autoAddCss = false;
+import '@fortawesome/fontawesome-svg-core/styles.css';
 
 function logViewportStats() {
     console.log('window: ' + window.innerWidth + 'x' + window.innerHeight);
