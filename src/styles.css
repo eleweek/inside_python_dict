@@ -325,6 +325,8 @@ blockquote.blockquote {
     margin-bottom: 5px;
 }
 
-.position-sticky {
-    position: sticky;
+.force-stick-to-top {
+    position: sticky !important;
+    top: 5px;
+    z-index: 1000;
 }

@@ -42,34 +42,76 @@ function GithubForkMe() {
     );
 }
 
-function Alerts({isSSR, browser}) {
-    const alerts = [];
-    if (typeof window === 'undefined') {
-        alerts.push(
-            <BootstrapAlert nondismissible={true} sticky={true} alertType="info" key="js-loading">
+class LoadingAlert extends React.PureComponent {
+    constructor() {
+        super();
+
+        this.state = {
+            loaded: false,
+        };
+    }
+
+    render() {
+        return (
+            <BootstrapAlert
+                nondismissible={true}
+                sticky={true}
+                alertType="info"
+                key="js-loading"
+                forceDisappear={this.state.loaded && this.props.isRunningInBrowser}
+            >
                 <FontAwesomeIcon key="js-loading-spinner" icon="spinner" spin /> JavaScript code is loading...
             </BootstrapAlert>
         );
     }
-    if (browser) {
-        if (browser.mobile) {
-            alerts.push(
-                <BootstrapAlert key="mobile-device-warning">
-                    <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best experience
-                    desktop Chrome or Safari is recommended is recommended.
-                </BootstrapAlert>
-            );
-        } else if (browser.name === 'firefox') {
-            alerts.push(
-                <BootstrapAlert key="ff-warning">
-                    <FontAwesomeIcon icon={['fab', 'firefox']} /> <strong>Firefox detected.</strong> Heavy animations
-                    may lag at times. If this happens, Chrome or Safari is recommended.
-                </BootstrapAlert>
-            );
-        }
+
+    componentDidMount() {
+        this.setState({loaded: true});
+    }
+}
+
+class Alerts extends React.Component {
+    constructor() {
+        super();
+
+        this.state = {
+            mounted: false,
+        };
     }
 
-    return <React.Fragment>{alerts}</React.Fragment>;
+    render() {
+        const alerts = [];
+        const isRunningInBrowser = typeof window !== 'undefined';
+        alerts.push(<LoadingAlert isRunningInBrowser={isRunningInBrowser} key="loading-warning" />);
+
+        if (this.state.mounted) {
+            const {browser} = this.props;
+
+            if (browser) {
+                if (browser.mobile) {
+                    alerts.push(
+                        <BootstrapAlert key="mobile-device-warning">
+                            <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best
+                            experience desktop Chrome or Safari is recommended is recommended.
+                        </BootstrapAlert>
+                    );
+                } else if (browser.name === 'firefox') {
+                    alerts.push(
+                        <BootstrapAlert key="ff-warning">
+                            <FontAwesomeIcon icon={['fab', 'firefox']} /> <strong>Firefox detected.</strong> Heavy
+                            animations may lag at times. If this happens, Chrome or Safari is recommended.
+                        </BootstrapAlert>
+                    );
+                }
+            }
+        }
+
+        return <React.Fragment>{alerts}</React.Fragment>;
+    }
+
+    componentDidMount() {
+        this.setState({mounted: true});
+    }
 }
 
 export class App extends React.Component {
@@ -161,8 +203,10 @@ export function initAndRender(chapters) {
             };
 
             if (isSSR) {
+                console.log('Rehydrating');
                 ReactDOM.hydrate(<App {...props} />, root);
             } else {
+                console.log('Rendering from scratch');
                 ReactDOM.render(<App {...props} />, root);
             }
             // Seems to fix stickynode not stickying on page reload

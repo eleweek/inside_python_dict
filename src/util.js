@@ -118,7 +118,7 @@ export class BootstrapAlert extends React.Component {
         let {sticky, alertType, boldText, regularText} = this.props;
         alertType = alertType || 'warning';
 
-        if (this.state.visible) {
+        if (this.state.visible && !this.props.forceDisappear) {
             return (
                 <div
                     className={classNames(
@@ -126,7 +126,7 @@ export class BootstrapAlert extends React.Component {
                         `alert-${alertType}`,
                         {'alert-dismissible': this.props.dismissible},
                         'fade',
-                        {'position-sticky': sticky},
+                        {'force-stick-to-top': sticky},
                         {show: !this.state.dismissed}
                     )}
                 >
