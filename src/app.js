@@ -5,8 +5,19 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 
 import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
-import {config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
+
+import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
+import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
+import {faFirefox} from '@fortawesome/free-brands-svg-icons/faFirefox';
+
+import {library, config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
 fontAwesomeConfig.autoAddCss = false;
+
+library.add(faDesktop);
+library.add(faFirefox);
+library.add(faSpinner);
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+
 import '@fortawesome/fontawesome-svg-core/styles.css';
 
 function logViewportStats() {
@@ -31,22 +42,31 @@ function GithubForkMe() {
     );
 }
 
-function Alerts({isSSR, isFirefox}) {
+function Alerts({isSSR, browser}) {
     const alerts = [];
     if (typeof window === 'undefined') {
         alerts.push(
             <BootstrapAlert nondismissible={true} sticky={true} alertType="info" key="js-loading">
-                JavaScript code is loading...
+                <FontAwesomeIcon key="js-loading-spinner" icon="spinner" spin /> JavaScript code is loading...
             </BootstrapAlert>
         );
     }
-    if (isFirefox) {
-        alerts.push(
-            <BootstrapAlert key="ff-warning">
-                <strong>Firefox detected.</strong> Heavy animations may lag at times. If this happens, Chrome or Safari
-                is recommended.
-            </BootstrapAlert>
-        );
+    if (browser) {
+        if (browser.mobile) {
+            alerts.push(
+                <BootstrapAlert key="mobile-device-warning">
+                    <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best experience
+                    desktop Chrome or Safari is recommended is recommended.
+                </BootstrapAlert>
+            );
+        } else if (browser.name === 'firefox') {
+            alerts.push(
+                <BootstrapAlert key="ff-warning">
+                    <FontAwesomeIcon icon={['fab', 'firefox']} /> <strong>Firefox detected.</strong> Heavy animations
+                    may lag at times. If this happens, Chrome or Safari is recommended.
+                </BootstrapAlert>
+            );
+        }
     }
 
     return <React.Fragment>{alerts}</React.Fragment>;
@@ -104,7 +124,7 @@ export class App extends React.Component {
             <div className="app-container container-fluid">
                 <GithubForkMe />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                <Alerts isFirefox={this.props.browser && this.props.browser.name === 'firefox'} />
+                <Alerts browser={this.props.browser} />
                 {chapters}
             </div>
         );

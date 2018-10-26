@@ -4,7 +4,7 @@ import classNames from 'classnames';
 
 import {ErrorBoundary} from 'react-error-boundary';
 import Sticky from 'react-stickynode';
-import {detect} from 'detect-browser';
+import * as browserDetect from 'browser-detect';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
 export class CrossFade extends React.Component {
@@ -152,7 +152,7 @@ const defaultUxSettings = {
 };
 
 export function initUxSettings() {
-    const browser = detect();
+    const browser = browserDetect.default();
     console.log('Detected browser', browser);
 
     if (!browser || !browser.name) return;
@@ -160,7 +160,7 @@ export function initUxSettings() {
 
     let settings = {};
 
-    if (['chrome', 'yandexbrowser'].includes(browserName)) {
+    if (browserName === 'chrome') {
         settings.THROTTLE_SELECTION_TRANSITIONS = false;
     } else {
         settings.THROTTLE_SELECTION_TRANSITIONS = true;
