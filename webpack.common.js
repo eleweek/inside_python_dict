@@ -33,7 +33,7 @@ class HackySSR {
         } else {
             for (let [name, chapters] of Object.entries(files)) {
                 compiler.plugin('emit', (compilation, cb) => {
-                    exec(`npm run babel-node scripts/ssr.js build/${name} '${chapters}'`, function(
+                    exec(`npm run --silent babel-node scripts/ssr.js build/${name} '${chapters}'`, function(
                         error,
                         stdout,
                         stderr

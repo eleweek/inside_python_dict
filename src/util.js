@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import classNames from 'classnames';
+
 import {ErrorBoundary} from 'react-error-boundary';
 import Sticky from 'react-stickynode';
 import {detect} from 'detect-browser';
@@ -82,7 +84,6 @@ export function Subcontainerize({children}) {
         }
     };
     for (let child of children) {
-        console.log(child);
         if (typeof child.type === 'string' || typeof child.type === 'undefined' || !child.type.FULL_WIDTH) {
             accumulatedChildren.push(child);
         } else {
@@ -94,6 +95,53 @@ export function Subcontainerize({children}) {
     dropAccumulated();
 
     return res;
+}
+
+export class BootstrapAlert extends React.Component {
+    ALERT_REMOVAL_TIMEOUT = 150;
+
+    constructor() {
+        super();
+
+        this.state = {
+            dismissed: false,
+            visible: true,
+        };
+    }
+
+    dimiss = () => {
+        this.setState({dismissed: true});
+        setTimeout(() => this.setState({visible: false}), this.ALERT_REMOVAL_TIMEOUT);
+    };
+
+    render() {
+        let {sticky, alertType, boldText, regularText} = this.props;
+        alertType = alertType || 'warning';
+
+        if (this.state.visible) {
+            return (
+                <div
+                    className={classNames(
+                        'alert',
+                        `alert-${alertType}`,
+                        {'alert-dismissible': this.props.dismissible},
+                        'fade',
+                        {'position-sticky': sticky},
+                        {show: !this.state.dismissed}
+                    )}
+                >
+                    {this.props.children}
+                    {!this.props.nondismissible ? (
+                        <button type="button" className="close" onClick={this.dimiss}>
+                            <span>&times;</span>
+                        </button>
+                    ) : null}
+                </div>
+            );
+        } else {
+            return null;
+        }
+    }
 }
 
 const defaultUxSettings = {
@@ -111,7 +159,6 @@ export function initUxSettings() {
     const browserName = browser.name;
 
     let settings = {};
-    window.insidePythonDictUxSettings = settings;
 
     if (['chrome', 'yandexbrowser'].includes(browserName)) {
         settings.THROTTLE_SELECTION_TRANSITIONS = false;
@@ -139,6 +186,9 @@ export function initUxSettings() {
             settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
             settings.DYNAMIC_SELECTION_TRANSITION_DURATION = defaultUxSettings.DYNAMIC_SELECTION_TRANSITION_DURATION;
     }
+
+    window.insidePythonDictUxSettings = settings;
+    window.insidePythonDictBrowser = browser;
     console.log('UX settings', getUxSettings());
 }
 

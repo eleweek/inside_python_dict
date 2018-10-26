@@ -324,3 +324,7 @@ blockquote.blockquote {
 .row-block-input-toolbar .col-buttons {
     margin-bottom: 5px;
 }
+
+.position-sticky {
+    position: sticky;
+}

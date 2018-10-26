@@ -4,7 +4,8 @@ import 'ignore-styles';
 
 import * as React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import {App, CHAPTER_ID_TO_COMPONENT} from '../src/index';
+import {CHAPTER_ID_TO_COMPONENT} from '../src/index';
+import {App} from '../src/app';
 import fs from 'fs';
 
 const filename = process.argv[2];

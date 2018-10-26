@@ -4,7 +4,7 @@ import stylesCss from './styles.css';
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 
-import {MyErrorBoundary, initUxSettings} from './util';
+import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
 
 function logViewportStats() {
     console.log('window: ' + window.innerWidth + 'x' + window.innerHeight);
@@ -26,6 +26,27 @@ function GithubForkMe() {
             />
         </a>
     );
+}
+
+function Alerts({isSSR, isFirefox}) {
+    const alerts = [];
+    if (typeof window === 'undefined') {
+        alerts.push(
+            <BootstrapAlert nondismissible={true} sticky={true} alertType="info" key="js-loading">
+                JavaScript code is loading...
+            </BootstrapAlert>
+        );
+    }
+    if (isFirefox) {
+        alerts.push(
+            <BootstrapAlert key="ff-warning">
+                <strong>Firefox detected.</strong> Heavy animations may lag at times. If this happens, Chrome or Safari
+                is recommended.
+            </BootstrapAlert>
+        );
+    }
+
+    return <React.Fragment>{alerts}</React.Fragment>;
 }
 
 export class App extends React.Component {
@@ -80,6 +101,7 @@ export class App extends React.Component {
             <div className="app-container container-fluid">
                 <GithubForkMe />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
+                <Alerts isFirefox={this.props.browser && this.props.browser.name === 'firefox'} />
                 {chapters}
             </div>
         );
@@ -110,10 +132,15 @@ export function initAndRender(chapters) {
             const root = document.getElementById('root');
             const isSSR = root.hasChildNodes();
 
+            const props = {
+                chapters,
+                browser: window.insidePythonDictBrowser,
+            };
+
             if (isSSR) {
-                ReactDOM.hydrate(<App chapters={chapters} />, root);
+                ReactDOM.hydrate(<App {...props} />, root);
             } else {
-                ReactDOM.render(<App chapters={chapters} />, root);
+                ReactDOM.render(<App {...props} />, root);
             }
             // Seems to fix stickynode not stickying on page reload
             fixSticky();
