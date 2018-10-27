@@ -1,11 +1,11 @@
 import unittest
 from common import DUMMY, EMPTY
-from hash_chapter3_class_impl import HashDictImplementation, HashDictImplementationSimpleSetItem
+from hash_chapter3_class_impl import AlmostPythonDictImplementationRecycling, AlmostPythonDictImplementationNoRecycling
 
 
 class HashDictImplementationTest(unittest.TestCase):
     def test_handcrafted(self):
-        d = HashDictImplementation()
+        d = AlmostPythonDictImplementationRecycling()
         self.assertEqual(len(d.slots), 8)
 
         def assert_contains(i, h, k, v):
@@ -75,7 +75,7 @@ class HashDictImplementationTest(unittest.TestCase):
         assert_contains(15, 15, 15, 6)
 
     def test_handcrafted_simple_setitem(self):
-        d = HashDictImplementationSimpleSetItem()
+        d = AlmostPythonDictImplementationNoRecycling()
         self.assertEqual(len(d.slots), 8)
 
         def assert_contains(i, h, k, v):
