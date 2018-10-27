@@ -90,16 +90,13 @@ function restorePyDictState(state) {
 function dumpPyDictState(pySelf) {
     let data = {};
 
-    data.slots = pySelf
-        .get('slots')
-        .toJS()
-        .map(slot => {
-            return {
-                hashCode: slot.hashCode != null ? slot.hashCode.toString() : null,
-                key: dumpSimplePyObj(slot.key),
-                value: dumpSimplePyObj(slot.value),
-            };
-        });
+    data.slots = pySelf.get('slots').map(slot => {
+        return {
+            hashCode: slot.hashCode != null ? slot.hashCode.toString() : null,
+            key: dumpSimplePyObj(slot.key),
+            value: dumpSimplePyObj(slot.value),
+        };
+    });
     data.used = pySelf.get('used');
     data.fill = pySelf.get('fill');
 
