@@ -22,6 +22,14 @@ import {
     SLOT_CLASS_CODE_STRING,
 } from '../src/chapter3_hash_class';
 
+import {
+    HASH_CREATE_NEW_CODE,
+    HASH_SEARCH_CODE,
+    HASH_REMOVE_CODE,
+    HASH_RESIZE_CODE,
+    HASH_INSERT_CODE,
+} from '../src/chapter2_hash_table_functions';
+
 import fs from 'fs';
 import * as path from 'path';
 
@@ -29,7 +37,7 @@ function extractCodeLines(codeWithBpAndLevels) {
     return codeWithBpAndLevels.map(([line, bp, level]) => line);
 }
 
-function outputCode(filename, headers, importedCode) {
+function outputCode(filename, headers, importedCode, indent4 = true) {
     let allLines = [];
     for (let part of importedCode) {
         let lines;
@@ -44,7 +52,7 @@ function outputCode(filename, headers, importedCode) {
             allLines.push('');
         }
     }
-    const joinedLines = allLines.map(line => (line.length > 0 ? '    ' + line : line)).join('\n');
+    const joinedLines = allLines.map(line => (line.length > 0 && indent4 ? '    ' + line : line)).join('\n');
     fs.writeFileSync(filename, headers.join('\n') + '\n' + joinedLines);
 }
 
@@ -107,4 +115,11 @@ outputCode(
         _HASH_CLASS_DELITEM_ONLY,
         HASH_CLASS_LOOKDICT,
     ]
+);
+
+outputCode(
+    path.join(DIR, 'hash_chapter2_extracted.py'),
+    [commonImports],
+    [HASH_CREATE_NEW_CODE, HASH_SEARCH_CODE, HASH_REMOVE_CODE, HASH_RESIZE_CODE, HASH_INSERT_CODE],
+    false
 );

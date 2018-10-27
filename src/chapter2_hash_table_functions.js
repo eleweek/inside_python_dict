@@ -11,7 +11,7 @@ import {MySticky, ChapterComponent, Subcontainerize} from './util';
 
 import memoizeOne from 'memoize-one';
 
-const HASH_CREATE_NEW_CODE = [
+export const HASH_CREATE_NEW_CODE = [
     ['def create_new(from_keys):', 'start-execution', 0],
     ['    hash_codes = [EMPTY for i in range(2 * len(from_keys))]', 'create-new-empty-hashes', 1],
     ['    keys = [EMPTY for i in range(2 * len(from_keys))]', 'create-new-empty-keys', 1],
@@ -169,7 +169,7 @@ function formatHashCreateNewAndInsert(bp) {
     }
 }
 
-const HASH_SEARCH_CODE = [
+export const HASH_SEARCH_CODE = [
     ['def has_key(hash_codes, keys, key):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(keys)', 'compute-idx', 1],
@@ -243,7 +243,7 @@ function HashNormalStateVisualization(props) {
     );
 }
 
-const HASH_REMOVE_CODE = [
+export const HASH_REMOVE_CODE = [
     ['def remove(hash_codes, keys, key):', 'start-execution', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(keys)', 'compute-idx', 1],
@@ -310,7 +310,7 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
     }
 }
 
-const HASH_RESIZE_CODE = [
+export const HASH_RESIZE_CODE = [
     ['def resize(hash_codes, keys):', 'start-execution', 0],
     ['    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]', 'create-new-empty-hashes', 1],
     ['    new_keys = [EMPTY for i in range(len(keys) * 2)]', 'create-new-empty-keys', 1],
@@ -433,7 +433,7 @@ function HashResizeStateVisualization(props) {
     );
 }
 
-const HASH_INSERT_CODE = [
+export const HASH_INSERT_CODE = [
     ['def insert(hash_codes, keys, key):', 'start-execution'],
     ['    hash_code = hash(key)', 'compute-hash'],
     ['    idx = hash_code % len(keys)', 'compute-idx'],
