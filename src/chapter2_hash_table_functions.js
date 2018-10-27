@@ -284,10 +284,10 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
                         this.keys = this.keys.set(this.idx, DUMMY);
                         this.addBP('assign-dummy');
                         this.addBP('return');
-                        return;
+                        return {hashCodes: this.hashCodes, keys: this.keys, isException: false, result: null};
                     } else {
                         this.addBP('return-true');
-                        return true;
+                        return {hashCodes: this.hashCodes, keys: this.keys, isException: false, result: true};
                     }
                 }
             }
@@ -296,13 +296,17 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
             this.addBP('next-idx');
         }
 
+        let result, isException;
         if (isRemoveMode) {
             this.addBP('throw-key-error');
-            return 'KeyError()';
+            isException = true;
         } else {
             this.addBP('return-false');
-            return false;
+            isException = false;
+            result = false;
         }
+
+        return {hashCodes: this.hashCodes, keys: this.keys, isException, result};
     }
 }
 
@@ -457,7 +461,7 @@ class HashInsert extends HashBreakpointFunction {
 
         while (true) {
             this.addBP('check-collision');
-            if (this.keys.get(this.idx) === null || this.keys.get(this.idx) === DUMMY) {
+            if (this.keys.get(this.idx) === null) {
                 break;
             }
 
@@ -477,6 +481,7 @@ class HashInsert extends HashBreakpointFunction {
         this.keys = this.keys.set(this.idx, this.key);
 
         this.addBP('assign-elem');
+        return [this.hashCodes, this.keys];
     }
 }
 
@@ -529,6 +534,47 @@ class HashExamples extends React.Component {
     }
 }
 
+export class Ops {
+    static createNew(array) {
+        const hcn = new HashCreateNew();
+        const [hashCodes, keys] = hcn.run(array);
+        const bp = hcn.getBreakpoints();
+        return {hashCodes, keys, bp};
+    }
+
+    static hasKey(hashCodes, keys, searchedObj) {
+        const hs = new HashRemoveOrSearch();
+        const {result, hashCodes: newHashCodes, keys: newKeys} = hs.run(hashCodes, keys, searchedObj, false);
+        const bp = hs.getBreakpoints();
+
+        return {result, bp, hashCodes: newHashCodes, keys: newKeys};
+    }
+
+    static remove(hashCodes, keys, objToRemove) {
+        const hr = new HashRemoveOrSearch();
+        const {isException, hashCodes: newHashCodes, keys: newKeys} = hr.run(hashCodes, keys, objToRemove, true);
+        const bp = hr.getBreakpoints();
+
+        return {isException, bp, hashCodes: newHashCodes, keys: newKeys};
+    }
+
+    static resize(hashCodes, keys) {
+        const hres = new HashResize();
+        const [newHashCodes, newKeys] = hres.run(hashCodes, keys);
+        const bp = hres.getBreakpoints();
+
+        return {bp, hashCodes: newHashCodes, keys: newKeys};
+    }
+
+    static insert(hashCodes, keys, objToInsert) {
+        const hi = new HashInsert();
+        const [newHashCodes, newKeys] = hi.run(hashCodes, keys, objToInsert);
+        const bp = hi.getBreakpoints();
+
+        return {bp, hashCodes: newHashCodes, keys: newKeys};
+    }
+}
+
 export class Chapter2_HashTableFunctions extends ChapterComponent {
     constructor() {
         super();
@@ -542,39 +588,26 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
     }
 
     runCreateNew = memoizeOne(array => {
-        const hcn = new HashCreateNew();
-        const [hashCodes, keys] = hcn.run(array);
-        const bp = hcn.getBreakpoints();
-
-        return {hashCodes, keys, bp};
+        return Ops.createNew(array);
     });
 
     runSearch = memoizeOne((hashCodes, keys, searchedObj) => {
-        const hs = new HashRemoveOrSearch();
-        hs.run(hashCodes, keys, searchedObj, false);
-        const bp = hs.getBreakpoints();
-
+        const bp = Ops.hasKey(hashCodes, keys, searchedObj).bp;
         return {bp};
     });
 
     runRemove = memoizeOne((hashCodes, keys, objToRemove) => {
-        const hr = new HashRemoveOrSearch();
-        hr.run(hashCodes, keys, objToRemove, true);
-        const bp = hr.getBreakpoints();
+        const bp = Ops.remove(hashCodes, keys, objToRemove).bp;
         return {bp};
     });
 
     runResize = memoizeOne((hashCodes, keys) => {
-        const hres = new HashResize();
-        hres.run(hashCodes, keys);
-        const bp = hres.getBreakpoints();
+        const bp = Ops.resize(hashCodes, keys).bp;
         return {bp};
     });
 
     runInsert = memoizeOne((hashCodes, keys, objToInsert) => {
-        const hi = new HashInsert();
-        hi.run(hashCodes, keys, objToInsert);
-        const bp = hi.getBreakpoints();
+        const bp = Ops.insert(hashCodes, keys, objToInsert).bp;
         return {bp};
     });
 

@@ -1,15 +1,4 @@
-class DummyClass(object):
-    pass
-
-
-DUMMY = DummyClass()
-
-
-class EmptyClass(object):
-    pass
-
-
-EMPTY = EmptyClass()
+from common import DUMMY, EMPTY
 
 
 def create_new(from_keys):

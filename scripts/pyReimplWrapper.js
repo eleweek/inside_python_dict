@@ -3,21 +3,25 @@ const split = require('split');
 import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
-import {DUMMY, None} from '../src/hash_impl_common';
+import {DUMMY, EMPTY, None} from '../src/hash_impl_common';
 import {Dict32} from '../src/chapter4_real_python_dict';
 import {AlmostPythonDict} from '../src/chapter3_hash_class';
+import {Ops as Chapter2Ops} from '../src/chapter2_hash_table_functions';
 import {Slot} from '../src/chapter3_and_4_common';
-import {List} from 'immutable';
+import {List as ImmutableList} from 'immutable';
 
 function parseSimplePyObj(obj) {
     if (obj === null || typeof obj === 'string') {
         return obj;
     } else if (typeof obj === 'object' && obj.type === 'None') {
         let res = None;
+        // TODO FIXME: this does not support multiple clients
         res._hashCode = obj.hash;
         return res;
     } else if (typeof obj === 'object' && obj.type === 'DUMMY') {
         return DUMMY;
+    } else if (typeof obj === 'object' && obj.type === 'EMPTY') {
+        return EMPTY;
     } else if (typeof obj === 'object' && obj.type === 'int') {
         return BigNumber(obj.value);
     } else {
@@ -25,14 +29,16 @@ function parseSimplePyObj(obj) {
     }
 }
 
+function parseArray(array) {
+    return array.map(parseSimplePyObj);
+}
+
+function dumpArray(array) {
+    return array.map(dumpSimplePyObj);
+}
+
 function parsePairs(pairs) {
-    let res = [];
-
-    for (let [k, v] of pairs) {
-        res.push([parseSimplePyObj(k), parseSimplePyObj(v)]);
-    }
-
-    return res;
+    return pairs.map(([k, v]) => [parseSimplePyObj(k), parseSimplePyObj(v)]);
 }
 
 function dumpSimplePyObj(obj) {
@@ -59,7 +65,7 @@ function restorePyDictState(state) {
     if (state.slots != null) {
         pySelf = pySelf.set(
             'slots',
-            new List(
+            new ImmutableList(
                 state.slots.map(slot => {
                     let key = parseSimplePyObj(slot.key);
                     let value = parseSimplePyObj(slot.value);
@@ -150,6 +156,32 @@ function almostPyDictRunOp(pySelf, op, key, value, pairs) {
     }
 }
 
+function chapter2run(hashCodes, keys, op, key, array) {
+    switch (op) {
+        case 'create_new':
+            ({hashCodes, keys} = Chapter2Ops.createNew(array));
+            return {hashCodes, keys};
+        case 'insert':
+            ({hashCodes, keys} = Chapter2Ops.insert(hashCodes, keys, key));
+            return {hashCodes, keys};
+        case 'remove': {
+            let isException;
+            ({hashCodes, keys, isException} = Chapter2Ops.remove(hashCodes, keys, key));
+            return {hashCodes, keys, isException};
+        }
+        case 'has_key': {
+            let result;
+            ({hashCodes, keys, result} = Chapter2Ops.hasKey(hashCodes, keys, key));
+            return {hashCodes, keys, result};
+        }
+        case 'resize':
+            ({hashCodes, keys} = Chapter2Ops.resize(hashCodes, keys));
+            return {hashCodes, keys};
+        default:
+            throw new Error('Unknown op: ' + op);
+    }
+}
+
 const server = net.createServer(c => {
     console.log('Client connected');
 
@@ -160,11 +192,11 @@ const server = net.createServer(c => {
     c.pipe(split()).on('data', line => {
         console.log('Received line of length ' + line.length);
         if (!line) return;
+
         const data = JSON.parse(line);
-        let pySelf = restorePyDictState(data.self);
         const dictType = data.dict;
         const op = data.op;
-        let {key, value, pairs} = data.args;
+        let {key, value, pairs, array} = data.args;
         if (key !== undefined) {
             key = parseSimplePyObj(key);
         }
@@ -174,25 +206,45 @@ const server = net.createServer(c => {
         if (pairs !== undefined) {
             pairs = parsePairs(pairs);
         }
+        if (array !== undefined) {
+            array = parseArray(array);
+        }
 
         console.log(op, data.args);
+
         let isException, result;
-        if (dictType === 'dict32') {
-            ({pySelf, isException, result} = dict32RunOp(pySelf, op, key, value, pairs));
-        } else if (dictType === 'almost_python_dict') {
-            ({pySelf, isException, result} = almostPyDictRunOp(pySelf, op, key, value, pairs));
+        let response;
+
+        if (dictType === 'dict32' || dictType === 'almost_python_dict') {
+            let pySelf = restorePyDictState(data.self);
+            if (dictType === 'dict32') {
+                ({pySelf, isException, result} = dict32RunOp(pySelf, op, key, value, pairs));
+            } else if (dictType === 'almost_python_dict') {
+                ({pySelf, isException, result} = almostPyDictRunOp(pySelf, op, key, value, pairs));
+            } else {
+                throw new Error('Unknown dict type');
+            }
+
+            response = {
+                exception: isException || false,
+                result: result !== undefined ? dumpSimplePyObj(result) : null,
+                self: dumpPyDictState(pySelf),
+            };
+        } else if (dictType === 'chapter2') {
+            let hashCodes = data.hashCodes != null ? new ImmutableList(parseArray(data.hashCodes)) : undefined;
+            let keys = data.keys != null ? new ImmutableList(parseArray(data.keys)) : undefined;
+            ({hashCodes, keys, isException, result} = chapter2run(hashCodes, keys, op, key, array));
+            response = {
+                exception: isException || false,
+                result: result !== undefined ? result : null,
+                hashCodes: dumpArray(hashCodes),
+                keys: dumpArray(keys),
+            };
         } else {
             throw new Error('Unknown dict type');
         }
 
-        console.log('Writing response');
-        c.write(
-            JSON.stringify({
-                exception: isException || false,
-                result: result !== undefined ? dumpSimplePyObj(result) : null,
-                self: dumpPyDictState(pySelf),
-            }) + '\n'
-        );
+        c.write(JSON.stringify(response) + '\n');
     });
 });
 
