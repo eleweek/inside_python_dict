@@ -7,7 +7,8 @@ from dict_reimpl_common import Slot
 
 
 class JsImplBase(object):
-    SOCK_FILENAME = '../pynode.sock'
+    # TODO: unhardcode?
+    SOCK_FILENAME = 'pynode.sock'
 
     def __init__(self, pairs=None):
         pairs = pairs or []
@@ -43,8 +44,6 @@ class JsImplBase(object):
         return list(map(dump_slot, self.slots))
 
     def restore_slots(self, slots):
-        print(slots)
-
         def restore_slot(slot):
             key = parse_simple_py_obj(slot["key"])
             value = parse_simple_py_obj(slot["value"])

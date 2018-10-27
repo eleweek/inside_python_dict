@@ -4,7 +4,8 @@
   "description": "Inside python dict - an explorable explanation",
   "main": "index.js",
   "scripts": {
-    "test": "jest --env=node",
+    "jest": "jest --env=node",
+    "test:pystress": "npm run extractcode && ./stress_test_python.sh",
     "build:html": "mkdir -p build && (for i in {all,chapter1,chapter2,chapter3,chapter4}; do mustache src/mustache/$i.json src/page.html.template > build/$i.html; done)",
     "start": "npm run build:html && webpack-dev-server --config webpack.dev.js --host 0.0.0.0",
     "build:all": "npm run build:html && webpack --config webpack.prod.js",

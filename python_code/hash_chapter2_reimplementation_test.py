@@ -29,7 +29,7 @@ def verify_same(ref_hash_codes, ref_keys, hash_codes, keys):
     assert ref_hash_codes == hash_codes and ref_keys == keys
 
 
-def run(ref_impl, test_impl, n_inserts, key_value_factory, initial_state, extra_checks):
+def run(ref_impl, test_impl, n_inserts, key_value_factory, initial_state, extra_checks, verbose):
     SINGLE_REMOVE_CHANCE = 0.3
 
     ref_hash_codes, ref_keys = ref_impl.create_new(initial_state)
@@ -40,7 +40,8 @@ def run(ref_impl, test_impl, n_inserts, key_value_factory, initial_state, extra_
 
     vs()
 
-    print("Starting test")
+    if verbose:
+        print("Starting test")
 
     for i in range(n_inserts):
         key_to_insert = key_value_factory.generate_key()
@@ -63,10 +64,12 @@ def run(ref_impl, test_impl, n_inserts, key_value_factory, initial_state, extra_
         assert (key_to_insert in existing_keys) == is_key_present
 
         if not is_key_present:
-            print("Inserting {}".format(key_to_insert))
+            if verbose:
+                print("Inserting {}".format(key_to_insert))
             assert not test_impl.has_key(test_hash_codes, test_keys, key_to_insert)
         else:
-            print("Re-Inserting {}".format(key_to_insert))
+            if verbose:
+                print("Re-Inserting {}".format(key_to_insert))
 
         ref_impl.insert(ref_hash_codes, ref_keys, key_to_insert)
         test_impl.insert(test_hash_codes, test_keys, key_to_insert)
@@ -93,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--kv', choices=["numbers", "all"], required=True)
     parser.add_argument('--initial-size', type=int, default=-1)
     parser.add_argument('--extra-getitem-checks', action='store_true', default=False)
+    parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
 
     if args.kv == "numbers":
@@ -108,7 +112,8 @@ if __name__ == "__main__":
             n_inserts=args.num_inserts,
             key_value_factory=kv_factory,
             initial_state=initial_state,
-            extra_checks=args.extra_getitem_checks)
+            extra_checks=args.extra_getitem_checks,
+            verbose=args.verbose)
 
     if args.forever:
         while True:

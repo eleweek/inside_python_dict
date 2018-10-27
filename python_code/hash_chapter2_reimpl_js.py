@@ -2,7 +2,8 @@ import json
 import socket
 from js_reimpl_common import dump_simple_py_obj, dump_array, parse_array
 
-SOCK_FILENAME = '../pynode.sock'
+# TODO: unhardcode?
+SOCK_FILENAME = 'pynode.sock'
 
 sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 sock.connect(SOCK_FILENAME)

@@ -18,8 +18,6 @@ def dict_factory(pairs=None):
     def to_string(x):
         return json.dumps(x) if x is not None else "None"
     d = eval("{" + ", ".join("{}:{}".format(to_string(k), to_string(v)) for [k, v] in pairs) + "}")
-    dump = dump_py_dict(dictobject(d))
-    print("Initial dict size", len(dump[0]))
     return d
 
 
@@ -64,7 +62,7 @@ def verify_same(d, dump_d_func, dreimpl, dump_dreimpl_func):
     assert dump_d == dump_reimpl
 
 
-def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_inserts, extra_checks, key_value_factory, initial_state):
+def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_inserts, extra_checks, key_value_factory, initial_state, verbose):
     SINGLE_REMOVE_CHANCE = 0.3
     MASS_REMOVE_CHANCE = 0.002
     MASS_REMOVE_COEFF = 0.8
@@ -81,23 +79,27 @@ def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_in
     else:
         dreimpl = test_impl_factory()
 
-    print("Starting test")
+    if verbose:
+        print("Starting test")
 
     for i in range(n_inserts):
         should_remove = (random.random() < SINGLE_REMOVE_CHANCE)
         if should_remove and d and d.keys():  # TODO: ugly, written while on a plane
             to_remove = random.choice(list(d.keys()))
-            print("Removing {}".format(to_remove))
+            if verbose:
+                print("Removing {}".format(to_remove))
             del d[to_remove]
             del dreimpl[to_remove]
-            print(d)
+            if verbose:
+                print(d)
             verify_same(d, ref_impl_dump, dreimpl, test_impl_dump)
             removed.add(to_remove)
 
         should_mass_remove = (random.random() < MASS_REMOVE_CHANCE)
         if should_mass_remove and len(d) > 10:
             to_remove_list = random.sample(list(d.keys()), int(MASS_REMOVE_COEFF * len(d)))
-            print("Mass-Removing {} elements".format(len(to_remove_list)))
+            if verbose:
+                print("Mass-Removing {} elements".format(len(to_remove_list)))
             for k in to_remove_list:
                 del d[k]
                 del dreimpl[k]
@@ -125,18 +127,21 @@ def run(ref_impl_factory, ref_impl_dump, test_impl_factory, test_impl_dump, n_in
             key_present = key_to_insert in d
 
         if not key_present:
-            print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
+            if verbose:
+                print("Inserting ({key}, {value})".format(key=key_to_insert, value=value_to_insert))
             try:
                 dreimpl[key_to_insert]
                 assert False
             except KeyError:
                 pass
         else:
-            print("Replacing ({key}, {value1}) with ({key}, {value2})".format(key=key_to_insert, value1=d[key_to_insert], value2=value_to_insert))
+            if verbose:
+                print("Replacing ({key}, {value1}) with ({key}, {value2})".format(key=key_to_insert, value1=d[key_to_insert], value2=value_to_insert))
         removed.discard(key_to_insert)
         d[key_to_insert] = value_to_insert
         dreimpl[key_to_insert] = value_to_insert
-        print(d)
+        if verbose:
+            print(d)
         verify_same(d, ref_impl_dump, dreimpl, test_impl_dump)
         assert dreimpl[key_to_insert] == value_to_insert
 
@@ -150,6 +155,7 @@ if __name__ == "__main__":
     parser.add_argument('--forever', action='store_true')
     parser.add_argument('--kv', choices=["numbers", "all"], required=True)
     parser.add_argument('--initial-size', type=int, default=-1)
+    parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
 
     if args.kv == "numbers":
@@ -167,7 +173,8 @@ if __name__ == "__main__":
             n_inserts=args.num_inserts,
             extra_checks=args.extra_checks,
             key_value_factory=kv_factory,
-            initial_state=initial_state)
+            initial_state=initial_state,
+            verbose=args.verbose)
 
     if args.forever:
         while True:
