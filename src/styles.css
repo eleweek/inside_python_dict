@@ -330,3 +330,8 @@ blockquote.blockquote {
     top: 5px;
     z-index: 1000;
 }
+
+.badge-undo-redo-count {
+    font-family: 'Roboto Mono', monospace;
+    min-width: 22px;
+}

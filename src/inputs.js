@@ -1,5 +1,6 @@
 import * as React from 'react';
 import _ from 'lodash';
+import {BigNumber} from 'bignumber.js';
 import {
     parsePyList,
     dumpPyList,
@@ -13,7 +14,7 @@ import {
 import classNames from 'classnames';
 import AutosizeInput from 'react-input-autosize';
 import {Manager, Reference, Popper} from 'react-popper';
-import {List as ImmutableList} from 'immutable';
+import {List as ImmutableList, Map as ImmutableMap} from 'immutable';
 
 import {faUndoAlt} from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import {faRedoAlt} from '@fortawesome/free-solid-svg-icons/faRedoAlt';
@@ -281,23 +282,50 @@ export class BlockInputToolbar extends React.Component {
         }
     }
 
+    hackyPossibleWorkingDeepEqual(o1, o2) {
+        console.log('deep', o1, o2);
+        if (o1 === o2) return true;
+
+        if (BigNumber.isBigNumber(o1)) return o1.eq(o2);
+
+        if (Array.isArray(o1) && Array.isArray(o2)) {
+            if (o1.length != o2.length) {
+                return false;
+            }
+
+            for (let [v1, v2] of _.zip(o1, o2)) {
+                if (!this.hackyPossibleWorkingDeepEqual(v1, v2)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     _updateStack(value) {
         let stack = this.state.valuesStack;
         let idx = this.state.valuesStackIndex;
         if (!stack.isEmpty() && stack.get(idx) === value) {
-            return;
+            return false;
         }
+        if (this.hackyPossibleWorkingDeepEqual(stack.get(idx), value)) return false;
 
         stack = stack.slice(0, idx + 1).push(value);
         idx = stack.size - 1;
 
         this.setState({valuesStack: stack, valuesStackIndex: idx, value});
+        return true;
     }
 
     handleChange = value => {
         if (this.state.instantUpdates) {
-            this._updateStack(value);
-            this.props.onChange(value);
+            const stackUpdated = this._updateStack(value);
+            if (stackUpdated) {
+                this.props.onChange(value);
+            }
         } else {
             this.setState({value});
         }
@@ -402,7 +430,7 @@ export class BlockInputToolbar extends React.Component {
                                 disabled={undoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'undo-alt'} /> Undo{' '}
-                                <span className="badge badge-light">{undoCount}</span>
+                                <span className="badge badge-light badge-undo-redo-count">{undoCount}</span>
                             </button>
                             <button
                                 type="button"
@@ -411,7 +439,7 @@ export class BlockInputToolbar extends React.Component {
                                 disabled={redoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'redo-alt'} /> Redo{' '}
-                                <span className="badge badge-light">{redoCount}</span>
+                                <span className="badge badge-light badge-undo-redo-count">{redoCount}</span>
                             </button>
                         </div>
                     </div>
