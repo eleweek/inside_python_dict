@@ -91,7 +91,7 @@ function SimpleListSearchStateVisualization(props) {
     );
 }
 
-const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
+export const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
     ['def build_not_quite_what_we_want(original_list):', 'start-execution', 0],
     ['    new_list = [None] * len(original_list)', 'create-new-list', 1],
     ['', ''],
@@ -101,7 +101,7 @@ const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
     ['    return new_list', 'return-created-list', 1],
 ];
 
-const SIMPLIFIED_INSERT_ALL_CODE = [
+export const SIMPLIFIED_INSERT_ALL_CODE = [
     ['def build_insert_all(original_list):', 'start-execution', 0],
     ['    new_list = [None] * (2 * len(original_list))', 'create-new-list', 1],
     ['', ''],
@@ -249,7 +249,7 @@ function SimplifiedInsertStateVisualization(props) {
     );
 }
 
-const SIMPLIFIED_SEARCH_CODE = [
+export const SIMPLIFIED_SEARCH_CODE = [
     ['def has_number(new_list, number):', 'start-execution', 0],
     ['    idx = number % len(new_list)', 'compute-idx', 1],
     ['    while new_list[idx] is not None:', 'check-not-found', 2],
@@ -376,6 +376,28 @@ function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumb
     );
 }
 
+export class Ops {
+    static createNew(numbers) {
+        let sia = new SimplifiedInsertAll();
+        const keys = sia.run(numbers);
+        const bp = sia.getBreakpoints();
+        return {keys, bp};
+    }
+
+    static createNewBroken(numbers) {
+        let sia = new SimplifiedInsertAll();
+        const keys = sia.run(numbers, true);
+        return {bp: sia.getBreakpoints(), overwrittenNumbers: sia.overwrittenNumbers(), keys};
+    }
+
+    static hasKey(keys, number) {
+        let ss = new SimplifiedSearch();
+        const result = ss.run(keys, number);
+        const bp = ss.getBreakpoints();
+        return {bp, result, keys};
+    }
+}
+
 export class Chapter1_SimplifiedHash extends ChapterComponent {
     constructor() {
         super();
@@ -397,10 +419,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
     }
 
     runSimplifiedInsertAll = memoizeOne(numbers => {
-        let sia = new SimplifiedInsertAll();
-        let data = sia.run(numbers);
-        let bp = sia.getBreakpoints();
-        return {data, bp};
+        return Ops.createNew(numbers);
     });
 
     generateAlternativeDataForInsertAllBroken = memoizeOne(numbers => {
@@ -420,16 +439,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
     });
 
     runSimplifiedInsertAllBroken = memoizeOne(numbers => {
-        let sia = new SimplifiedInsertAll();
-        let data = sia.run(numbers, true);
-        return {bp: sia.getBreakpoints(), overwrittenNumbers: sia.overwrittenNumbers()};
+        return Ops.createNewBroken(numbers);
     });
 
-    runSimplifiedSearch = memoizeOne((data, number) => {
-        let ss = new SimplifiedSearch();
-        ss.run(data, number);
-        let bp = ss.getBreakpoints();
-        return {bp};
+    runSimplifiedSearch = memoizeOne((keys, number) => {
+        return Ops.hasKey(data, number);
     });
 
     runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {

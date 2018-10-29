@@ -1,41 +1,8 @@
-import json
-import socket
-from js_reimpl_common import dump_simple_py_obj, dump_array, parse_array
-
-# TODO: unhardcode?
-SOCK_FILENAME = 'pynode.sock'
-
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-sock.connect(SOCK_FILENAME)
-sockfile = sock.makefile('r')
+from js_reimpl_common import run_op_chapter1_chapter2
 
 
 def run_op(hash_codes, keys, op, **kwargs):
-    for name in kwargs:
-        if name != 'array':
-            kwargs[name] = dump_simple_py_obj(kwargs[name])
-        else:
-            kwargs[name] = dump_array(kwargs[name])
-
-    data = {
-        "dict": "chapter2",
-        "op": op,
-        "args": kwargs,
-        "hashCodes": dump_array(hash_codes) if hash_codes is not None else None,
-        "keys": dump_array(keys) if keys is not None else None,
-    }
-
-    sock.send(bytes(json.dumps(data) + "\n", 'UTF-8'))
-    response = json.loads(sockfile.readline())
-
-    if response["exception"]:
-        raise KeyError()
-
-    if 'result' in response and response['result'] is not None:
-        # TODO: this is pretty hacky
-        return response["result"]
-    else:
-        return parse_array(response["hashCodes"]), parse_array(response["keys"])
+    return run_op_chapter1_chapter2("chapter2", hash_codes, keys, op, **kwargs)
 
 
 def create_new(from_keys):

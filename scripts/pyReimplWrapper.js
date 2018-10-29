@@ -7,6 +7,7 @@ import {DUMMY, EMPTY, None} from '../src/hash_impl_common';
 import {Dict32} from '../src/chapter4_real_python_dict';
 import {AlmostPythonDict} from '../src/chapter3_hash_class';
 import {Ops as Chapter2Ops} from '../src/chapter2_hash_table_functions';
+import {Ops as Chapter1Ops} from '../src/chapter1_simplified_hash';
 import {Slot} from '../src/chapter3_and_4_common';
 import {List as ImmutableList} from 'immutable';
 
@@ -153,6 +154,24 @@ function almostPyDictRunOp(pySelf, op, key, value, pairs) {
     }
 }
 
+function chapter1run(keys, op, key, numbers) {
+    switch (op) {
+        case 'create_new':
+            ({keys} = Chapter1Ops.createNew(numbers));
+            return {keys};
+        case 'create_new_broken':
+            ({keys} = Chapter1Ops.createNewBroken(numbers));
+            return {keys};
+        case 'has_key': {
+            let result;
+            ({keys, result} = Chapter1Ops.hasKey(keys, key));
+            return {keys, result};
+        }
+        default:
+            throw new Error('Unknown op: ' + op);
+    }
+}
+
 function chapter2run(hashCodes, keys, op, key, array) {
     switch (op) {
         case 'create_new':
@@ -235,6 +254,13 @@ const server = net.createServer(c => {
                 exception: isException || false,
                 result: result !== undefined ? result : null,
                 hashCodes: dumpArray(hashCodes),
+                keys: dumpArray(keys),
+            };
+        } else if (dictType === 'chapter1') {
+            let keys = data.keys != null ? new ImmutableList(parseArray(data.keys)) : undefined;
+            ({keys, result} = chapter1run(keys, op, key, array));
+            response = {
+                result: result !== undefined ? result : null,
                 keys: dumpArray(keys),
             };
         } else {

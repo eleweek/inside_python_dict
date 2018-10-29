@@ -30,6 +30,12 @@ import {
     HASH_INSERT_CODE,
 } from '../src/chapter2_hash_table_functions';
 
+import {
+    SIMPLIFIED_INSERT_ALL_BROKEN_CODE,
+    SIMPLIFIED_INSERT_ALL_CODE,
+    SIMPLIFIED_SEARCH_CODE,
+} from '../src/chapter1_simplified_hash';
+
 import fs from 'fs';
 import * as path from 'path';
 
@@ -121,5 +127,12 @@ outputCode(
     path.join(DIR, 'hash_chapter2_extracted.py'),
     [commonImports],
     [HASH_CREATE_NEW_CODE, HASH_SEARCH_CODE, HASH_REMOVE_CODE, HASH_RESIZE_CODE, HASH_INSERT_CODE],
+    false
+);
+
+outputCode(
+    path.join(DIR, 'hash_chapter1_extracted.py'),
+    [commonImports],
+    [SIMPLIFIED_INSERT_ALL_CODE, SIMPLIFIED_INSERT_ALL_BROKEN_CODE, SIMPLIFIED_SEARCH_CODE],
     false
 );
