@@ -14,3 +14,7 @@ def create_new_broken(numbers):
 
 def has_key(keys, key):
     return has_number(keys, key)
+
+
+def linear_search(numbers, number):
+    return simple_search(numbers, number)

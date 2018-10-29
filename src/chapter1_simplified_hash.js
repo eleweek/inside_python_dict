@@ -11,11 +11,11 @@ import {BigNumber} from 'bignumber.js';
 
 import memoizeOne from 'memoize-one';
 
-const SIMPLE_LIST_SEARCH = [
-    ['def has_key(simple_list, key):', '', 0],
+export const SIMPLE_LIST_SEARCH = [
+    ['def simple_search(simple_list, key):', '', 0],
     ['    idx = 0', 'start-from-zero', 1],
     ['    while idx < len(simple_list):', 'check-boundary', 2],
-    ['        if simple_list[idx].key == key:', 'check-found', 2],
+    ['        if simple_list[idx] == key:', 'check-found', 2],
     ['            return True', 'found-key', 2],
     ['        idx += 1', 'next-idx', 2],
     ['    return False', 'found-nothing', 1],
@@ -45,7 +45,7 @@ function simpleListSearch(l, key) {
             breakpoints.push(newBP('check-found', idx, {found: true}));
             breakpoints.push(newBP('found-key', idx));
 
-            return breakpoints;
+            return {bp: breakpoints, result: true};
         } else {
             breakpoints.push(newBP('check-found', idx, {found: false}));
         }
@@ -56,7 +56,7 @@ function simpleListSearch(l, key) {
 
     breakpoints.push(newBP('found-nothing', idx));
 
-    return breakpoints;
+    return {bp: breakpoints, result: false};
 }
 
 let formatSimpleListSearchBreakpointDescription = function(bp) {
@@ -396,6 +396,10 @@ export class Ops {
         const bp = ss.getBreakpoints();
         return {bp, result, keys};
     }
+
+    static linearSearch(numbers, searchedNumber) {
+        return simpleListSearch(numbers, searchedNumber);
+    }
 }
 
 export class Chapter1_SimplifiedHash extends ChapterComponent {
@@ -432,8 +436,6 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
             const addedNumber = minNum.plus(numbers.length + 1);
             const newNumbers = [...numbers, addedNumber];
             ({bp, overwrittenNumbers} = this.runSimplifiedInsertAllBroken(newNumbers));
-            console.log('numbers', newNumbers);
-            console.log('own', overwrittenNumbers);
             return {originalNumbers: numbers, numbers: newNumbers, bp, addedNumber, overwrittenNumbers};
         }
     });
@@ -447,7 +449,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
     });
 
     runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {
-        return {bp: simpleListSearch(numbers, searchedNumber)};
+        const {bp} = Ops.linearSearch(numbers, searchedNumber);
+        return {bp};
     });
 
     render() {

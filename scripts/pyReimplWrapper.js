@@ -167,6 +167,10 @@ function chapter1run(keys, op, key, numbers) {
             ({keys, result} = Chapter1Ops.hasKey(keys, key));
             return {keys, result};
         }
+        case 'linear_search': {
+            let {result} = Chapter1Ops.linearSearch(numbers, key);
+            return {result};
+        }
         default:
             throw new Error('Unknown op: ' + op);
     }
@@ -261,7 +265,7 @@ const server = net.createServer(c => {
             ({keys, result} = chapter1run(keys, op, key, array));
             response = {
                 result: result !== undefined ? result : null,
-                keys: dumpArray(keys),
+                keys: keys !== undefined ? dumpArray(keys) : null,
             };
         } else {
             throw new Error('Unknown dict type');

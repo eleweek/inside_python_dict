@@ -15,3 +15,7 @@ def create_new_broken(numbers):
 
 def has_key(keys, key):
     return run_op(keys, "has_key", key=key)
+
+
+def linear_search(numbers, key):
+    return run_op(None, "linear_search", key=key, array=numbers)

@@ -58,3 +58,9 @@ for reimpl in {js,py_extracted}; do
     echo "        Implementation: $reimpl"
     python3 python_code/hash_chapter1_reimplementation_test.py --test-implementation $reimpl --num-inserts $NUM_INSERTS_SMALLER
 done;
+
+echo "Linear search from chapter 1: size = $NUM_INSERTS_SMALLER"
+for reimpl in {js,py_extracted}; do
+    echo "        Implementation: $reimpl"
+    python3 python_code/chapter1_linear_search_reimplementation_test.py   --test-implementation $reimpl --size $NUM_INSERTS_SMALLER
+done;

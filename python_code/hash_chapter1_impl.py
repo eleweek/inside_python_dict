@@ -32,3 +32,7 @@ def has_key(keys, key):
         idx = (idx + 1) % len(keys)
 
     return False
+
+
+def linear_search(numbers, number):
+    return number in numbers

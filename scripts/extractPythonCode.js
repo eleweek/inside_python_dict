@@ -34,6 +34,7 @@ import {
     SIMPLIFIED_INSERT_ALL_BROKEN_CODE,
     SIMPLIFIED_INSERT_ALL_CODE,
     SIMPLIFIED_SEARCH_CODE,
+    SIMPLE_LIST_SEARCH,
 } from '../src/chapter1_simplified_hash';
 
 import fs from 'fs';
@@ -133,6 +134,6 @@ outputCode(
 outputCode(
     path.join(DIR, 'hash_chapter1_extracted.py'),
     [commonImports],
-    [SIMPLIFIED_INSERT_ALL_CODE, SIMPLIFIED_INSERT_ALL_BROKEN_CODE, SIMPLIFIED_SEARCH_CODE],
+    [SIMPLIFIED_INSERT_ALL_CODE, SIMPLIFIED_INSERT_ALL_BROKEN_CODE, SIMPLIFIED_SEARCH_CODE, SIMPLE_LIST_SEARCH],
     false
 );

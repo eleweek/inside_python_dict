@@ -19,7 +19,7 @@ def get_implementation(is_broken, impl):
     return (module.create_new_broken if is_broken else module.create_new, module.has_key)
 
 
-def run(test_implementation, is_broken, n_inserts, verbose):
+def run(test_implementation, is_broken, n_inserts):
     MAX_VAL = 5000
     ref_create_new, ref_has_key = get_implementation(is_broken, "py_ref")
     test_create_new, test_has_key = get_implementation(is_broken, test_implementation)
@@ -28,9 +28,6 @@ def run(test_implementation, is_broken, n_inserts, verbose):
 
     ref_keys = ref_create_new(numbers)
     test_keys = test_create_new(numbers)
-
-    if verbose:
-        print("Starting test")
 
     for number in numbers:
         if not is_broken:
@@ -49,11 +46,8 @@ if __name__ == "__main__":
     parser.add_argument('--is-broken', action='store_true')
     parser.add_argument('--test-implementation', choices=['py_extracted', 'js'], required=True)
     parser.add_argument('--num-inserts',  type=int, default=500)
-    parser.add_argument('--forever', action='store_true')
-    parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
 
     run(test_implementation=args.test_implementation,
         is_broken=args.is_broken,
-        n_inserts=args.num_inserts,
-        verbose=args.verbose)
+        n_inserts=args.num_inserts)
