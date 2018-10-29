@@ -233,6 +233,8 @@ export function formatHashClassInit(bp) {
             return `Set <code>fill</code> to <code>0</code>, because there are no items (yet)`;
         case 'init-used':
             return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
+        case 'check-pairs':
+            return `Check if there are <code>pairs</code> to insert`;
         case 'for-pairs':
             return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${displayStr(
                 bp.oldKey
@@ -496,16 +498,13 @@ export class HashClassInsertAll extends HashBreakpointFunction {
     run(_self, _pairs, useRecycling, SetItem, Resize, optimalSizeQuot) {
         this.self = _self;
         this.pairs = _pairs;
-        this.fromKeys = this.pairs.map(p => p[0]);
-        this.fromValues = this.pairs.map(p => p[1]);
         for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
             this.addBP('for-pairs');
             this.addBP('run-setitem');
             let hcsi = new SetItem();
             hcsi.setExtraBpContext({
                 oldIdx: this.oldIdx,
-                fromKeys: this.fromKeys,
-                fromValues: this.fromValues,
+                pairs: this.pairs,
             });
             this.self = hcsi.run(this.self, this.oldKey, this.oldValue, useRecycling, Resize, optimalSizeQuot);
             if (hcsi.getResize()) {
@@ -547,11 +546,13 @@ export function HashClassInsertAllVisualization(props) {
             lines={[
                 [
                     LineOfBoxesComponent,
-                    [null, 'fromKeys', 'oldIdx', undefined, {labels: ['from_values'], labelWidth: 140}],
-                ],
-                [
-                    LineOfBoxesComponent,
-                    [null, 'fromValues', 'oldIdx', undefined, {labels: ['from_keys'], labelWidth: 140}],
+                    [
+                        null,
+                        'pairs',
+                        'oldIdx',
+                        undefined,
+                        {labels: ['pairs[*][0]', 'pairs[*][1]'], labelWidth: 140, linesCount: 2},
+                    ],
                 ],
                 [
                     HashSlotsComponent,

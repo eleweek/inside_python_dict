@@ -309,16 +309,6 @@ class Box extends React.PureComponent {
     }
 }
 
-/* TODO: make these functions static methods */
-function slotBoxes(keys, value) {
-    const slot = value;
-    return [
-        [keys[0], {value: slot.hashCode, yOffset: 0}],
-        [keys[1], {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
-        [keys[2], {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
-    ];
-}
-
 function oneBox(keys, value) {
     return [[keys[0], {value}]];
 }
@@ -957,7 +947,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
                 }
 
                 if (desc == null) {
-                    throw new Error('Unknown bp type: ' + bp.point);
+                    throw new Error('Unknown bp type: ' + bpPoint);
                 }
 
                 if (desc) {
@@ -1392,6 +1382,15 @@ export class HashBoxesComponent extends React.PureComponent {
 export class HashSlotsComponent extends React.PureComponent {
     static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
 
+    static boxFactory(keys, value) {
+        const slot = value;
+        return [
+            [keys[0], {value: slot.hashCode, yOffset: 0}],
+            [keys[1], {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
+            [keys[2], {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
+        ];
+    }
+
     static getKeys(array) {
         let counters = {hashCode: {}, key: {}, value: {}};
         const emptyOrKey = (v, idx, name, keyKey) => {
@@ -1417,7 +1416,7 @@ export class HashSlotsComponent extends React.PureComponent {
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashSlotsComponent.getKeys}
-                boxFactory={slotBoxes}
+                boxFactory={HashSlotsComponent.boxFactory}
                 selectionClass={SlotSelection}
                 height={HashSlotsComponent.HEIGHT}
                 labelHeight={BOX_SIZE}
@@ -1428,35 +1427,62 @@ export class HashSlotsComponent extends React.PureComponent {
 }
 
 export class LineOfBoxesComponent extends React.PureComponent {
-    static HEIGHT = BOX_SIZE;
-
     static getKeys(array) {
-        let counter = {};
+        let counters = [];
         let keys = [];
         // Does not support nulls/"empty"
-        for (let [idx, value] of array.entries()) {
-            const keyPart = pyObjToReactKey(value);
-            if (!(value in counter)) {
-                counter[value] = 0;
-            } else {
-                counter[value]++;
+        for (let [idx, values] of array.entries()) {
+            if (!Array.isArray(values)) {
+                values = [values];
             }
 
-            const key = `${keyPart}-${counter[value]}`;
-            keys.push([key]);
+            let currentKeys = [];
+
+            for (let [j, value] of values.entries()) {
+                const keyPart = pyObjToReactKey(value);
+
+                // TODO: this is all ugly
+                // TODO: refactor into defaultdict/defaultlist kind of data structure
+                if (j == counters.length) {
+                    counters.push({});
+                }
+
+                let counter = counters[j];
+                if (!(value in counter)) {
+                    counter[value] = 0;
+                } else {
+                    counter[value]++;
+                }
+
+                const key = `${keyPart}-${j}-${counter[value]}`;
+                currentKeys.push(key);
+            }
+            keys.push(currentKeys);
         }
 
         return keys;
     }
 
+    static boxFactory(keys, values) {
+        if (keys.length === 1) {
+            return [[keys[0], {value: values}]];
+        }
+
+        return _.zip(keys, values).map(([key, value], j) => {
+            return [key, {value, yOffset: j * (BOX_SIZE + SPACING_Y_SLOT)}];
+        });
+    }
+
     render() {
+        const linesCount = this.props.linesCount || 1;
+        const height = linesCount * BOX_SIZE + (linesCount - 1) * SPACING_Y_SLOT;
         return (
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={LineOfBoxesComponent.getKeys}
-                boxFactory={oneBox}
+                boxFactory={LineOfBoxesComponent.boxFactory}
                 selectionClass={ActiveBoxSelection}
-                height={LineOfBoxesComponent.HEIGHT}
+                height={height}
                 labelHeight={BOX_SIZE}
                 labelMarginBottom={SPACING_Y_SLOT}
             />

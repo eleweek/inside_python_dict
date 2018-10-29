@@ -266,6 +266,7 @@ export class Dict32 {
         }
 
         const ie = new HashClassInitEmpty();
+        ie.setExtraBpContext({pairs});
         let pySelf = ie.run(startSize, pairsLength);
         let bp = ie.getBreakpoints();
 

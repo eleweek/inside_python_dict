@@ -56,6 +56,7 @@ class HashClassResize extends chapter3Extend(HashClassResizeBase) {}
 export class AlmostPythonDict {
     static __init__(pairs) {
         const ie = new HashClassInitEmpty();
+        ie.setExtraBpContext({pairs});
         let pySelf = ie.run(null, pairs.length);
         let bp = ie.getBreakpoints();
 
