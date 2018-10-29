@@ -23,6 +23,9 @@ class JsImplBase(object):
 
         self.run_op("__init__", pairs=pairs)
 
+    def __del__(self):
+        self.sock.close()
+
     def dump_slots(self):
         def dump_slot(slot):
             key = dump_simple_py_obj(slot.key)

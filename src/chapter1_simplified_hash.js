@@ -445,7 +445,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
     });
 
     runSimplifiedSearch = memoizeOne((keys, number) => {
-        return Ops.hasKey(data, number);
+        return Ops.hasKey(keys, number);
     });
 
     runSimpleListSearch = memoizeOne((numbers, searchedNumber) => {
@@ -457,7 +457,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         const slsRes = this.runSimpleListSearch(this.state.numbers, this.state.simpleSearchNumber);
         const siaBrokenRes = this.generateAlternativeDataForInsertAllBroken(this.state.numbers);
         const siaRes = this.runSimplifiedInsertAll(this.state.numbers);
-        const ssRes = this.runSimplifiedSearch(siaRes.data, this.state.simplifiedHashSearchNumber);
+        const ssRes = this.runSimplifiedSearch(siaRes.keys, this.state.simplifiedHashSearchNumber);
 
         return (
             <div className="chapter chapter1">
