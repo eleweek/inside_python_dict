@@ -8,6 +8,7 @@ import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
 
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
+import {faSyncAlt} from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import {faFirefox} from '@fortawesome/free-brands-svg-icons/faFirefox';
 
 import {library, config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
@@ -16,6 +17,7 @@ fontAwesomeConfig.autoAddCss = false;
 library.add(faDesktop);
 library.add(faFirefox);
 library.add(faSpinner);
+library.add(faSyncAlt);
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -85,8 +87,7 @@ class Alerts extends React.Component {
         alerts.push(<LoadingAlert isRunningInBrowser={isRunningInBrowser} key="loading-warning" />);
 
         if (this.state.mounted) {
-            const {browser} = this.props;
-
+            const {browser, windowWidth, windowHeight} = this.props;
             if (browser) {
                 if (browser.mobile) {
                     alerts.push(
@@ -95,6 +96,14 @@ class Alerts extends React.Component {
                             experience desktop Chrome or Safari is recommended is recommended.
                         </BootstrapAlert>
                     );
+                    if (windowWidth < windowHeight) {
+                        alerts.push(
+                            <BootstrapAlert key="mobile-device-rotate-warning">
+                                <FontAwesomeIcon icon="sync-alt" /> <strong>Rotating your device is recommended</strong>{' '}
+                                - wider viewport is better
+                            </BootstrapAlert>
+                        );
+                    }
                 } else if (browser.name === 'firefox') {
                     alerts.push(
                         <BootstrapAlert key="ff-warning">
@@ -166,7 +175,7 @@ export class App extends React.Component {
             <div className="app-container container-fluid">
                 <GithubForkMe />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                <Alerts browser={this.props.browser} />
+                <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
             </div>
         );
