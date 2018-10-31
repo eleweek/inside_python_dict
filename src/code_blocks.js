@@ -1141,6 +1141,7 @@ class TimeSliderWithControls extends React.PureComponent {
             if (newState.time < this.props.maxTime) {
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
                 this.timeoutStarted = this.time();
+                newState.autoPlaying = true;
             } else {
                 this.timeoutId = null;
                 newState.autoPlaying = false;
@@ -1159,7 +1160,6 @@ class TimeSliderWithControls extends React.PureComponent {
     autoPlay = () => {
         if (this.state.time < this.props.maxTime) {
             this.autoPlayNextStep();
-            this.setState({autoPlaying: true});
         } else {
             this.repeatPlay();
         }
@@ -1170,8 +1170,8 @@ class TimeSliderWithControls extends React.PureComponent {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
             this.timeoutStarted = null;
-            this.setState({autoPlaying: false});
         }
+        this.setState({autoPlaying: false});
     };
 
     setSpeed = speed => {
