@@ -6,6 +6,7 @@ import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, Tetris, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
+import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -187,25 +188,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
                 bp.newList.size
             }</code>`;
         case 'check-collision':
-            if (bp.newList.get(bp.newListIdx) == null) {
-                if (bp.fmtCollisionCount > 0) {
-                    return `After ${bp.fmtCollisionCount} ${singularOrPlural(
-                        bp.fmtCollisionCount,
-                        'collision',
-                        'collisions'
-                    )}, an empty slot (at <code>${bp.newListIdx}</code>) is found: ${singularOrPlural(
-                        bp.fmtCollisionCount,
-                        'the collision is',
-                        'the collisions are'
-                    )} successfully resolved`;
-                } else {
-                    return `Slot <code>${bp.newListIdx}</code> is empty: no need to do collision resolution`;
-                }
-            } else {
-                return `Slot <code>${bp.newListIdx}</code> is occupied by <code>${bp.newList.get(
-                    bp.newListIdx
-                )}</code>: a collision occurred`;
-            }
+            return commonFormatCheckCollision(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
                 bp._prevBp.newListIdx
@@ -296,18 +279,8 @@ let formatSimplifiedSearchDescription = function(bp) {
             return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
                 bp.newList.size
             }</code>`;
-        case 'check-not-found': {
-            const tryN = bp.fmtCollisionCount + 1;
-            if (bp.newList.get(bp.newListIdx) == null) {
-                if (bp.fmtCollisionCount == 0) {
-                    return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is empty, so don't loop`;
-                } else {
-                    return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is empty, stop looping`;
-                }
-            } else {
-                return `[Try #${tryN}] Slot <code>${bp.newListIdx}</code> is occupied, so check it`;
-            }
-        }
+        case 'check-not-found':
+            return commonFormatCheckNotFound(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'check-found':
             let found = EQ(bp.newList.get(bp.newListIdx), bp.number);
             if (found) {

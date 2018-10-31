@@ -8,13 +8,14 @@ import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, di
 import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize} from './util';
+import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
 
 export const HASH_CREATE_NEW_CODE = [
     ['def create_new(from_keys):', 'start-execution', 0],
-    ['    hash_codes = [EMPTY for i in range(2 * len(from_keys))]', 'create-new-empty-hashes', 1],
-    ['    keys = [EMPTY for i in range(2 * len(from_keys))]', 'create-new-empty-keys', 1],
+    ['    hash_codes = [EMPTY] * (2 * len(from_keys))', 'create-new-empty-hashes', 1],
+    ['    keys = [EMPTY] * (2 * len(from_keys))', 'create-new-empty-keys', 1],
     ['', '', -1],
     ['    for key in from_keys:', 'for-loop', 2],
     ['        hash_code = hash(key)', 'compute-hash', 2],
@@ -56,6 +57,7 @@ class HashCreateNew extends HashBreakpointFunction {
             this.idx = this.computeIdx(this.hashCode, this.keys.size);
             this.addBP('compute-idx');
 
+            this.fmtCollisionCount = 0;
             while (true) {
                 this.addBP('check-collision');
                 if (this.keys.get(this.idx) === null) {
@@ -71,6 +73,7 @@ class HashCreateNew extends HashBreakpointFunction {
                     }
                 }
 
+                this.fmtCollisionCount += 1;
                 this.idx = (this.idx + 1) % this.keys.size;
                 this.addBP('next-idx');
             }
@@ -111,21 +114,17 @@ function formatHashCreateNewAndInsert(bp) {
         case 'create-new-empty-keys':
             return `Create a new list of size <code>${bp.keys.size}</code> for keys`;
         case 'for-loop':
-            return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.size}] Current key to insert is <code>${displayStr(
+            return `[${bp.fromKeysIdx + 1}/${bp.fromKeys.size}] The key to insert is <code>${displayStr(
                 bp.key
             )}</code>`;
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
-            return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.keys.size}</code> == <code>${
-                bp.idx
+            return `Compute the starting slot index: <code>${bp.idx}</code> == <code>${bp.hashCode} % ${
+                bp.keys.size
             }</code>`;
         case 'check-collision':
-            if (bp.keys.get(bp.idx) === null) {
-                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
-            } else {
-                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
-            }
+            return commonFormatCheckCollision(bp.keys, bp.idx, bp.fmtCollisionCount);
         case 'check-dup-hash':
             if (EQ(bp.hashCodes.get(bp.idx), bp.hashCode)) {
                 return `<code>${bp.hashCodes.get(bp.idx)} == ${
@@ -190,11 +189,7 @@ function formatHashRemoveSearch(bp) {
                 bp.idx
             }</code>`;
         case 'check-not-found':
-            if (bp.keys.get(bp.idx) === null) {
-                return `Slot <code>${bp.idx}</code> is empty, no slots to check anymore`;
-            } else {
-                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied, so check it`;
-            }
+            return commonFormatCheckNotFound(bp.keys, bp.idx, bp.fmtCollisionCount);
         case 'check-hash':
             if (bp.hashCodes.get(bp.idx).eq(bp.hashCode)) {
                 return `<code>${bp.hashCodes.get(bp.idx)} == ${
@@ -218,9 +213,9 @@ function formatHashRemoveSearch(bp) {
         case 'return':
             return `The key is removed, now return`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
-                bp.keys.size
-            }</code>`;
+            return `Keep retracing probing steps, the next slot will be <code>${bp.idx}</code> == <code>(${
+                bp._prevBp.idx
+            } + 1) % ${bp.keys.size}</code>`;
         case 'throw-key-error':
             return `Throw an exception, because no key was found`;
         /* search */
@@ -264,6 +259,8 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
         this.keys = new List(_keys);
         this.key = _key;
 
+        this.fmtCollisionCount = 0;
+
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
 
@@ -292,6 +289,8 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
                 }
             }
 
+            this.fmtCollisionCount += 1;
+
             this.idx = (this.idx + 1) % this.keys.size;
             this.addBP('next-idx');
         }
@@ -312,8 +311,8 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
 
 export const HASH_RESIZE_CODE = [
     ['def resize(hash_codes, keys):', 'start-execution', 0],
-    ['    new_hash_codes = [EMPTY for i in range(len(hash_codes) * 2)]', 'create-new-empty-hashes', 1],
-    ['    new_keys = [EMPTY for i in range(len(keys) * 2)]', 'create-new-empty-keys', 1],
+    ['    new_hash_codes = [EMPTY] * (2 * len(hash_codes)', 'create-new-empty-hashes', 1],
+    ['    new_keys = [EMPTY] * (2 * len(keys))', 'create-new-empty-keys', 1],
     ['    for hash_code, key in zip(hash_codes, keys):', 'for-loop', 2],
     ['        if key is EMPTY or key is DUMMY:', 'check-skip-empty-dummy', 2],
     ['            continue', 'continue', 3],
@@ -350,6 +349,8 @@ class HashResize extends HashBreakpointFunction {
                 this.addBP('continue');
                 continue;
             }
+
+            this.fmtCollisionCount = 0;
             this.idx = this.computeIdx(this.hashCode, this.newKeys.size);
             this.addBP('compute-idx');
 
@@ -359,6 +360,7 @@ class HashResize extends HashBreakpointFunction {
                     break;
                 }
 
+                this.fmtCollisionCount += 1;
                 this.idx = (this.idx + 1) % this.newKeys.size;
                 this.addBP('next-idx');
             }
@@ -395,11 +397,7 @@ function formatHashResize(bp) {
         case 'continue':
             return 'So skip it';
         case 'check-collision':
-            if (bp.newKeys.get(bp.idx) === null) {
-                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
-            } else {
-                return `We haven't hit an empty slot yet, the slot <code>${bp.idx}</code> is occupied`;
-            }
+            return commonFormatCheckCollision(bp.newKeys, bp.idx, bp.fmtCollisionCount);
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
                 bp.keys.size
