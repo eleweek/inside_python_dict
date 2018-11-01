@@ -22,14 +22,7 @@ import {
     formatHashClassInit,
 } from './chapter3_and_4_common';
 
-import {
-    HashBoxesComponent,
-    LineOfBoxesComponent,
-    Tetris,
-    SimpleCodeBlock,
-    VisualizedCode,
-    dummyFormat,
-} from './code_blocks';
+import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
 import {MySticky, ChapterComponent, singularOrPlural, Subcontainerize} from './util';

@@ -311,7 +311,7 @@ class HashRemoveOrSearch extends HashBreakpointFunction {
 
 export const HASH_RESIZE_CODE = [
     ['def resize(hash_codes, keys):', 'start-execution', 0],
-    ['    new_hash_codes = [EMPTY] * (2 * len(hash_codes)', 'create-new-empty-hashes', 1],
+    ['    new_hash_codes = [EMPTY] * (2 * len(hash_codes))', 'create-new-empty-hashes', 1],
     ['    new_keys = [EMPTY] * (2 * len(keys))', 'create-new-empty-keys', 1],
     ['    for hash_code, key in zip(hash_codes, keys):', 'for-loop', 2],
     ['        if key is EMPTY or key is DUMMY:', 'check-skip-empty-dummy', 2],

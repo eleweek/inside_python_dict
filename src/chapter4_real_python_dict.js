@@ -716,10 +716,6 @@ class ProbingVisualizationImpl extends React.Component {
     }
 }
 
-function dummyFormat() {
-    return '';
-}
-
 export class Chapter4_RealPythonDict extends ChapterComponent {
     constructor() {
         super();
@@ -910,7 +906,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <VisualizedCode
                         code={PROBING_PYTHON_CODE}
                         breakpoints={probingPython.bp}
-                        formatBpDesc={[formatPythonProbing, dummyFormat]}
+                        formatBpDesc={formatPythonProbing}
                         stateVisualization={ProbingStateVisualization}
                         keepTimeOnNewBreakpoints={true}
                         comment={

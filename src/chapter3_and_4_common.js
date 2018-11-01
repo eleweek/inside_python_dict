@@ -9,7 +9,6 @@ import {
     Tetris,
     SimpleCodeBlock,
     VisualizedCode,
-    dummyFormat,
 } from './code_blocks';
 
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
