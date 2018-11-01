@@ -840,8 +840,27 @@ function deepGet(obj, path) {
     return node;
 }
 
+export function TetrisFactory(lines) {
+    return class extends React.PureComponent {
+        static getExpectedHeight() {
+            return Tetris.getExpectedHeight(lines);
+        }
+
+        render() {
+            return <Tetris lines={lines} {...this.props} />;
+        }
+    };
+}
+
 export class Tetris extends React.PureComponent {
-    VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
+    static VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
+
+    static getExpectedHeight(lines) {
+        return (
+            this.VIS_MARGIN * (lines.length - 1) +
+            _.sum(lines.map(([Component, [ld, d, i, i2, subProps]]) => Component.getExpectedGeometry(subProps).height))
+        );
+    }
 
     render() {
         const props = this.props;
@@ -861,7 +880,7 @@ export class Tetris extends React.PureComponent {
 
             labels = labels.concat(
                 labelsData.labels.map((label, index) => {
-                    const marginBottom = index === labelsData.labels.length - 1 ? this.VIS_MARGIN : labelMarginBottom;
+                    const marginBottom = index === labelsData.labels.length - 1 ? Tetris.VIS_MARGIN : labelMarginBottom;
                     return (
                         <div
                             className="tetris-label-div"
@@ -903,8 +922,6 @@ export class Tetris extends React.PureComponent {
 
 // TODO: parts of this function may be optimized/memoized
 class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
-    HEIGHT = 300;
-
     constructor() {
         super();
         this.ssRef = React.createRef();
@@ -1005,7 +1022,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
                 className="code-block-with-annotations-scrollbar-container"
             >
                 <div
-                    style={{maxHeight: `${this.HEIGHT}px`, transform: 'translateZ(0)'}}
+                    style={{maxHeight: this.props.height || 300, transform: 'translateZ(0)'}}
                     className="code-block-with-annotations"
                     dangerouslySetInnerHTML={{__html: lines.join('\n')}}
                 />
@@ -1301,6 +1318,17 @@ export class VisualizedCode extends React.Component {
     render() {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
+        let codeHeight;
+        if (this.props.windowHeight) {
+            const approximateSliderAndControlsHeight = 100;
+            const extraSpace = 100;
+            codeHeight =
+                this.props.windowHeight -
+                StateVisualization.getExpectedHeight() -
+                approximateSliderAndControlsHeight -
+                extraSpace;
+            codeHeight = Math.max(codeHeight, 175);
+        }
 
         let time = this.props.keepTimeOnNewBreakpoints
             ? this.state.userAdjustedToMax
@@ -1319,6 +1347,7 @@ export class VisualizedCode extends React.Component {
                     <div className="row code-block-row">
                         <div className="col">
                             <CodeBlockWithActiveLineAndAnnotations
+                                height={codeHeight}
                                 time={time}
                                 code={this.props.code}
                                 breakpoints={this.props.breakpoints}

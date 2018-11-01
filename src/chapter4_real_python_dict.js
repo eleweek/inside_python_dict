@@ -401,8 +401,15 @@ class GenerateProbingLinks extends BreakpointFunction {
     }
 }
 
-function ProbingStateVisualization({breakpoints, bpIdx}) {
-    return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} />;
+class ProbingStateVisualization extends React.Component {
+    static getExpectedHeight() {
+        return 250; // TODO: compute?
+    }
+
+    render() {
+        const {breakpoints, bpIdx} = this.props;
+        return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} />;
+    }
 }
 
 class ProbingVisualization extends React.Component {

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {List} from 'immutable';
 
 import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
-import {LineOfBoxesComponent, HashBoxesComponent, Tetris, VisualizedCode} from './code_blocks';
+import {LineOfBoxesComponent, HashBoxesComponent, TetrisFactory, VisualizedCode} from './code_blocks';
 import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
@@ -83,9 +83,9 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
     }
 };
 
-function SimpleListSearchStateVisualization(props) {
-    return <Tetris lines={[[LineOfBoxesComponent, [{labels: ['simple_list']}, 'data', 'idx']]]} {...props} />;
-}
+const SimpleListSearchStateVisualization = TetrisFactory([
+    [LineOfBoxesComponent, [{labels: ['simple_list']}, 'data', 'idx']],
+]);
 
 export const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
     ['def build_not_quite_what_we_want(original_list):', 'start-execution', 0],
@@ -209,17 +209,10 @@ let formatSimplifiedInsertAllDescription = function(bp) {
     }
 };
 
-function SimplifiedInsertStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
-                [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
-            ]}
-            {...props}
-        />
-    );
-}
+const SimplifiedInsertStateVisualization = TetrisFactory([
+    [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
+    [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
+]);
 
 export const SIMPLIFIED_SEARCH_CODE = [
     ['def has_number(new_list, number):', 'start-execution', 0],
@@ -290,9 +283,9 @@ let formatSimplifiedSearchDescription = function(bp) {
     }
 };
 
-function SimplifiedSearchStateVisualization(props) {
-    return <Tetris lines={[[HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']]]} {...props} />;
-}
+const SimplifiedSearchStateVisualization = TetrisFactory([
+    [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
+]);
 
 function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumber, overwrittenNumbers}) {
     let exampleOverwrite;

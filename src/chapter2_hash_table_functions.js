@@ -5,7 +5,7 @@ import {BigNumber} from 'bignumber.js';
 
 import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
-import {HashBoxesComponent, LineOfBoxesComponent, Tetris, SimpleCodeBlock, VisualizedCode} from './code_blocks';
+import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
@@ -91,18 +91,11 @@ class HashCreateNew extends HashBreakpointFunction {
     }
 }
 
-function HashCreateNewStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [LineOfBoxesComponent, [{labels: ['from_keys']}, 'fromKeys', 'fromKeysIdx']],
-                [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
-                [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
-            ]}
-            {...props}
-        />
-    );
-}
+const HashCreateNewStateVisualization = TetrisFactory([
+    [LineOfBoxesComponent, [{labels: ['from_keys']}, 'fromKeys', 'fromKeysIdx']],
+    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
+]);
 
 function formatHashCreateNewAndInsert(bp) {
     switch (bp.point) {
@@ -223,17 +216,10 @@ function formatHashRemoveSearch(bp) {
     }
 }
 
-function HashNormalStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
-                [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
-            ]}
-            {...props}
-        />
-    );
-}
+const HashNormalStateVisualization = TetrisFactory([
+    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
+]);
 
 export const HASH_REMOVE_CODE = [
     ['def remove(hash_codes, keys, key):', 'start-execution', 0],
@@ -408,19 +394,12 @@ function formatHashResize(bp) {
     }
 }
 
-function HashResizeStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'oldIdx']],
-                [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'oldIdx']],
-                [HashBoxesComponent, [{labels: ['new_hash_codes']}, 'newHashCodes', 'idx']],
-                [HashBoxesComponent, [{labels: ['new_keys']}, 'newKeys', 'idx']],
-            ]}
-            {...props}
-        />
-    );
-}
+const HashResizeStateVisualization = TetrisFactory([
+    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'oldIdx']],
+    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'oldIdx']],
+    [HashBoxesComponent, [{labels: ['new_hash_codes']}, 'newHashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['new_keys']}, 'newKeys', 'idx']],
+]);
 
 export const HASH_INSERT_CODE = [
     ['def insert(hash_codes, keys, key):', 'start-execution'],

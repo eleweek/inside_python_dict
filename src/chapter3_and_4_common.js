@@ -6,7 +6,7 @@ import {
     HashBoxesComponent,
     HashSlotsComponent,
     LineOfBoxesComponent,
-    Tetris,
+    TetrisFactory,
     SimpleCodeBlock,
     VisualizedCode,
 } from './code_blocks';
@@ -519,49 +519,19 @@ export class HashClassInsertAll extends HashBreakpointFunction {
     }
 }
 
-export function HashClassNormalStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [
-                    HashSlotsComponent,
-                    [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx', 'targetIdx'],
-                ],
-            ]}
-            {...props}
-        />
-    );
-}
+export const HashClassNormalStateVisualization = TetrisFactory([
+    [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx', 'targetIdx']],
+]);
 
-export function HashClassInsertAllVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [
-                    LineOfBoxesComponent,
-                    [{labels: ['pairs[*][0]', 'pairs[*][1]']}, 'pairs', 'oldIdx', undefined, {linesCount: 2}],
-                ],
-                [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
-            ]}
-            {...props}
-        />
-    );
-}
+export const HashClassInsertAllVisualization = TetrisFactory([
+    [LineOfBoxesComponent, [{labels: ['pairs[*][0]', 'pairs[*][1]']}, 'pairs', 'oldIdx', undefined, {linesCount: 2}]],
+    [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
+]);
 
-export function HashClassResizeVisualization(props) {
-    return (
-        <Tetris
-            lines={[
-                [
-                    HashSlotsComponent,
-                    [{labels: ['oldSlots/hashCode', 'oldSlots/key', 'oldSlots/value']}, 'oldSlots', 'oldIdx'],
-                ],
-                [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
-            ]}
-            {...props}
-        />
-    );
-}
+export const HashClassResizeVisualization = TetrisFactory([
+    [HashSlotsComponent, [{labels: ['oldSlots/hashCode', 'oldSlots/key', 'oldSlots/value']}, 'oldSlots', 'oldIdx']],
+    [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
+]);
 
 export class HashClassResizeBase extends HashBreakpointFunction {
     run(_self, optimalSizeQuot) {
