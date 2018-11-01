@@ -779,37 +779,10 @@ class BaseBoxesComponent extends React.PureComponent {
             boxes.push(this.state.activeBoxSelection2);
         }
 
-        let labelsDiv;
-        const props = this.props;
-        if (this.props.labels) {
-            labelsDiv = (
-                <div className="hash-vis-labels-wrapper">
-                    {this.props.labels.map(label => {
-                        return (
-                            <div
-                                className="hash-vis-label-div"
-                                key={label}
-                                style={{
-                                    width: props.labelWidth,
-                                    height: props.labelHeight,
-                                    marginBottom: props.labelMarginBottom,
-                                }}
-                            >
-                                <span className="hash-vis-label">{label}</span>
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        }
-
         // TODO: set proper width
         return (
-            <div className="hash-vis-wrapper" style={{height: this.props.height, width: 1000}}>
-                {labelsDiv}
-                <div className="hash-vis" ref={this.ref}>
-                    {boxes}
-                </div>
+            <div className="hash-vis" ref={this.ref}>
+                {boxes}
             </div>
         );
     }
@@ -868,12 +841,14 @@ function deepGet(obj, path) {
 }
 
 export class Tetris extends React.PureComponent {
+    VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
+
     render() {
         const props = this.props;
         let elems = [];
+        let labels = [];
         const transformedBp = props.bp;
-        this.height = 0;
-        for (let [i, [Component, [dataLabel, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
+        for (let [i, [Component, [labelsData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
                     array={deepGet(props.bp, dataName)}
@@ -882,30 +857,44 @@ export class Tetris extends React.PureComponent {
                     {...subProps}
                 />
             );
-            if (dataLabel != null) {
-                elems.push(
-                    <div className="tetris-row" key={`row-${i}`}>
-                        <div className="tetris-row-label-div">
-                            <p className="tetris-row-label">{dataLabel ? dataLabel + ':' : ''}</p>
+            const {labelMarginBottom, labelHeight, height} = Component.getExpectedGeometry(subProps);
+
+            labels = labels.concat(
+                labelsData.labels.map((label, index) => {
+                    const marginBottom = index === labelsData.labels.length - 1 ? this.VIS_MARGIN : labelMarginBottom;
+                    return (
+                        <div
+                            className="tetris-label-div"
+                            key={label}
+                            style={{
+                                height: labelHeight, // TODO, unhardcode
+                                marginBottom: marginBottom, // TODO: unhardcode
+                            }}
+                        >
+                            <span className="tetris-label">{label}</span>
                         </div>
+                    );
+                })
+            );
+
+            elems.push(
+                <div className="tetris-row" key={`row-${i}`}>
+                    <div className="hash-vis-wrapper" style={{height: height, width: 1000}}>
                         {component}
                     </div>
-                );
-            } else {
-                elems.push(
-                    <div className="tetris-row" key={`row-${i}`}>
-                        {component}
-                    </div>
-                );
-            }
+                </div>
+            );
         }
 
         // TODO: width/height stuff here
         return (
             <SmoothScrollbar alwaysShowTracks={true}>
                 <div style={{width: '700px'}}>
-                    <div className="some-hacky-padding" style={{height: 40}} />
-                    <div className="tetris">{elems}</div>
+                    <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
+                    <div className="tetris">
+                        <div className="tetris-labels">{labels}</div>
+                        <div className="tetris-rows">{elems}</div>
+                    </div>
                 </div>
             </SmoothScrollbar>
         );
@@ -1354,6 +1343,10 @@ export class VisualizedCode extends React.Component {
 export class HashBoxesComponent extends React.PureComponent {
     static HEIGHT = BOX_SIZE;
 
+    static getExpectedGeometry() {
+        return {height: this.HEIGHT, labelHeight: BOX_SIZE, labelMarginBottom: SPACING_Y_SLOT};
+    }
+
     static getKeys(array) {
         return array.map((value, idx) => {
             if (value != null) {
@@ -1372,8 +1365,6 @@ export class HashBoxesComponent extends React.PureComponent {
                 boxFactory={oneBox}
                 selectionClass={ActiveBoxSelection}
                 height={HashBoxesComponent.HEIGHT}
-                labelHeight={BOX_SIZE}
-                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }
@@ -1381,6 +1372,10 @@ export class HashBoxesComponent extends React.PureComponent {
 
 export class HashSlotsComponent extends React.PureComponent {
     static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
+
+    static getExpectedGeometry() {
+        return {height: this.HEIGHT, labelHeight: BOX_SIZE, labelMarginBottom: SPACING_Y_SLOT};
+    }
 
     static boxFactory(keys, value) {
         const slot = value;
@@ -1419,8 +1414,6 @@ export class HashSlotsComponent extends React.PureComponent {
                 boxFactory={HashSlotsComponent.boxFactory}
                 selectionClass={SlotSelection}
                 height={HashSlotsComponent.HEIGHT}
-                labelHeight={BOX_SIZE}
-                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }
@@ -1473,9 +1466,17 @@ export class LineOfBoxesComponent extends React.PureComponent {
         });
     }
 
+    static getExpectedGeometry(subProps) {
+        const linesCount = (subProps && subProps.linesCount) || 1;
+        return {
+            height: linesCount * BOX_SIZE + (linesCount - 1) * SPACING_Y_SLOT,
+            labelHeight: BOX_SIZE,
+            labelMarginBottom: SPACING_Y_SLOT,
+        };
+    }
+
     render() {
-        const linesCount = this.props.linesCount || 1;
-        const height = linesCount * BOX_SIZE + (linesCount - 1) * SPACING_Y_SLOT;
+        const height = LineOfBoxesComponent.getExpectedGeometry(this.props).height;
         return (
             <BaseBoxesComponent
                 {...this.props}
@@ -1483,8 +1484,6 @@ export class LineOfBoxesComponent extends React.PureComponent {
                 boxFactory={LineOfBoxesComponent.boxFactory}
                 selectionClass={ActiveBoxSelection}
                 height={height}
-                labelHeight={BOX_SIZE}
-                labelMarginBottom={SPACING_Y_SLOT}
             />
         );
     }

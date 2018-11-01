@@ -84,12 +84,7 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
 };
 
 function SimpleListSearchStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[[LineOfBoxesComponent, [null, 'data', 'idx', undefined, {labels: ['simple_list']}]]]}
-            {...props}
-        />
-    );
+    return <Tetris lines={[[LineOfBoxesComponent, [{labels: ['simple_list']}, 'data', 'idx']]]} {...props} />;
 }
 
 export const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
@@ -218,14 +213,8 @@ function SimplifiedInsertStateVisualization(props) {
     return (
         <Tetris
             lines={[
-                [
-                    LineOfBoxesComponent,
-                    [null, 'originalList', 'originalListIdx', undefined, {labels: ['original_list'], labelWidth: 100}],
-                ],
-                [
-                    HashBoxesComponent,
-                    [null, 'newList', 'newListIdx', undefined, {labels: ['new_list'], labelWidth: 100}],
-                ],
+                [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
+                [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
             ]}
             {...props}
         />
@@ -302,12 +291,7 @@ let formatSimplifiedSearchDescription = function(bp) {
 };
 
 function SimplifiedSearchStateVisualization(props) {
-    return (
-        <Tetris
-            lines={[[HashBoxesComponent, [null, 'newList', 'newListIdx', undefined, {labels: ['new_list']}]]]}
-            {...props}
-        />
-    );
+    return <Tetris lines={[[HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']]]} {...props} />;
 }
 
 function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumber, overwrittenNumbers}) {

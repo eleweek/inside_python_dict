@@ -525,13 +525,7 @@ export function HashClassNormalStateVisualization(props) {
             lines={[
                 [
                     HashSlotsComponent,
-                    [
-                        null,
-                        'self.slots',
-                        'idx',
-                        'targetIdx',
-                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 140},
-                    ],
+                    [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx', 'targetIdx'],
                 ],
             ]}
             {...props}
@@ -545,24 +539,9 @@ export function HashClassInsertAllVisualization(props) {
             lines={[
                 [
                     LineOfBoxesComponent,
-                    [
-                        null,
-                        'pairs',
-                        'oldIdx',
-                        undefined,
-                        {labels: ['pairs[*][0]', 'pairs[*][1]'], labelWidth: 140, linesCount: 2},
-                    ],
+                    [{labels: ['pairs[*][0]', 'pairs[*][1]']}, 'pairs', 'oldIdx', undefined, {linesCount: 2}],
                 ],
-                [
-                    HashSlotsComponent,
-                    [
-                        null,
-                        'self.slots',
-                        'idx',
-                        undefined,
-                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 140},
-                    ],
-                ],
+                [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
             ]}
             {...props}
         />
@@ -575,24 +554,9 @@ export function HashClassResizeVisualization(props) {
             lines={[
                 [
                     HashSlotsComponent,
-                    [
-                        null,
-                        'oldSlots',
-                        'oldIdx',
-                        undefined,
-                        {labels: ['oldSlots/hashCode', 'oldSlots/key', 'oldSlots/value'], labelWidth: 167},
-                    ],
+                    [{labels: ['oldSlots/hashCode', 'oldSlots/key', 'oldSlots/value']}, 'oldSlots', 'oldIdx'],
                 ],
-                [
-                    HashSlotsComponent,
-                    [
-                        null,
-                        'self.slots',
-                        'idx',
-                        undefined,
-                        {labels: ['slots/hashCode', 'slots/key', 'slots/value'], labelWidth: 167},
-                    ],
-                ],
+                [HashSlotsComponent, [{labels: ['slots/hashCode', 'slots/key', 'slots/value']}, 'self.slots', 'idx']],
             ]}
             {...props}
         />
