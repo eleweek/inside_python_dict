@@ -781,7 +781,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
         // TODO: set proper width
         return (
-            <div className="hash-vis" ref={this.ref}>
+            <div className="hash-vis" style={{height: this.props.height}} ref={this.ref}>
                 {boxes}
             </div>
         );
@@ -1321,12 +1321,17 @@ export class VisualizedCode extends React.Component {
         let codeHeight;
         if (this.props.windowHeight) {
             const approximateSliderAndControlsHeight = 100;
-            const extraSpace = 100;
+            // Hacky extraspace. Usually 135, but add some more
+            // when play+speed controls and input toolbar get bigger height on narrower screen
+            const extraSpace = 135 + (this.props.windowHeight < 850 ? 50 : 0);
             codeHeight =
                 this.props.windowHeight -
                 StateVisualization.getExpectedHeight() -
                 approximateSliderAndControlsHeight -
                 extraSpace;
+            if (codeHeight < 225) {
+                codeHeight += 50;
+            }
             codeHeight = Math.max(codeHeight, 175);
         }
 
