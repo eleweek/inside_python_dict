@@ -108,6 +108,13 @@ class ParsableInput extends React.Component {
         }
     };
 
+    tryAnotherClickInline = () => {
+        const value = this.props.anotherValue();
+        console.log('new value', value);
+        this.forceSetValue(value);
+        this.propsOnChangeThrottled(value);
+    };
+
     render() {
         if (this.props.autogrowing) {
             return (
@@ -143,6 +150,7 @@ class ParsableInput extends React.Component {
             }
             const className = classNames('parsable-input', 'form-control', 'form-control-sm', {
                 'fc-inline': this.props.inline,
+                'mr-0': !!this.props.anotherValue,
                 'is-invalid': !!error,
             });
             const divClassNames = classNames('parsable-input-with-error-div', {
@@ -164,18 +172,31 @@ class ParsableInput extends React.Component {
                     </div>
                 );
             } else {
+                let tryAnotherButtonDiv;
+                if (this.props.anotherValue) {
+                    tryAnotherButtonDiv = (
+                        <div className="input-group-append">
+                            <button className="btn btn-secondary" type="button" onClick={this.tryAnotherClickInline}>
+                                Try another
+                            </button>
+                        </div>
+                    );
+                }
                 return (
                     <div className={divClassNames}>
                         <Manager>
                             <Reference>
                                 {({ref}) => (
-                                    <input
-                                        ref={ref}
-                                        type="text"
-                                        className={className}
-                                        value={this.state.value}
-                                        onChange={this.handleChange}
-                                    />
+                                    <div className="input-group input-group-sm">
+                                        <input
+                                            ref={ref}
+                                            type="text"
+                                            className={className}
+                                            value={this.state.value}
+                                            onChange={this.handleChange}
+                                        />
+                                        {tryAnotherButtonDiv}
+                                    </div>
                                 )}
                             </Reference>
                             <Popper placement="bottom">

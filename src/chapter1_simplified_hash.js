@@ -4,7 +4,7 @@ import {List} from 'immutable';
 
 import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisFactory, VisualizedCode} from './code_blocks';
-import {PyListInput, PyShortIntInput, BlockInputToolbar} from './inputs';
+import {PyListInput, PyShortIntInput, BlockInputToolbar, InputTryAnother} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
@@ -473,6 +473,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         inline={true}
                         value={this.state.simpleSearchNumber}
                         onChange={this.setter('simpleSearchNumber')}
+                        anotherValue={() => 42}
                     />
                     <span className="text-muted">
                         (Try changing this field as well! And see how the steps and the data visualization update)
