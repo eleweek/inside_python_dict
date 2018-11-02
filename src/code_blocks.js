@@ -842,6 +842,8 @@ function deepGet(obj, path) {
 
 export function TetrisFactory(lines) {
     return class extends React.PureComponent {
+        static FULL_WIDTH = true;
+
         static getExpectedHeight() {
             return Tetris.getExpectedHeight(lines);
         }
@@ -881,13 +883,15 @@ export class Tetris extends React.PureComponent {
             labels = labels.concat(
                 labelsData.labels.map((label, index) => {
                     const marginBottom = index === labelsData.labels.length - 1 ? Tetris.VIS_MARGIN : labelMarginBottom;
+                    const expectedNumLabels = height / labelHeight;
+                    const actualNumLabels = labelsData.labels.length;
                     return (
                         <div
                             className="tetris-label-div"
                             key={label}
                             style={{
-                                height: labelHeight, // TODO, unhardcode
-                                marginBottom: marginBottom, // TODO: unhardcode
+                                height: (expectedNumLabels / actualNumLabels) * labelHeight,
+                                marginBottom: marginBottom,
                             }}
                         >
                             <span className="tetris-label">{label}</span>
@@ -898,17 +902,21 @@ export class Tetris extends React.PureComponent {
 
             elems.push(
                 <div className="tetris-row" key={`row-${i}`}>
-                    <div className="hash-vis-wrapper" style={{height: height, width: 1000}}>
+                    <div className="hash-vis-wrapper" style={{height: height}}>
                         {component}
                     </div>
                 </div>
             );
         }
 
+        let style;
+        if (this.props.compensateTopPadding) {
+            style = {position: 'relative', top: -BOX_SIZE};
+        }
         // TODO: width/height stuff here
         return (
-            <SmoothScrollbar alwaysShowTracks={true}>
-                <div style={{width: '700px'}}>
+            <SmoothScrollbar alwaysShowTracks={true} style={style}>
+                <div style={{width: 700}}>
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
                         <div className="tetris-labels">{labels}</div>

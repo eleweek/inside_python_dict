@@ -20,9 +20,10 @@ import {
     postBpTransform,
     findNearestSize,
 } from './chapter3_and_4_common';
+import {AlmostPythonDict} from './chapter3_hash_class';
 import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
-import {VisualizedCode} from './code_blocks';
+import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
@@ -76,6 +77,11 @@ let chapter4Extend = Base =>
             this.addBP('perturb-shift');
         }
     };
+
+const SideBySideDicts = TetrisFactory([
+    [HashSlotsComponent, [{labels: ['almost-python-dict']}, 'almostPythonDictSlots']],
+    [HashSlotsComponent, [{labels: ['python 3.2 dict']}, 'pythonDictSlots']],
+]);
 
 export {hashClassConstructor, HashClassGetItem, HashClassDelItem};
 export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
@@ -744,6 +750,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         };
     }
 
+    chapter3dict = memoizeOne(pairs => {
+        const {pySelf} = AlmostPythonDict.__init__(pairs);
+        return pySelf;
+    });
+
     runCreateNew = memoizeOne(pairs => {
         const {bp, resizes, pySelf} = Dict32.__init__(pairs);
         return {bp, pySelf, resizes};
@@ -803,6 +814,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         const t1 = performance.now();
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
+
+        let almostPythonDictSelf = this.chapter3dict(this.state.pairs);
 
         // TODO
         // let resizeRes = this.selectResize(newRes.resizes);
@@ -964,6 +977,18 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         formatBpDesc={[formatHashClassInit, formatHashClassSetItemAndCreate, formatDict32IdxRelatedBp]}
                         stateVisualization={HashClassInsertAllVisualization}
                         {...this.props}
+                    />
+                    <p>
+                        How much the difference in the resulting state does the probing algorithm make? How different is
+                        the resulting dict compared to almost-python-dict from chapter 3? Let's take a look at them
+                        side-by-side:{' '}
+                    </p>
+                    <SideBySideDicts
+                        bp={{
+                            almostPythonDictSlots: almostPythonDictSelf.get('slots'),
+                            pythonDictSlots: newRes.pySelf.get('slots'),
+                        }}
+                        compensateTopPadding={true}
                     />
                     <p>Removing a key looks pretty much the same</p>
                     <p className="inline-block">Deleting</p>
