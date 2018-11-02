@@ -178,7 +178,7 @@ export const HASH_CLASS_SETITEM_RECYCLING_CODE = [
 export const HASH_CLASS_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
-    ['    new_size = self.find_nearest_size(self.used * 2)', 'compute-new-size', 1],
+    ['    new_size = self.find_closest_size(self.used * 2)', 'compute-new-size', 1],
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
@@ -226,7 +226,7 @@ export const _HASH_CLASS_DELITEM_ONLY = [
 
 const HASH_CLASS_DELITEM = [...HASH_CLASS_LOOKDICT, ..._HASH_CLASS_DELITEM_ONLY];
 
-export const FIND_NEAREST_SIZE_CODE_STRING = `def find_nearest_size(self, minused):
+export const FIND_NEAREST_SIZE_CODE_STRING = `def find_closest_size(self, minused):
     new_size = 8
     while new_size <= minused:
         new_size *= 2
@@ -406,7 +406,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is
                         no definitive one-size-fits-all answer, so we find the nearest power of two that is greater{' '}
                         <code>2 * self.used</code>:<br />
-                        <code>self.find_nearest_size(2 * self.minused)</code>
+                        <code>self.find_closest_size(2 * self.minused)</code>
                     </p>
                     <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
                     <p>

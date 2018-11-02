@@ -135,7 +135,7 @@ function formatPythonProbing(bp) {
             return `Add slot <code>${bp.idx}</code> to the set of visited slots`;
         case 'while-loop':
             if (bp.visitedIdx.size === bp.slotsCount) {
-                return `all ${bp.visitedIdx.size} / ${bp.slotsCount} lots are visited &mdash; stop`;
+                return `all ${bp.visitedIdx.size} / ${bp.slotsCount} slots are visited &mdash; stop`;
             } else {
                 return `Visited ${bp.visitedIdx.size} / ${bp.slotsCount} slots, keep looping until all are visited`;
             }
@@ -151,7 +151,7 @@ export const STATICMETHOD_SIGNED_TO_UNSIGNED = [
 
 export const DICT32_INIT = [
     ['def __init__(self, pairs=None):', 'start-execution', 0],
-    ['    start_size = self.find_nearest_size(len(pairs)) if pairs else 8', 'init-start-size', 1],
+    ['    start_size = self.find_closest_size(len(pairs)) if pairs else 8', 'init-start-size', 1],
     ['    self.slots = [Slot() for _ in range(start_size)]', 'init-slots', 1],
     ['    self.fill = 0', 'init-fill', 1],
     ['    self.used = 0', 'init-used', 1],
@@ -198,7 +198,7 @@ const DICT32_SETITEM_WITH_INIT = [...STATICMETHOD_SIGNED_TO_UNSIGNED, ...DICT32_
 export const DICT32_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
-    ['    new_size = self.find_nearest_size(self.used * (4 if self.used <= 50000 else 2))', 'compute-new-size', 1],
+    ['    new_size = self.find_closest_size(self.used * (4 if self.used <= 50000 else 2))', 'compute-new-size', 1],
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],
@@ -337,7 +337,7 @@ const PROBING_PYTHON_CODE = [
     ['    while len(visited) < len(self.slots):', 'while-loop', 2],
     ['        visited.add(idx)', 'visited-add', 2],
     ['        idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 2],
-    ['        perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 2],
+    ['        perturb >>= PERTURB_SHIFT', 'perturb-shift', 2],
 ];
 
 class GenerateProbingLinks extends BreakpointFunction {
@@ -888,7 +888,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <p>
                         In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>. Then,
-                        in every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb <<= 5'}</code>
+                        in every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb >>= 5'}</code>
                         ).
                     </p>
                     <p>
