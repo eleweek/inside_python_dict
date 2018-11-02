@@ -878,19 +878,21 @@ export class Tetris extends React.PureComponent {
                     {...subProps}
                 />
             );
-            const {labelMarginBottom, labelHeight, height} = Component.getExpectedGeometry(subProps);
+            const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry(subProps);
 
             labels = labels.concat(
                 labelsData.labels.map((label, index) => {
-                    const marginBottom = index === labelsData.labels.length - 1 ? Tetris.VIS_MARGIN : labelMarginBottom;
-                    const expectedNumLabels = height / labelHeight;
+                    const marginBottom = index === labelsData.labels.length - 1 ? Tetris.VIS_MARGIN : rowMarginBottom;
+                    const expectedNumLabels = rowsNumber;
                     const actualNumLabels = labelsData.labels.length;
+                    if (actualNumLabels != expectedNumLabels && actualNumLabels != 1)
+                        throw new Error(`Mismatched number of labels`);
                     return (
                         <div
                             className="tetris-label-div"
                             key={label}
                             style={{
-                                height: (expectedNumLabels / actualNumLabels) * labelHeight,
+                                height: actualNumLabels === expectedNumLabels ? rowHeight : height,
                                 marginBottom: marginBottom,
                             }}
                         >
@@ -1387,7 +1389,7 @@ export class HashBoxesComponent extends React.PureComponent {
     static HEIGHT = BOX_SIZE;
 
     static getExpectedGeometry() {
-        return {height: this.HEIGHT, labelHeight: BOX_SIZE, labelMarginBottom: SPACING_Y_SLOT};
+        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 1};
     }
 
     static getKeys(array) {
@@ -1417,7 +1419,7 @@ export class HashSlotsComponent extends React.PureComponent {
     static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
 
     static getExpectedGeometry() {
-        return {height: this.HEIGHT, labelHeight: BOX_SIZE, labelMarginBottom: SPACING_Y_SLOT};
+        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 3};
     }
 
     static boxFactory(keys, value) {
@@ -1513,8 +1515,9 @@ export class LineOfBoxesComponent extends React.PureComponent {
         const linesCount = (subProps && subProps.linesCount) || 1;
         return {
             height: linesCount * BOX_SIZE + (linesCount - 1) * SPACING_Y_SLOT,
-            labelHeight: BOX_SIZE,
-            labelMarginBottom: SPACING_Y_SLOT,
+            rowHeight: BOX_SIZE,
+            rowMarginBottom: SPACING_Y_SLOT,
+            rowsNumber: linesCount,
         };
     }
 
