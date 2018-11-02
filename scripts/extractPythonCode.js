@@ -8,6 +8,7 @@ import {
     _DICT32_DELITEM_ONLY,
     DICT32_LOOKDICT,
     STATICMETHOD_SIGNED_TO_UNSIGNED,
+    PROBING_PYTHON_CODE,
 } from '../src/chapter4_real_python_dict';
 
 import {
@@ -137,3 +138,5 @@ outputCode(
     [SIMPLIFIED_INSERT_ALL_CODE, SIMPLIFIED_INSERT_ALL_BROKEN_CODE, SIMPLIFIED_SEARCH_CODE, SIMPLE_LIST_SEARCH],
     false
 );
+
+outputCode(path.join(DIR, 'chapter4_probing_python_code.py'), [commonImports], [PROBING_PYTHON_CODE], false);

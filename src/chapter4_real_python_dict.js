@@ -325,22 +325,20 @@ export class Dict32 {
     }
 }
 
-// TODO: check code
-// TODO: move break condition?
-const PROBING_PYTHON_CODE = [
+export const PROBING_PYTHON_CODE = [
     ['PERTURB_SHIFT = 5', 'const-perturb', 0],
-    ['def probe_all(key):', 'def-probel-all', 0],
+    ['def probe_all(key, slots_count=8):', 'def-probe-all', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    perturb = 2**64 + hash_code if hash_code < 0 else hash_code', 'compute-perturb', 1],
-    ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
+    ['    idx = hash_code % slots_count', 'compute-idx', 1],
     ['    visited = set()', 'create-empty-set', 1],
-    ['    while len(visited) < len(self.slots):', 'while-loop', 2],
+    ['    while len(visited) < slots_count:', 'while-loop', 2],
     ['        visited.add(idx)', 'visited-add', 2],
-    ['        idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 2],
+    ['        idx = (idx * 5 + perturb + 1) % slots_count', 'next-idx', 2],
     ['        perturb >>= PERTURB_SHIFT', 'perturb-shift', 2],
 ];
 
-class GenerateProbingLinks extends BreakpointFunction {
+export class GenerateProbingLinks extends BreakpointFunction {
     run(_slotsCount, _key, algo) {
         if (algo === 'python') {
             this.PERTURB_SHIFT = 5;
@@ -397,7 +395,7 @@ class GenerateProbingLinks extends BreakpointFunction {
             }
         }
 
-        return this.links;
+        return {links: this.links, startIdx: this.startIdx};
     }
 }
 
@@ -773,7 +771,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
     runProbingSimple = memoizeOne(slotsCount => {
         let g = new GenerateProbingLinks();
-        let links = g.run(slotsCount, '', 'i+1');
+        const {links} = g.run(slotsCount, '', 'i+1');
 
         return {
             links,
@@ -783,7 +781,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
     runProbing5iPlus1 = memoizeOne(slotsCount => {
         let g = new GenerateProbingLinks();
-        let links = g.run(slotsCount, '', '5i+1');
+        const {links} = g.run(slotsCount, '', '5i+1');
 
         return {
             links,
@@ -793,7 +791,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
     runProbingPython = memoizeOne((slotsCount, obj) => {
         let g = new GenerateProbingLinks();
-        let links = g.run(slotsCount, obj, 'python');
+        const {links} = g.run(slotsCount, obj, 'python');
 
         return {
             links: links.toJS(),

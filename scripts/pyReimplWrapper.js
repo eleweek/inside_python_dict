@@ -4,7 +4,7 @@ import 'ignore-styles';
 
 import {BigNumber} from 'bignumber.js';
 import {DUMMY, EMPTY, None} from '../src/hash_impl_common';
-import {Dict32} from '../src/chapter4_real_python_dict';
+import {Dict32, GenerateProbingLinks} from '../src/chapter4_real_python_dict';
 import {AlmostPythonDict} from '../src/chapter3_hash_class';
 import {Ops as Chapter2Ops} from '../src/chapter2_hash_table_functions';
 import {Ops as Chapter1Ops} from '../src/chapter1_simplified_hash';
@@ -266,6 +266,12 @@ const server = net.createServer(c => {
             response = {
                 result: result !== undefined ? result : null,
                 keys: keys !== undefined ? dumpArray(keys) : null,
+            };
+        } else if (dictType === 'pythonProbing') {
+            let g = new GenerateProbingLinks();
+            const result = g.run(data.args.slotsCount, key, 'python');
+            response = {
+                result,
             };
         } else {
             throw new Error('Unknown dict type');

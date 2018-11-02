@@ -64,3 +64,6 @@ for reimpl in {js,py_extracted}; do
     echo "        Implementation: $reimpl"
     python3 python_code/chapter1_linear_search_reimplementation_test.py   --test-implementation $reimpl --size $NUM_INSERTS_SMALLER
 done;
+
+echo "Testing probing visualization from chapter4"
+python3 python_code/chapter4_probing_python_reimplementation_test.py

@@ -71,6 +71,8 @@ def _init_sock_stuff():
         sock.connect(SOCK_FILENAME)
         sockfile = sock.makefile('r')
 
+    return sock, sockfile
+
 
 def run_op_chapter1_chapter2(chapter, hash_codes, keys, op, **kwargs):
     _init_sock_stuff()
