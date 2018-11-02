@@ -1047,8 +1047,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
 
         const scrollHeight = scrollbar.size.content.height;
         const scrollTop = scrollbar.scrollTop;
+        const containerHeight = scrollbar.getSize().container.height;
 
-        const scrollBottom = scrollTop + this.HEIGHT;
+        const scrollBottom = scrollTop + containerHeight;
 
         const activeLinePos = (activeLine / totalLines) * scrollHeight;
         // TODO: use actual height
@@ -1056,7 +1057,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
         const needsUpdating =
             activeLinePos < scrollTop + 2 * kindOfLineHeight || activeLinePos > scrollBottom - 2 * kindOfLineHeight;
 
-        let scrollTopTarget = activeLinePos - this.HEIGHT / 2;
+        let scrollTopTarget = activeLinePos - containerHeight / 2;
         if (scrollTopTarget < 0) {
             scrollTopTarget = 0;
         } else if (scrollTopTarget > scrollHeight) {
