@@ -40,9 +40,11 @@ export function formatHashClassLookdictRelated(bp) {
             }
         }
         case 'return-idx':
-            return `Return the current index, <code>${bp.idx}</code>`;
+            return `Return <code>${bp.idx}</code>, the index of the current slot`;
         case 'raise':
             return `Throw an exception, because no key was found`;
+        case 'call-lookdict':
+            return `Call <code>self.lookdict(${displayStr(bp.key)})</code>`;
         /* __delitem__ */
         case 'dec-used':
             return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${bp.self.get(
@@ -55,7 +57,7 @@ export function formatHashClassLookdictRelated(bp) {
         /* __getitem__ */
         case 'return-value': {
             const slotValue = bp.self.get('slots').get(bp.idx).value;
-            return `Return <code>${displayStr(slotValue)}</code>`;
+            return `Return <code>${displayStr(slotValue)}</code>, value from slot <code>${bp.idx}</code>`;
         }
         /* misc common */
         case 'start-execution-lookdict':
@@ -116,7 +118,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-dup-break':
             return 'Because the key is found, stop';
         case 'check-target-idx-is-none':
-            if (bp.idx == null) {
+            if (bp.targetIdx == null) {
                 return `<code>target_idx is None</code>, and this means that we haven't found nor dummy slot neither existing slot`;
             } else {
                 return `<code>target_idx is not None</code>, and this means we already know where to put the item`;
@@ -455,6 +457,7 @@ export class HashClassGetItem extends HashBreakpointFunction {
         this.addBP('start-execution-getitem');
 
         let hcld = new Lookdict();
+        this.addBP('call-lookdict');
         this.idx = hcld.run(this.self, this.key);
         this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()];
         if (this.idx !== null) {
@@ -472,6 +475,7 @@ export class HashClassDelItem extends HashBreakpointFunction {
         this.addBP('start-execution-delitem');
 
         let hcld = new Lookdict();
+        this.addBP('call-lookdict');
         this.idx = hcld.run(this.self, this.key);
         this._breakpoints = [...this._breakpoints, ...hcld.getBreakpoints()];
         if (this.idx !== null) {

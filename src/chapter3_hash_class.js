@@ -208,7 +208,7 @@ export const HASH_CLASS_LOOKDICT = [
 
 export const _HASH_CLASS_GETITEM_ONLY = [
     ['def __getitem__(self, key):', 'start-execution-getitem', 0],
-    ['    idx = self.lookdict(key)', '', 1],
+    ['    idx = self.lookdict(key)', 'call-lookdict', 1],
     ['', ''],
     ['    return self.slots[idx].value', 'return-value', 1],
 ];
@@ -217,7 +217,7 @@ const HASH_CLASS_GETITEM = [...HASH_CLASS_LOOKDICT, ..._HASH_CLASS_GETITEM_ONLY]
 
 export const _HASH_CLASS_DELITEM_ONLY = [
     ['def __delitem__(self, key):', 'start-execution-delitem', 0],
-    ['    idx = self.lookdict(key)', '', 1],
+    ['    idx = self.lookdict(key)', 'call-lookdict', 1],
     ['', ''],
     ['    self.used -= 1', 'dec-used', 1],
     ['    self.slots[idx].key = DUMMY', 'replace-key-dummy', 1],

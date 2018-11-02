@@ -175,7 +175,7 @@ class ParsableInput extends React.Component {
                 let tryAnotherButtonDiv;
                 if (this.props.anotherValue) {
                     tryAnotherButtonDiv = (
-                        <div className="input-group-append">
+                        <div className="input-group-append" key="try-another-button-div">
                             <button className="btn btn-secondary" type="button" onClick={this.tryAnotherClickInline}>
                                 Try another
                             </button>
@@ -194,6 +194,7 @@ class ParsableInput extends React.Component {
                                             className={className}
                                             value={this.state.value}
                                             onChange={this.handleChange}
+                                            key="input"
                                         />
                                         {tryAnotherButtonDiv}
                                     </div>
