@@ -1,4 +1,4 @@
-import {None, isNone} from './hash_impl_common';
+import {None, isNone, EQ} from './hash_impl_common';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -118,7 +118,7 @@ export class PyObjParser {
         return res;
     }
 
-    parseList() {
+    parseList(allowDuplicates = true, extraValueValidator) {
         const allowedSeparators = ',]';
         const c = this.current();
 
@@ -130,6 +130,19 @@ export class PyObjParser {
                 this.throwErr('List literal ended abruptly - no closing ]');
             }
             let val = this.parseStringOrNumberOrNone(allowedSeparators);
+            if (!allowDuplicates) {
+                for (let existingVal of res) {
+                    if (EQ(val, existingVal)) {
+                        this.throwErr('Duplicates are not allowed in this list');
+                    }
+                }
+            }
+            if (extraValueValidator) {
+                const error = extraValueValidator(val);
+                if (error) {
+                    this.throwErr(error);
+                }
+            }
             res.push(val);
             this.skipWhitespace();
             if (this.current() !== ']' && this.current() != null) this.consume(',');
@@ -239,9 +252,9 @@ export function parsePyDict(s) {
     return parser.parseDict();
 }
 
-export function parsePyList(s) {
+export function parsePyList(s, allowDuplicates = true, extraValueValidator) {
     let parser = new PyObjParser(s);
-    return parser.parseList();
+    return parser.parseList(allowDuplicates, extraValueValidator);
 }
 
 export function parsePyStringOrNumber(s) {

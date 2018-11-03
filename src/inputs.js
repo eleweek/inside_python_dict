@@ -26,7 +26,7 @@ library.add(faRedoAlt);
 
 // TODO: rewrite, this is super ugly
 // TODO: this should be split into 3 separate components
-class ParsableInput extends React.Component {
+export class ParsableInput extends React.Component {
     constructor(props) {
         super(props);
         // TODO: this is a hack
@@ -228,8 +228,15 @@ class ParsableInput extends React.Component {
     }
 }
 
-export function PyListInput({inputComponentRef, ...restProps}) {
-    return <ParsableInput {...restProps} dumpValue={dumpPyList} parseValue={parsePyList} ref={inputComponentRef} />;
+export function PyListInput({inputComponentRef, extraValueValidator, allowDuplicates, ...restProps}) {
+    return (
+        <ParsableInput
+            {...restProps}
+            dumpValue={dumpPyList}
+            parseValue={s => parsePyList(s, allowDuplicates, extraValueValidator)}
+            ref={inputComponentRef}
+        />
+    );
 }
 
 export function PyDictInput({inputComponentRef, ...restProps}) {
@@ -239,22 +246,6 @@ export function PyDictInput({inputComponentRef, ...restProps}) {
 export function PyNumberInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={parsePyNumber} ref={inputComponentRef} />
-    );
-}
-
-function _parseShortInt(value) {
-    const maxnum = 999;
-    const b = parsePyNumber(value);
-    if (b.lt(-maxnum) || b.gt(maxnum)) {
-        throw new Error('In chapter 1, only small integers are supported (between -999 and 999)');
-    }
-
-    return +b.toString();
-}
-
-export function PyShortIntInput({inputComponentRef, ...restProps}) {
-    return (
-        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={_parseShortInt} ref={inputComponentRef} />
     );
 }
 
@@ -414,6 +405,7 @@ export class BlockInputToolbar extends React.Component {
             <div className="row row-block-input-toolbar">
                 <div className="col col-input">
                     <Input
+                        {...this.props.inputProps}
                         inputComponentRef={this.setInputComponentRef}
                         value={this.props.initialValue}
                         onChange={this.handleChange}

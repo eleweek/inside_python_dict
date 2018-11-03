@@ -4,9 +4,10 @@ import {List} from 'immutable';
 
 import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
 import {LineOfBoxesComponent, HashBoxesComponent, TetrisFactory, VisualizedCode} from './code_blocks';
-import {PyListInput, PyShortIntInput, BlockInputToolbar, InputTryAnother} from './inputs';
+import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
+import {parsePyNumber} from './py_obj_parsing';
 
 import {BigNumber} from 'bignumber.js';
 
@@ -21,6 +22,29 @@ export const SIMPLE_LIST_SEARCH = [
     ['        idx += 1', 'next-idx', 2],
     ['    return False', 'found-nothing', 1],
 ];
+
+function _parseSmallInt(value) {
+    const b = parsePyNumber(value);
+    const error = chapter1valueRangeValidator(value);
+    if (error) {
+        throw new Error(error);
+    }
+
+    return +b.toString();
+}
+
+function chapter1valueRangeValidator(num) {
+    const maxnum = 999;
+    if (num.lt(-maxnum) || num.gt(maxnum)) {
+        return 'In chapter 1, only small integers are supported (between -999 and 999)';
+    }
+}
+
+export function PySmallIntInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={_parseSmallInt} ref={inputComponentRef} />
+    );
+}
 
 function simpleListSearch(l, key) {
     let defaultBPInfo = {
@@ -133,7 +157,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
             this.fmtCollisionCount = 0;
 
             this.addBP('for-loop');
-            this.newListIdx = this.number % this.newList.size;
+            this.newListIdx = ((this.number % this.newList.size) + this.newList.size) % this.newList.size;
             this.addBP('compute-idx');
             if (!isBroken) {
                 while (true) {
@@ -445,6 +469,10 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <MySticky bottomBoundary=".chapter1">
                         <BlockInputToolbar
                             input={PyListInput}
+                            inputProps={{
+                                allowDuplicates: false,
+                                extraValueValidator: chapter1valueRangeValidator,
+                            }}
                             initialValue={this.state.numbers}
                             onChange={this.setter('numbers')}
                         />
@@ -469,7 +497,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <p>This simple list scan can be visualized as follows.</p>
                     <p className="inline-block">For example, let's say we want to search for</p>
-                    <PyShortIntInput
+                    <PySmallIntInput
                         inline={true}
                         value={this.state.simpleSearchNumber}
                         onChange={this.setter('simpleSearchNumber')}
@@ -541,7 +569,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <p>Here is how the search process would look:</p>
                     <p className="inline-block">Let's say we want to search for</p>
-                    <PyShortIntInput
+                    <PySmallIntInput
                         inline={true}
                         value={this.state.simplifiedHashSearchNumber}
                         onChange={this.setter('simplifiedHashSearchNumber')}
