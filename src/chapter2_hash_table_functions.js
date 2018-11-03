@@ -92,8 +92,8 @@ class HashCreateNew extends HashBreakpointFunction {
 }
 
 const HashCreateNewStateVisualization = TetrisFactory([
-    [LineOfBoxesComponent, [{labels: ['from_keys']}, 'fromKeys', 'fromKeysIdx']],
-    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
+    [LineOfBoxesComponent, [{labels: ['from_keys'], marginBottom: 20}, 'fromKeys', 'fromKeysIdx']],
+    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
 ]);
 
@@ -217,7 +217,7 @@ function formatHashRemoveSearch(bp) {
 }
 
 const HashNormalStateVisualization = TetrisFactory([
-    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
 ]);
 
@@ -395,9 +395,9 @@ function formatHashResize(bp) {
 }
 
 const HashResizeStateVisualization = TetrisFactory([
-    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'oldIdx']],
-    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'oldIdx']],
-    [HashBoxesComponent, [{labels: ['new_hash_codes']}, 'newHashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'oldIdx']],
+    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 20}, 'keys', 'oldIdx']],
+    [HashBoxesComponent, [{labels: ['new_hash_codes'], marginBottom: 7}, 'newHashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['new_keys']}, 'newKeys', 'idx']],
 ]);
 

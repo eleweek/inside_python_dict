@@ -80,7 +80,7 @@ export function SimpleCodeBlock(props) {
 
 const BOX_SIZE = 40;
 const SPACING_X = 2;
-const SPACING_Y_SLOT = 5;
+const SPACING_Y_SLOT = 7;
 
 function computeBoxX(idx) {
     return (SPACING_X + BOX_SIZE) * idx;
@@ -880,6 +880,7 @@ export class Tetris extends React.PureComponent {
     static VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
 
     static getExpectedHeight(lines) {
+        // TODO: use linesData.marginBottom in computation
         return (
             this.VIS_MARGIN * (lines.length - 1) +
             _.sum(lines.map(([Component, [ld, d, i, i2, subProps]]) => Component.getExpectedGeometry(subProps).height))
@@ -891,7 +892,7 @@ export class Tetris extends React.PureComponent {
         let elems = [];
         let labels = [];
         const transformedBp = props.bp;
-        for (let [i, [Component, [labelsData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
+        for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
                     array={deepGet(props.bp, dataName)}
@@ -900,13 +901,16 @@ export class Tetris extends React.PureComponent {
                     {...subProps}
                 />
             );
+
+            const tetrisRowMarginBottom = linesData.marginBottom || Tetris.VIS_MARGIN;
             const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry(subProps);
 
             labels = labels.concat(
-                labelsData.labels.map((label, index) => {
-                    const marginBottom = index === labelsData.labels.length - 1 ? Tetris.VIS_MARGIN : rowMarginBottom;
+                linesData.labels.map((label, index) => {
+                    const marginBottom =
+                        index === linesData.labels.length - 1 ? tetrisRowMarginBottom : rowMarginBottom;
                     const expectedNumLabels = rowsNumber;
-                    const actualNumLabels = labelsData.labels.length;
+                    const actualNumLabels = linesData.labels.length;
                     if (actualNumLabels != expectedNumLabels && actualNumLabels != 1)
                         throw new Error(`Mismatched number of labels`);
                     return (
@@ -925,7 +929,7 @@ export class Tetris extends React.PureComponent {
             );
 
             elems.push(
-                <div className="tetris-row" key={`row-${i}`}>
+                <div className="tetris-row" key={`row-${i}`} style={{marginBottom: tetrisRowMarginBottom}}>
                     <div className="hash-vis-wrapper" style={{height: height}}>
                         {component}
                     </div>
