@@ -292,7 +292,7 @@ export class BreakpointFunction {
         };
 
         for (let [key, value] of Object.entries(this)) {
-            if (key[0] != '_' && value !== undefined) {
+            if (key[0] !== '_' && value !== undefined) {
                 bp[key] = value;
             }
         }

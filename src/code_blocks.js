@@ -267,7 +267,7 @@ class Box extends React.PureComponent {
     }
 
     render() {
-        const {value, idx, status} = this.props;
+        const {value, idx, status, extraStyleWhenAdding, removedOffset, createdOffset} = this.props;
         let yOffset = this.props.yOffset || 0;
 
         let classes = ['box', 'box-animated'];
@@ -286,31 +286,32 @@ class Box extends React.PureComponent {
         }
 
         let y;
+        let extraStyle;
 
         switch (status) {
             case 'removing':
                 classes.push('box-removed');
-                y = value != null ? yOffset - BOX_SIZE : yOffset;
+                y = value != null ? yOffset - (removedOffset != null ? removedOffset : BOX_SIZE) : yOffset;
                 break;
             case 'created':
                 classes.push('box-just-added');
-                y = value != null ? yOffset - BOX_SIZE : yOffset;
+                y = value != null ? yOffset - (createdOffset != null ? createdOffset : BOX_SIZE) : yOffset;
                 break;
             case 'adding':
                 y = yOffset;
+                extraStyle = this.props.extraStyleWhenAdding;
                 break;
         }
 
         return (
-            <div style={{transform: computeBoxTransformProperty(this.props.idx, y)}} className={classNames(classes)}>
+            <div
+                style={{transform: computeBoxTransformProperty(this.props.idx, y), ...extraStyle}}
+                className={classNames(classes)}
+            >
                 {content}
             </div>
         );
     }
-}
-
-function oneBox(keys, value) {
-    return [[keys[0], {value}]];
 }
 
 class SlotSelection extends React.PureComponent {
@@ -1427,14 +1428,68 @@ export class HashBoxesComponent extends React.PureComponent {
         });
     }
 
+    static boxFactory(keys, value) {
+        return [[keys[0], {value}]];
+    }
+
     render() {
         return (
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashBoxesComponent.getKeys}
-                boxFactory={oneBox}
+                boxFactory={HashBoxesComponent.boxFactory}
                 selectionClass={ActiveBoxSelection}
                 height={HashBoxesComponent.HEIGHT}
+            />
+        );
+    }
+}
+
+export class HashBoxesBrokenComponent extends React.PureComponent {
+    static HEIGHT = BOX_SIZE * 2.6;
+
+    static getExpectedGeometry() {
+        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 1};
+    }
+
+    static getKeys(array) {
+        return array.map((value, idx) => {
+            if (value.length != 0) {
+                return value.slice(0, 3).map(subValue => pyObjToReactKey(subValue));
+            } else {
+                return [`empty-${idx}`];
+            }
+        });
+    }
+
+    static boxFactory(keys, value) {
+        console.log(keys, value);
+        if (value.length != 0) {
+            return value.slice(0, 3).map((subValue, i) => {
+                return [
+                    keys[i],
+                    {
+                        value: subValue,
+                        yOffset: (BOX_SIZE / 3) * 2 * i,
+                        extraStyleWhenAdding: {opacity: 1.0 / Math.pow(3, i)},
+                        removedOffset: 0,
+                        createdOffset: i === 0 ? undefined : 0,
+                    },
+                ];
+            });
+        } else {
+            return [[keys[0], {value: null}]];
+        }
+    }
+
+    render() {
+        return (
+            <BaseBoxesComponent
+                {...this.props}
+                getKeys={HashBoxesBrokenComponent.getKeys}
+                boxFactory={HashBoxesBrokenComponent.boxFactory}
+                selectionClass={ActiveBoxSelection}
+                height={HashBoxesBrokenComponent.HEIGHT}
             />
         );
     }

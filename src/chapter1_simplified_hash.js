@@ -1,9 +1,15 @@
 import * as React from 'react';
 import _ from 'lodash';
-import {List} from 'immutable';
+import {List as ImmutableList} from 'immutable';
 
 import {EQ, BreakpointFunction, displayStr} from './hash_impl_common';
-import {LineOfBoxesComponent, HashBoxesComponent, TetrisFactory, VisualizedCode} from './code_blocks';
+import {
+    LineOfBoxesComponent,
+    HashBoxesComponent,
+    HashBoxesBrokenComponent,
+    TetrisFactory,
+    VisualizedCode,
+} from './code_blocks';
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
 import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
@@ -142,14 +148,18 @@ class SimplifiedInsertAll extends BreakpointFunction {
 
     run(_originalList, isBroken = false) {
         this.fmtIsBroken = isBroken;
-        this.originalList = new List(_originalList);
-        this.newList = new List();
+        this.originalList = new ImmutableList(_originalList);
+        this.newList = new ImmutableList();
         if (isBroken) {
-            this.fmtMissingNumbers = new List();
+            this.fmtMissingNumbers = new ImmutableList();
+            this.newListWithReplacements = new ImmutableList();
         }
         const startSize = (isBroken ? 1 : 2) * this.originalList.size;
         for (let i = 0; i < startSize; ++i) {
             this.newList = this.newList.push(null);
+            if (isBroken) {
+                this.newListWithReplacements = this.newListWithReplacements.push(new ImmutableList());
+            }
         }
         this.addBP('create-new-list', true);
 
@@ -180,6 +190,14 @@ class SimplifiedInsertAll extends BreakpointFunction {
                 this._overwritten.push([this.originalListIdx, prevNumber, this.number]);
             }
 
+            this.newList = this.newList.set(this.newListIdx, this.number);
+            if (isBroken) {
+                console.log(this.newListWithReplacements);
+                console.log(this.newListWithReplacements.toJS());
+                this.newListWithReplacements = this.newListWithReplacements.updateIn([this.newListIdx], arr =>
+                    arr.insert(0, this.number)
+                );
+            }
             this.newList = this.newList.set(this.newListIdx, this.number);
             this.addBP('assign-elem', true);
         }
@@ -238,6 +256,11 @@ const SimplifiedInsertStateVisualization = TetrisFactory([
     [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
 ]);
 
+const SimplifiedInsertBrokenStateVisualization = TetrisFactory([
+    [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
+    [HashBoxesBrokenComponent, [{labels: ['new_list']}, 'newListWithReplacements', 'newListIdx']],
+]);
+
 export const SIMPLIFIED_SEARCH_CODE = [
     ['def has_number(new_list, number):', 'start-execution', 0],
     ['    idx = number % len(new_list)', 'compute-idx', 1],
@@ -250,7 +273,7 @@ export const SIMPLIFIED_SEARCH_CODE = [
 
 class SimplifiedSearch extends BreakpointFunction {
     run(_newList, _number) {
-        this.newList = new List(_newList);
+        this.newList = new ImmutableList(_newList);
         this.number = _number;
 
         this.fmtCollisionCount = 0;
@@ -333,7 +356,6 @@ function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumb
                 overwritten by <code>{n2}</code>, and the simple algorithm breaks.
             </React.Fragment>
         );
-        e;
     }
 
     // TODO: hacky margin hack
@@ -533,7 +555,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         code={SIMPLIFIED_INSERT_ALL_BROKEN_CODE}
                         breakpoints={siaBrokenRes.bp}
                         formatBpDesc={formatSimplifiedInsertAllDescription}
-                        stateVisualization={SimplifiedInsertStateVisualization}
+                        stateVisualization={SimplifiedInsertBrokenStateVisualization}
                         {...this.props}
                     />
                     <p>
