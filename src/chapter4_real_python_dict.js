@@ -79,7 +79,7 @@ let chapter4Extend = Base =>
     };
 
 const SideBySideDicts = TetrisFactory([
-    [HashSlotsComponent, [{labels: ['almost-python-dict']}, 'almostPythonDictSlots']],
+    [HashSlotsComponent, [{labels: ['almost-python-dict'], marginBottom: 20}, 'almostPythonDictSlots']],
     [HashSlotsComponent, [{labels: ['python 3.2 dict']}, 'pythonDictSlots']],
 ]);
 

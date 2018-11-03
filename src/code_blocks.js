@@ -941,10 +941,9 @@ export class Tetris extends React.PureComponent {
         if (this.props.compensateTopPadding) {
             style = {position: 'relative', top: -BOX_SIZE};
         }
-        // TODO: width/height stuff here
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style}>
-                <div style={{width: 700}}>
+                <div>
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
                         <div className="tetris-labels">{labels}</div>
@@ -1288,8 +1287,8 @@ class TimeSliderWithControls extends React.PureComponent {
                 <div className="row">
                     <div className="col-sm-12 col-md-12">
                         <div className="btn-toolbar slider-controls">
-                            <div className="btn-group btn-group-sm mr-2">{timeControls}</div>
-                            <div className="btn-group btn-group-sm btn-group-toggle mr-2">{speedControls}</div>
+                            <div className="btn-group btn-group-sm mr-2 mb-1">{timeControls}</div>
+                            <div className="btn-group btn-group-sm btn-group-toggle mr-2 mb-1">{speedControls}</div>
                         </div>
                     </div>
                 </div>

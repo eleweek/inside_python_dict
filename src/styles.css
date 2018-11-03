@@ -264,6 +264,7 @@ div.slider-row {
 
 .tetris {
     display: flex;
+    padding-bottom: 7px;
 }
 
 .tetris-row {
