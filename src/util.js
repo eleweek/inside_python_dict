@@ -52,9 +52,11 @@ export class MySticky extends React.Component {
 
     render() {
         return (
-            <Sticky innerZ={10} bottomBoundary={this.props.bottomBoundary}>
-                <div className="my-sticky-wrapper">{this.props.children}</div>
-            </Sticky>
+            <div className="my-sticky-outer-wrapper">
+                <Sticky innerZ={10} bottomBoundary={this.props.bottomBoundary}>
+                    <div className="my-sticky-wrapper">{this.props.children}</div>
+                </Sticky>
+            </div>
         );
     }
 }

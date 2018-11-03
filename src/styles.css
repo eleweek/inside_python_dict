@@ -292,6 +292,10 @@ blockquote.blockquote {
     width: 100px;
 }
 
+.my-sticky-outer-wrapper {
+    margin-bottom: 30px;
+}
+
 .my-sticky-wrapper {
     padding-top: 5px;
 }
