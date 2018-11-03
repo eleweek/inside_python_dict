@@ -343,6 +343,27 @@ class SlotSelection extends React.PureComponent {
     }
 }
 
+class LineOfBoxesSelection extends React.PureComponent {
+    render() {
+        const {extraClassName, idx, status, count} = this.props;
+
+        let res = [];
+        for (let i = 0; i < this.props.count; ++i) {
+            res.push(
+                <ActiveBoxSelection
+                    key={`${extraClassName}-${i}`}
+                    extraClassName={extraClassName}
+                    idx={idx}
+                    status={status}
+                    yOffset={i * (BOX_SIZE + SPACING_Y_SLOT)}
+                />
+            );
+        }
+
+        return res;
+    }
+}
+
 class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1400
     // Because it seems to produce less "stupid" looking results
@@ -604,6 +625,7 @@ class BaseBoxesComponent extends React.PureComponent {
             if (!selection) {
                 return [
                     <Selection
+                        {...nextProps.selectionProps}
                         key={extraClassName}
                         keyTemplate={extraClassName}
                         extraClassName={extraClassName}
@@ -1528,7 +1550,8 @@ export class LineOfBoxesComponent extends React.PureComponent {
                 {...this.props}
                 getKeys={LineOfBoxesComponent.getKeys}
                 boxFactory={LineOfBoxesComponent.boxFactory}
-                selectionClass={ActiveBoxSelection}
+                selectionClass={LineOfBoxesSelection}
+                selectionProps={{count: this.props.linesCount || 1}}
                 height={height}
             />
         );
