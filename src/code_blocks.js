@@ -1472,7 +1472,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
                         value: subValue,
                         yOffset: (BOX_SIZE / 3) * 2 * i,
                         extraStyleWhenAdding: {opacity: 1.0 / Math.pow(3, i)},
-                        removedOffset: 0,
+                        removedOffset: i === 0 ? undefined : 0,
                         createdOffset: i === 0 ? undefined : 0,
                     },
                 ];
