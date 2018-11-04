@@ -25,7 +25,7 @@ import {
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
-import {MySticky, ChapterComponent, singularOrPlural, Subcontainerize} from './util';
+import {MySticky, ChapterComponent, singularOrPlural, Subcontainerize, OLIVE} from './util';
 
 import memoizeOne from 'memoize-one';
 

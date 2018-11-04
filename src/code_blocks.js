@@ -19,7 +19,7 @@ import 'rc-slider/assets/index.css';
 
 import SmoothScrollbar from 'react-smooth-scrollbar';
 
-import {MyErrorBoundary, getUxSettings} from './util';
+import {MyErrorBoundary, getUxSettings, RED, BLUE} from './util';
 import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
 
 import {library} from '@fortawesome/fontawesome-svg-core';
@@ -97,7 +97,7 @@ function pyObjToReactKey(obj) {
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        let {extraClassName, idx, status, transitionDuration} = this.props;
+        let {extraClassName, idx, status, transitionDuration, color} = this.props;
         let yOffset = this.props.yOffset || 0;
 
         const animatedClass = 'active-box-selection-animated';
@@ -118,6 +118,7 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
         const style = {
             visibility: visibility,
             transitionDuration: `${transitionDuration}ms`,
+            borderColor: color,
             // TODO: the part after : is weird/wrong
             transform: idx != null ? computeBoxTransformProperty(idx, yOffset) : undefined,
         };
@@ -154,6 +155,7 @@ class ActiveBoxSelectionThrottled extends React.Component {
         }
         const extraClassName = this.props.extraClassName;
         const yOffset = this.props.yOffset;
+        const color = this.props.color;
         return (
             <ActiveBoxSelectionUnthrottled
                 setInnerRef={this.handleRef}
@@ -161,6 +163,7 @@ class ActiveBoxSelectionThrottled extends React.Component {
                 idx={idx}
                 status={status}
                 yOffset={yOffset}
+                color={color}
                 transitionDuration={this.props.transitionDuration}
             />
         );
@@ -316,7 +319,7 @@ class Box extends React.PureComponent {
 
 class SlotSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status} = this.props;
+        const {extraClassName, idx, status, color} = this.props;
 
         return [
             <ActiveBoxSelection
@@ -324,6 +327,7 @@ class SlotSelection extends React.PureComponent {
                 extraClassName={extraClassName}
                 idx={idx}
                 status={status}
+                color={color}
                 yOffset={0}
             />,
             <ActiveBoxSelection
@@ -331,6 +335,7 @@ class SlotSelection extends React.PureComponent {
                 extraClassName={extraClassName}
                 idx={idx}
                 status={status}
+                color={color}
                 yOffset={BOX_SIZE + SPACING_Y_SLOT}
             />,
             <ActiveBoxSelection
@@ -338,6 +343,7 @@ class SlotSelection extends React.PureComponent {
                 extraClassName={extraClassName}
                 idx={idx}
                 status={status}
+                color={color}
                 yOffset={2 * (BOX_SIZE + SPACING_Y_SLOT)}
             />,
         ];
@@ -346,7 +352,7 @@ class SlotSelection extends React.PureComponent {
 
 class LineOfBoxesSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, count} = this.props;
+        const {extraClassName, idx, status, count, color} = this.props;
 
         let res = [];
         for (let i = 0; i < this.props.count; ++i) {
@@ -356,6 +362,7 @@ class LineOfBoxesSelection extends React.PureComponent {
                     extraClassName={extraClassName}
                     idx={idx}
                     status={status}
+                    color={color}
                     yOffset={i * (BOX_SIZE + SPACING_Y_SLOT)}
                 />
             );
@@ -615,7 +622,7 @@ class BaseBoxesComponent extends React.PureComponent {
         // FIXME: probably better to get rid of created/removing/adding statuses here
         //
         // TODO: it may be a good idea to combine it with Selection component
-        const getOrModSelection = (selection, extraClassName, oldIdx, _idx, status) => {
+        const getOrModSelection = (selection, extraClassName, oldIdx, _idx, status, color) => {
             if (_idx == null) {
                 status = 'removing';
             } else if (status === 'created' || _idx != null) {
@@ -632,6 +639,7 @@ class BaseBoxesComponent extends React.PureComponent {
                         extraClassName={extraClassName}
                         idx={idx}
                         status={status}
+                        color={color}
                     />,
                     status,
                 ];
@@ -646,7 +654,8 @@ class BaseBoxesComponent extends React.PureComponent {
                 'active-box-selection-1',
                 state.lastIdx,
                 nextProps.idx,
-                activeBoxSelection1status
+                activeBoxSelection1status,
+                nextProps.selection1color || RED
             );
         }
 
@@ -656,7 +665,8 @@ class BaseBoxesComponent extends React.PureComponent {
                 'active-box-selection-2',
                 state.lastIdx2,
                 nextProps.idx2,
-                activeBoxSelection1status
+                activeBoxSelection1status,
+                nextProps.selection1color || BLUE
             );
         }
 

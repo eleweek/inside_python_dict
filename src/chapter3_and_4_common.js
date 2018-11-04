@@ -1,9 +1,9 @@
 import * as React from 'react';
 import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
+import {OLIVE} from './util';
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
-
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
 
 export function formatHashClassLookdictRelated(bp) {
@@ -526,7 +526,13 @@ export const HashClassNormalStateVisualization = TetrisFactory([
 export const HashClassInsertAllVisualization = TetrisFactory([
     [
         LineOfBoxesComponent,
-        [{labels: ['pairs[*][0]', 'pairs[*][1]'], marginBottom: 20}, 'pairs', 'oldIdx', undefined, {linesCount: 2}],
+        [
+            {labels: ['pairs[*][0]', 'pairs[*][1]'], marginBottom: 20},
+            'pairs',
+            'oldIdx',
+            undefined,
+            {linesCount: 2, selection1color: OLIVE},
+        ],
     ],
     [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],
 ]);
@@ -538,6 +544,8 @@ export const HashClassResizeVisualization = TetrisFactory([
             {labels: ['oldSlots[*].hashCode', 'oldSlots[*].key', 'oldSlots[*].value'], marginBottom: 20},
             'oldSlots',
             'oldIdx',
+            undefined,
+            {selection1color: OLIVE},
         ],
     ],
     [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],

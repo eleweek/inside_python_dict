@@ -11,7 +11,7 @@ import {
     VisualizedCode,
 } from './code_blocks';
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade} from './util';
+import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, OLIVE} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 import {parsePyNumber} from './py_obj_parsing';
 
@@ -252,12 +252,18 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 };
 
 const SimplifiedInsertStateVisualization = TetrisFactory([
-    [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
+    [
+        LineOfBoxesComponent,
+        [{labels: ['original_list']}, 'originalList', 'originalListIdx', undefined, {selection1color: OLIVE}],
+    ],
     [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
 ]);
 
 const SimplifiedInsertBrokenStateVisualization = TetrisFactory([
-    [LineOfBoxesComponent, [{labels: ['original_list']}, 'originalList', 'originalListIdx']],
+    [
+        LineOfBoxesComponent,
+        [{labels: ['original_list']}, 'originalList', 'originalListIdx', undefined, {selection1color: OLIVE}],
+    ],
     [HashBoxesBrokenComponent, [{labels: ['new_list']}, 'newListWithReplacements', 'newListIdx']],
 ]);
 

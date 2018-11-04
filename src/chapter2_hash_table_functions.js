@@ -7,7 +7,7 @@ import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize} from './util';
+import {MySticky, ChapterComponent, Subcontainerize, OLIVE} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
@@ -92,7 +92,10 @@ class HashCreateNew extends HashBreakpointFunction {
 }
 
 const HashCreateNewStateVisualization = TetrisFactory([
-    [LineOfBoxesComponent, [{labels: ['from_keys'], marginBottom: 20}, 'fromKeys', 'fromKeysIdx']],
+    [
+        LineOfBoxesComponent,
+        [{labels: ['from_keys'], marginBottom: 20}, 'fromKeys', 'fromKeysIdx', undefined, {selection1color: OLIVE}],
+    ],
     [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
 ]);
@@ -395,8 +398,11 @@ function formatHashResize(bp) {
 }
 
 const HashResizeStateVisualization = TetrisFactory([
-    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'oldIdx']],
-    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 20}, 'keys', 'oldIdx']],
+    [
+        HashBoxesComponent,
+        [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'oldIdx', undefined, {selection1color: OLIVE}],
+    ],
+    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 20}, 'keys', 'oldIdx', undefined, {selection1color: OLIVE}]],
     [HashBoxesComponent, [{labels: ['new_hash_codes'], marginBottom: 7}, 'newHashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['new_keys']}, 'newKeys', 'idx']],
 ]);

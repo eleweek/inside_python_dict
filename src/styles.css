@@ -160,11 +160,14 @@ div.hash-example-instance {
 }
 
 .active-box-selection-1 {
-    border: solid 1px red;
+    border-style: solid;
+    border-width: 1px;
 }
 
 .active-box-selection-2 {
-    border: solid 1px blue;
+    /* border-style: dashed; */
+    border-style: solid;
+    border-width: 1px;
 }
 
 .active-box-selection-animated {
