@@ -78,6 +78,10 @@ export function SimpleCodeBlock(props) {
     );
 }
 
+export function SimpleCodeInline(props) {
+    return <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />;
+}
+
 const BOX_SIZE = 40;
 const SPACING_X = 2;
 const SPACING_Y_SLOT = 7;

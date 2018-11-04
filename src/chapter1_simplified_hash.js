@@ -9,9 +9,10 @@ import {
     HashBoxesBrokenComponent,
     TetrisFactory,
     VisualizedCode,
+    SimpleCodeInline,
 } from './code_blocks';
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, OLIVE} from './util';
+import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, COLOR_FOR_READ_OPS} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 import {parsePyNumber} from './py_obj_parsing';
 
@@ -102,12 +103,12 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
                 : `<code>${bp.idx} === ${bp.size}</code>, so all elements were processed`;
         case 'check-found':
             return bp.found
-                ? `<code>${bp.atIdx} === ${bp.arg}</code> &mdash; the wanted key is found`
-                : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the wanted key has not been found so far`;
+                ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the wanted number is found`
+                : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the wanted number has not been found so far`;
         case 'found-key':
-            return `The wanted key <code>${bp.arg}</code> was found, so return <code>True</code>`;
+            return `The wanted number <code>${bp.arg}</code> was found, so return <code>True</code>`;
         case 'found-nothing':
-            return `The wanted key <code>${bp.arg}</code> was not found, so return <code>False</code>`;
+            return `The wanted number <code>${bp.arg}</code> was not found, so return <code>False</code>`;
         case 'next-idx':
             return `Go to the next index: <code>${bp.idx}</code>`;
     }
@@ -254,7 +255,13 @@ let formatSimplifiedInsertAllDescription = function(bp) {
 const SimplifiedInsertStateVisualization = TetrisFactory([
     [
         LineOfBoxesComponent,
-        [{labels: ['original_list']}, 'originalList', 'originalListIdx', undefined, {selection1color: OLIVE}],
+        [
+            {labels: ['original_list']},
+            'originalList',
+            'originalListIdx',
+            undefined,
+            {selection1color: COLOR_FOR_READ_OPS},
+        ],
     ],
     [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
 ]);
@@ -262,7 +269,13 @@ const SimplifiedInsertStateVisualization = TetrisFactory([
 const SimplifiedInsertBrokenStateVisualization = TetrisFactory([
     [
         LineOfBoxesComponent,
-        [{labels: ['original_list']}, 'originalList', 'originalListIdx', undefined, {selection1color: OLIVE}],
+        [
+            {labels: ['original_list']},
+            'originalList',
+            'originalListIdx',
+            undefined,
+            {selection1color: COLOR_FOR_READ_OPS},
+        ],
     ],
     [HashBoxesBrokenComponent, [{labels: ['new_list']}, 'newListWithReplacements', 'newListIdx']],
 ]);
@@ -493,7 +506,10 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         problem is to check if a number is present in a list, but we have to do this{' '}
                         <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me.
                     </p>
-                    <p>Let's say we have a simple list of numbers:</p>
+                    <p>
+                        Let's say we have a simple list of numbers (which you can change if you want - and the page will
+                        update):
+                    </p>
                     <MySticky bottomBoundary=".chapter1">
                         <BlockInputToolbar
                             input={PyListInput}
@@ -505,35 +521,43 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             onChange={this.setter('numbers')}
                         />
                     </MySticky>
-                    <p className="text-muted my-full-width">
-                        (Yep, you <em> can change the list</em>, if you want. The page will update as you type. If you
-                        ever want to see the difference between two versions of data and don't want the page to update
-                        while you type the changes, uncheck the "Instant updates", and you'll be able to manually tell
-                        the page when to update)
-                    </p>
                     <p>
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
                         misleading to people who are unfamiliar with python but know about double-linked lists. You can
                         picture a list as a row of slots, where each slot can hold a single python object:
                     </p>
-                    <LineOfBoxesComponent array={this.state.numbers} />
+                    <div className="div-p">
+                        <LineOfBoxesComponent array={this.state.numbers} />
+                    </div>
                     <p>
                         Accessing an element by index is very fast. Appending to a list is fast too. But if there is no
                         order whatsoever, searching for a specific element will be slow. We may get lucky and find an
                         element in only a few iterations if it is near the beginning of the list. But if it is not there
                         at all, we'll have to scan over the whole list.
                     </p>
-                    <p>This simple list scan can be visualized as follows.</p>
-                    <p className="inline-block">For example, let's say we want to search for</p>
-                    <PySmallIntInput
-                        inline={true}
-                        value={this.state.simpleSearchNumber}
-                        onChange={this.setter('simpleSearchNumber')}
-                        anotherValue={() => 42}
-                    />
-                    <span className="text-muted">
-                        (Try changing this field as well! And see how the steps and the data visualization update)
-                    </span>
+                    <p>
+                        The simplest way to write a list scan in python is just{' '}
+                        <SimpleCodeInline>number in simple_list</SimpleCodeInline>, which would return <code>True</code>{' '}
+                        or <code>False</code> dependinding on whether <code>number</code> is present in{' '}
+                        <code>simple_list</code>. Python hides a great deal of complexity in this really short snippet.
+                        But let's rewrite the same code in a much more verbose manner so that we can see how linear
+                        search is done.
+                    </p>
+                    <div className="div-p">
+                        And let's say we want to search for the following number (which is changeable - the
+                        visualization will update accordingly):
+                        <PySmallIntInput
+                            inline={true}
+                            value={this.state.simpleSearchNumber}
+                            onChange={this.setter('simpleSearchNumber')}
+                            anotherValue={() => 42}
+                        />
+                    </div>
+                    <p>
+                        (Speaking of the visualization: the buttons allow to step through code steps and the time slider
+                        is draggable - feel free to rewind time or move it forward. Also, feel free to mess with inputs
+                        and the original list.)
+                    </p>
                     <VisualizedCode
                         code={SIMPLE_LIST_SEARCH}
                         breakpoints={slsRes.bp}
@@ -596,12 +620,14 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         number or hitting an empty slot. The latter situation means that the number is not present.
                     </p>
                     <p>Here is how the search process would look:</p>
-                    <p className="inline-block">Let's say we want to search for</p>
-                    <PySmallIntInput
-                        inline={true}
-                        value={this.state.simplifiedHashSearchNumber}
-                        onChange={this.setter('simplifiedHashSearchNumber')}
-                    />
+                    <div className="div-p">
+                        Let's say we want to search for
+                        <PySmallIntInput
+                            inline={true}
+                            value={this.state.simplifiedHashSearchNumber}
+                            onChange={this.setter('simplifiedHashSearchNumber')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={SIMPLIFIED_SEARCH_CODE}
                         breakpoints={ssRes.bp}
@@ -620,6 +646,13 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         elements (removing an element without a trace would cause a hole to appear, wouldn't this cause
                         the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling
                         objects other than integers - strings, tuples, floats.
+                    </p>
+                    <p>
+                        {' '}
+                        P.S.: There is a different method of collision resolution, called{' '}
+                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
+                        is also quite popular in the real world. But that's now how python resolves collision in dicts,
+                        so this method is beyond the scope of this explanation.{' '}
                     </p>
                 </Subcontainerize>
             </div>

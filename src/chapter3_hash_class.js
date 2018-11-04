@@ -467,12 +467,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                         <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end
                         up finding the element and removing it.
                     </p>
-                    <p className="inline-block">For example, let's say we want to remove </p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
+                    <div className="div-p">
+                        For example, let's say we want to remove
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToDel}
+                            onChange={this.setter('keyToDel')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={HASH_CLASS_DELITEM}
                         breakpoints={delRes.bp}
@@ -484,12 +486,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                         After using the new <code>lookdict</code> function, search function <code>__getitem__</code>{' '}
                         also gets very short.
                     </p>
-                    <p className="inline-block">Searching for</p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToGet}
-                        onChange={this.setter('keyToGet')}
-                    />
+                    <div className="div-p">
+                        Searching for
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToGet}
+                            onChange={this.setter('keyToGet')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={HASH_CLASS_GETITEM}
                         breakpoints={getRes.bp}
@@ -518,24 +522,28 @@ export class Chapter3_HashClass extends ChapterComponent {
                         In the absence of dummy slots, the code works the same. So, even though we built the table with
                         a simpler version of <code>__setitem__</code>, it would look exactly the same.
                     </p>
-                    <p className="inline-block">Remember that we removed </p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
+                    <div className="div-p">
+                        Remember that we removed
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToDel}
+                            onChange={this.setter('keyToDel')}
+                        />
+                    </div>
                     <p className="inline-block">?{'\u00A0'}</p>
-                    <p className="inline-block">Let's see what happens after we insert the following key-value pair:</p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToSetRecycling}
-                        onChange={this.setter('keyToSetRecycling')}
-                    />
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.valueToSetRecycling}
-                        onChange={this.setter('valueToSetRecycling')}
-                    />
+                    <div className="div-p">
+                        Let's see what happens after we insert the following key-value pair:
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToSetRecycling}
+                            onChange={this.setter('keyToSetRecycling')}
+                        />
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.valueToSetRecycling}
+                            onChange={this.setter('valueToSetRecycling')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                         breakpoints={setRecyclingRes.bp}

@@ -7,7 +7,7 @@ import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize, OLIVE} from './util';
+import {MySticky, ChapterComponent, Subcontainerize, COLOR_FOR_READ_OPS} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
@@ -94,7 +94,13 @@ class HashCreateNew extends HashBreakpointFunction {
 const HashCreateNewStateVisualization = TetrisFactory([
     [
         LineOfBoxesComponent,
-        [{labels: ['from_keys'], marginBottom: 20}, 'fromKeys', 'fromKeysIdx', undefined, {selection1color: OLIVE}],
+        [
+            {labels: ['from_keys'], marginBottom: 20},
+            'fromKeys',
+            'fromKeysIdx',
+            undefined,
+            {selection1color: COLOR_FOR_READ_OPS},
+        ],
     ],
     [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
@@ -400,9 +406,18 @@ function formatHashResize(bp) {
 const HashResizeStateVisualization = TetrisFactory([
     [
         HashBoxesComponent,
-        [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'oldIdx', undefined, {selection1color: OLIVE}],
+        [
+            {labels: ['hash_codes'], marginBottom: 7},
+            'hashCodes',
+            'oldIdx',
+            undefined,
+            {selection1color: COLOR_FOR_READ_OPS},
+        ],
     ],
-    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 20}, 'keys', 'oldIdx', undefined, {selection1color: OLIVE}]],
+    [
+        HashBoxesComponent,
+        [{labels: ['keys'], marginBottom: 20}, 'keys', 'oldIdx', undefined, {selection1color: COLOR_FOR_READ_OPS}],
+    ],
     [HashBoxesComponent, [{labels: ['new_hash_codes'], marginBottom: 7}, 'newHashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['new_keys']}, 'newKeys', 'idx']],
 ]);
@@ -627,10 +642,10 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     </p>
                     <HashExamples />
                     <p>
-                        As you can see in the case of strings, <code>hash()</code> returns fairly unpredictable results,
-                        as it should. One major exception is integers; you can notice that <code>hash(x) == x</code> for
-                        small numbers. This fact may seem surprising to people familiar with hash functions, however it
-                        is a deliberate design decision by Python Core Developers.
+                        In the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should.
+                        One major exception is integers; you can notice that <code>hash(x) == x</code> for small
+                        numbers. This fact may seem surprising to people familiar with hash functions, however it is a
+                        deliberate design decision by Python Core Developers.
                     </p>
                     <p>
                         For big("long") integers, python uses a different algorithm. Try typing a relatively big number,
@@ -648,7 +663,8 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <p>
                         Why python 3.2? Because dict implementation changed over time, but python 3.2's dict implements
                         all major ideas, and thus python 3.2 is a perfect starting point for exploring implementations
-                        of python dict. Eventually, we will get to the most recent version of python.
+                        of python dict. Later versions of python extend (rather than completely replace) python 3.2's
+                        implementation. Eventually, we will get to these implementations as well.
                     </p>
                     <h5> Unhashable types </h5>
                     <p>
@@ -718,6 +734,13 @@ EMPTY = EmptyValueClass()
                         algorithm faster.
                     </p>
                     <p>
+                        Let's allow duplicates. Remember how search works in chapter 1? We retrace the steps necessary
+                        to insert the element, and check if any slot on the way contains it. We also retrace all the
+                        steps necessary to insert the element when we are actually inserting it. Let's use this fact for
+                        handling duplicates - we can terminate the insertion process if we find the element. And if we
+                        hit an empty slot without finding the element, then it is not in the table and we can insert it.
+                    </p>
+                    <p>
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}
                         <code>hash_codes</code> for caching values of hash functions.
                     </p>
@@ -742,12 +765,14 @@ EMPTY = EmptyValueClass()
                         the object, and just like with the inserting algorithm, during linear probing we compare actual
                         objects only when hashes are equal.
                     </p>
-                    <p className="inline-block">For instance, let's search for</p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.searchedObj}
-                        onChange={this.setter('searchedObj')}
-                    />
+                    <div className="div-p">
+                        For instance, let's search for
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.searchedObj}
+                            onChange={this.setter('searchedObj')}
+                        />
+                    </div>
                     <p className="inline-block">and see what happens:</p>
                     <VisualizedCode
                         code={HASH_SEARCH_CODE}
@@ -776,12 +801,14 @@ class DummyValueClass(object):
 
 DUMMY = DummyValueClass()
               `}</SimpleCodeBlock>
-                    <p className="inline-block">Let's see removing in action. Let's say we want to remove: </p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.objToRemove}
-                        onChange={this.setter('objToRemove')}
-                    />
+                    <div className="div-p">
+                        Let's see removing in action. Let's say we want to remove:
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.objToRemove}
+                            onChange={this.setter('objToRemove')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={HASH_REMOVE_CODE}
                         breakpoints={removeRes.bp}

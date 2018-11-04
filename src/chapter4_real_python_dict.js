@@ -915,12 +915,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit
                         shift (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
                     </p>
-                    <p className="inline-block">Let's see how the algorithm works for the following key:</p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyForProbingVis}
-                        onChange={this.setter('keyForProbingVis')}
-                    />
+                    <div className="div-p">
+                        Let's see how the algorithm works for the following key:
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyForProbingVis}
+                            onChange={this.setter('keyForProbingVis')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={PROBING_PYTHON_CODE}
                         breakpoints={probingPython.bp}
@@ -991,12 +993,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         compensateTopPadding={true}
                     />
                     <p>Removing a key looks pretty much the same</p>
-                    <p className="inline-block">Deleting</p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToDel}
-                        onChange={this.setter('keyToDel')}
-                    />
+                    <div className="div-p">
+                        Deleting
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToDel}
+                            onChange={this.setter('keyToDel')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={DICT32_DELITEM}
                         breakpoints={delRes.bp}
@@ -1004,14 +1008,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         stateVisualization={HashClassNormalStateVisualization}
                         {...this.props}
                     />
-                    <p className="inline-block">
+                    <div className="div-p">
                         The search is mostly the same. Let's say we want to get the following key
-                    </p>
-                    <PyStringOrNumberInput
-                        inline={true}
-                        value={this.state.keyToGet}
-                        onChange={this.setter('keyToGet')}
-                    />
+                        <PyStringOrNumberInput
+                            inline={true}
+                            value={this.state.keyToGet}
+                            onChange={this.setter('keyToGet')}
+                        />
+                    </div>
                     <VisualizedCode
                         code={DICT32_GETITEM}
                         breakpoints={getRes.bp}

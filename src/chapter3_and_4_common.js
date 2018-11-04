@@ -1,7 +1,7 @@
 import * as React from 'react';
 import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
-import {OLIVE} from './util';
+import {COLOR_FOR_READ_OPS} from './util';
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
@@ -531,7 +531,7 @@ export const HashClassInsertAllVisualization = TetrisFactory([
             'pairs',
             'oldIdx',
             undefined,
-            {linesCount: 2, selection1color: OLIVE},
+            {linesCount: 2, selection1color: COLOR_FOR_READ_OPS},
         ],
     ],
     [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],
@@ -545,7 +545,7 @@ export const HashClassResizeVisualization = TetrisFactory([
             'oldSlots',
             'oldIdx',
             undefined,
-            {selection1color: OLIVE},
+            {selection1color: COLOR_FOR_READ_OPS},
         ],
     ],
     [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],
