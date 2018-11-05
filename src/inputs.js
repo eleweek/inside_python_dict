@@ -69,8 +69,6 @@ class ParsableInputBase extends React.Component {
     propsOnChangeThrottled = _.throttle(value => {
         this.props.onChange(value);
     }, 50);
-
-    render() {}
 }
 
 class ParsableInputBlock extends ParsableInputBase {
