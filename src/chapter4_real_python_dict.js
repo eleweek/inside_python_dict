@@ -834,7 +834,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         return (
             <div className="chapter chapter4">
-                <h2>Chapter 4. How does python dict *really* work internally? </h2>
+                <h2>Chapter 4. How python dict *really* works internally</h2>
                 <Subcontainerize>
                     <p>Now it is (finally!) time to explore how the dict works in python!</p>
                     <p>

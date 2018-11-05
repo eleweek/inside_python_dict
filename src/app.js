@@ -44,6 +44,56 @@ function GithubForkMe() {
     );
 }
 
+function Contents(props) {
+    let selectedChapter;
+    if (props.chapters && props.chapters.length === 1) {
+        selectedChapter = props.chapters[0];
+    }
+    if (!selectedChapter.endsWith('.html')) {
+        selectedChapter += '.html';
+    }
+
+    const contents = [
+        [1, 'chapter1.html', 'Searching efficiently in a list'],
+        [2, 'chapter2.html', 'Why are hash tables called hash tables?'],
+        [3, 'chapter3.html', 'Putting it all together to make an "almost"-python-dict'],
+        [4, 'chapter4.html', 'How python dict *really* works internally'],
+    ];
+    return (
+        <div className="mb-3">
+            <div className="d-inline-flex flex-column">
+                {contents.map(([i, href, title]) => {
+                    return (
+                        <div
+                            className="d-flex p-2"
+                            style={{backgroundColor: href === selectedChapter ? '#DDDDDD' : undefined}}
+                        >
+                            <div
+                                key="circle-number"
+                                className="rounded-circle d-flex align-items-center justify-content-center mr-2"
+                                style={{width: 40, height: 40, backgroundColor: '#7FDBFF', color: 'white'}}
+                            >
+                                {i}
+                            </div>
+                            <div key="title" className="d-flex align-items-center mr-3">
+                                <h4 className="mb-0">
+                                    {href !== selectedChapter ? (
+                                        <a href={href} style={{color: '#0074D9', fontWeight: 700}}>
+                                            {title}
+                                        </a>
+                                    ) : (
+                                        title
+                                    )}
+                                </h4>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 class LoadingAlert extends React.PureComponent {
     constructor() {
         super();
@@ -175,6 +225,7 @@ export class App extends React.Component {
             <div className="app-container container-fluid">
                 <GithubForkMe />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
+                <Contents chapters={window.insidePythonDictChapters} />
                 <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
             </div>
