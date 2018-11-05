@@ -1,3 +1,4 @@
+/* purgecss start ignore */
 /* TODO: remove unnessary fonts/font-weights */
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700,700i');
 @import url('https://fonts.googleapis.com/css?family=Roboto:400,400i,700,700i');
@@ -351,3 +352,4 @@ blockquote.blockquote {
 .toc-a:hover .toc-title {
     text-decoration: underline !important;
 }
+/* purgecss end ignore */

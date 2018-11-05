@@ -1,9 +1,13 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const {RawSource} = require('webpack-sources');
 const {exec} = require('child_process');
 const fs = require('fs');
+const glob = require('glob-all');
+const PurgecssPlugin = require('purgecss-webpack-plugin');
+const whitelister = require('purgecss-whitelister');
 
 class HackySSR {
     constructor(options) {
@@ -72,10 +76,16 @@ module.exports = {
         ],
     },
     plugins: [
-        /*new webpack.ProvidePlugin({
-        Popper: ['popper.js', 'default'],
-    }),*/
+        new CleanWebpackPlugin(['dist']),
         new MiniCssExtractPlugin({filename: 'bundle.css'}),
         new HackySSR(),
+        new PurgecssPlugin({
+            paths: glob.sync([path.join(__dirname, 'src/*.js'), path.join(__dirname, 'dist/*.html')]),
+            whitelist: whitelister([
+                './node_modules/highlight.js/styles/default.css',
+                './node_modules/rc-slider/assets/index.css',
+                './node_modules/@fortawesome/fontawesome-svg-core/styles.css',
+            ]),
+        }),
     ],
 };
