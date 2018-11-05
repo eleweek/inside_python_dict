@@ -33,14 +33,12 @@ h5,
 h6 {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
-    font-display: optional; /* TODO: this is to avoid FOIC, test performance later */
 }
 
 code,
 .parsable-input,
 .invalid-feedback.invalid-feedback-block-parsable-input {
     font-family: 'Roboto Mono', monospace;
-    font-display: optional;
 }
 
 p,
@@ -48,7 +46,6 @@ a,
 li,
 blockquote {
     font-family: 'Roboto', 'Helvetica', sans-serif;
-    font-display: optional;
     font-weight: 400;
 }
 

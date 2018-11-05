@@ -76,6 +76,7 @@ function Contents({selectedChapterId}) {
                     );
                     return (
                         <div
+                            key={`toc-row-${i}`}
                             className="d-flex p-1"
                             style={{backgroundColor: href === selectedChapter ? 'rgba(0,0,0,.05)' : undefined}}
                         >

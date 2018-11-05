@@ -11,7 +11,7 @@ export const OLIVE = '#3D9970';
 export const RED = '#FF4136';
 export const BLUE = '#0074D9';
 
-export const COLOR_FOR_READ_OPS = OLIVE;
+export const COLOR_FOR_READ_OPS = '#17bd31';
 
 export class CrossFade extends React.Component {
     render() {

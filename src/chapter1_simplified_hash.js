@@ -193,8 +193,6 @@ class SimplifiedInsertAll extends BreakpointFunction {
 
             this.newList = this.newList.set(this.newListIdx, this.number);
             if (isBroken) {
-                console.log(this.newListWithReplacements);
-                console.log(this.newListWithReplacements.toJS());
                 this.newListWithReplacements = this.newListWithReplacements.updateIn([this.newListIdx], arr =>
                     arr.insert(0, this.number)
                 );
