@@ -342,3 +342,11 @@ blockquote.blockquote {
 .div-p {
     margin-bottom: 16px;
 }
+
+.toc-a:hover {
+    text-decoration: none !important;
+}
+
+.toc-a:hover .toc-title {
+    text-decoration: underline !important;
+}

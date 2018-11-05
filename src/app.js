@@ -63,29 +63,32 @@ function Contents(props) {
         <div className="mb-3">
             <div className="d-inline-flex flex-column">
                 {contents.map(([i, href, title]) => {
-                    return (
-                        <div
-                            className="d-flex p-2"
-                            style={{backgroundColor: href === selectedChapter ? '#DDDDDD' : undefined}}
-                        >
+                    const contentRow = (
+                        <React.Fragment>
                             <div
                                 key="circle-number"
-                                className="rounded-circle d-flex align-items-center justify-content-center mr-2"
-                                style={{width: 40, height: 40, backgroundColor: '#7FDBFF', color: 'white'}}
+                                className="rounded-circle d-flex align-items-center justify-content-center mr-2 toc-number"
+                                style={{width: 30, height: 30, backgroundColor: '#7FDBFF', color: 'white'}}
                             >
                                 {i}
                             </div>
-                            <div key="title" className="d-flex align-items-center mr-3">
-                                <h4 className="mb-0">
-                                    {href !== selectedChapter ? (
-                                        <a href={href} style={{color: '#0074D9', fontWeight: 700}}>
-                                            {title}
-                                        </a>
-                                    ) : (
-                                        title
-                                    )}
-                                </h4>
+                            <div key="title" className="d-flex align-items-center mr-3 toc-title">
+                                <h6 className="mb-0">{title}</h6>
                             </div>
+                        </React.Fragment>
+                    );
+                    return (
+                        <div
+                            className="d-flex p-1"
+                            style={{backgroundColor: href === selectedChapter ? 'rgba(0,0,0,.05)' : undefined}}
+                        >
+                            {selectedChapter === href ? (
+                                contentRow
+                            ) : (
+                                <a href={href} style={{color: '#0074D9', fontWeight: 700}} className="d-flex toc-a">
+                                    {contentRow}
+                                </a>
+                            )}
                         </div>
                     );
                 })}
