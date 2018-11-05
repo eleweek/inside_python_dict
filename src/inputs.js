@@ -25,9 +25,8 @@ import {library} from '@fortawesome/fontawesome-svg-core';
 library.add(faUndoAlt);
 library.add(faRedoAlt);
 
-// TODO: rewrite, this is super ugly
-// TODO: this should be split into 3 separate components
-export class ParsableInput extends React.Component {
+// TODO: this is still kinda ugly and needs some refactoring
+class ParsableInputBase extends React.Component {
     constructor(props) {
         super(props);
         // TODO: this is a hack
@@ -37,7 +36,7 @@ export class ParsableInput extends React.Component {
             error: null,
             lastError: null,
         };
-        this.inputRef = React.createRef();
+        this.inputComponentRef = React.createRef();
         this.lastScrollLeft = null;
     }
 
@@ -71,9 +70,20 @@ export class ParsableInput extends React.Component {
         this.props.onChange(value);
     }, 50);
 
-    formatErrorMessageForBlock(e) {
+    render() {}
+}
+
+class ParsableInputBlock extends ParsableInputBase {
+    handleSelect = () => {
+        const scrollLeft = this.inputComponentRef.current.scrollLeft;
+        if (scrollLeft !== this.lastScrollLeft) {
+            this.forceUpdate();
+        }
+    };
+
+    formatErrorMessage(e) {
         const padding = 8; // TODO: unhardcode*/
-        const {scrollWidth, scrollLeft, clientWidth} = this.inputRef.current;
+        const {scrollWidth, scrollLeft, clientWidth} = this.inputComponentRef.current;
         const charWidth = (scrollWidth - 2 * padding) / this.state.value.length;
 
         const visibleLeft = Math.ceil(scrollLeft / charWidth);
@@ -102,14 +112,48 @@ export class ParsableInput extends React.Component {
         }
     }
 
-    handleBlockSelect = () => {
-        const scrollLeft = this.inputRef.current.scrollLeft;
-        if (scrollLeft !== this.lastScrollLeft) {
-            this.forceUpdate();
+    render() {
+        let error;
+        if (this.state.error) {
+            // TODO: check if -1 is necessary
+            const width = this.inputComponentRef.current.offsetWidth - 1;
+            const errorText = this.formatErrorMessage(this.state.error);
+            // TODO: does not resize back properly if stretched with error
+            error = (
+                <div
+                    className="invalid-feedback invalid-feedback-block-parsable-input"
+                    style={{width}}
+                    key="error-text"
+                >
+                    {errorText}
+                </div>
+            );
         }
-    };
 
-    tryAnotherClickInline = () => {
+        const className = classNames('parsable-input', 'form-control', 'form-control-sm', {
+            'is-invalid': !!error,
+        });
+        const divClassNames = classNames('parsable-input-with-error-div', 'parsable-input-block');
+
+        return (
+            <div className={divClassNames}>
+                <input
+                    type="text"
+                    className={className}
+                    value={this.state.value}
+                    onChange={this.handleChange}
+                    ref={this.inputComponentRef}
+                    onSelect={this.handleSelect}
+                    key="input"
+                />
+                {error}
+            </div>
+        );
+    }
+}
+
+class ParsableInputInline extends ParsableInputBase {
+    tryAnotherClick = () => {
         const value = this.props.anotherValue();
         console.log('new value', value);
         this.forceSetValue(value);
@@ -117,119 +161,90 @@ export class ParsableInput extends React.Component {
     };
 
     render() {
-        if (this.props.autogrowing) {
-            return (
-                <AutosizeInput
-                    minWidth={140}
-                    type="text"
-                    className="parsable-input-autosize"
-                    value={this.state.value}
-                    onChange={this.handleChange}
-                />
-            );
-        } else {
-            let error;
-            if (this.state.error) {
-                if (this.props.inline) {
-                    const errorText = this.state.error.message;
-                    error = errorText;
-                } else {
-                    // TODO: check if -1 is necessary
-                    const width = this.inputRef.current.offsetWidth - 1;
-                    const errorText = this.formatErrorMessageForBlock(this.state.error);
-                    // TODO: does not resize back properly if stretched with error
-                    error = (
-                        <div
-                            className={classNames('invalid-feedback', {
-                                'invalid-feedback-block-parsable-input': !this.props.inline,
-                            })}
-                            style={{width}}
-                            key="error-text"
-                        >
-                            {errorText}
-                        </div>
-                    );
-                }
-            }
-            const className = classNames('parsable-input', 'form-control', 'form-control-sm', {
-                'fc-inline': this.props.inline,
-                'mr-0': !!this.props.anotherValue,
-                'is-invalid': !!error,
-            });
-            const divClassNames = classNames('parsable-input-with-error-div', {
-                'parsable-input-inline': this.props.inline,
-                'parsable-input-block': !this.props.inline,
-                'inline-block': this.props.inline,
-            });
-            if (!this.props.inline) {
-                return (
-                    <div className={divClassNames}>
-                        <input
-                            type="text"
-                            className={className}
-                            value={this.state.value}
-                            onChange={this.handleChange}
-                            ref={this.inputRef}
-                            onSelect={this.handleBlockSelect}
-                            key="input"
-                        />
-                        {error}
-                    </div>
-                );
-            } else {
-                let tryAnotherButtonDiv;
-                if (this.props.anotherValue) {
-                    tryAnotherButtonDiv = (
-                        <div className="input-group-append" key="try-another-button-div">
-                            <button className="btn btn-secondary" type="button" onClick={this.tryAnotherClickInline}>
-                                Try another
-                            </button>
-                        </div>
-                    );
-                }
-                return (
-                    <div className={divClassNames}>
-                        <Manager>
-                            <Reference>
-                                {({ref}) => (
-                                    <div className="input-group input-group-sm">
-                                        <input
-                                            ref={ref}
-                                            type="text"
-                                            className={className}
-                                            value={this.state.value}
-                                            onChange={this.handleChange}
-                                            key="input"
-                                        />
-                                        {tryAnotherButtonDiv}
-                                    </div>
-                                )}
-                            </Reference>
-                            <Popper placement="bottom">
-                                {({ref, style, placement, arrowProps}) => (
-                                    <div
-                                        ref={ref}
-                                        style={style}
-                                        data-placement={placement}
-                                        className={classNames(
-                                            'popover',
-                                            'bs-popover-bottom',
-                                            error ? 'show' : 'hide',
-                                            'fade'
-                                        )}
-                                    >
-                                        <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
-                                        <div className="popover-body">
-                                            {error || (this.state.lastError && this.state.lastError.message)}
-                                        </div>
-                                    </div>
-                                )}
-                            </Popper>
-                        </Manager>
-                    </div>
-                );
-            }
+        let error;
+        if (this.state.error) {
+            const errorText = this.state.error.message;
+            error = errorText;
         }
+        let tryAnotherButtonDiv;
+        if (this.props.anotherValue) {
+            tryAnotherButtonDiv = (
+                <div className="input-group-append" key="try-another-button-div">
+                    <button className="btn btn-secondary" type="button" onClick={this.tryAnotherClick}>
+                        Try another
+                    </button>
+                </div>
+            );
+        }
+        const inputClassName = classNames('parsable-input', 'form-control', 'form-control-sm', 'fc-inline', {
+            'mr-0': !!this.props.anotherValue,
+            'is-invalid': !!error,
+        });
+        const divClassNames = classNames('parsable-input-with-error-div', 'inline-block', 'parsable-input-inline');
+        return (
+            <div className={divClassNames}>
+                <Manager>
+                    <Reference>
+                        {({ref}) => (
+                            <div className="input-group input-group-sm">
+                                <input
+                                    ref={ref}
+                                    type="text"
+                                    className={inputClassName}
+                                    value={this.state.value}
+                                    onChange={this.handleChange}
+                                    key="input"
+                                />
+                                {tryAnotherButtonDiv}
+                            </div>
+                        )}
+                    </Reference>
+                    <Popper placement="bottom">
+                        {({ref, style, placement, arrowProps}) => (
+                            <div
+                                ref={ref}
+                                style={style}
+                                data-placement={placement}
+                                className={classNames('popover', 'bs-popover-bottom', error ? 'show' : 'hide', 'fade')}
+                            >
+                                <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
+                                <div className="popover-body">
+                                    {error || (this.state.lastError && this.state.lastError.message)}
+                                </div>
+                            </div>
+                        )}
+                    </Popper>
+                </Manager>
+            </div>
+        );
+    }
+}
+
+class ParsableInputAutogrowing extends ParsableInputBase {
+    render() {
+        return (
+            <AutosizeInput
+                minWidth={140}
+                type="text"
+                className="parsable-input-autosize"
+                value={this.state.value}
+                onChange={this.handleChange}
+            />
+        );
+    }
+}
+
+export function ParsableInput(props) {
+    const {inputComponentRef, ...restProps} = props;
+
+    if (props.autogrowing) {
+        return <ParsableInputAutogrowing ref={inputComponentRef} {...restProps} />;
+    }
+
+    if (props.inline) {
+        return <ParsableInputInline ref={inputComponentRef} {...restProps} />;
+    } else {
+        return <ParsableInputBlock ref={inputComponentRef} {...restProps} />;
     }
 }
 
@@ -239,24 +254,41 @@ export function PyListInput({inputComponentRef, extraValueValidator, allowDuplic
             {...restProps}
             dumpValue={dumpPyList}
             parseValue={s => parsePyList(s, allowDuplicates, extraValueValidator)}
-            ref={inputComponentRef}
+            inputComponentRef={inputComponentRef}
         />
     );
 }
 
 export function PyDictInput({inputComponentRef, ...restProps}) {
-    return <ParsableInput {...restProps} dumpValue={dumpPyDict} parseValue={parsePyDict} ref={inputComponentRef} />;
+    return (
+        <ParsableInput
+            {...restProps}
+            dumpValue={dumpPyDict}
+            parseValue={parsePyDict}
+            inputComponentRef={inputComponentRef}
+        />
+    );
 }
 
 export function PyNumberInput({inputComponentRef, ...restProps}) {
     return (
-        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={parsePyNumber} ref={inputComponentRef} />
+        <ParsableInput
+            {...restProps}
+            dumpValue={JSON.stringify}
+            parseValue={parsePyNumber}
+            inputComponentRef={inputComponentRef}
+        />
     );
 }
 
 export function PyStringInput({inputComponentRef, ...restProps}) {
     return (
-        <ParsableInput {...restProps} dumpValue={JSON.stringify} parseValue={parsePyString} ref={inputComponentRef} />
+        <ParsableInput
+            {...restProps}
+            dumpValue={JSON.stringify}
+            parseValue={parsePyString}
+            inputComponentRef={inputComponentRef}
+        />
     );
 }
 
@@ -266,7 +298,7 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
             {...restProps}
             dumpValue={JSON.stringify}
             parseValue={parsePyStringOrNumber}
-            ref={inputComponentRef}
+            inputComponentRef={inputComponentRef}
         />
     );
 }

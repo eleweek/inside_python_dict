@@ -32,7 +32,7 @@ export const SIMPLE_LIST_SEARCH = [
 
 function _parseSmallInt(value) {
     const b = parsePyNumber(value);
-    const error = chapter1valueRangeValidator(value);
+    const error = chapter1valueRangeValidator(b);
     if (error) {
         throw new Error(error);
     }
@@ -43,7 +43,7 @@ function _parseSmallInt(value) {
 function chapter1valueRangeValidator(num) {
     const maxnum = 999;
     if (num.lt(-maxnum) || num.gt(maxnum)) {
-        return 'In chapter 1, only small integers are supported (between -999 and 999)';
+        return 'In chapter 1 only small integers are supported (between -999 and 999)';
     }
 }
 
