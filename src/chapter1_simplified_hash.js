@@ -12,7 +12,7 @@ import {
     SimpleCodeInline,
 } from './code_blocks';
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, COLOR_FOR_READ_OPS} from './util';
+import {ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, COLOR_FOR_READ_OPS} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 import {parsePyNumber} from './py_obj_parsing';
 
@@ -508,17 +508,16 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         Let's say we have a simple list of numbers (which you can change if you want - and the page will
                         update):
                     </p>
-                    <MySticky bottomBoundary=".chapter1">
-                        <BlockInputToolbar
-                            input={PyListInput}
-                            inputProps={{
-                                allowDuplicates: false,
-                                extraValueValidator: chapter1valueRangeValidator,
-                            }}
-                            initialValue={this.state.numbers}
-                            onChange={this.setter('numbers')}
-                        />
-                    </MySticky>
+                    <BlockInputToolbar
+                        input={PyListInput}
+                        inputProps={{
+                            allowDuplicates: false,
+                            extraValueValidator: chapter1valueRangeValidator,
+                        }}
+                        initialValue={this.state.numbers}
+                        onChange={this.setter('numbers')}
+                        bottomBoundary=".chapter1"
+                    />
                     <p>
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
                         misleading to people who are unfamiliar with python but know about double-linked lists. You can

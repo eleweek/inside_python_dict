@@ -3,7 +3,6 @@ import * as React from 'react';
 import classNames from 'classnames';
 
 import {ErrorBoundary} from 'react-error-boundary';
-import Sticky from 'react-stickynode';
 import * as browserDetect from 'browser-detect';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
@@ -51,20 +50,6 @@ export function MyErrorBoundary(props) {
             {props.children}
         </ErrorBoundary>
     );
-}
-
-export class MySticky extends React.Component {
-    static FULL_WIDTH = true;
-
-    render() {
-        return (
-            <div className="my-sticky-outer-wrapper">
-                <Sticky innerZ={10} bottomBoundary={this.props.bottomBoundary}>
-                    <div className="my-sticky-wrapper">{this.props.children}</div>
-                </Sticky>
-            </div>
-        );
-    }
 }
 
 export class ChapterComponent extends React.Component {

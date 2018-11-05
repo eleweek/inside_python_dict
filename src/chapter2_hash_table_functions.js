@@ -7,7 +7,7 @@ import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize, COLOR_FOR_READ_OPS} from './util';
+import {ChapterComponent, Subcontainerize, COLOR_FOR_READ_OPS} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
@@ -745,13 +745,12 @@ EMPTY = EmptyValueClass()
                         <code>hash_codes</code> for caching values of hash functions.
                     </p>
                     <p>Let's say we have a mixed list of strings and integers:</p>
-                    <MySticky bottomBoundary=".chapter2">
-                        <BlockInputToolbar
-                            input={PyListInput}
-                            initialValue={this.state.array}
-                            onChange={this.setter('array')}
-                        />
-                    </MySticky>
+                    <BlockInputToolbar
+                        input={PyListInput}
+                        initialValue={this.state.array}
+                        onChange={this.setter('array')}
+                        bottomBoundary=".chapter2"
+                    />
                     <VisualizedCode
                         code={HASH_CREATE_NEW_CODE}
                         breakpoints={newRes.bp}

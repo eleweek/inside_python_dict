@@ -25,7 +25,7 @@ import {
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
-import {MySticky, ChapterComponent, singularOrPlural, Subcontainerize, OLIVE} from './util';
+import {ChapterComponent, singularOrPlural, Subcontainerize, OLIVE} from './util';
 
 import memoizeOne from 'memoize-one';
 
@@ -423,13 +423,12 @@ export class Chapter3_HashClass extends ChapterComponent {
                         are reimplementing).
                     </p>
                     <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
-                    <MySticky bottomBoundary=".chapter3">
-                        <BlockInputToolbar
-                            input={PyDictInput}
-                            initialValue={this.state.pairs}
-                            onChange={this.setter('pairs')}
-                        />
-                    </MySticky>
+                    <BlockInputToolbar
+                        input={PyDictInput}
+                        initialValue={this.state.pairs}
+                        onChange={this.setter('pairs')}
+                        bottomBoundary=".chapter3"
+                    />
 
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}

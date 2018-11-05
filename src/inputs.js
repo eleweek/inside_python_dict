@@ -1,6 +1,7 @@
 import * as React from 'react';
 import _ from 'lodash';
 import {BigNumber} from 'bignumber.js';
+import Sticky from 'react-stickynode';
 import {
     parsePyList,
     dumpPyList,
@@ -92,7 +93,7 @@ export class ParsableInput extends React.Component {
             } else if (text.length + relativePos + 5 < totalVisible) {
                 return _.padStart('', relativePos, ' ') + '^--- ' + text;
             } else {
-                return [_.padStart('', relativePos - 1, ' ') + '^', <br />, text];
+                return [_.padStart('', relativePos, ' ') + '^', <br key="br-sep" />, text];
             }
         } else if (pos < visibleLeft) {
             return '<--- ' + text;
@@ -136,12 +137,14 @@ export class ParsableInput extends React.Component {
                     // TODO: check if -1 is necessary
                     const width = this.inputRef.current.offsetWidth - 1;
                     const errorText = this.formatErrorMessageForBlock(this.state.error);
+                    // TODO: does not resize back properly if stretched with error
                     error = (
                         <div
                             className={classNames('invalid-feedback', {
                                 'invalid-feedback-block-parsable-input': !this.props.inline,
                             })}
                             style={{width}}
+                            key="error-text"
                         >
                             {errorText}
                         </div>
@@ -168,6 +171,7 @@ export class ParsableInput extends React.Component {
                             onChange={this.handleChange}
                             ref={this.inputRef}
                             onSelect={this.handleBlockSelect}
+                            key="input"
                         />
                         {error}
                     </div>
@@ -268,6 +272,26 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
 }
 
 export class BlockInputToolbar extends React.Component {
+    static FULL_WIDTH = true;
+
+    render() {
+        const {bottomBoundary, ...restProps} = this.props;
+        return (
+            <div className="my-sticky-outer-outer-wrapper-this-time-really">
+                <div style={{height: 60}}>
+                    <div className="my-sticky-outer-wrapper" />
+                    <Sticky innerZ={10} bottomBoundary={bottomBoundary}>
+                        <div className="my-sticky-wrapper">
+                            <BlockInputToolbarImpl {...restProps} />
+                        </div>
+                    </Sticky>
+                </div>
+            </div>
+        );
+    }
+}
+
+class BlockInputToolbarImpl extends React.Component {
     constructor() {
         super();
 
@@ -282,7 +306,6 @@ export class BlockInputToolbar extends React.Component {
     }
 
     setInputComponentRef = ref => {
-        console.log('setInputComponentRef', ref);
         this.inputComponentRef = ref;
     };
 
@@ -297,7 +320,6 @@ export class BlockInputToolbar extends React.Component {
     }
 
     hackyPossibleWorkingDeepEqual(o1, o2) {
-        console.log('deep', o1, o2);
         if (o1 === o2) return true;
 
         if (BigNumber.isBigNumber(o1)) return o1.eq(o2);

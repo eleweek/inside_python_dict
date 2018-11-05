@@ -25,7 +25,7 @@ import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
 
 import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {MySticky, ChapterComponent, Subcontainerize} from './util';
+import {ChapterComponent, Subcontainerize} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
 import memoizeOne from 'memoize-one';
@@ -957,13 +957,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <h5>Python 3.2's dict</h5>
                     <p>There are a couple more changes to almost-python-dict, but they are small. </p>
                     <p>When you type a dict literal in your code, for example: </p>
-                    <MySticky>
-                        <BlockInputToolbar
-                            input={PyDictInput}
-                            initialValue={this.state.pairs}
-                            onChange={this.setter('pairs')}
-                        />
-                    </MySticky>
+                    <BlockInputToolbar
+                        input={PyDictInput}
+                        initialValue={this.state.pairs}
+                        onChange={this.setter('pairs')}
+                    />
                     <p>
                         Python actually knows the number of key-value pairs and tries to guess the optimal hash table
                         size to possibly avoid some or all resizes. This is because it performs better than just

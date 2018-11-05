@@ -295,6 +295,9 @@ blockquote.blockquote {
 
 .my-sticky-outer-wrapper {
     margin-bottom: 30px;
+    position: absolute;
+    left: 0;
+    right: 0;
 }
 
 .my-sticky-wrapper {
@@ -316,6 +319,10 @@ blockquote.blockquote {
 .sticky-outer-wrapper:not(.active) .my-sticky-wrapper {
     border-top: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
+}
+
+.row-block-input-toolbar {
+    background: white;
 }
 
 .row-block-input-toolbar .col-input {
