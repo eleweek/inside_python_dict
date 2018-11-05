@@ -12,6 +12,7 @@ export const CHAPTER_ID_TO_COMPONENT = {
 };
 
 if (typeof window !== 'undefined') {
-    const chapters = window.insidePythonDictChapters.map(chapterId => CHAPTER_ID_TO_COMPONENT[chapterId]);
-    initAndRender(chapters);
+    const chapterIds = window.insidePythonDictChapters;
+    const chapters = chapterIds.map(chapterId => CHAPTER_ID_TO_COMPONENT[chapterId]);
+    initAndRender(chapters, chapterIds);
 }

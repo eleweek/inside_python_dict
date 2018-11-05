@@ -971,7 +971,7 @@ export class Tetris extends React.PureComponent {
 }
 
 // TODO: parts of this function may be optimized/memoized
-class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
+class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     constructor() {
         super();
         this.ssRef = React.createRef();
@@ -1060,6 +1060,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.PureComponent {
     }
 
     render() {
+        console.log('CodeBlockWithActiveLineAndAnnotations render', this.props.height);
         let activeBp = this.props.breakpoints[this.props.time];
 
         const visibleBreakpoints = this.getVisibleBreakpoints(activeBp);
@@ -1345,6 +1346,7 @@ export class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
             userAdjustedToMax: true,
+            isClient: false,
         };
         this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
     }
@@ -1366,11 +1368,17 @@ export class VisualizedCode extends React.Component {
         }
     }
 
+    componentDidMount() {
+        this.setState({
+            isClient: true,
+        });
+    }
+
     render() {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
         let codeHeight;
-        if (this.props.windowHeight) {
+        if (this.props.windowHeight && this.state.isClient) {
             const approximateSliderAndControlsHeight = 100;
             // Hacky extraspace. Usually 135, but add some more
             // when play+speed controls and input toolbar get bigger height on narrower screen
@@ -1477,7 +1485,6 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
     }
 
     static boxFactory(keys, value) {
-        console.log(keys, value);
         if (value.length != 0) {
             return value.slice(0, 3).map((subValue, i) => {
                 return [

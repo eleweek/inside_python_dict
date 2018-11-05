@@ -1,7 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const {RawSource} = require('webpack-sources');
 const {exec} = require('child_process');
 const fs = require('fs');
@@ -76,7 +75,6 @@ module.exports = {
         /*new webpack.ProvidePlugin({
         Popper: ['popper.js', 'default'],
     }),*/
-        new CleanWebpackPlugin(['dist']),
         new MiniCssExtractPlugin({filename: 'bundle.css'}),
         new HackySSR(),
     ],

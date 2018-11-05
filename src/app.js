@@ -44,12 +44,9 @@ function GithubForkMe() {
     );
 }
 
-function Contents(props) {
-    let selectedChapter;
-    if (props.chapters && props.chapters.length === 1) {
-        selectedChapter = props.chapters[0];
-    }
-    if (!selectedChapter.endsWith('.html')) {
+function Contents({selectedChapterId}) {
+    let selectedChapter = selectedChapterId;
+    if (selectedChapter && !selectedChapter.endsWith('.html')) {
         selectedChapter += '.html';
     }
 
@@ -85,7 +82,12 @@ function Contents(props) {
                             {selectedChapter === href ? (
                                 contentRow
                             ) : (
-                                <a href={href} style={{color: '#0074D9', fontWeight: 700}} className="d-flex toc-a">
+                                <a
+                                    key="toc-a"
+                                    href={href}
+                                    style={{color: '#0074D9', fontWeight: 700}}
+                                    className="d-flex toc-a"
+                                >
                                     {contentRow}
                                 </a>
                             )}
@@ -193,14 +195,14 @@ export class App extends React.Component {
     }
 
     windowSizeChangeHandle = () => {
-        console.log('App size changed');
+        console.log('App size changed', this.state);
         logViewportStats();
-        console.log(this.state);
-        if (this.state.windowWidth != window.innerWidth || this.state.windowHeight != window.innerHeight) {
+        if (this.state.windowWidth !== window.innerWidth || this.state.windowHeight !== window.innerHeight) {
             this.setState({
                 windowWidth: window.innerWidth,
                 windowHeight: window.innerHeight,
             });
+            // TODO: is it really necessary ?
             this.forceUpdate();
             fixStickyResize();
         }
@@ -215,6 +217,7 @@ export class App extends React.Component {
     }
 
     render() {
+        console.log('App.render()');
         const {windowWidth, windowHeight} = this.state;
         let chapters = [];
         for (let [i, Chapter] of this.props.chapters.entries()) {
@@ -228,7 +231,7 @@ export class App extends React.Component {
             <div className="app-container container-fluid">
                 <GithubForkMe />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                <Contents chapters={window.insidePythonDictChapters} />
+                <Contents selectedChapterId={this.props.selectedChapterId} />
                 <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
             </div>
@@ -251,7 +254,7 @@ function fixSticky() {
     });
 }
 
-export function initAndRender(chapters) {
+export function initAndRender(chapters, chapterIds) {
     if (typeof window !== 'undefined') {
         initUxSettings();
 
@@ -259,9 +262,13 @@ export function initAndRender(chapters) {
             logViewportStats();
             const root = document.getElementById('root');
             const isSSR = root.hasChildNodes();
-
+            let selectedChapterId;
+            if (chapterIds.length === 1) {
+                selectedChapterId = chapterIds[0];
+            }
             const props = {
                 chapters,
+                selectedChapterId,
                 browser: window.insidePythonDictBrowser,
             };
 
