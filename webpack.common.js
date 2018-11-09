@@ -63,7 +63,6 @@ module.exports = {
                         plugins: ['lodash'],
                     },
                 },
-                exclude: /node_modules\/(?!subscribe-ui-event)/,
             },
             {
                 test: /\.css$/,
@@ -71,11 +70,5 @@ module.exports = {
             },
         ],
     },
-    plugins: [
-        /*new webpack.ProvidePlugin({
-        Popper: ['popper.js', 'default'],
-    }),*/
-        new MiniCssExtractPlugin({filename: 'bundle.css'}),
-        new HackySSR(),
-    ],
+    plugins: [new MiniCssExtractPlugin({filename: 'bundle.css'}), new HackySSR()],
 };

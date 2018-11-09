@@ -13,10 +13,11 @@
     "serve": "http-server -p 9090 dist/",
     "build:all": "npm run build:html && webpack --config webpack.prod.js",
     "build": "npm run build:all",
-    "babel-node": "npx babel-node --presets env,react --plugins transform-class-properties",
+    "babel-node": "npx babel-node",
     "extractcode": "npm run babel-node scripts/extractPythonCode.js",
     "dictserver": "rm pynode.sock ; npm run babel-node scripts/pyReimplWrapper.js; rm pynode.sock",
-    "precommit": "pretty-quick --staged"
+    "precommit": "pretty-quick --staged",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -95,6 +96,7 @@
     "mini-css-extract-plugin": "^0.4.4",
     "mustache": "^3.0.0",
     "npm": "^6.4.1",
+    "patch-package": "^5.1.1",
     "prettier": "1.14.2",
     "pretty-quick": "^1.6.0",
     "split": "^1.0.1",
