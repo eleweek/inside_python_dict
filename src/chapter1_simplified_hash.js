@@ -12,13 +12,23 @@ import {
     SimpleCodeInline,
 } from './code_blocks';
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
-import {ChapterComponent, Subcontainerize, singularOrPlural, CrossFade, COLOR_FOR_READ_OPS} from './util';
+import {
+    ChapterComponent,
+    Subcontainerize,
+    singularOrPlural,
+    CrossFade,
+    COLOR_FOR_READ_OPS,
+    randint,
+    randomChoice,
+} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 import {parsePyNumber} from './py_obj_parsing';
 
 import {BigNumber} from 'bignumber.js';
 
 import memoizeOne from 'memoize-one';
+
+const CHAPTER1_MAXNUM = 999;
 
 export const SIMPLE_LIST_SEARCH = [
     ['def simple_search(simple_list, key):', '', 0],
@@ -41,9 +51,8 @@ function _parseSmallInt(value) {
 }
 
 function chapter1valueRangeValidator(num) {
-    const maxnum = 999;
-    if (num.lt(-maxnum) || num.gt(maxnum)) {
-        return 'In chapter 1 only small integers are supported (between -999 and 999)';
+    if (num.lt(-CHAPTER1_MAXNUM) || num.gt(CHAPTER1_MAXNUM)) {
+        return `In chapter 1 only small integers are supported (between -${CHAPTER1_MAXNUM} and ${CHAPTER1_MAXNUM})`;
     }
 }
 
@@ -415,6 +424,29 @@ export class Ops {
     }
 }
 
+function anotherValue(state, setState, array) {
+    const last = state?.anotherValue?.last;
+    let res;
+    do {
+        if (Math.random() > 0.3) {
+            /*const i = Math.floor(step / 2);
+            res = +array[i % array.length].toString();*/
+            res = +randomChoice(array).toString();
+        } else {
+            // TODO: -+1 is just in case here
+            res = randint(-CHAPTER1_MAXNUM + 1, CHAPTER1_MAXNUM - 1);
+        }
+    } while (res === last);
+
+    setState({
+        anotherValue: {
+            last: res,
+        },
+    });
+
+    return res;
+}
+
 export class Chapter1_SimplifiedHash extends ChapterComponent {
     constructor() {
         super();
@@ -547,7 +579,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             inline={true}
                             value={this.state.simpleSearchNumber}
                             onChange={this.setter('simpleSearchNumber')}
-                            anotherValue={() => 42}
+                            anotherValue={(state, setState) =>
+                                anotherValue(state, setState, this.state.numbers, this.state.simpleSearchNumber)
+                            }
                         />
                     </div>
                     <p>

@@ -195,3 +195,16 @@ export function getUxSettings() {
 export function singularOrPlural(num, singular, plural) {
     return num === 1 ? singular : plural;
 }
+
+export function randint(a, b) {
+    if (b <= a) {
+        throw new Error(`randInt called with b (${b}) <= a (${a})`);
+    }
+    // TODO: check round/floor/ceil stuff
+    // since it may not generate uniformly distributed numbers
+    return a + Math.round(Math.random() * (b - a + 1));
+}
+
+export function randomChoice(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
