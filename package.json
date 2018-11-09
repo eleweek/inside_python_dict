@@ -101,7 +101,6 @@
     "pretty-quick": "^1.6.0",
     "split": "^1.0.1",
     "style-loader": "^0.23.1",
-    "uglifyjs-webpack-plugin": "^2.0.1",
     "unminified-webpack-plugin": "^2.0.0",
     "webpack": "^4.23.0",
     "webpack-bundle-analyzer": "^3.0.3",
