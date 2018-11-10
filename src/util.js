@@ -206,5 +206,48 @@ export function randint(a, b) {
 }
 
 export function randomChoice(array) {
+    // TODO: check rounding
     return array[Math.floor(Math.random() * array.length)];
+}
+
+const RANDOM_STRINGS = [
+    'ok',
+    'fun',
+    'py',
+    'zoom',
+    'zip',
+    'zzz',
+    'ctrl',
+    'alt',
+    'esc',
+    'js',
+    'wise',
+    'unix',
+    'aha',
+    'aloe',
+    'thing',
+    'work',
+    'three',
+    'room',
+    'water',
+    'story',
+    'kind',
+    'four',
+    'yes',
+    'game',
+    'art',
+    'open',
+    'mind',
+    'step',
+    'ten',
+];
+
+export function randomMeaningfulString() {
+    return randomChoice(RANDOM_STRINGS);
+}
+
+const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+
+export function randomString3len() {
+    return randomChoice(LETTERS) + randomChoice(LETTERS) + randomChoice(LETTERS);
 }

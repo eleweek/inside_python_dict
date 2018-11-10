@@ -7,7 +7,15 @@ import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {ChapterComponent, Subcontainerize, COLOR_FOR_READ_OPS} from './util';
+import {
+    ChapterComponent,
+    Subcontainerize,
+    COLOR_FOR_READ_OPS,
+    randomMeaningfulString,
+    randomString3len,
+    randint,
+    randomChoice,
+} from './util';
 import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
@@ -30,6 +38,20 @@ export const HASH_CREATE_NEW_CODE = [
     ['', '', -1],
     ['    return hash_codes, keys', 'return-lists', 1],
 ];
+
+function anotherValue(array, ARRAY_CHANCE = 0.5, MEANINGFUL_CHANCE = 0.25, NUMBER_CHANCE = 0.2) {
+    const roll = Math.random();
+
+    if (roll < ARRAY_CHANCE) {
+        return randomChoice(array);
+    } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE) {
+        return randomMeaningfulString();
+    } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE + NUMBER_CHANCE) {
+        return randint(-100, 100);
+    } else {
+        return randomString3len();
+    }
+}
 
 class HashCreateNew extends HashBreakpointFunction {
     run(_fromKeys) {
@@ -770,6 +792,7 @@ EMPTY = EmptyValueClass()
                             inline={true}
                             value={this.state.searchedObj}
                             onChange={this.setter('searchedObj')}
+                            anotherValue={() => anotherValue(this.state.array)}
                         />
                     </div>
                     <p className="inline-block">and see what happens:</p>
@@ -806,6 +829,7 @@ DUMMY = DummyValueClass()
                             inline={true}
                             value={this.state.objToRemove}
                             onChange={this.setter('objToRemove')}
+                            anotherValue={() => anotherValue(this.state.array, 0.7, 0.2, 0.1)}
                         />
                     </div>
                     <VisualizedCode

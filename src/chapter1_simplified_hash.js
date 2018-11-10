@@ -303,7 +303,7 @@ class SimplifiedSearch extends BreakpointFunction {
         this.number = _number;
 
         this.fmtCollisionCount = 0;
-        this.newListIdx = this.number % this.newList.size;
+        this.newListIdx = ((this.number % this.newList.size) + this.newList.size) % this.newList.size;
         this.addBP('compute-idx');
 
         while (true) {
@@ -424,27 +424,14 @@ export class Ops {
     }
 }
 
-function anotherValue(state, setState, array) {
-    const last = state?.anotherValue?.last;
-    let res;
+function anotherValue(array, RANDOM_NUMBER_CHANCE = 0.3) {
     do {
-        if (Math.random() > 0.3) {
-            /*const i = Math.floor(step / 2);
-            res = +array[i % array.length].toString();*/
-            res = +randomChoice(array).toString();
+        if (Math.random() > RANDOM_NUMBER_CHANCE) {
+            return +randomChoice(array).toString();
         } else {
-            // TODO: -+1 is just in case here
-            res = randint(-CHAPTER1_MAXNUM + 1, CHAPTER1_MAXNUM - 1);
+            return randint(Math.floor(-CHAPTER1_MAXNUM / 10), Math.floor(CHAPTER1_MAXNUM / 10));
         }
     } while (res === last);
-
-    setState({
-        anotherValue: {
-            last: res,
-        },
-    });
-
-    return res;
 }
 
 export class Chapter1_SimplifiedHash extends ChapterComponent {
@@ -579,9 +566,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             inline={true}
                             value={this.state.simpleSearchNumber}
                             onChange={this.setter('simpleSearchNumber')}
-                            anotherValue={(state, setState) =>
-                                anotherValue(state, setState, this.state.numbers, this.state.simpleSearchNumber)
-                            }
+                            anotherValue={() => anotherValue(this.state.numbers)}
                         />
                     </div>
                     <p>
@@ -657,6 +642,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             inline={true}
                             value={this.state.simplifiedHashSearchNumber}
                             onChange={this.setter('simplifiedHashSearchNumber')}
+                            anotherValue={() => anotherValue(this.state.numbers, 0.4)}
                         />
                     </div>
                     <VisualizedCode

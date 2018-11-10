@@ -1252,6 +1252,8 @@ class TimeSliderWithControls extends React.PureComponent {
     static getDerivedStateFromProps(props, state) {
         if (state.autoPlaying && props.time === props.maxTime) {
             return {...state, autoPlaying: false};
+        } else {
+            return null;
         }
     }
 

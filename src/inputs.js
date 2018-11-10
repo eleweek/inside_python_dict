@@ -152,10 +152,20 @@ class ParsableInputBlock extends ParsableInputBase {
 
 class ParsableInputInline extends ParsableInputBase {
     tryAnotherClick = () => {
-        const value = this.props.anotherValue(this.state, this.setState.bind(this));
-        console.log(value);
-        this.forceSetValue(value);
-        this.propsOnChangeThrottled(value);
+        const last = this.state.anotherValue?.last;
+        let res;
+        do {
+            res = this.props.anotherValue(this.state, this.setState.bind(this));
+        } while (res === last || res === this.state.value);
+
+        this.setState({
+            anotherValue: {
+                last: res,
+            },
+            value: this.props.dumpValue(res),
+        });
+
+        this.propsOnChangeThrottled(res);
     };
 
     render() {
