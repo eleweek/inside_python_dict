@@ -449,7 +449,10 @@ class BlockInputToolbarImpl extends React.Component {
         const idx = this.state.valuesStackIndex;
         const undoCount = idx;
         const redoCount = stack.size - idx - 1;
-        const updateDisabled = this.state.value == null || this.state.value === stack.get(idx);
+        const updateDisabled =
+            this.state.value == null ||
+            this.state.value === stack.get(idx) ||
+            this.hackyPossibleWorkingDeepEqual(this.state.value, stack.get(idx));
         return (
             <div className="row row-block-input-toolbar">
                 <div className="col col-input">
