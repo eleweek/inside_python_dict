@@ -591,10 +591,10 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         super();
 
         this.state = {
-            array: ['abde', 'cdef', 'world', 'hmmm', 'hello', 'xxx', 'ya', 'hello,world!', 'well', 'meh'],
-            objToRemove: 'xxx',
-            objToInsert: 'okok',
-            searchedObj: 'world',
+            array: ['ping', 42, 'dmesg', -3, 'find', 'rm', 'test', 'mv', 'mkdir', 'vim'],
+            objToRemove: 'rm',
+            objToInsert: 'grep',
+            searchedObj: 'vim',
         };
     }
 
