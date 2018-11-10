@@ -481,6 +481,10 @@ class BaseBoxesComponent extends React.PureComponent {
                             });
                             toMergeStatus[key] = 'adding';
                             toMergeKeyModId[key] = modificationId;
+                            newRemovingValueToGroupToKeyToId = BaseBoxesComponent.notSoDeepDel(
+                                newRemovingValueToGroupToKeyToId,
+                                [repr(value, true), group, key]
+                            );
                         }
                     }
                 }
