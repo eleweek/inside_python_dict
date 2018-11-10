@@ -20,6 +20,7 @@ import {
     formatHashClassLookdictRelated,
     formatHashClassResize,
     formatHashClassInit,
+    anotherKey,
 } from './chapter3_and_4_common';
 
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
@@ -472,6 +473,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
                     <VisualizedCode
@@ -491,6 +493,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                             inline={true}
                             value={this.state.keyToGet}
                             onChange={this.setter('keyToGet')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
                     <VisualizedCode
@@ -522,12 +525,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                         a simpler version of <code>__setitem__</code>, it would look exactly the same.
                     </p>
                     <div className="div-p">
-                        Remember that we removed
+                        Remember that we removed (TODO) /*
                         <PyStringOrNumberInput
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
+                        */
                     </div>
                     <p className="inline-block">?{'\u00A0'}</p>
                     <div className="div-p">

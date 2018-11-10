@@ -278,11 +278,21 @@ export function PyDictInput({inputComponentRef, ...restProps}) {
     );
 }
 
+function _dumpStringOrNum(obj) {
+    if (BigNumber.isBigNumber(obj)) {
+        return obj.toString();
+    } else if (typeof obj === 'number') {
+        return obj.toString();
+    } else {
+        return JSON.stringify(obj);
+    }
+}
+
 export function PyNumberInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={JSON.stringify}
+            dumpValue={_dumpStringOrNum}
             parseValue={parsePyNumber}
             inputComponentRef={inputComponentRef}
         />
@@ -293,7 +303,7 @@ export function PyStringInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={JSON.stringify}
+            dumpValue={_dumpStringOrNum}
             parseValue={parsePyString}
             inputComponentRef={inputComponentRef}
         />
@@ -304,7 +314,7 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={JSON.stringify}
+            dumpValue={_dumpStringOrNum}
             parseValue={parsePyStringOrNumber}
             inputComponentRef={inputComponentRef}
         />

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
-import {COLOR_FOR_READ_OPS} from './util';
+import {BigNumber} from 'bignumber.js';
+import {COLOR_FOR_READ_OPS, randomMeaningfulString, randomString3len, randint, randomChoice} from './util';
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
@@ -601,5 +602,19 @@ export class HashClassResizeBase extends HashBreakpointFunction {
         this.addBP('done-no-return');
 
         return this.self;
+    }
+}
+
+export function anotherKey(pairs, ARRAY_CHANCE = 0.5, MEANINGFUL_CHANCE = 0.25, NUMBER_CHANCE = 0.2) {
+    const roll = Math.random();
+
+    if (roll < ARRAY_CHANCE) {
+        return randomChoice(pairs)[0];
+    } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE) {
+        return randomMeaningfulString();
+    } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE + NUMBER_CHANCE) {
+        return BigNumber(randint(-100, 100));
+    } else {
+        return randomString3len();
     }
 }

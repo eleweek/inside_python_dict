@@ -19,6 +19,7 @@ import {
     formatHashClassInit,
     postBpTransform,
     findNearestSize,
+    anotherKey,
 } from './chapter3_and_4_common';
 import {AlmostPythonDict} from './chapter3_hash_class';
 import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
@@ -128,9 +129,9 @@ function formatPythonProbing(bp) {
                 bp.perturb
             }</code>`;
         case 'next-idx':
-            return `The next slot will be <code>bp.idx</code> == <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
-                bp.slotsCount
-            }</code>`;
+            return `The next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} * 5 + ${
+                bp.perturb
+            } + 1) % ${bp.slotsCount}</code>`;
         case 'perturb-shift':
             return `Shifting perturb <code>perturb</code>: <code>${bp._prevBp.perturb} >> 5</code> == <code>${
                 bp.perturb
@@ -921,6 +922,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             inline={true}
                             value={this.state.keyForProbingVis}
                             onChange={this.setter('keyForProbingVis')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
                     <VisualizedCode
@@ -997,6 +999,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
                     <VisualizedCode
@@ -1012,6 +1015,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             inline={true}
                             value={this.state.keyToGet}
                             onChange={this.setter('keyToGet')}
+                            anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
                     <VisualizedCode

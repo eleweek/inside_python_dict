@@ -47,7 +47,7 @@ function anotherValue(array, ARRAY_CHANCE = 0.5, MEANINGFUL_CHANCE = 0.25, NUMBE
     } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE) {
         return randomMeaningfulString();
     } else if (roll < ARRAY_CHANCE + MEANINGFUL_CHANCE + NUMBER_CHANCE) {
-        return randint(-100, 100);
+        return BigNumber(randint(-100, 100));
     } else {
         return randomString3len();
     }
