@@ -1143,7 +1143,7 @@ class TimeSliderWithControls extends React.PureComponent {
         this.timeoutStarted = null;
     }
 
-    time() {
+    unixtimestamp() {
         return new Date().getTime();
     }
 
@@ -1163,16 +1163,16 @@ class TimeSliderWithControls extends React.PureComponent {
 
     prevStep = () => {
         this.stop();
-        if (this.state.time > 0) {
-            const newTime = this.state.time - 1;
+        if (this.props.time > 0) {
+            const newTime = this.props.time - 1;
             this.props.handleTimeChange(newTime);
         }
     };
 
     nextStep = () => {
         this.stop();
-        if (this.state.time < this.props.maxTime) {
-            const newTime = this.state.time + 1;
+        if (this.props.time < this.props.maxTime) {
+            const newTime = this.props.time + 1;
             this.props.handleTimeChange(newTime);
         }
     };
@@ -1192,19 +1192,20 @@ class TimeSliderWithControls extends React.PureComponent {
     };
 
     autoPlayNextStep = () => {
-        if (this.state.time < this.props.maxTime) {
+        if (this.props.time < this.props.maxTime) {
             const newTime = this.state.time + 1;
-            let newState = {time: newTime};
             this.handleTimeChange(newTime);
-            if (newState.time < this.props.maxTime) {
+            let autoPlaying;
+            if (newTime < this.props.maxTime) {
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
-                this.timeoutStarted = this.time();
-                newState.autoPlaying = true;
+                this.timeoutStarted = this.unixtimestamp();
+                if (!this.state.autoPlaying) {
+                    this.setState({autoPlaying: true});
+                }
             } else {
                 this.timeoutId = null;
-                newState.autoPlaying = false;
+                this.setState({autoPlaying: false});
             }
-            this.setState(newState);
         }
     };
 
@@ -1212,11 +1213,11 @@ class TimeSliderWithControls extends React.PureComponent {
         this.setState({autoPlaying: true});
         this.handleTimeChange(0);
         this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
-        this.timeoutStarted = this.time();
+        this.timeoutStarted = this.unixtimestamp();
     };
 
     autoPlay = () => {
-        if (this.state.time < this.props.maxTime) {
+        if (this.props.time < this.props.maxTime) {
             this.autoPlayNextStep();
         } else {
             this.repeatPlay();
@@ -1229,14 +1230,17 @@ class TimeSliderWithControls extends React.PureComponent {
             this.timeoutId = null;
             this.timeoutStarted = null;
         }
-        this.setState({autoPlaying: false});
+        if (this.state.autoPlaying) {
+            this.setState({autoPlaying: false});
+        }
     };
 
     setSpeed = speed => {
         if (speed !== this.state.speed) {
             if (
                 this.state.autoPlaying &&
-                this.getAutoplayTimeout() - (this.time() - this.timeoutStarted) > this.getAutoplayTimeout(speed)
+                this.getAutoplayTimeout() - (this.unixtimestamp() - this.timeoutStarted) >
+                    this.getAutoplayTimeout(speed)
             ) {
                 clearTimeout(this.timeoutId);
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout(speed));
@@ -1245,6 +1249,18 @@ class TimeSliderWithControls extends React.PureComponent {
         }
     };
 
+    static getDerivedStateFromProps(props, state) {
+        if (state.autoPlaying && props.time === props.maxTime) {
+            return {...state, autoPlaying: false};
+        }
+    }
+
+    componentDidUpdate() {
+        if (!this.state.autoPlaying && this.timeoutId) {
+            this.stop();
+        }
+    }
+
     render() {
         let marks = {};
         if (this.props.maxTime < 30) {
@@ -1252,7 +1268,7 @@ class TimeSliderWithControls extends React.PureComponent {
                 marks[i] = '';
             }
         }
-        const time = this.state.time != null ? this.state.time : this.props.time;
+        const time = this.props.time;
 
         const button = (label, onClick, iconId, iconOnTheRight) => {
             let elems = [];
@@ -1276,7 +1292,7 @@ class TimeSliderWithControls extends React.PureComponent {
         timeControls.push(button(' First step', this.firstStep, 'fast-backward'));
         timeControls.push(button(' Step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
-            const playIcon = this.state.time === this.props.maxTime ? 'redo-alt' : 'play';
+            const playIcon = this.props.time === this.props.maxTime ? 'redo-alt' : 'play';
             timeControls.push(button(' Play', this.autoPlay, playIcon));
         } else {
             timeControls.push(button(' Pause', this.stop, 'pause'));
