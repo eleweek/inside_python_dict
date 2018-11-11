@@ -1019,8 +1019,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             let htCodeHtml = renderPythonCode(paddedLine);
 
             let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
-            formattedLine += explanation + '<br>';
-            lines.push(formattedLine);
+            formattedLine += explanation;
+            lines.push(`<span class="line-with-annotation inline-block">${formattedLine}</span><br/>`);
         }
         if (!isLineHighlighted) {
             throw new Error(`No line found corresponding to "${activeBp.point}`);

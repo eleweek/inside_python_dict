@@ -355,3 +355,12 @@ blockquote.blockquote {
 .toc-a:hover .toc-title {
     text-decoration: underline !important;
 }
+
+.line-with-annotation:hover {
+    background: #e9ecef;
+    width: 100%;
+}
+
+.line-with-annotation {
+    width: 100%;
+}
