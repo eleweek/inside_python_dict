@@ -98,9 +98,9 @@ function formatDict32IdxRelatedBp(bp) {
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
-            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${
-                bp.perturb
-            }</code>`;
+            return `Compute <code>perturb</code> by converting the hash <code>${
+                bp.hashCode
+            }</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
                 bp.self.get('slots').size
@@ -125,9 +125,9 @@ function formatPythonProbing(bp) {
                 bp.idx
             }</code>`;
         case 'compute-perturb':
-            return `Compute perturb by converting the hash <code>${bp.hashCode}</code> to unsigned: <code>${
-                bp.perturb
-            }</code>`;
+            return `Compute <code>perturb</code> by converting the hash <code>${
+                bp.hashCode
+            }</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
             return `The next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} * 5 + ${
                 bp.perturb
@@ -745,8 +745,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 ['mkdir', BigNumber(81)],
                 ['vim', BigNumber(100)],
             ],
-            keyToDel: 'hello',
-            keyToGet: 'ya',
+            keyToDel: 'rm',
+            keyToGet: 'mkdir',
             keyForProbingVis: 'hello',
         };
     }

@@ -21,7 +21,7 @@ import {
     randint,
     randomChoice,
 } from './util';
-import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
+import {chapter1_2_FormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 import {parsePyNumber} from './py_obj_parsing';
 
 import {BigNumber} from 'bignumber.js';
@@ -233,7 +233,7 @@ let formatSimplifiedInsertAllDescription = function(bp) {
                 bp.newList.size
             }</code>`;
         case 'check-collision':
-            return commonFormatCheckCollision(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
+            return chapter1_2_FormatCheckCollision(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
                 bp._prevBp.newListIdx

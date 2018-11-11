@@ -1011,7 +1011,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 }
 
                 if (desc) {
-                    explanation = `<span class="code-explanation"> ~ ${desc}</span>`;
+                    explanation = `<span class="code-explanation">&nbsp;&nbsp;&nbsp;&nbsp;~ ${desc}</span>`;
                 }
             }
 

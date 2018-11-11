@@ -6,15 +6,22 @@ import {COLOR_FOR_READ_OPS, randomMeaningfulString, randomString3len, randint, r
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
+import {commonFormatCheckCollisionLoopEndedPart, commonFormatCheckNotFound} from './common_formatters';
+
+export function singleFormatCheckCollision(slots, idx, fmtCollisionCount) {
+    if (slots.get(idx).key == null) {
+        return commonFormatCheckCollisionLoopEndedPart(idx, fmtCollisionCount);
+    } else {
+        return `Slot <code>${idx}</code> is occupied (the item key is <code>${
+            slots.get(idx).key
+        }</code>): a collision occurred`;
+    }
+}
 
 export function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
         case 'check-not-found':
-            if (bp.self.get('slots').get(bp.idx).key === null) {
-                return `Slot <code>${bp.idx}</code> is empty, no more slots to check`;
-            } else {
-                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied, so check it`;
-            }
+            return commonFormatCheckNotFound(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount);
         case 'check-hash': {
             const slotHash = bp.self.get('slots').get(bp.idx).hashCode;
             if (slotHash.eq(bp.hashCode)) {
@@ -41,11 +48,11 @@ export function formatHashClassLookdictRelated(bp) {
             return `Call <code>self.lookdict(${displayStr(bp.key)})</code>`;
         /* __delitem__ */
         case 'dec-used':
-            return `We're about to put a dummy placeholder in the slot, so set the counter of <code>used</code> slots to ${bp.self.get(
+            return `We're about to put the <code>DUMMY</code> placeholder in the slot, so set the counter of <code>used</code> slots to <code>${bp.self.get(
                 'used'
-            )}`;
+            )}</code>`;
         case 'replace-key-dummy':
-            return `Replace key at <code>${bp.idx}</code> with a <code>DUMMY</code> placeholder`;
+            return `Replace key at <code>${bp.idx}</code> with the <code>DUMMY</code> placeholder`;
         case 'replace-value-empty':
             return `Replace value at <code>${bp.idx}</code> with <code>EMPTY</code>`;
         /* __getitem__ */
@@ -66,11 +73,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'target-idx-none':
             return `Initialize <code>target_idx</code> - this is the index of the slot where we'll put the item`;
         case 'check-collision':
-            if (bp.self.get('slots').get(bp.idx).key === null) {
-                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
-            } else {
-                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
-            }
+            return singleFormatCheckCollision(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount);
         case 'check-dup-hash': {
             const slotHash = bp.self.get('slots').get(bp.idx).hashCode;
             if (slotHash.eq(bp.hashCode)) {
@@ -113,7 +116,7 @@ export function formatHashClassSetItemAndCreate(bp) {
             return 'Because the key is found, stop';
         case 'check-target-idx-is-none':
             if (bp.targetIdx == null) {
-                return `<code>target_idx is None</code>, and this means that we haven't found nor dummy slot neither existing slot`;
+                return `<code>target_idx is None</code>, it means we haven't encountered a <code>DUMMY</code> slot or a slot with the key itself`;
             } else {
                 return `<code>target_idx is not None</code>, and this means we already know where to put the item`;
             }
@@ -128,14 +131,14 @@ export function formatHashClassSetItemAndCreate(bp) {
         }
         case 'inc-used':
         case 'inc-used-2':
-            return `Then we need to increment <code>self.used</code>, which makes it <code>${bp.self.get(
+            return `Then we only need to increment <code>self.used</code>, which makes it <code>${bp.self.get(
                 'used'
             )}</code>`;
         case 'inc-fill':
             return `and increment fill, which makes it <code>${bp.self.get('fill')}</code>`;
         case 'check-recycle-used-increased':
             return (
-                `If we're putting the item in dummy slot ` +
+                `If we're putting the item in a slot with <code>DUMMY</code>` +
                 (bp.self.get('slots').get(bp.targetIdx).key === DUMMY ? '(and we are)' : "(and we aren't)")
             );
         case 'assign-slot': {
@@ -146,25 +149,27 @@ export function formatHashClassSetItemAndCreate(bp) {
             const fillQ = bp.self.get('fill') * 3;
             const sizeQ = bp.self.get('slots').size * 2;
             let compStr;
-            let noRunResizeStr = '';
-            if (fillQ > sizeQ) {
-                compStr = 'is greater than';
-            } else if (fillQ === sizeQ) {
-                compStr = 'is equals to';
+            let extraResizeStr = '';
+            if (fillQ > sizeQ || fillQ === sizeQ) {
+                if (fillQ > sizeQ) {
+                    compStr = 'is greater than';
+                } else {
+                    compStr = 'is equals to';
+                }
             } else {
                 compStr = 'is less than';
-                noRunResizeStr = ', so no need to run <code>resize()</code>';
+                extraResizeStr = ', so no need to run <code>resize()</code>';
             }
 
             return (
                 `<code> ${bp.self.get('fill')} * 3</code> (== <code>${fillQ}</code>) ` +
                 compStr +
                 ` <code>${bp.self.get('slots').size} * 2</code> (== <code>${sizeQ}</code>)` +
-                noRunResizeStr
+                extraResizeStr
             );
         }
         case 'resize':
-            return 'Do a resize';
+            return 'So it is time to do a resize';
         case 'done-no-return':
             return '';
     }
@@ -173,9 +178,11 @@ export function formatHashClassSetItemAndCreate(bp) {
 export function formatHashClassResize(bp) {
     switch (bp.point) {
         case 'assign-old-slots':
-            return 'Copy the reference to slots (no actual copying is done)';
+            return 'Copy the reference to <code>slots</code> (no actual copying is done)';
         case 'assign-fill':
-            return `Set fill to <code>${bp.self.get('used')}</code>, since we will drop any removed "dummy" slots`;
+            return `Set fill to <code>${bp.self.get(
+                'used'
+            )}</code>, since we will skip all slots with the <code>DUMMY</code> placeholder`;
         case 'compute-new-size':
             return `Find the smallest power of two greater than <code>${bp.self.get('used')} * 2</code>. It is <code>${
                 bp.newSize
@@ -184,30 +191,24 @@ export function formatHashClassResize(bp) {
             return `Create a new list of empty slots of size <code>${bp.self.get('slots').size}</code>`;
         case 'for-loop': {
             const {key, hashCode} = bp.oldSlots.get(bp.oldIdx);
-            return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current key to insert is <code>${
+            return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current key is <code>${
                 key === null ? 'EMPTY' : displayStr(key)
             }</code> and its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
         }
         case 'check-skip-empty-dummy': {
             const slotKey = bp.oldSlots.get(bp.oldIdx).key;
             if (slotKey === null) {
-                return `The current slot is empty`;
+                return `The current slot is empty, skipping it`;
             } else if (slotKey === DUMMY) {
-                return `The current slot contains the <code>DUMMY</code> placeholder`;
+                return `The current slot contains the <code>DUMMY</code> placeholder, skipping it`;
             } else {
-                return `The current slot is a normal slot containing an item (with key == <code>${displayStr(
-                    slotKey
-                )}</code>)`;
+                return `The current slot contains a normal item (key is <code>${displayStr(slotKey)}</code>)`;
             }
         }
         case 'continue' /* FIXME not currently used */:
             return 'So skip it';
         case 'check-collision':
-            if (bp.self.get('slots').get(bp.idx).key === null) {
-                return `Slot <code>${bp.idx}</code> is empty, so don't loop`;
-            } else {
-                return `We haven't hit an empty slot yet, slot <code>${bp.idx}</code> is occupied`;
-            }
+            return singleFormatCheckCollision(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount);
         case 'assign-slot':
             return `Put the item in slot <code>${bp.idx}</code>`;
         case 'done-no-return':
@@ -306,6 +307,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
         this.self = _self;
         this.key = _key;
         this.value = _value;
+        this.fmtCollisionCount = 0;
 
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
@@ -348,6 +350,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
                 }
             }
 
+            this.fmtCollisionCount += 1;
             this.nextIdxAndSave();
         }
 
@@ -411,6 +414,7 @@ export class HashClassLookdictBase extends HashBreakpointFunction {
         this.self = _self;
         this.key = _key;
 
+        this.fmtCollisionCount = 0;
         this.addBP('start-execution-lookdict');
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
@@ -436,6 +440,7 @@ export class HashClassLookdictBase extends HashBreakpointFunction {
                 }
             }
 
+            this.fmtCollisionCount += 1;
             this.nextIdxAndSave();
         }
 

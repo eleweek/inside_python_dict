@@ -16,7 +16,7 @@ import {
     randint,
     randomChoice,
 } from './util';
-import {commonFormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
+import {chapter1_2_FormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
 
 import memoizeOne from 'memoize-one';
 
@@ -145,7 +145,7 @@ function formatHashCreateNewAndInsert(bp) {
                 bp.keys.size
             }</code>`;
         case 'check-collision':
-            return commonFormatCheckCollision(bp.keys, bp.idx, bp.fmtCollisionCount);
+            return chapter1_2_FormatCheckCollision(bp.keys, bp.idx, bp.fmtCollisionCount);
         case 'check-dup-hash':
             if (EQ(bp.hashCodes.get(bp.idx), bp.hashCode)) {
                 return `<code>${bp.hashCodes.get(bp.idx)} == ${
@@ -411,7 +411,7 @@ function formatHashResize(bp) {
         case 'continue':
             return 'So skip it';
         case 'check-collision':
-            return commonFormatCheckCollision(bp.newKeys, bp.idx, bp.fmtCollisionCount);
+            return chapter1_2_FormatCheckCollision(bp.newKeys, bp.idx, bp.fmtCollisionCount);
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
                 bp.keys.size

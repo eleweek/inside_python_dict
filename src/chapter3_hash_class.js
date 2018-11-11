@@ -258,9 +258,9 @@ export class Chapter3_HashClass extends ChapterComponent {
                 ['mkdir', BigNumber(81)],
                 ['vim', BigNumber(100)],
             ],
-            keyToDel: 'hello',
-            keyToGet: 'ya',
-            keyToSetRecycling: 'recycling',
+            keyToDel: 'rm',
+            keyToGet: 'mkdir',
+            keyToSetRecycling: 'recycle',
             valueToSetRecycling: 499,
         };
     }
