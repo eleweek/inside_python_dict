@@ -243,7 +243,11 @@ class ActiveBoxSelectionDynamicTransition extends React.Component {
 class Box extends React.PureComponent {
     shortDisplayedString(value) {
         const extraType =
-            value === 'DUMMY' || value === 'EMPTY' || (typeof value === 'string' && /^[-+]?[0-9]+$/.test(value));
+            value === 'DUMMY' ||
+            value === 'EMPTY' ||
+            value === '' ||
+            (typeof value === 'string' && /^[-+]?[0-9]+$/.test(value));
+        let isEmpty = false;
         const maxLen = extraType ? 8 : 12;
         // TODO: add hover?
         let s = displayStr(value, false);
@@ -272,6 +276,7 @@ class Box extends React.PureComponent {
         return {
             shortenedValue,
             extraType,
+            isEmpty,
         };
     }
 
@@ -283,7 +288,15 @@ class Box extends React.PureComponent {
         let content;
         if (value != null) {
             const {shortenedValue, extraType} = this.shortDisplayedString(value);
-            const extraTypeSpan = extraType ? <span className="box-content-extra-type">(str)</span> : null;
+            let extraTypeSpan;
+            if (
+                shortenedValue.length === 1 &&
+                shortenedValue[0] === '' /* TODO FIXME: this check is kidna ugly & is a leaky abstraction */
+            ) {
+                extraTypeSpan = <span className="box-content-extra-type">(empty str)</span>;
+            } else {
+                extraTypeSpan = extraType ? <span className="box-content-extra-type">(str)</span> : null;
+            }
             classes.push('box-full');
             content = (
                 <span className="box-content">
