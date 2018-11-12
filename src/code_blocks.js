@@ -21,6 +21,8 @@ import SmoothScrollbar from 'react-smooth-scrollbar';
 
 import {MyErrorBoundary, getUxSettings, RED, BLUE} from './util';
 import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
+import {globalSettings} from './store';
+import {observer} from 'mobx-react';
 
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -1137,7 +1139,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 }
 
 // TODO: remove time from state?
-class TimeSliderWithControls extends React.PureComponent {
+@observer
+class TimeSliderWithControls extends React.Component {
     AUTOPLAY_BASE_TIMEOUT = 1000;
 
     constructor() {
@@ -1192,7 +1195,7 @@ class TimeSliderWithControls extends React.PureComponent {
     };
 
     getAutoplayTimeout = speed => {
-        return this.AUTOPLAY_BASE_TIMEOUT / (speed || this.state.speed);
+        return this.AUTOPLAY_BASE_TIMEOUT / (speed || globalSettings.codePlaySpeed);
     };
 
     autoPlayNextStep = () => {
@@ -1240,7 +1243,7 @@ class TimeSliderWithControls extends React.PureComponent {
     };
 
     setSpeed = speed => {
-        if (speed !== this.state.speed) {
+        if (speed !== globalSettings.speed) {
             if (
                 this.state.autoPlaying &&
                 this.getAutoplayTimeout() - (this.unixtimestamp() - this.timeoutStarted) >
@@ -1249,7 +1252,7 @@ class TimeSliderWithControls extends React.PureComponent {
                 clearTimeout(this.timeoutId);
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout(speed));
             }
-            this.setState({speed: speed});
+            globalSettings.setCodePlaySpeed(speed);
         }
     };
 
@@ -1311,7 +1314,7 @@ class TimeSliderWithControls extends React.PureComponent {
         const speeds = [0.5, 1, 2, 4, 8, 16];
         for (let i = 0; i < speeds.length; ++i) {
             const speed = speeds[i];
-            const isActive = speed === this.state.speed;
+            const isActive = speed === globalSettings.codePlaySpeed;
             let label = i === 0 ? `Autoplay speed ${speed}x` : `${speed}x`;
             speedControls.push(
                 <label key={label} className={classNames('btn', 'btn-outline-dark', {active: isActive})}>
