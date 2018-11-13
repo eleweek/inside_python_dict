@@ -665,7 +665,6 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         objects other than integers - strings, tuples, floats.
                     </p>
                     <p>
-                        {' '}
                         P.S.: There is a different method of collision resolution, called{' '}
                         <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
                         is also quite popular in the real world. But that's now how python resolves collision in dicts,

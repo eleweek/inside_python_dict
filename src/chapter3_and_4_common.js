@@ -623,3 +623,15 @@ export function anotherKey(pairs, ARRAY_CHANCE = 0.5, MEANINGFUL_CHANCE = 0.25, 
         return randomString3len();
     }
 }
+
+export function generateNewKey(MEANINGFUL_CHANCE = 0.7, NUMBER_CHANCE = 0.2) {
+    const roll = Math.random();
+
+    if (roll < MEANINGFUL_CHANCE) {
+        return randomMeaningfulString();
+    } else if (roll < MEANINGFUL_CHANCE + NUMBER_CHANCE) {
+        return BigNumber(randint(-300, 300));
+    } else {
+        return randomString3len();
+    }
+}

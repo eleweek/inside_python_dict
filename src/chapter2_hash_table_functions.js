@@ -586,6 +586,18 @@ export class Ops {
     }
 }
 
+function ListDescription({array}) {
+    let countStr = array.filter(e => typeof e === 'string').length;
+    let countNum = array.length - countStr;
+    if (countStr > 0 && countNum > 0) {
+        return 'a mixed list of integers and strings';
+    } else if (countStr > 0) {
+        return 'a list of strings';
+    } else {
+        return 'a list of integers';
+    }
+}
+
 export class Chapter2_HashTableFunctions extends ChapterComponent {
     constructor() {
         super();
@@ -766,7 +778,9 @@ EMPTY = EmptyValueClass()
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}
                         <code>hash_codes</code> for caching values of hash functions.
                     </p>
-                    <p>Let's say we have a mixed list of strings and integers:</p>
+                    <p>
+                        Let's say we have <ListDescription array={this.state.array} />:
+                    </p>
                     <BlockInputToolbar
                         input={PyListInput}
                         initialValue={this.state.array}

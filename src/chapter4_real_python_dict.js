@@ -20,9 +20,10 @@ import {
     postBpTransform,
     findNearestSize,
     anotherKey,
+    generateNewKey,
 } from './chapter3_and_4_common';
 import {AlmostPythonDict} from './chapter3_hash_class';
-import {BreakpointFunction, pyHash, computeIdx} from './hash_impl_common';
+import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_common';
 
 import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
@@ -316,7 +317,7 @@ export class Dict32 {
 
     static __setitem__(pySelf, key, value) {
         let si = new Dict32SetItem();
-        if (pySelf.get('slots').size >= 50000) {
+        if (pySelf.get('used') >= 50000) {
             throw new Error("Too much inserts, can't visualize this anyway");
         }
         pySelf = si.run(
@@ -328,7 +329,8 @@ export class Dict32 {
             4 /* should depend on the size but an exception is throw before condition is reached */
         );
         const bp = si.getBreakpoints();
-        return {bp, pySelf};
+        const resize = si.getResize();
+        return {bp, pySelf, resize};
     }
 }
 
@@ -728,6 +730,34 @@ class ProbingVisualizationImpl extends React.Component {
     }
 }
 
+function DynamicPartResize({extraPairs, resize}) {
+    console.log('DynamicPartResize', extraPairs, resize);
+    const formatExtraPair = ([k, v]) => `(${displayStr(k)}, ${displayStr(v)})`;
+    const formatExtraPairs = extraPairs => {
+        if (extraPairs.length > 1) {
+            return '[' + extraPairs.map(formatExtraPair).join(', ') + ']';
+        } else {
+            return formatExtraPair(extraPairs[0]);
+        }
+    };
+    let text;
+
+    if (extraPairs === null) {
+        text = `During building the dict from original pairs, after inserting the first <code>${resize.oldSelf.get(
+            'fill'
+        )}</code> pairs, it got resized from <code>${resize.oldSelf.get('slots').size}</code> slots to <code>${
+            resize.self.get('slots').size
+        }</code> slots. Python tries to guess the correct size of the resulting hash table inside dict, but sometimes it misses, so a resize like this can happen.`;
+    } else {
+        // TODO: better formatting of pairs
+        text = `While building the dict from original pairs, no resize operation was run, because Python correctly guessed the number of slots needed. To see resize in action, let's insert additional pair${
+            extraPairs.length === 1 ? '' : 's'
+        }: <code>${formatExtraPairs(extraPairs)}</code>`;
+    }
+
+    return <p dangerouslySetInnerHTML={{__html: text}} />;
+}
+
 export class Chapter4_RealPythonDict extends ChapterComponent {
     constructor() {
         super();
@@ -761,14 +791,33 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         return {bp, pySelf, resizes};
     });
 
-    selectResize = memoizeOne(resizes => {
+    selectOrCreateResize = memoizeOne((pySelf, resizes) => {
         let resize = null;
+        let extraPairs = null;
         // TODO: support warning user about no resizes
         if (resizes.length > 0) {
             resize = resizes[0];
+        } else {
+            extraPairs = [];
+            while (resize == null) {
+                const key = generateNewKey();
+                if (Dict32.__getitem__(pySelf, key).isException) {
+                    const value = BigNumber(extraPairs.length + 1);
+                    console.log('Adding', key, value);
+                    let newPySelf;
+                    ({pySelf: newPySelf, resize} = Dict32.__setitem__(pySelf, key, value));
+                    const noRecycleOccured = resize || newPySelf.get('fill') > pySelf.get('fill');
+                    if (noRecycleOccured) {
+                        // Only add pairs that don't get recycled
+                        pySelf = newPySelf;
+                        extraPairs.push([key, value]);
+                    }
+                }
+            }
         }
+
         const bp = resize.breakpoints;
-        return {resize, bp};
+        return {resize, bp, extraPairs};
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
@@ -818,13 +867,12 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         let almostPythonDictSelf = this.chapter3dict(this.state.pairs);
 
-        // TODO
-        // let resizeRes = this.selectResize(newRes.resizes);
-
         let delRes = this.runDelItem(pySelf, this.state.keyToDel);
         pySelf = delRes.pySelf;
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
+
+        let resizeRes = this.selectOrCreateResize(pySelf, newRes.resizes);
 
         const slotsCount = 8;
         const probingSimple = this.runProbingSimple(slotsCount);
@@ -1025,25 +1073,30 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         stateVisualization={HashClassNormalStateVisualization}
                         {...this.props}
                     />
+                    <h5> Resize </h5>
                     <p>
                         {' '}
-                        To visualize a resize, we need to add more pairs. Here are some autogenerated pairs to insert so
-                        that the load factor goes over <code>2/3</code> and a resize is triggered: TODO. Let's run{' '}
-                        <code>__setitem__</code> on them
+                        In Python 3.2, the size of a hash table can quadrupled when there are less than or equal to
+                        50000 elements, and can only be doubled when there are more than 50000 elements. Quadrupling a
+                        table leads to fewer resizes at the cost of memory. Memory overhead is more critical when tables
+                        are large, so having a certain cut off strikes a balance.
                     </p>
-                    TODO
                     <p>
-                        {' '}
+                        And just like in previous chapter, a resize operation can decrease the size of a table, if too
+                        many slots are wasted by <code>DUMMY</code> placeholders.
+                    </p>
+                    <DynamicPartResize {...resizeRes} />
+                    <p>
                         After running <code>__setitem__</code> multiple times for these pairs, we can take a look at the
                         resize in-depth:{' '}
                     </p>
-                    {/*<VisualizedCode
-                    code={DICT32_RESIZE_CODE}
-                    breakpoints={resizeRes.bp}
-                    formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
-                    stateVisualization={HashClassResizeVisualization}
-                    {...this.props}
-                />*/}
+                    <VisualizedCode
+                        code={DICT32_RESIZE_CODE}
+                        breakpoints={resizeRes.bp}
+                        formatBpDesc={[formatHashClassResize, formatDict32IdxRelatedBp]}
+                        stateVisualization={HashClassResizeVisualization}
+                        {...this.props}
+                    />
                     <h5>A brief history of changes in the following versions</h5>
                     <p>
                         In 3.3 there were significant changes to the internal structure of dicts (
