@@ -99,9 +99,9 @@ function formatDict32IdxRelatedBp(bp) {
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
-            return `Compute <code>perturb</code> by converting the hash <code>${
-                bp.hashCode
-            }</code> to unsigned: <code>${bp.perturb}</code>`;
+            return `Compute the initial <code>perturb</code> by converting the hash code to unsigned: <code>${
+                bp.perturb
+            }</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
                 bp.self.get('slots').size

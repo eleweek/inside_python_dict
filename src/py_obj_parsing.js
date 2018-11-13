@@ -118,7 +118,7 @@ export class PyObjParser {
         return res;
     }
 
-    parseList(allowDuplicates = true, extraValueValidator) {
+    parseList(allowDuplicates = true, minSize = null, extraValueValidator) {
         const allowedSeparators = ',]';
         const c = this.current();
 
@@ -148,7 +148,13 @@ export class PyObjParser {
             if (this.current() !== ']' && this.current() != null) this.consume(',');
             this.skipWhitespace();
         }
+        console.log('parseList', res, minSize);
         this.consumeWS(']');
+        if (minSize != null) {
+            if (res.length < minSize) {
+                throw new Error(`List need to have length at least ${minSize}`);
+            }
+        }
         return res;
     }
 
@@ -252,9 +258,9 @@ export function parsePyDict(s) {
     return parser.parseDict();
 }
 
-export function parsePyList(s, allowDuplicates = true, extraValueValidator) {
+export function parsePyList(s, allowDuplicates = true, minSize = null, extraValueValidator) {
     let parser = new PyObjParser(s);
-    return parser.parseList(allowDuplicates, extraValueValidator);
+    return parser.parseList(allowDuplicates, minSize, extraValueValidator);
 }
 
 export function parsePyStringOrNumber(s) {

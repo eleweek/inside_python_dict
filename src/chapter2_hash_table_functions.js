@@ -783,6 +783,7 @@ EMPTY = EmptyValueClass()
                     </p>
                     <BlockInputToolbar
                         input={PyListInput}
+                        inputProps={{minSize: 1}}
                         initialValue={this.state.array}
                         onChange={this.setter('array')}
                         bottomBoundary=".chapter2"

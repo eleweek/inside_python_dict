@@ -256,12 +256,12 @@ export function ParsableInput(props) {
     }
 }
 
-export function PyListInput({inputComponentRef, extraValueValidator, allowDuplicates, ...restProps}) {
+export function PyListInput({inputComponentRef, extraValueValidator, allowDuplicates, minSize, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
             dumpValue={dumpPyList}
-            parseValue={s => parsePyList(s, allowDuplicates, extraValueValidator)}
+            parseValue={s => parsePyList(s, allowDuplicates, minSize, extraValueValidator)}
             inputComponentRef={inputComponentRef}
         />
     );

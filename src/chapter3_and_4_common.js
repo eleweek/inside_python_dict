@@ -2,7 +2,14 @@ import * as React from 'react';
 import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
 import {BigNumber} from 'bignumber.js';
-import {COLOR_FOR_READ_OPS, randomMeaningfulString, randomString3len, randint, randomChoice} from './util';
+import {
+    COLOR_FOR_READ_OPS,
+    randomMeaningfulString,
+    randomString3len,
+    randint,
+    randomChoice,
+    singularOrPlural,
+} from './util';
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
@@ -130,12 +137,14 @@ export function formatHashClassSetItemAndCreate(bp) {
             );
         }
         case 'inc-used':
-        case 'inc-used-2':
-            return `Then we only need to increment <code>self.used</code>, which makes it <code>${bp.self.get(
-                'used'
-            )}</code>`;
+        case 'inc-used-2': {
+            const isOnly = bp.point === 'inc-used-2';
+            return `Then we ${
+                isOnly ? 'only' : ''
+            } need to increment <code>self.used</code>, which makes it <code>${bp.self.get('used')}</code>`;
+        }
         case 'inc-fill':
-            return `and increment fill, which makes it <code>${bp.self.get('fill')}</code>`;
+            return `and increment <code>fill</code>, which makes it <code>${bp.self.get('fill')}</code>`;
         case 'check-recycle-used-increased':
             return (
                 `If we're putting the item in a slot with <code>DUMMY</code>` +
@@ -230,7 +239,9 @@ export function formatHashClassInit(bp) {
         case 'init-used':
             return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
         case 'check-pairs':
-            return `Check if there are <code>pairs</code> to insert`;
+            return `Check if there are <code>pairs</code> to insert, and there are <code>${
+                pairs.length
+            }</code> ${singularOrPlural(pairs.length, 'pair', 'pairs')}`;
         case 'for-pairs':
             return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${displayStr(
                 bp.oldKey
