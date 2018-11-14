@@ -11,6 +11,7 @@ import {
     parsePyString,
     parsePyStringOrNumber,
 } from './py_obj_parsing';
+import {isClient} from './util';
 
 import classNames from 'classnames';
 import AutosizeInput from 'react-input-autosize';
@@ -79,10 +80,28 @@ class ParsableInputBlock extends ParsableInputBase {
         }
     };
 
+    measureCharWidth = () => {
+        const exampleStr = 'qwerty1234567890asdfghzxcb';
+        // FROM: https://stackoverflow.com/questions/44302717/get-input-text-width-when-typing
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+
+        const prop = ['font-style', 'font-variant', 'font-weight', 'font-size', 'font-family'];
+        let font = '';
+        for (let p of prop) {
+            font += window.getComputedStyle(this.inputComponentRef.current, null).getPropertyValue(p) + ' ';
+        }
+        ctx.font = font;
+
+        const txtWidth = ctx.measureText(exampleStr).width;
+
+        return txtWidth / exampleStr.length;
+    };
+
     formatErrorMessage(e) {
         const padding = 8; // TODO: unhardcode*/
-        const {scrollWidth, scrollLeft, clientWidth} = this.inputComponentRef.current;
-        const charWidth = (scrollWidth - 2 * padding) / this.state.value.length;
+        const {scrollLeft, clientWidth} = this.inputComponentRef.current;
+        const charWidth = this.charWidth;
 
         const visibleLeft = Math.ceil(scrollLeft / charWidth);
         const visibleRight = Math.floor((scrollLeft + clientWidth) / charWidth);
@@ -94,8 +113,11 @@ class ParsableInputBlock extends ParsableInputBase {
 
         // TODO: what if the error message does not fit on scren?
         this.lastScrollLeft = scrollLeft;
+        console.log('!!!', visibleLeft, pos, visibleRight);
+        const relativePos = pos - visibleLeft;
+        console.log('rel pos', relativePos);
+        console.log('totalVisible', totalVisible);
         if (visibleLeft <= pos && pos <= visibleRight) {
-            const relativePos = pos - visibleLeft;
             if (text.length < relativePos - 1) {
                 return _.padEnd(text + ' ', relativePos, '-') + '^';
             } else if (text.length + relativePos + 5 < totalVisible) {
@@ -147,6 +169,12 @@ class ParsableInputBlock extends ParsableInputBase {
                 {error}
             </div>
         );
+    }
+
+    componentDidMount() {
+        if (isClient) {
+            this.charWidth = this.measureCharWidth();
+        }
     }
 }
 

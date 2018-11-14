@@ -251,3 +251,5 @@ const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 export function randomString3len() {
     return randomChoice(LETTERS) + randomChoice(LETTERS) + randomChoice(LETTERS);
 }
+
+export const isClient = process.env.NODE_ENV !== 'ssr';

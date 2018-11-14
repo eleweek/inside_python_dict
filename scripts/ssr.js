@@ -1,3 +1,5 @@
+process.env.NODE_ENV = 'ssr';
+
 console.log = () => {}; // Do not log to stdout
 global.performance = {now: () => 0};
 import 'ignore-styles';

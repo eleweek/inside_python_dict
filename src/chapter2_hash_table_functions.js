@@ -603,7 +603,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         super();
 
         this.state = {
-            array: ['ping', 42, 'dmesg', -3, 'find', 'rm', 'test', 'mv', 'mkdir', 'vim'],
+            array: ['ping', BigNumber(42), 'dmesg', BigNumber(-3), 'find', 'rm', 'test', 'mv', 'mkdir', 'vim'],
             objToRemove: 'rm',
             objToInsert: 'grep',
             searchedObj: 'vim',

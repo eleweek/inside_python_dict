@@ -62,8 +62,10 @@ export class PyObjParser {
     }
 
     throwErr(text, pos) {
+        // TODO FIXME: pos computation looks way too complicated
         let posToInclude = pos != null ? pos : this.pos;
         posToInclude = Math.min(posToInclude, this.s.length - 1);
+        if (posToInclude < 0) posToInclude = 0;
         throw new PyParsingError(text, posToInclude);
     }
 
@@ -152,7 +154,11 @@ export class PyObjParser {
         this.consumeWS(']');
         if (minSize != null) {
             if (res.length < minSize) {
-                throw new Error(`List need to have length at least ${minSize}`);
+                if (minSize > 1) {
+                    this.throwErr(`List need to have length at least ${minSize}`);
+                } else {
+                    this.throwErr(`Empty lists are not allowed in this chapter`);
+                }
             }
         }
         return res;
