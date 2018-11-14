@@ -188,7 +188,6 @@ pre > code,
 }
 
 .code-block {
-    line-height: 1.15;
     margin-bottom: 15px;
 }
 
@@ -222,6 +221,19 @@ pre.code-line-container {
 
 .code-highlight {
     background-color: #c2dfff;
+}
+
+.line-with-annotation:hover {
+    background: #e9ecef;
+    width: 100%;
+}
+
+.line-with-annotation {
+    width: 100%;
+}
+
+.line-with-annotation:hover .code-highlight {
+    background-color: #cee3fa;
 }
 
 .cross-fade-leave {
@@ -354,13 +366,4 @@ blockquote.blockquote {
 
 .toc-a:hover .toc-title {
     text-decoration: underline !important;
-}
-
-.line-with-annotation:hover {
-    background: #e9ecef;
-    width: 100%;
-}
-
-.line-with-annotation {
-    width: 100%;
 }
