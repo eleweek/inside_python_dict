@@ -410,7 +410,7 @@ export class GenerateProbingLinks extends BreakpointFunction {
 
 class ProbingStateVisualization extends React.Component {
     static getExpectedHeight() {
-        return 250; // TODO: compute?
+        return 270; // TODO: compute?
     }
 
     render() {
@@ -489,7 +489,14 @@ class ProbingVisualizationImpl extends React.Component {
             <div className="col">
                 <svg
                     width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)}
-                    height={this.BOX_SIZE + this.TOP_SPACE + this.BOTTOM_SPACE + 10}
+                    height={
+                        this.BOX_SIZE +
+                        this.TOP_SPACE +
+                        this.BOTTOM_SPACE +
+                        10 +
+                        30 +
+                        25 /* TODO FIXME: this is all a bunch of hacks because repeatedAdj can make patterns overlap TOP_SPACE / BOTTOM_SPACE */
+                    }
                 >
                     <defs>
                         {['blue', 'green'].map(color => (
@@ -508,7 +515,7 @@ class ProbingVisualizationImpl extends React.Component {
                             </marker>
                         ))}
                     </defs>
-                    <g ref={this.setRef} transform={'translate(0, 10)'} />
+                    <g ref={this.setRef} transform={'translate(0, 30)'} />
                 </svg>
             </div>
         );
@@ -878,6 +885,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         const probingSimple = this.runProbingSimple(slotsCount);
         const probing5iPlus1 = this.runProbing5iPlus1(slotsCount);
         const probingPython = this.runProbingPython(slotsCount, this.state.keyForProbingVis);
+        const isWeirdPattern =
+            BigNumber.isBigNumber(this.state.keyForProbingVis) &&
+            this.state.keyForProbingVis.lt(0) &&
+            this.state.keyForProbingVis.gt(-100000000);
 
         console.log('Chapter4 render timing', performance.now() - t1);
 
@@ -982,7 +993,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         comment={
                             <p className="text-muted">
                                 Arrows are color-coded: green means <code>perturb != 0</code> and blue means{' '}
-                                <code>perturb == 0</code>
+                                <code>perturb == 0</code>{' '}
+                                {isWeirdPattern
+                                    ? [<br />, '(Also, suprisingly, that weird repeated pattern is totally real)']
+                                    : null}
                             </p>
                         }
                         {...this.props}

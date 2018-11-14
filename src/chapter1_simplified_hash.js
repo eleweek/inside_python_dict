@@ -531,6 +531,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         input={PyListInput}
                         inputProps={{
                             allowDuplicates: false,
+                            minSize: 1,
                             extraValueValidator: chapter1valueRangeValidator,
                         }}
                         initialValue={this.state.numbers}
