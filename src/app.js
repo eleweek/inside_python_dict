@@ -149,7 +149,7 @@ class Alerts extends React.Component {
                     alerts.push(
                         <BootstrapAlert key="mobile-device-warning">
                             <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best
-                            experience desktop Chrome or Safari is recommended is recommended.
+                            experience desktop Chrome or Safari is recommended
                         </BootstrapAlert>
                     );
                     if (windowWidth < windowHeight) {

@@ -240,8 +240,8 @@ export function formatHashClassInit(bp) {
             return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
         case 'check-pairs':
             return `Check if there are <code>pairs</code> to insert, and there are <code>${
-                pairs.length
-            }</code> ${singularOrPlural(pairs.length, 'pair', 'pairs')}`;
+                bp.pairs.length
+            }</code> ${singularOrPlural(bp.pairs.length, 'pair', 'pairs')}`;
         case 'for-pairs':
             return `[${bp.oldIdx + 1}/${bp.pairs.length}] The current pair is <code>${displayStr(
                 bp.oldKey

@@ -305,6 +305,10 @@ blockquote.blockquote {
     width: 100px;
 }
 
+.slider-controls-button-short {
+    width: 40px;
+}
+
 .my-sticky-outer-wrapper {
     margin-bottom: 30px;
     position: absolute;

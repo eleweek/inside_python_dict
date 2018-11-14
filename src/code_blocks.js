@@ -1292,17 +1292,24 @@ class TimeSliderWithControls extends React.Component {
         }
         const time = this.props.time;
 
-        const button = (label, onClick, iconId, iconOnTheRight) => {
+        const button = (label, onClick, iconId, iconOnTheRight, forceLabel) => {
             let elems = [];
             if (iconId) {
                 elems.push(<FontAwesomeIcon key={`font-awesome-${iconId}`} icon={iconId} />);
             }
-            elems.push(label);
+            let hasLabel = false;
+            if (!this.props.shortenedLabels || forceLabel) {
+                elems.push(label);
+                hasLabel = true;
+            }
             return (
                 <button
                     key={label}
                     type="button"
-                    className="btn btn-outline-dark slider-controls-button"
+                    className={classNames('btn', 'btn-outline-dark', {
+                        'slider-controls-button': hasLabel,
+                        'slider-controls-button-short': !hasLabel,
+                    })}
                     onClick={onClick}
                 >
                     {iconOnTheRight ? elems.reverse() : elems}
@@ -1315,9 +1322,9 @@ class TimeSliderWithControls extends React.Component {
         timeControls.push(button(' Step', this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
             const playIcon = this.props.time === this.props.maxTime ? 'redo-alt' : 'play';
-            timeControls.push(button(' Play', this.autoPlay, playIcon));
+            timeControls.push(button(' Play', this.autoPlay, playIcon, false, true));
         } else {
-            timeControls.push(button(' Pause', this.stop, 'pause'));
+            timeControls.push(button(' Pause', this.stop, 'pause', false, true));
         }
         timeControls.push(button('Step ', this.nextStep, 'step-forward', true));
         timeControls.push(button('Last step ', this.lastStep, 'fast-forward', true));
@@ -1444,6 +1451,7 @@ export class VisualizedCode extends React.Component {
                     <TimeSliderWithControls
                         handleTimeChange={this.handleTimeChangeThrottled}
                         time={time}
+                        shortenedLabels={this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
                     />
                     <div className="row code-block-row">
