@@ -1025,6 +1025,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         input={PyDictInput}
                         initialValue={this.state.pairs}
                         onChange={this.setter('pairs')}
+                        {...this.props}
                     />
                     <p>
                         Python actually knows the number of key-value pairs and tries to guess the optimal hash table

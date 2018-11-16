@@ -787,6 +787,7 @@ EMPTY = EmptyValueClass()
                         initialValue={this.state.array}
                         onChange={this.setter('array')}
                         bottomBoundary=".chapter2"
+                        {...this.props}
                     />
                     <VisualizedCode
                         code={HASH_CREATE_NEW_CODE}

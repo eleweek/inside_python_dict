@@ -537,6 +537,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         initialValue={this.state.numbers}
                         onChange={this.setter('numbers')}
                         bottomBoundary=".chapter1"
+                        {...this.props}
                     />
                     <p>
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be

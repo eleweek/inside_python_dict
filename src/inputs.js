@@ -354,11 +354,12 @@ export class BlockInputToolbar extends React.Component {
 
     render() {
         const {bottomBoundary, ...restProps} = this.props;
+        const stickyEnabled = this.props.windowHeight > 450;
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
                 <div style={{height: 60}}>
                     <div className="my-sticky-outer-wrapper" />
-                    <Sticky innerZ={10} bottomBoundary={bottomBoundary}>
+                    <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={stickyEnabled}>
                         <div className="my-sticky-wrapper">
                             <BlockInputToolbarImpl {...restProps} />
                         </div>

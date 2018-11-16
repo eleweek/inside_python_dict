@@ -1436,7 +1436,7 @@ export class VisualizedCode extends React.Component {
             if (codeHeight < 225) {
                 codeHeight += 50;
             }
-            codeHeight = Math.max(codeHeight, 175);
+            codeHeight = Math.max(codeHeight, 125);
         }
 
         let time = this.props.keepTimeOnNewBreakpoints

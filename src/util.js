@@ -117,7 +117,7 @@ export class BootstrapAlert extends React.Component {
                     className={classNames(
                         'alert',
                         `alert-${alertType}`,
-                        {'alert-dismissible': this.props.dismissible},
+                        {'alert-dismissible': !this.props.nondismissible},
                         'fade',
                         {'force-stick-to-top': sticky},
                         {show: !this.state.dismissed}

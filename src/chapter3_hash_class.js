@@ -429,6 +429,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         initialValue={this.state.pairs}
                         onChange={this.setter('pairs')}
                         bottomBoundary=".chapter3"
+                        {...this.props}
                     />
 
                     <VisualizedCode
