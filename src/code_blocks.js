@@ -1139,8 +1139,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 
     updateScroll = () => {
         const {scrollTopTarget, needsUpdating} = this.getScrollTopTarget();
+        const scrollbar = this.ssRef.current.scrollbar;
         if (needsUpdating) {
-            this.ssRef.current.scrollbar.scrollTo(0, scrollTopTarget, 500);
+            scrollbar.scrollTo(scrollbar.offset.x, scrollTopTarget, 500);
         }
     };
 
