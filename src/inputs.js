@@ -33,7 +33,8 @@ class ParsableInputBase extends React.Component {
         // TODO: this is a hack
         // there should probably be a single source of truth
         this.state = {
-            value: this.props.dumpValue(this.props.value),
+            valueRaw: this.props.dumpValue(this.props.value),
+            value: this.props.value,
             error: null,
             lastError: null,
         };
@@ -42,25 +43,27 @@ class ParsableInputBase extends React.Component {
     }
 
     forceSetValue(value) {
-        // TODO: set raw?
+        // TODO: also provide raw?
         this.setState({
-            value: this.props.dumpValue(value),
+            valueRaw: this.props.dumpValue(value),
+            value: value,
         });
     }
 
     handleChange = event => {
-        this.setState({
-            value: event.target.value,
-        });
         try {
-            this.setState({
+            let newState = {
+                valueRaw: event.target.value,
                 lastError: this.state.error || this.state.lastError,
                 error: null,
-            });
-            let value = this.props.parseValue(event.target.value);
-            this.propsOnChangeThrottled(value);
+                value: this.props.parseValue(event.target.value),
+            };
+
+            this.propsOnChangeThrottled(newState.value);
+            this.setState(newState);
         } catch (e) {
             this.setState({
+                valueRaw: event.target.value,
                 error: e,
                 lastError: this.state.error || this.state.lastError,
             });
@@ -157,7 +160,7 @@ class ParsableInputBlock extends ParsableInputBase {
                 <input
                     type="text"
                     className={className}
-                    value={this.state.value}
+                    value={this.state.valueRaw}
                     onChange={this.handleChange}
                     ref={this.inputComponentRef}
                     onSelect={this.handleSelect}
@@ -176,18 +179,34 @@ class ParsableInputBlock extends ParsableInputBase {
 }
 
 class ParsableInputInline extends ParsableInputBase {
+    getDerivedStateFromProps(props, state) {
+        // TODO: general equality comparison?
+        if (state.value !== props.value) {
+            return {
+                ...state,
+                value: props.value,
+                valueRaw: props.dumpValue(props.value),
+                lastError: state.error || state.lastError,
+                error: null,
+            };
+        } else {
+            return null;
+        }
+    }
+
     tryAnotherClick = () => {
         const last = this.state.anotherValue?.last;
         let res;
         do {
             res = this.props.anotherValue(this.state, this.setState.bind(this));
-        } while (res === last || res === this.state.value);
+        } while (res === last || res === this.state.valueRaw);
 
         this.setState({
             anotherValue: {
                 last: res,
             },
-            value: this.props.dumpValue(res),
+            valueRaw: this.props.dumpValue(res),
+            value: res,
         });
 
         this.propsOnChangeThrottled(res);
@@ -205,7 +224,7 @@ class ParsableInputInline extends ParsableInputBase {
                 tryAnotherClick={this.tryAnotherClick}
                 onChange={this.handleChange}
                 errorText={errorText}
-                value={this.state.value}
+                value={this.state.valueRaw}
             />
         );
     }
