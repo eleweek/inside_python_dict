@@ -536,12 +536,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                     </div>
                     <p className="inline-block">?{'\u00A0'}</p>
                     <div className="div-p">
-                        Let's see what happens after we insert the following key-value pair:
+                        Let's see what happens after we insert a key
                         <PyStringOrNumberInput
                             inline={true}
                             value={this.state.keyToSetRecycling}
                             onChange={this.setter('keyToSetRecycling')}
-                        />
+                            anotherValue={() => anotherKey(this.state.pairs, 0.2, 0.5, 0.2)}
+                        />{' '}
+                        with a value
                         <PyStringOrNumberInput
                             inline={true}
                             value={this.state.valueToSetRecycling}

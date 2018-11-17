@@ -207,6 +207,8 @@ class ParsableInputInline extends ParsableInputBase {
             },
             valueRaw: this.props.dumpValue(res),
             value: res,
+            error: null,
+            lastError: this.state.error || this.state.lastError,
         });
 
         this.propsOnChangeThrottled(res);
@@ -253,7 +255,12 @@ class ParsableInputInlineImpl extends React.Component {
             'mr-0': !!this.props.tryAnotherClick,
             'is-invalid': !!errorText,
         });
-        const divClassNames = classNames('parsable-input-with-error-div', 'inline-block', 'parsable-input-inline');
+        const divClassNames = classNames(
+            'parsable-input-with-error-div',
+            'inline-block',
+            'parsable-input-inline',
+            'mr-3'
+        );
         return (
             <div className={divClassNames}>
                 <Manager>
@@ -581,7 +588,7 @@ class BlockInputToolbarImpl extends React.Component {
                 </div>
                 <div className="col-auto col-buttons">
                     <div className="btn-toolbar">
-                        <div className="form-check-inline form-check mr-3">
+                        <div className="form-check-inline form-check mr-2">
                             <label className="form-check-label">
                                 <input
                                     type="checkbox"
