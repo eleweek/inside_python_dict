@@ -194,24 +194,39 @@ class ParsableInputInline extends ParsableInputBase {
     };
 
     render() {
-        let error;
+        let errorText;
         if (this.state.error) {
-            const errorText = this.state.error.message;
-            error = errorText;
+            let errorText = this.state.error.message;
         }
+
+        return (
+            <ParsableInputInlineImpl
+                anotherValue={this.props.anotherValue}
+                tryAnotherClick={this.tryAnotherClick}
+                onChange={this.handleChange}
+                errorText={errorText}
+                value={this.state.value}
+            />
+        );
+    }
+}
+
+class ParsableInputInlineImpl extends React.Component {
+    render() {
+        const errorText = this.props.errorText;
         let tryAnotherButtonDiv;
         if (this.props.anotherValue) {
             tryAnotherButtonDiv = (
                 <div className="input-group-append" key="try-another-button-div">
-                    <button className="btn btn-secondary" type="button" onClick={this.tryAnotherClick}>
+                    <button className="btn btn-secondary" type="button" onClick={this.props.tryAnotherClick}>
                         Try another
                     </button>
                 </div>
             );
         }
         const inputClassName = classNames('parsable-input', 'form-control', 'form-control-sm', 'fc-inline', {
-            'mr-0': !!this.props.anotherValue,
-            'is-invalid': !!error,
+            'mr-0': !!this.props.tryAnotherClick,
+            'is-invalid': !!errorText,
         });
         const divClassNames = classNames('parsable-input-with-error-div', 'inline-block', 'parsable-input-inline');
         return (
@@ -224,8 +239,8 @@ class ParsableInputInline extends ParsableInputBase {
                                     ref={ref}
                                     type="text"
                                     className={inputClassName}
-                                    value={this.state.value}
-                                    onChange={this.handleChange}
+                                    value={this.props.value}
+                                    onChange={this.props.onChange}
                                     key="input"
                                 />
                                 {tryAnotherButtonDiv}
@@ -238,12 +253,15 @@ class ParsableInputInline extends ParsableInputBase {
                                 ref={ref}
                                 style={style}
                                 data-placement={placement}
-                                className={classNames('popover', 'bs-popover-bottom', error ? 'show' : 'hide', 'fade')}
+                                className={classNames(
+                                    'popover',
+                                    'bs-popover-bottom',
+                                    errorText ? 'show' : 'hide',
+                                    'fade'
+                                )}
                             >
                                 <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
-                                <div className="popover-body">
-                                    {error || (this.state.lastError && this.state.lastError.message)}
-                                </div>
+                                <div className="popover-body">{errorText}</div>
                             </div>
                         )}
                     </Popper>
