@@ -392,7 +392,7 @@ class BlockInputToolbarImpl extends React.Component {
                 valuesStack: state.valuesStack.push(props.initialValue),
             };
         } else {
-            return state;
+            return null;
         }
     }
 

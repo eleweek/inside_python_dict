@@ -1404,12 +1404,15 @@ export class VisualizedCode extends React.Component {
         });
     };
 
-    // TODO: getDerivedStateFromProps
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.breakpoints !== this.props.breakpoints && !this.props.keepTimeOnNewBreakpoints) {
-            this.setState({
-                time: nextProps.breakpoints.length - 1,
-            });
+    static getDerivedStateFromProps(props, state) {
+        if (props.breakpoints !== state.breakpoints && !props.keepTimeOnNewBreakpoints) {
+            return {
+                ...state,
+                breakpoints: props.breakpoints,
+                time: props.breakpoints.length - 1,
+            };
+        } else {
+            return null;
         }
     }
 

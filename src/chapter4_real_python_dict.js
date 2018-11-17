@@ -480,7 +480,7 @@ class ProbingVisualizationImpl extends React.Component {
                 breakpoints: nextProps.breakpoints,
             };
         } else {
-            return state;
+            return null;
         }
     }
 
