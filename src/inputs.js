@@ -349,22 +349,48 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
 export class BlockInputToolbar extends React.Component {
     static FULL_WIDTH = true;
 
+    constructor() {
+        super();
+
+        this.wrapperRef = React.createRef();
+        this.state = {
+            height: null,
+        };
+    }
+
     render() {
         const {bottomBoundary, ...restProps} = this.props;
         const wideScreen = this.props.windowWidth && this.props.windowWidth > 600;
         const tallScreen = this.props.windowHeight && this.props.windowHeight > 450;
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
-                <div style={{height: 60}}>
-                    <div className="my-sticky-outer-wrapper" />
+                <div style={{height: (this.state.height || 50) + 10}}>
                     <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen}>
-                        <div className="my-sticky-wrapper">
+                        <div className="my-sticky-wrapper" ref={this.wrapperRef}>
                             <BlockInputToolbarImpl {...restProps} shortenedLabels={!wideScreen} />
                         </div>
                     </Sticky>
                 </div>
             </div>
         );
+    }
+
+    updateHeight() {
+        const height = this.wrapperRef.current.offsetHeight;
+        if (height !== this.state.height) {
+            this.setState({
+                height,
+            });
+        }
+        console.log('new height is', height);
+    }
+
+    componentDidMount() {
+        this.updateHeight();
+    }
+
+    componentDidUpdate() {
+        this.updateHeight();
     }
 }
 
