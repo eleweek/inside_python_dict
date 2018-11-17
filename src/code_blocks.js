@@ -1451,7 +1451,7 @@ export class VisualizedCode extends React.Component {
                     <TimeSliderWithControls
                         handleTimeChange={this.handleTimeChangeThrottled}
                         time={time}
-                        shortenedLabels={this.props.windowWidth < 600}
+                        shortenedLabels={this.props.windowWidth && this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
                     />
                     <div className="row code-block-row">

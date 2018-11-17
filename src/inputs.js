@@ -113,10 +113,7 @@ class ParsableInputBlock extends ParsableInputBase {
 
         // TODO: what if the error message does not fit on scren?
         this.lastScrollLeft = scrollLeft;
-        console.log('!!!', visibleLeft, pos, visibleRight);
         const relativePos = pos - visibleLeft;
-        console.log('rel pos', relativePos);
-        console.log('totalVisible', totalVisible);
         if (visibleLeft <= pos && pos <= visibleRight) {
             if (text.length < relativePos - 1) {
                 return _.padEnd(text + ' ', relativePos, '-') + '^';
@@ -354,14 +351,15 @@ export class BlockInputToolbar extends React.Component {
 
     render() {
         const {bottomBoundary, ...restProps} = this.props;
-        const stickyEnabled = this.props.windowHeight > 450;
+        const wideScreen = this.props.windowWidth && this.props.windowWidth > 600;
+        const tallScreen = this.props.windowHeight && this.props.windowHeight > 450;
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
                 <div style={{height: 60}}>
                     <div className="my-sticky-outer-wrapper" />
-                    <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={stickyEnabled}>
+                    <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen}>
                         <div className="my-sticky-wrapper">
-                            <BlockInputToolbarImpl {...restProps} />
+                            <BlockInputToolbarImpl {...restProps} shortenedLabels={!wideScreen} />
                         </div>
                     </Sticky>
                 </div>
@@ -525,7 +523,7 @@ class BlockInputToolbarImpl extends React.Component {
                                 Instant updates
                             </label>
                         </div>
-                        <div className="btn-group btn-group-sm ml-3">
+                        <div className="btn-group btn-group-sm">
                             <button
                                 type="button"
                                 className={classNames('btn', 'btn-primary', {
@@ -544,7 +542,8 @@ class BlockInputToolbarImpl extends React.Component {
                                 onClick={this.handleUndoClick}
                                 disabled={undoCount === 0}
                             >
-                                <FontAwesomeIcon icon={'undo-alt'} /> Undo{' '}
+                                <FontAwesomeIcon icon={'undo-alt'} />
+                                {this.props.shortenedLabels ? '' : ' Undo'}{' '}
                                 <span className="badge badge-light badge-undo-redo-count">{undoCount}</span>
                             </button>
                             <button
@@ -553,7 +552,8 @@ class BlockInputToolbarImpl extends React.Component {
                                 onClick={this.handleRedoClick}
                                 disabled={redoCount === 0}
                             >
-                                <FontAwesomeIcon icon={'redo-alt'} /> Redo{' '}
+                                <FontAwesomeIcon icon={'redo-alt'} />
+                                {this.props.shortenedLabels ? '' : ' Redo'}{' '}
                                 <span className="badge badge-light badge-undo-redo-count">{redoCount}</span>
                             </button>
                         </div>
