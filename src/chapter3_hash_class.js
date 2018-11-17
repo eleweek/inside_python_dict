@@ -526,14 +526,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                         a simpler version of <code>__setitem__</code>, it would look exactly the same.
                     </p>
                     <div className="div-p">
-                        Remember that we removed (TODO) /*
+                        Remember that we removed
                         <PyStringOrNumberInput
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
                             anotherValue={() => anotherKey(this.state.pairs)}
                         />
-                        */
                     </div>
                     <p className="inline-block">?{'\u00A0'}</p>
                     <div className="div-p">

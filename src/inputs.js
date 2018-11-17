@@ -64,8 +64,8 @@ class ParsableInputBase extends React.Component {
         } catch (e) {
             this.setState({
                 valueRaw: event.target.value,
+                lastError: e,
                 error: e,
-                lastError: this.state.error || this.state.lastError,
             });
         }
     };
@@ -179,7 +179,7 @@ class ParsableInputBlock extends ParsableInputBase {
 }
 
 class ParsableInputInline extends ParsableInputBase {
-    getDerivedStateFromProps(props, state) {
+    static getDerivedStateFromProps(props, state) {
         // TODO: general equality comparison?
         if (state.value !== props.value) {
             return {
@@ -215,7 +215,11 @@ class ParsableInputInline extends ParsableInputBase {
     render() {
         let errorText;
         if (this.state.error) {
-            let errorText = this.state.error.message;
+            errorText = this.state.error.message;
+        }
+        let lastErrorText;
+        if (this.state.lastError) {
+            lastErrorText = this.state.lastError.message;
         }
 
         return (
@@ -224,6 +228,7 @@ class ParsableInputInline extends ParsableInputBase {
                 tryAnotherClick={this.tryAnotherClick}
                 onChange={this.handleChange}
                 errorText={errorText}
+                lastErrorText={lastErrorText}
                 value={this.state.valueRaw}
             />
         );
@@ -233,6 +238,7 @@ class ParsableInputInline extends ParsableInputBase {
 class ParsableInputInlineImpl extends React.Component {
     render() {
         const errorText = this.props.errorText;
+        const lastErrorText = this.props.lastErrorText;
         let tryAnotherButtonDiv;
         if (this.props.anotherValue) {
             tryAnotherButtonDiv = (
@@ -280,7 +286,7 @@ class ParsableInputInlineImpl extends React.Component {
                                 )}
                             >
                                 <div className="arrow" ref={arrowProps.ref} style={arrowProps.style} />
-                                <div className="popover-body">{errorText}</div>
+                                <div className="popover-body">{errorText || lastErrorText}</div>
                             </div>
                         )}
                     </Popper>

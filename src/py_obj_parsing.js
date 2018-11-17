@@ -93,7 +93,7 @@ export class PyObjParser {
         } else if (`"'`.includes(c)) {
             return this.parseString();
         } else {
-            this.throwErr('Expected value - string or number');
+            this.throwErr('Expected value - string or number. If you wanted a string, wrap it in quotes');
         }
     }
 
@@ -185,7 +185,7 @@ export class PyObjParser {
         if (this.current() === 'x') {
             this.throwErr(nonDecimalErrorString);
         }
-        if (!this.isCurrentWhitespaceOrEol() && !allowedSeparators.includes(this.current())) {
+        if (!this.isCurrentWhitespaceOrEol() && (!allowedSeparators || !allowedSeparators.includes(this.current()))) {
             // TODO: a bit more descriptive? and a bit less hacky?
             this.throwErr('Invalid syntax: number with non-digit characters');
         }
