@@ -995,7 +995,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                                 Arrows are color-coded: green means <code>perturb != 0</code> and blue means{' '}
                                 <code>perturb == 0</code>{' '}
                                 {isWeirdPattern
-                                    ? [<br />, '(Also, suprisingly, that weird repeated pattern is totally real)']
+                                    ? [
+                                          <br />,
+                                          '(Also, it may seem surprising, but this weird repeated pattern is totally real)',
+                                      ]
                                     : null}
                             </p>
                         }
