@@ -26,15 +26,22 @@ export class CrossFade extends React.Component {
     }
 }
 
+function linebreaks(s) {
+    return s
+        .split('\n')
+        .map(l => [l, <br />])
+        .flat();
+}
 function MyFallbackComponent({componentStack, error}) {
     return (
         <div style={{backgroundColor: 'pink'}}>
             <h3 className="text-danger">
                 An error occured. This should not happen. Please file a bug report{' '}
-                <a href="https://github.com/eleweek/inside_python_dict">on github</a>
+                <a href="https://github.com/eleweek/inside_python_dict">on github</a>{' '}
             </h3>
-            <p>{componentStack}</p>
-            <p>{error.toString()}</p>
+            <p>{linebreaks(error.message)}</p>
+            <h6 className="text-danger">Component stack</h6>
+            <p>{linebreaks(componentStack)}</p>
         </div>
     );
 }
