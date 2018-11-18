@@ -21,6 +21,8 @@ import {
     findNearestSize,
     anotherKey,
     generateNewKey,
+    selectOrCreateResize,
+    formatExtraPairs,
 } from './chapter3_and_4_common';
 import {AlmostPythonDict} from './chapter3_hash_class';
 import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_common';
@@ -738,15 +740,6 @@ class ProbingVisualizationImpl extends React.Component {
 }
 
 function DynamicPartResize({extraPairs, resize}) {
-    console.log('DynamicPartResize', extraPairs, resize);
-    const formatExtraPair = ([k, v]) => `(${displayStr(k)}, ${displayStr(v)})`;
-    const formatExtraPairs = extraPairs => {
-        if (extraPairs.length > 1) {
-            return '[' + extraPairs.map(formatExtraPair).join(', ') + ']';
-        } else {
-            return formatExtraPair(extraPairs[0]);
-        }
-    };
     let text;
 
     if (extraPairs === null) {
@@ -757,7 +750,7 @@ function DynamicPartResize({extraPairs, resize}) {
         }</code> slots. Python tries to guess the correct size of the resulting hash table inside dict, but sometimes it misses, so a resize like this can happen.`;
     } else {
         // TODO: better formatting of pairs
-        text = `While building the dict from original pairs, no resize operation was run, because Python correctly guessed the number of slots needed. To see resize in action, let's insert additional pair${
+        text = `While building the dict from the original pairs, no resize operation was run, because Python correctly guessed the number of slots needed. To see resize in action, let's insert additional pair${
             extraPairs.length === 1 ? '' : 's'
         }: <code>${formatExtraPairs(extraPairs)}</code>`;
     }
@@ -799,32 +792,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
     });
 
     selectOrCreateResize = memoizeOne((pySelf, resizes) => {
-        let resize = null;
-        let extraPairs = null;
-        // TODO: support warning user about no resizes
-        if (resizes.length > 0) {
-            resize = resizes[0];
-        } else {
-            extraPairs = [];
-            while (resize == null) {
-                const key = generateNewKey();
-                if (Dict32.__getitem__(pySelf, key).isException) {
-                    const value = BigNumber(extraPairs.length + 1);
-                    console.log('Adding', key, value);
-                    let newPySelf;
-                    ({pySelf: newPySelf, resize} = Dict32.__setitem__(pySelf, key, value));
-                    const noRecycleOccured = resize || newPySelf.get('fill') > pySelf.get('fill');
-                    if (noRecycleOccured) {
-                        // Only add pairs that don't get recycled
-                        pySelf = newPySelf;
-                        extraPairs.push([key, value]);
-                    }
-                }
-            }
-        }
-
-        const bp = resize.breakpoints;
-        return {resize, bp, extraPairs};
+        return selectOrCreateResize(pySelf, resizes, Dict32.__getitem__, Dict32.__setitem__);
     });
 
     runDelItem = memoizeOne((pySelf, key) => {

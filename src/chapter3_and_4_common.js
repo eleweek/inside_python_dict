@@ -646,3 +646,49 @@ export function generateNewKey(MEANINGFUL_CHANCE = 0.7, NUMBER_CHANCE = 0.2) {
         return randomString3len();
     }
 }
+
+function addPairsUntilResize(pySelf, getitem, setitem) {
+    let resize = null;
+    let extraPairs = [];
+
+    while (resize == null) {
+        const key = generateNewKey();
+        if (getitem(pySelf, key).isException) {
+            const value = BigNumber(extraPairs.length + 1);
+            let newPySelf;
+            ({pySelf: newPySelf, resize} = setitem(pySelf, key, value));
+            console.log(resize, pySelf.toJS());
+            const noRecycleOccured = resize || newPySelf.get('fill') > pySelf.get('fill');
+            if (noRecycleOccured) {
+                // Only add pairs that don't get recycled
+                pySelf = newPySelf;
+                extraPairs.push([key, value]);
+            }
+        }
+    }
+
+    return {extraPairs, resize};
+}
+
+export function selectOrCreateResize(pySelf, resizes, getitem, setitem) {
+    let resize = null;
+    let extraPairs = null;
+    // TODO: support warning user about no resizes
+    if (resizes.length > 0) {
+        resize = resizes[0];
+    } else {
+        ({resize, extraPairs} = addPairsUntilResize(pySelf, getitem, setitem));
+    }
+
+    const bp = resize.breakpoints;
+    return {resize, bp, extraPairs, resizesCount: resizes ? resizes.length : 1};
+}
+
+const formatExtraPair = ([k, v]) => `(${displayStr(k)}, ${displayStr(v)})`;
+export const formatExtraPairs = extraPairs => {
+    if (extraPairs.length > 1) {
+        return '[' + extraPairs.map(formatExtraPair).join(', ') + ']';
+    } else {
+        return formatExtraPair(extraPairs[0]);
+    }
+};

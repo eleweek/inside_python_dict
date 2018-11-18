@@ -21,6 +21,8 @@ import {
     formatHashClassResize,
     formatHashClassInit,
     anotherKey,
+    selectOrCreateResize,
+    formatExtraPairs,
 } from './chapter3_and_4_common';
 
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
@@ -88,7 +90,8 @@ export class AlmostPythonDict {
         let si = new HashClassSetItem();
         pySelf = si.run(pySelf, key, value, isRecycling, HashClassResize, 2);
         const bp = si.getBreakpoints();
-        return {bp, pySelf};
+        const resize = si.getResize();
+        return {bp, pySelf, resize};
     }
 
     static __setitem__recycling(pySelf, key, value) {
@@ -241,6 +244,29 @@ export const SLOT_CLASS_CODE_STRING = `class Slot(object):
         self.value = value
 `;
 
+function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
+    let text;
+
+    if (extraPairs === null) {
+        return (
+            <p>
+                {' '}
+                While elements were being inserted, {resizesCount} {singularOrPlural(resizesCount, 'resize', 'resizes')}{' '}
+                happened. Let's look at {resizesCount === 1 ? 'it' : 'the first resize'} in depth:{' '}
+            </p>
+        );
+    } else {
+        return (
+            <p>
+                While building the hash table from the original pairs, no resize happened, because the number of pairs
+                is too low (<code>{pairsCount}</code>), and we need at least 6 to trigger a resize. So, for this
+                specific visualization, let's add {extraPairs.length} item{extraPairs.length === 1 ? '' : 's'} to the
+                table : <code>{formatExtraPairs(extraPairs)}</code>
+            </p>
+        );
+    }
+}
+
 export class Chapter3_HashClass extends ChapterComponent {
     constructor() {
         super();
@@ -285,14 +311,13 @@ export class Chapter3_HashClass extends ChapterComponent {
         return {pySelf: newPySelf, bp};
     });
 
-    selectResize = memoizeOne(resizes => {
-        let resize = null;
-        // TODO: support warning user about no resizes
-        if (resizes.length > 0) {
-            resize = resizes[0];
-        }
-        const bp = resize.breakpoints;
-        return {resize, bp};
+    selectOrCreateResize = memoizeOne((pySelf, resizes) => {
+        return selectOrCreateResize(
+            pySelf,
+            resizes,
+            AlmostPythonDict.__getitem__,
+            AlmostPythonDict.__setitem__no_recycling
+        );
     });
 
     render() {
@@ -300,7 +325,7 @@ export class Chapter3_HashClass extends ChapterComponent {
         let newRes = this.runCreateNew(this.state.pairs);
         let pySelf = newRes.pySelf;
 
-        let resizeRes = this.selectResize(newRes.resizes);
+        let resizeRes = this.selectOrCreateResize(newRes.pySelf, newRes.resizes);
 
         let delRes = this.runDelItem(pySelf, this.state.keyToDel);
         pySelf = delRes.pySelf;
@@ -444,11 +469,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         {...this.props}
                     />
 
-                    <p>
-                        While elements were being inserted, {newRes.resizes.length}{' '}
-                        {singularOrPlural(newRes.resizes.length, 'resize', 'resizes')} happened. Let's look at{' '}
-                        {newRes.resizes.length ? 'it' : 'the first resize'} in depth:{' '}
-                    </p>
+                    <DynamicPartResize {...resizeRes} pairsCount={this.state.pairs.length} />
                     <VisualizedCode
                         code={HASH_CLASS_RESIZE_CODE}
                         breakpoints={resizeRes.bp}
