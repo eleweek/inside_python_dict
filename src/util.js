@@ -29,7 +29,7 @@ export class CrossFade extends React.Component {
 function linebreaks(s) {
     return s
         .split('\n')
-        .map(l => [l, <br />])
+        .map((l, i) => [l, <br key={`br-${i}`} />])
         .flat();
 }
 function MyFallbackComponent({componentStack, error}) {

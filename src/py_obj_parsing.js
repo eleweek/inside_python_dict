@@ -14,8 +14,6 @@ const digitsMinusPlus = '-+0123456789';
 const minusPlus = '-+';
 
 // TODO: add mode for validating stuff: e.g. parseString() should throw on `"string contents" stuff after`
-// TODO: parse Nones
-// TODO: parse long ints
 export class PyObjParser {
     constructor(literal) {
         this.s = literal;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import _ from 'lodash';
 
-import {HashBreakpointFunction, pyHash} from './hash_impl_common';
+import {HashBreakpointFunction, pyHash, EQ, computeIdx, displayStr, DUMMY} from './hash_impl_common';
 
 import {BigNumber} from 'bignumber.js';
 import {
@@ -21,8 +21,10 @@ import {
     formatHashClassResize,
     formatHashClassInit,
     anotherKey,
+    generateNewKey,
     selectOrCreateResize,
     formatExtraPairs,
+    generateNonPresentKey,
 } from './chapter3_and_4_common';
 
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
@@ -250,9 +252,8 @@ function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
     if (extraPairs === null) {
         return (
             <p>
-                {' '}
                 While elements were being inserted, {resizesCount} {singularOrPlural(resizesCount, 'resize', 'resizes')}{' '}
-                happened. Let's look at {resizesCount === 1 ? 'it' : 'the first resize'} in depth:{' '}
+                happened. Let's look at {resizesCount === 1 ? 'it' : 'the first resize'} in depth:
             </p>
         );
     } else {
@@ -264,6 +265,43 @@ function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
                 table : <code>{formatExtraPairs(extraPairs)}</code>
             </p>
         );
+    }
+}
+
+function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUpdateRemovedAndInsert}) {
+    const tryIt = onClick => (
+        <button type="button" className="btn btn-primary btn-sm" onClick={onClick}>
+            Try it
+        </button>
+    );
+    if (hasDummy) {
+        const singleOtherOutcome = Object.keys(otherOutcomes)[0];
+        console.log('OO', otherOutcomes);
+        const inserted = otherOutcomes[singleOtherOutcome].inserted;
+        if (outcome === 'recycled') {
+            // TODO: validate?
+            return (
+                <p>
+                    After we inserted it, a <code>DUMMY</code> slot got recycled. However, as it was mentioned, this
+                    version of <code>__setitem__</code> works just like the previous one, when there no{' '}
+                    <code>DUMMY</code> slot is encountered. For example, if we instead tried to remove{' '}
+                    <code>{displayStr(inserted.key)}</code>, no dummy slot would get recycled, and the item would be
+                    inserted in an empty slot. {tryIt(() => handleUpdateRemovedAndInsert(inserted))}
+                </p>
+            );
+        } else {
+            return (
+                <p>
+                    While it was being inserted, no <code>DUMMY</code> slot was encountered, so, consequently, no{' '}
+                    <code>DUMMY</code> slot got recycled. So this version of <code>__setitem__</code> worked just like
+                    the previous one. But, if we instead tried to insert an item with the key{' '}
+                    <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would get recycled.{' '}
+                    {tryIt(() => handleUpdateRemovedAndInsert(inserted))}
+                </p>
+            );
+        }
+    } else {
+        // TODO
     }
 }
 
@@ -297,18 +335,13 @@ export class Chapter3_HashClass extends ChapterComponent {
     });
 
     runDelItem = memoizeOne((pySelf, key) => {
-        const {bp, pySelf: newPySelf} = AlmostPythonDict.__delitem__(pySelf, key);
-        return {bp, pySelf: newPySelf};
+        const {bp, pySelf: newPySelf, isException} = AlmostPythonDict.__delitem__(pySelf, key);
+        return {bp, pySelf: newPySelf, isException};
     });
 
     runGetItem = memoizeOne((pySelf, key) => {
         const {bp} = AlmostPythonDict.__getitem__(pySelf, key);
         return {bp};
-    });
-
-    runSetItemRecycling = memoizeOne((pySelf, key, value) => {
-        const {bp, pySelf: newPySelf} = AlmostPythonDict.__setitem__recycling(pySelf, key, value);
-        return {pySelf: newPySelf, bp};
     });
 
     selectOrCreateResize = memoizeOne((pySelf, resizes) => {
@@ -319,6 +352,85 @@ export class Chapter3_HashClass extends ChapterComponent {
             AlmostPythonDict.__setitem__no_recycling
         );
     });
+
+    // TODO: 'value' is boring
+    runSetItemRecyclingAndGetVariations = memoizeOne((originalPySelf, originalKey, originalValue) => {
+        const slots = originalPySelf.get('slots');
+
+        const hasDummy = originalPySelf.get('fill') !== originalPySelf.get('used');
+        let outcome;
+        if (hasDummy) {
+            const {bp, pySelf: newPySelf, resize} = AlmostPythonDict.__setitem__recycling(
+                originalPySelf,
+                originalKey,
+                originalValue
+            );
+            if (!resize && newPySelf.get('fill') === newPySelf.get('used')) {
+                outcome = 'recycled';
+            } else if (resize) {
+                outcome = 'missed_resized';
+            } else {
+                outcome = 'missed';
+            }
+
+            let otherOutcomes = {};
+
+            if (outcome === 'recycled') {
+                const key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
+                const value = 'value';
+
+                const {pySelf: varNewPySelf, resize: newResize} = AlmostPythonDict.__setitem__recycling(
+                    originalPySelf,
+                    key,
+                    value
+                );
+                const noRecycleOccured = newResize || varNewPySelf.get('fill') > varNewPySelf.get('fill');
+                if (noRecycleOccured) {
+                    const singleOtherOutcome = newResize ? 'missed' : 'missed_resized';
+                    otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
+                }
+            } else {
+                let clusterStart = 0;
+                for (let i = 0; i < slots.size; ++i) {
+                    const curKey = slots.get(i).key;
+                    if (curKey === null) {
+                        clusterStart = i + 1;
+                    }
+                    if (curKey === DUMMY) {
+                        break;
+                    }
+                }
+
+                const value = 'value';
+                let key;
+                do {
+                    key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
+                    console.log('CS', clusterStart, key);
+                } while (computeIdx(pyHash(key), slots.size) != clusterStart);
+                const singleOtherOutcome = 'recycled';
+                otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
+            }
+
+            return {bp, outcome, otherOutcomes, hasDummy, pySelf: newPySelf};
+        } else {
+            // TODO
+        }
+    });
+
+    handleUpdateRemovedAndInsert = (inserted, removed) => {
+        let newState = {};
+
+        if (inserted) {
+            newState.keyToSetRecycling = inserted.key;
+            newState.valueToSetRecycling = inserted.value;
+        }
+
+        if (removed) {
+            newState.keyToDel = removed.key;
+        }
+
+        this.setState(newState);
+    };
 
     render() {
         const t1 = performance.now();
@@ -332,12 +444,12 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         let getRes = this.runGetItem(pySelf, this.state.keyToGet);
 
-        let setRecyclingRes = this.runSetItemRecycling(
+        let recyclingRes = this.runSetItemRecyclingAndGetVariations(
             pySelf,
             this.state.keyToSetRecycling,
             this.state.valueToSetRecycling
         );
-        pySelf = setRecyclingRes.pySelf;
+        pySelf = recyclingRes.pySelf;
         console.log('Chapter3 render timing', performance.now() - t1);
 
         return (
@@ -571,9 +683,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                             onChange={this.setter('valueToSetRecycling')}
                         />
                     </div>
+                    <DynamicPartSetItemRecycling
+                        {...recyclingRes}
+                        handleUpdateRemovedAndInsert={this.handleUpdateRemovedAndInsert}
+                    />
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_RECYCLING_CODE}
-                        breakpoints={setRecyclingRes.bp}
+                        breakpoints={recyclingRes.bp}
                         formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                         stateVisualization={HashClassNormalStateVisualization}
                         {...this.props}

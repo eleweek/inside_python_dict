@@ -647,23 +647,29 @@ export function generateNewKey(MEANINGFUL_CHANCE = 0.7, NUMBER_CHANCE = 0.2) {
     }
 }
 
+export function generateNonPresentKey(pySelf, getitem) {
+    while (true) {
+        const key = generateNewKey();
+        if (getitem(pySelf, key).isException) {
+            return key;
+        }
+    }
+}
+
 function addPairsUntilResize(pySelf, getitem, setitem) {
     let resize = null;
     let extraPairs = [];
 
     while (resize == null) {
-        const key = generateNewKey();
-        if (getitem(pySelf, key).isException) {
-            const value = BigNumber(extraPairs.length + 1);
-            let newPySelf;
-            ({pySelf: newPySelf, resize} = setitem(pySelf, key, value));
-            console.log(resize, pySelf.toJS());
-            const noRecycleOccured = resize || newPySelf.get('fill') > pySelf.get('fill');
-            if (noRecycleOccured) {
-                // Only add pairs that don't get recycled
-                pySelf = newPySelf;
-                extraPairs.push([key, value]);
-            }
+        const key = generateNonPresentKey(pySelf, getitem);
+        const value = BigNumber(extraPairs.length + 1);
+        let newPySelf;
+        ({pySelf: newPySelf, resize} = setitem(pySelf, key, value));
+        const noRecycleOccured = resize || newPySelf.get('fill') > pySelf.get('fill');
+        if (noRecycleOccured) {
+            // Only add pairs that don't get recycled
+            pySelf = newPySelf;
+            extraPairs.push([key, value]);
         }
     }
 

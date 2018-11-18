@@ -1061,7 +1061,6 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <h5> Resize </h5>
                     <p>
-                        {' '}
                         In Python 3.2, the size of a hash table can quadrupled when there are less than or equal to
                         50000 elements, and can only be doubled when there are more than 50000 elements. Quadrupling a
                         table leads to fewer resizes at the cost of memory. Memory overhead is more critical when tables
