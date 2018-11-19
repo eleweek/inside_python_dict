@@ -24,9 +24,10 @@ export function chapter1_2_FormatCheckCollision(l, idx, fmtCollisionCount) {
     }
 }
 
-export function commonFormatCheckNotFound(l, idx, fmtCollisionCount) {
+const _defaultIsEmpty = (l, i) => l.get(i) == null;
+export function commonFormatCheckNotFound(l, idx, fmtCollisionCount, isEmpty = _defaultIsEmpty) {
     const tryN = fmtCollisionCount + 1;
-    if (l.get(idx) == null) {
+    if (isEmpty(l, idx)) {
         if (fmtCollisionCount == 0) {
             return `[Try #${tryN}] Slot <code>${idx}</code> is empty, so don't loop`;
         } else {

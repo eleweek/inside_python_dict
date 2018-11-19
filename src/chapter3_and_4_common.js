@@ -25,10 +25,11 @@ export function singleFormatCheckCollision(slots, idx, fmtCollisionCount) {
     }
 }
 
+const _lookdictIsEmpty = (slots, idx) => slots.get(idx).key == null;
 export function formatHashClassLookdictRelated(bp) {
     switch (bp.point) {
         case 'check-not-found':
-            return commonFormatCheckNotFound(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount);
+            return commonFormatCheckNotFound(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount, _lookdictIsEmpty);
         case 'check-hash': {
             const slotHash = bp.self.get('slots').get(bp.idx).hashCode;
             if (slotHash.eq(bp.hashCode)) {
