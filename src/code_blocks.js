@@ -998,7 +998,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 
     getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
         let lines = [];
-        let maxLen = _.max(this.props.code.map(([line, bpPoint]) => line.length));
+        let maxLen = Math.max(...this.props.code.map(([line, bpPoint]) => line.length));
 
         let isLineHighlighted = false;
         for (let [line, bpPoint] of this.props.code) {
@@ -1287,7 +1287,7 @@ class TimeSliderWithControls extends React.Component {
     render() {
         let marks = {};
         if (this.props.maxTime < 30) {
-            for (let i of _.range(this.props.maxTime + 1)) {
+            for (let i = 0; i <= this.props.maxTime; ++i) {
                 marks[i] = '';
             }
         }

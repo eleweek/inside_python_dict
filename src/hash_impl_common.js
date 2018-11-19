@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 import {BigNumber} from 'bignumber.js';
 
 export function repr(obj, allowNull = false) {
@@ -68,7 +66,7 @@ class Int64 {
     }
 
     sign() {
-        return _.last(this.data) == 1 ? -1 : 1;
+        return this.data[this.data.length - 1] == 1 ? -1 : 1;
     }
 
     inc() {

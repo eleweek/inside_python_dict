@@ -148,7 +148,6 @@ export class PyObjParser {
             if (this.current() !== ']' && this.current() != null) this.consume(',');
             this.skipWhitespace();
         }
-        console.log('parseList', res, minSize);
         this.consumeWS(']');
         if (minSize != null) {
             if (res.length < minSize) {

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import _ from 'lodash';
 import {Map, List, Record} from 'immutable';
 import {BigNumber} from 'bignumber.js';
 import {

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import _ from 'lodash';
 
 import {HashBreakpointFunction, pyHash, EQ, computeIdx, displayStr, DUMMY} from './hash_impl_common';
 
