@@ -273,10 +273,12 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
             Try it
         </button>
     );
+    console.log('DynamicPartResize', hasDummy, outcome, otherOutcomes);
+    const singleOtherOutcome = Object.keys(otherOutcomes)[0];
+    const inserted = otherOutcomes[singleOtherOutcome].inserted;
+    const removed = otherOutcomes[singleOtherOutcome].removed;
+
     if (hasDummy) {
-        const singleOtherOutcome = Object.keys(otherOutcomes)[0];
-        console.log('OO', otherOutcomes);
-        const inserted = otherOutcomes[singleOtherOutcome].inserted;
         if (outcome === 'recycled') {
             // TODO: validate?
             return (
@@ -294,13 +296,35 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                     While it was being inserted, no <code>DUMMY</code> slot was encountered, so, consequently, no{' '}
                     <code>DUMMY</code> slot got recycled. So this version of <code>__setitem__</code> worked just like
                     the previous one. But, if we instead tried to insert an item with the key{' '}
-                    <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would get recycled.{' '}
+                    <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would get recycled.
                     {tryIt(() => handleUpdateRemovedAndInsert(inserted))}
                 </p>
             );
         }
     } else {
-        // TODO
+        // TODO: expecting recycled here
+        if (inserted) {
+            return (
+                <p>
+                    No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
+                    So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
+                    tried to remove the key <code>{displayStr(removed.key)}</code> and then insert an item with the key{' '}
+                    <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would appear and then get
+                    recycled.
+                    {tryIt(() => handleUpdateRemovedAndInsert(inserted, removed))}
+                </p>
+            );
+        } else {
+            return (
+                <p>
+                    No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
+                    So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
+                    tried to remove the key {displayStr(removed.key)} a <code>DUMMY</code> slot would appear and then
+                    get recycled.
+                    {tryIt(() => handleUpdateRemovedAndInsert(inserted, removed))}
+                </p>
+            );
+        }
     }
 }
 
@@ -358,12 +382,14 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         const hasDummy = originalPySelf.get('fill') !== originalPySelf.get('used');
         let outcome;
+        let otherOutcomes = {};
+        const {bp, pySelf: newPySelf, resize} = AlmostPythonDict.__setitem__recycling(
+            originalPySelf,
+            originalKey,
+            originalValue
+        );
+
         if (hasDummy) {
-            const {bp, pySelf: newPySelf, resize} = AlmostPythonDict.__setitem__recycling(
-                originalPySelf,
-                originalKey,
-                originalValue
-            );
             if (!resize && newPySelf.get('fill') === newPySelf.get('used')) {
                 outcome = 'recycled';
             } else if (resize) {
@@ -372,21 +398,23 @@ export class Chapter3_HashClass extends ChapterComponent {
                 outcome = 'missed';
             }
 
-            let otherOutcomes = {};
-
             if (outcome === 'recycled') {
-                const key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
-                const value = 'value';
+                // TODO: there might be a better way of generating this
+                while (true) {
+                    const key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
+                    const value = 'value';
 
-                const {pySelf: varNewPySelf, resize: newResize} = AlmostPythonDict.__setitem__recycling(
-                    originalPySelf,
-                    key,
-                    value
-                );
-                const noRecycleOccured = newResize || varNewPySelf.get('fill') > varNewPySelf.get('fill');
-                if (noRecycleOccured) {
-                    const singleOtherOutcome = newResize ? 'missed' : 'missed_resized';
-                    otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
+                    const {pySelf: varNewPySelf, resize: newResize} = AlmostPythonDict.__setitem__recycling(
+                        originalPySelf,
+                        key,
+                        value
+                    );
+                    const noRecycleOccured = newResize || varNewPySelf.get('fill') > varNewPySelf.get('fill');
+                    if (noRecycleOccured) {
+                        const singleOtherOutcome = newResize ? 'missed' : 'missed_resized';
+                        otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
+                        break;
+                    }
                 }
             } else {
                 let clusterStart = 0;
@@ -404,16 +432,68 @@ export class Chapter3_HashClass extends ChapterComponent {
                 let key;
                 do {
                     key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
-                    console.log('CS', clusterStart, key);
                 } while (computeIdx(pyHash(key), slots.size) != clusterStart);
                 const singleOtherOutcome = 'recycled';
                 otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
             }
-
-            return {bp, outcome, otherOutcomes, hasDummy, pySelf: newPySelf};
         } else {
-            // TODO
+            const originalKeyIdx = computeIdx(pyHash(originalKey), slots.size);
+            const hasOriginalCollision = slots.get(originalKeyIdx).key !== null;
+            let clusterStart = slots.get(0).key == null ? null : 0;
+            let bestClusterStart = null;
+            let bestClusterEnd = null;
+            let isCluster = false;
+            let idxToRemove = null;
+            console.log('hasOriginalCollision', hasOriginalCollision);
+            for (let i = 0; i < slots.size; ++i) {
+                const curKey = slots.get(i).key;
+                console.log('curKey', curKey);
+                if (curKey == null) {
+                    if (!hasOriginalCollision) {
+                        if (
+                            isCluster &&
+                            (bestClusterStart == null || bestClusterEnd - bestClusterStart < clusterStart - i - 1)
+                        ) {
+                            bestClusterStart = clusterStart;
+                            bestClusterEnd = i - 1;
+                            // Would look a bit better if not the last one is removed
+                            idxToRemove = clusterStart === i - 1 ? clusterStart : i - 2;
+                            clusterStart = null;
+                        }
+                    } else {
+                        if (clusterStart < originalKeyIdx && originalKeyIdx < i) {
+                            // Try to introduce some collisions
+                            idxToRemove = originalKeyIdx === i - 1 ? originalKeyIdx : i - 2;
+                        }
+                    }
+                    isCluster = false;
+                } else {
+                    if (clusterStart === null) {
+                        clusterStart = i;
+                    }
+                    isCluster = true;
+                }
+                console.log('for', i, idxToRemove);
+            }
+
+            if (hasOriginalCollision) {
+                const singleOtherOutcome = 'recycled';
+                otherOutcomes[singleOtherOutcome] = {removed: {key: slots.get(idxToRemove).key}};
+            } else {
+                const singleOtherOutcome = 'recycled';
+                let key;
+                do {
+                    key = generateNonPresentKey(originalPySelf, AlmostPythonDict.__getitem__);
+                } while (computeIdx(pyHash(key), slots.size) != bestClusterStart);
+
+                otherOutcomes[singleOtherOutcome] = {
+                    removed: {key: slots.get(idxToRemove).key},
+                    inserted: {key, value: 'value'},
+                };
+            }
         }
+
+        return {bp, outcome, otherOutcomes, hasDummy, pySelf: newPySelf};
     });
 
     handleUpdateRemovedAndInsert = (inserted, removed) => {
@@ -468,7 +548,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         This chapter assumes you have a basic understanding of{' '}
                         <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">
                             magic methods
-                        </a>{' '}
+                        </a>
                         and how classes work in python. We will use classes to bundle data and functions together. Magic
                         methods are special methods for overloading operators, so we can write{' '}
                         <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square
