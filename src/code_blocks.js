@@ -425,9 +425,10 @@ class BaseBoxesComponent extends React.PureComponent {
         let nextArray = nextProps.array || [];
         if (isImmutableListOrMap(nextArray)) {
             // TODO: use Immutable.js api?
+            console.log('immutable.js next provided');
             nextArray = nextArray.toJS();
         } else {
-            // console.warn("nextArray non-immutable");
+            console.warn('nextArray non-immutable');
         }
         let lastBoxId = state.lastBoxId;
 
@@ -1570,7 +1571,7 @@ export class HashSlotsComponent extends React.PureComponent {
     static boxFactory(keys, value) {
         const slot = value;
         return [
-            [keys[0], {value: slot.hashCode, yOffset: 0}],
+            [keys[0], {value: slot.pyHashCode, yOffset: 0}],
             [keys[1], {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
             [keys[2], {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
         ];
@@ -1589,7 +1590,7 @@ export class HashSlotsComponent extends React.PureComponent {
         return array.map((slot, idx) => {
             const keyKey = slot.key != null ? pyObjToReactKey(slot.key) : null;
             return [
-                emptyOrKey(slot.hashCode, idx, 'hashCode', keyKey),
+                emptyOrKey(slot.pyHashCode, idx, 'hashCode', keyKey),
                 emptyOrKey(slot.key, idx, 'key', keyKey),
                 emptyOrKey(slot.value, idx, 'value', keyKey),
             ];

@@ -50,7 +50,7 @@
     "d3": "^5.7.0",
     "d3-selection-multi": "^1.0.1",
     "i": "^0.3.6",
-    "immutable": "^3.8.2",
+    "immutable": "^4.0.0-rc.12",
     "lodash": "^4.17.11",
     "lowlight": "^1.11.0",
     "memoize-one": "^4.0.3",

@@ -30,7 +30,7 @@ export function formatHashClassLookdictRelated(bp) {
         case 'check-not-found':
             return commonFormatCheckNotFound(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount, _lookdictIsEmpty);
         case 'check-hash': {
-            const slotHash = bp.self.get('slots').get(bp.idx).hashCode;
+            const slotHash = bp.self.get('slots').get(bp.idx).pyHashCode;
             if (slotHash.eq(bp.hashCode)) {
                 return `<code>${slotHash} == ${bp.hashCode}</code>, so the slot might be occupied by the same key`;
             } else {
@@ -82,7 +82,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-collision':
             return singleFormatCheckCollision(bp.self.get('slots'), bp.idx, bp.fmtCollisionCount);
         case 'check-dup-hash': {
-            const slotHash = bp.self.get('slots').get(bp.idx).hashCode;
+            const slotHash = bp.self.get('slots').get(bp.idx).pyHashCode;
             if (slotHash.eq(bp.hashCode)) {
                 return `<code>${slotHash} == ${
                     bp.hashCode
@@ -200,7 +200,7 @@ export function formatHashClassResize(bp) {
         case 'new-empty-slots':
             return `Create a new list of empty slots of size <code>${bp.self.get('slots').size}</code>`;
         case 'for-loop': {
-            const {key, hashCode} = bp.oldSlots.get(bp.oldIdx);
+            const {key, pyHashCode: hashCode} = bp.oldSlots.get(bp.oldIdx);
             return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current key is <code>${
                 key === null ? 'EMPTY' : displayStr(key)
             }</code> and its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
@@ -303,7 +303,7 @@ export class HashClassInitEmpty extends BreakpointFunction {
     }
 }
 
-export const Slot = Record({hashCode: null, key: null, value: null});
+export const Slot = Record({pyHashCode: null, key: null, value: null});
 
 export function findNearestSize(minused) {
     let newSize = 8;
@@ -341,7 +341,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
                 this.self
                     .get('slots')
                     .get(this.idx)
-                    .hashCode.eq(this.hashCode)
+                    .pyHashCode.eq(this.hashCode)
             ) {
                 this.addBP('check-dup-key');
                 if (EQ(this.self.get('slots').get(this.idx).key, this.key)) {
@@ -394,7 +394,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
 
         this.self = this.self.setIn(
             ['slots', idx],
-            new Slot({hashCode: this.hashCode, key: this.key, value: this.value})
+            new Slot({pyHashCode: this.hashCode, key: this.key, value: this.value})
         );
 
         this.addBP('assign-slot');
@@ -443,7 +443,7 @@ export class HashClassLookdictBase extends HashBreakpointFunction {
                 this.self
                     .get('slots')
                     .get(this.idx)
-                    .hashCode.eq(this.hashCode)
+                    .pyHashCode.eq(this.hashCode)
             ) {
                 this.addBP('check-key');
                 if (EQ(this.self.get('slots').get(this.idx).key, this.key)) {
@@ -593,7 +593,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
 
         for ([this.oldIdx, this.slot] of this.oldSlots.entries()) {
             /* For consistency with other functions, add these names */
-            this.hashCode = this.slot.hashCode;
+            this.hashCode = this.slot.pyHashCode;
             this.key = this.slot.key;
             this.value = this.slot.value;
 
@@ -602,7 +602,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
             if (this.slot.key === null || this.slot.key === DUMMY) {
                 continue;
             }
-            this.computeIdxAndSave(this.slot.hashCode, this.self.get('slots').size);
+            this.computeIdxAndSave(this.slot.pyHashCode, this.self.get('slots').size);
 
             while (true) {
                 this.addBP('check-collision');

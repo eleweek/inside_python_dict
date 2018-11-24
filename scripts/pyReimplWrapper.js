@@ -72,7 +72,7 @@ function restorePyDictState(state) {
                     let value = parseSimplePyObj(slot.value);
 
                     return Slot({
-                        hashCode: slot.hashCode ? new BigNumber(slot.hashCode) : null,
+                        pyHashCode: slot.hashCode ? new BigNumber(slot.hashCode) : null,
                         key: key,
                         value: value,
                     });
@@ -93,7 +93,7 @@ function dumpPyDictState(pySelf) {
 
     data.slots = pySelf.get('slots').map(slot => {
         return {
-            hashCode: slot.hashCode != null ? slot.hashCode.toString() : null,
+            hashCode: slot.pyHashCode != null ? slot.pyHashCode.toString() : null,
             key: dumpSimplePyObj(slot.key),
             value: dumpSimplePyObj(slot.value),
         };
