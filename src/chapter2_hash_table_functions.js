@@ -510,7 +510,7 @@ class HashExamples extends React.Component {
                 <span>Strings: </span>
                 <code>hash(</code>
                 <PyStringInput
-                    autogrowing={true}
+                    inline={true}
                     value={this.state.string}
                     onChange={value => this.setState({string: value})}
                 />
@@ -520,7 +520,7 @@ class HashExamples extends React.Component {
                 <span>Integers: </span>
                 <code>hash(</code>
                 <PyNumberInput
-                    autogrowing={true}
+                    inline={true}
                     value={this.state.integer}
                     onChange={value => this.setState({integer: value})}
                 />

@@ -45,7 +45,6 @@ class ParsableInputBase extends React.Component {
     }
 
     forceSetValue(value) {
-        // TODO: also provide raw?
         this.setState({
             valueRaw: this.props.dumpValue(value),
             value: value,
@@ -312,7 +311,7 @@ class ParsableInputAutogrowing extends ParsableInputBase {
                 minWidth={140}
                 type="text"
                 className="parsable-input-autosize"
-                value={this.state.value}
+                value={this.state.valueRaw}
                 onChange={this.handleChange}
             />
         );
