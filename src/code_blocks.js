@@ -388,7 +388,7 @@ class LineOfBoxesSelection extends React.PureComponent {
 class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1400
     // Because it seems to produce less "stupid" looking results
-    static ANIMATION_DURATION_TIMEOUT = 1200;
+    static ANIMATION_DURATION_TIMEOUT = 1100;
 
     constructor() {
         super();
@@ -415,11 +415,19 @@ class BaseBoxesComponent extends React.PureComponent {
         this.gcTimeout = null;
     }
 
+    shouldComponentUpdate() {
+        return this.state.shouldUpdate;
+    }
+
     static getDerivedStateFromProps(nextProps, state) {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
+        if (!state.firstRender) {
+            state = {...state, ...BaseBoxesComponent.garbageCollect(state, state.gcModId)};
+        }
 
         const modificationId = state.modificationId + 1;
+        const gcModId = state.gcModId;
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
         let nextArray = nextProps.array || [];
@@ -584,10 +592,12 @@ class BaseBoxesComponent extends React.PureComponent {
                 needProcessCreatedAfterRender: needProcessCreatedAfterRender,
                 needGarbageCollection: needGarbageCollection,
                 modificationId: modificationId,
+                gcModId: gcModId,
                 lastBoxId: lastBoxId,
                 remappedKeyId: newRemappedKeyId,
                 removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                 keyToValueAndGroup: newKeyToValueAndGroup,
+                shouldUpdate: true,
             };
         } else {
             let status = {};
@@ -617,11 +627,13 @@ class BaseBoxesComponent extends React.PureComponent {
                 keyModId: new ImmutableMap(keyModId),
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
+                gcModId: -1,
                 modificationId: modificationId,
                 lastBoxId: lastBoxId,
                 remappedKeyId: new ImmutableMap(remappedKeyId),
                 keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
                 removingValueToGroupToKeyToId: new ImmutableMap(),
+                shouldUpdate: true,
             };
         }
 
@@ -717,70 +729,74 @@ class BaseBoxesComponent extends React.PureComponent {
         return m;
     }
 
-    garbageCollectAfterAnimationDone(targetModId) {
-        this.gcTimeout = null;
-        this.setState(state => {
-            const t1 = performance.now();
-            const removed = [];
+    static garbageCollect(state, targetModId) {
+        const t1 = performance.now();
 
-            for (const [key, modId] of state.keyModId.entries()) {
-                if (state.status.get(key) === 'removing' && modId <= targetModId) {
-                    removed.push(key);
-                }
+        const removed = [];
+
+        for (const [key, modId] of state.keyModId.entries()) {
+            if (state.status.get(key) === 'removing' && modId <= targetModId) {
+                removed.push(key);
             }
+        }
 
-            /*console.log(`garbage collecting older than ${targetModId}`);
+        /*console.log(`garbage collecting older than ${targetModId}`);
             console.log(removed);*/
-            /*console.log("state before");
+        /*console.log("state before");
             this.debugLogState();*/
 
-            let newState;
-            if (removed.length > 0) {
-                let {
-                    status,
-                    keyBox,
-                    keyModId,
-                    remappedKeyId,
-                    keyToValueAndGroup,
-                    removingValueToGroupToKeyToId,
-                } = state;
+        let newState;
+        if (removed.length > 0) {
+            let {status, keyBox, keyModId, remappedKeyId, keyToValueAndGroup, removingValueToGroupToKeyToId} = state;
 
-                removingValueToGroupToKeyToId = removingValueToGroupToKeyToId.asMutable();
+            removingValueToGroupToKeyToId = removingValueToGroupToKeyToId.asMutable();
 
-                for (let key of removed) {
-                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
+            for (let key of removed) {
+                const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                const group = state.keyToValueAndGroup.getIn([key, 'group']);
 
-                    BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
-                }
-
-                status = status.deleteAll(removed);
-                keyModId = keyModId.deleteAll(removed);
-                keyBox = keyBox.deleteAll(removed);
-                remappedKeyId = remappedKeyId.deleteAll(removed);
-                keyToValueAndGroup = keyToValueAndGroup.deleteAll(removed);
-
-                newState = {
-                    status,
-                    keyBox,
-                    keyModId,
-                    remappedKeyId,
-                    removingValueToGroupToKeyToId: removingValueToGroupToKeyToId.asImmutable(),
-                    keyToValueAndGroup,
-                    needGarbageCollection: false,
-                };
-            } else {
-                newState = null;
+                BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
             }
-            if (newState) {
-                console.log(
-                    'Non-trivial BaseBoxesComponent.garbageCollectAfterAnimationDone setState timing',
-                    performance.now() - t1
-                );
-            }
-            return newState;
-        });
+
+            status = status.deleteAll(removed);
+            keyModId = keyModId.deleteAll(removed);
+            keyBox = keyBox.deleteAll(removed);
+            remappedKeyId = remappedKeyId.deleteAll(removed);
+            keyToValueAndGroup = keyToValueAndGroup.deleteAll(removed);
+
+            newState = {
+                status,
+                keyBox,
+                keyModId,
+                remappedKeyId,
+                removingValueToGroupToKeyToId: removingValueToGroupToKeyToId.asImmutable(),
+                keyToValueAndGroup,
+                needGarbageCollection: false,
+            };
+        } else {
+            newState = null;
+        }
+
+        if (newState) {
+            console.log('Non-trivial garbageCollect timing', performance.now() - t1);
+        }
+
+        return newState;
     }
+
+    updateModIdForGC = modId => {
+        this.setState(state => {
+            const gcModId = Math.max(state.gcModId, modId);
+            return {gcModId};
+        });
+    };
+
+    garbageCollectAfterAnimationDone = targetModId => {
+        this.gcTimeout = null;
+        this.setState(state => {
+            return BaseBoxesComponent.garbageCollect(state, targetModId);
+        });
+    };
 
     debugLogState() {
         BaseBoxesComponent.staticDebugLogState(this.state);
@@ -807,11 +823,20 @@ class BaseBoxesComponent extends React.PureComponent {
             /*console.log("Scheduling garbage collection");
             console.log(this.state);*/
             const currentModificationId = this.state.modificationId;
+
             if (this.gcTimeout) {
                 clearTimeout(this.gcTimeout);
             }
+
+            // It is probably better to don't let unnecessary dom objects persist for too long
             this.gcTimeout = setTimeout(
                 () => this.garbageCollectAfterAnimationDone(currentModificationId),
+                BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
+            );
+
+            // Also do clean up inside getDerivedStateFromProps()
+            setTimeout(
+                () => this.updateModIdForGC(currentModificationId),
                 BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
             );
         }
@@ -866,7 +891,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 };
             });
             console.log(
-                'BaseBoxesComponent.garbageCollectAfterAnimationDone needProcessCreatedAfterRender==true timing',
+                'BaseBoxesComponent.componentDidUpdate needProcessCreatedAfterRender==true timing',
                 performance.now() - t1
             );
         }
