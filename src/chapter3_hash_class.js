@@ -454,14 +454,17 @@ export class Chapter3_HashClass extends ChapterComponent {
                 otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
             }
         } else {
+            outcome = resize ? 'missed_resized' : 'missed';
             const originalKeyIdx = computeIdx(pyHash(originalKey), slots.size);
-            const hasOriginalCollision = slots.get(originalKeyIdx).key !== null;
+            console.log('originalKeyIdx', originalKeyIdx);
+            const hasOriginalCollision = slots.get(originalKeyIdx).key != null;
             let clusterStart = slots.get(0).key == null ? null : 0;
             let bestClusterStart = null;
             let bestClusterEnd = null;
             let isCluster = false;
             let idxToRemove = null;
             console.log('hasOriginalCollision', hasOriginalCollision);
+            console.log('slots', slots.toJS());
             for (let i = 0; i < slots.size; ++i) {
                 const curKey = slots.get(i).key;
                 console.log('curKey', curKey);
@@ -475,14 +478,15 @@ export class Chapter3_HashClass extends ChapterComponent {
                             bestClusterEnd = i - 1;
                             // Would look a bit better if not the last one is removed
                             idxToRemove = clusterStart === i - 1 ? clusterStart : i - 2;
-                            clusterStart = null;
                         }
                     } else {
+                        console.log('clusterStart', clusterStart, originalKeyIdx, i);
                         if (clusterStart <= originalKeyIdx && originalKeyIdx < i) {
                             // Try to introduce some collisions
                             idxToRemove = originalKeyIdx === i - 1 ? originalKeyIdx : i - 2;
                         }
                     }
+                    clusterStart = null;
                     isCluster = false;
                 } else {
                     if (clusterStart === null) {
@@ -495,6 +499,7 @@ export class Chapter3_HashClass extends ChapterComponent {
 
             if (hasOriginalCollision) {
                 const singleOtherOutcome = 'recycled';
+                console.log('hasOriginalCollision, removing', idxToRemove);
                 otherOutcomes[singleOtherOutcome] = {removed: {key: slots.get(idxToRemove).key}};
             } else {
                 const singleOtherOutcome = 'recycled';
