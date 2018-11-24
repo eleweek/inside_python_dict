@@ -21,7 +21,7 @@ export class PyObjParser {
     }
 
     skipWhitespace() {
-        while (/\s/.test(this.s[this.pos])) {
+        while (this.pos < this.s.length && /\s/.test(this.s[this.pos])) {
             this.pos++;
         }
     }
@@ -67,15 +67,18 @@ export class PyObjParser {
         throw new PyParsingError(text, posToInclude);
     }
 
-    parseStringOrNumberOrNone(allowedSeparators) {
+    _parseStringOrNumberOrNone(allowedSeparators) {
         // TODO: The whole None parsing and error reporting for unwrapped strings
         // TODO: is a bit of a mess
-        if (this.isNextNone(allowedSeparators)) return this.parseNoneOrThrowUnknownIdentifier(allowedSeparators);
-        return this.parseStringOrNumber(allowedSeparators);
+        if (this.isNextNone(allowedSeparators)) {
+            return this._parseNoneOrThrowUnknownIdentifier(allowedSeparators);
+        }
+        return this._parseStringOrNumber(allowedSeparators);
     }
 
-    parseStringOrNumber(allowedSeparators, fromDict = true) {
+    _parseStringOrNumber(allowedSeparators, fromDict = true) {
         this.skipWhitespace();
+        let startPos = this.pos;
         const c = this.current();
         if (fromDict) {
             if (c === '{' || c === '[') {
@@ -87,9 +90,9 @@ export class PyObjParser {
         }
 
         if (digitsMinusPlus.includes(c)) {
-            return this.parseNumber(allowedSeparators);
+            return {res: this.parseNumber(allowedSeparators), startPos};
         } else if (`"'`.includes(c)) {
-            return this.parseString();
+            return {res: this.parseString(), startPos};
         } else {
             this.throwErr('Expected value - string or number. If you wanted a string, wrap it in quotes');
         }
@@ -106,9 +109,9 @@ export class PyObjParser {
             if (this.current() == null) {
                 this.throwErr('Dict literal ended abruptly - no closing }');
             }
-            let key = this.parseStringOrNumberOrNone(allowedSeparators);
+            let key = this._parseStringOrNumberOrNone(allowedSeparators).res;
             this.consumeWS(':');
-            let value = this.parseStringOrNumberOrNone(allowedSeparators);
+            let value = this._parseStringOrNumberOrNone(allowedSeparators).res;
             res.push([key, value]);
 
             this.skipWhitespace();
@@ -129,7 +132,7 @@ export class PyObjParser {
             if (this.current() == null) {
                 this.throwErr('List literal ended abruptly - no closing ]');
             }
-            let val = this.parseStringOrNumberOrNone(allowedSeparators);
+            let {res: val, startPos: valStartPos} = this._parseStringOrNumberOrNone(allowedSeparators);
             if (!allowDuplicates) {
                 for (let existingVal of res) {
                     if (EQ(val, existingVal)) {
@@ -140,7 +143,7 @@ export class PyObjParser {
             if (extraValueValidator) {
                 const error = extraValueValidator(val);
                 if (error) {
-                    this.throwErr(error);
+                    this.throwErr(error, valStartPos);
                 }
             }
             res.push(val);
@@ -236,39 +239,53 @@ export class PyObjParser {
     }
 
     // Quite hacky
-    parseNoneOrThrowUnknownIdentifier(allowedSeparators) {
+    _parseNoneOrThrowUnknownIdentifier(allowedSeparators) {
         this.skipWhitespace();
         if (this.isNextNone(allowedSeparators)) {
+            const startPos = this.pos;
             this.pos += 4;
-            return None;
+            return {res: None, startPos};
         }
         this.throwErr('Unknown identifier (if you wanted a string, wrap it in quotation marks - `"` or `\'`)');
     }
+
+    checkTrailingChars() {
+        this.skipWhitespace();
+        if (this.pos < this.s.length) {
+            this.throwErr('Trailing characters');
+        }
+    }
+}
+
+function _checkTrailingChars(parser, parseFunc) {
+    const res = parseFunc();
+    parser.checkTrailingChars();
+    return res;
 }
 
 export function parsePyString(s) {
     let parser = new PyObjParser(s);
-    return parser.parseString();
+    return _checkTrailingChars(parser, () => parser.parseString());
 }
 
 export function parsePyNumber(s) {
     let parser = new PyObjParser(s);
-    return parser.parseNumber();
+    return _checkTrailingChars(parser, () => parser.parseNumber());
 }
 
 export function parsePyDict(s) {
     let parser = new PyObjParser(s);
-    return parser.parseDict();
+    return _checkTrailingChars(parser, () => parser.parseDict());
 }
 
 export function parsePyList(s, allowDuplicates = true, minSize = null, extraValueValidator) {
     let parser = new PyObjParser(s);
-    return parser.parseList(allowDuplicates, minSize, extraValueValidator);
+    return _checkTrailingChars(parser, () => parser.parseList(allowDuplicates, minSize, extraValueValidator));
 }
 
 export function parsePyStringOrNumber(s) {
     let parser = new PyObjParser(s);
-    return parser.parseStringOrNumber(null, false);
+    return _checkTrailingChars(parser, () => parser._parseStringOrNumber(null, false).res);
 }
 
 // TODO: Dump functions are very hacky right now

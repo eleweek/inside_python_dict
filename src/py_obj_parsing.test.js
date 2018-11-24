@@ -189,6 +189,7 @@ test('Parsing dicts: malformed dicts', () => {
     expect(() => parsePyDict("{'a',5")).toThrowError(/Expected.*:/);
     expect(() => parsePyDict("{'a':5e}")).toThrowError(/Floats/);
     expect(() => parsePyDict("{'a': 'b' 5: 6")).toThrowError(/Expected.*,/);
+    expect(() => parsePyDict("{'a':5} fd  fds")).toThrowError(/Trailing/);
 });
 
 test('Parsing lists: empty list', () => {
@@ -314,12 +315,13 @@ test('Parsing lists: malformed lists', () => {
     expect(() => parsePyList('a')).toThrowError(/Expected.*\[/);
     expect(() => parsePyList("['a',5")).toThrowError(/abrupt/);
     expect(() => parsePyList("['a',5e]")).toThrowError(/Floats/);
+    expect(() => parsePyList("['a',5] fdsfds")).toThrowError(/Trailing/);
 });
 
 test('Parsing None', () => {
     const parseNone = s => {
         let p = new PyObjParser(s);
-        return p.parseNoneOrThrowUnknownIdentifier();
+        return p._parseNoneOrThrowUnknownIdentifier().res;
     };
 
     expect(isNone(parseNone('None'))).toBe(true);

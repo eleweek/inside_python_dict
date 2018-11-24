@@ -52,6 +52,9 @@ function _parseSmallInt(value) {
 }
 
 function chapter1valueRangeValidator(num) {
+    if (!BigNumber.isBigNumber(num) && typeof num !== 'number') {
+        return 'Expected an integer';
+    }
     if (num.lt(-CHAPTER1_MAXNUM) || num.gt(CHAPTER1_MAXNUM)) {
         return `In chapter 1 only small integers are supported (between -${CHAPTER1_MAXNUM} and ${CHAPTER1_MAXNUM})`;
     }
