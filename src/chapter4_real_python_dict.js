@@ -29,7 +29,7 @@ import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_co
 
 import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
 import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
-import {ChapterComponent, Subcontainerize} from './util';
+import {ChapterComponent, Subcontainerize, singularOrPlural, DynamicP} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
 import memoizeOne from 'memoize-one';
@@ -740,22 +740,33 @@ class ProbingVisualizationImpl extends React.Component {
 }
 
 function DynamicPartResize({extraPairs, resize}) {
-    let text;
+    let p;
 
     if (extraPairs === null) {
-        text = `During building the dict from original pairs, after inserting the first <code>${resize.oldSelf.get(
-            'fill'
-        )}</code> pairs, it got resized from <code>${resize.oldSelf.get('slots').size}</code> slots to <code>${
-            resize.self.get('slots').size
-        }</code> slots. Python tries to guess the correct size of the resulting hash table inside dict, but sometimes it misses, so a resize like this can happen.`;
+        const fill = resize.oldSelf.get('fill');
+        const oldSize = resize.oldSelf.get('slots').size;
+        const size = resize.self.get('slots').size;
+        p = (
+            <p className="dynamic-p" key={`no-extra-pairs-${fill}-${oldSize}-${size}`}>
+                During building the dict from original pairs, after inserting the first <code>{fill}</code> pairs, it
+                got resized from <code>{oldSize}</code> slots to <code>{size}</code> slots. Python tries to guess the
+                correct size of the resulting hash table inside dict, but sometimes it misses, so a resize like this can
+                happen.
+            </p>
+        );
     } else {
         // TODO: better formatting of pairs
-        text = `While building the dict from the original pairs, no resize operation was run, because Python correctly guessed the number of slots needed. To see resize in action, let's insert additional pair${
-            extraPairs.length === 1 ? '' : 's'
-        }: <code>${formatExtraPairs(extraPairs)}</code>`;
+        p = (
+            <p className="dynamic-p" key={`extra-pairs-${JSON.stringify(extraPairs)}`}>
+                While building the dict from the original pairs, no resize operation was run, because Python correctly
+                guessed the number of slots needed. To see resize in action, let's insert{' '}
+                {extraPairs.length === 1 ? 'an' : ''} additional {singularOrPlural(extraPairs.length, 'pair', 'pairs')}:{' '}
+                <code>{formatExtraPairs(extraPairs)}</code>
+            </p>
+        );
     }
 
-    return <p dangerouslySetInnerHTML={{__html: text}} />;
+    return <DynamicP>{p}</DynamicP>;
 }
 
 export class Chapter4_RealPythonDict extends ChapterComponent {

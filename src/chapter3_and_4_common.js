@@ -159,10 +159,11 @@ export function formatHashClassSetItemAndCreate(bp) {
             const sizeQ = bp.self.get('slots').size * 2;
             let compStr;
             let extraResizeStr = '';
-            if (fillQ > sizeQ || fillQ === sizeQ) {
+            if (fillQ >= sizeQ) {
                 if (fillQ > sizeQ) {
                     compStr = 'is greater than';
                 } else {
+                    // FIXME: I think this this branch can't happen because math
                     compStr = 'is equals to';
                 }
             } else {

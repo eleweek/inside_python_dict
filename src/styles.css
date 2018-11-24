@@ -368,3 +368,7 @@ blockquote.blockquote {
 .line-with-annotation {
     width: 100%;
 }
+
+.dynamic-p {
+    margin-bottom: 0;
+}

@@ -14,6 +14,7 @@ import {
 import {PyListInput, ParsableInput, BlockInputToolbar, InputTryAnother} from './inputs';
 import {
     ChapterComponent,
+    DynamicP,
     Subcontainerize,
     singularOrPlural,
     CrossFade,
@@ -360,12 +361,14 @@ const SimplifiedSearchStateVisualization = TetrisFactory([
     [HashBoxesComponent, [{labels: ['new_list']}, 'newList', 'newListIdx']],
 ]);
 
-function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumber, overwrittenNumbers}) {
+function DynamicSimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumber, overwrittenNumbers}) {
     let exampleOverwrite;
+    let includedList;
     let [idx, n1, n2] = overwrittenNumbers[0];
     n1 = displayStr(n1);
     n2 = displayStr(n2);
     if (addedNumber === null) {
+        includedList = false;
         exampleOverwrite = (
             <React.Fragment>
                 For example, <code>{n1}</code> will get the same slot index (<code>{idx}</code>) as <code>{n2}</code>,
@@ -373,6 +376,7 @@ function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumb
             </React.Fragment>
         );
     } else {
+        includedList = true;
         const anStr = displayStr(addedNumber);
         exampleOverwrite = (
             <React.Fragment>
@@ -384,17 +388,16 @@ function SimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, addedNumb
         );
     }
 
-    // TODO: hacky margin hack
     return (
-        <React.Fragment>
-            <CrossFade>
-                <p style={{marginBottom: 0}} key={`oe-p-${addedNumber}-${n1}-${n2}`}>
-                    Would this approach work, however? Not entirely. {exampleOverwrite} Situations like these are called{' '}
-                    <em>collisions</em>.
-                </p>
-            </CrossFade>
-            <p style={{marginBottom: 16}} />
-        </React.Fragment>
+        <DynamicP>
+            <p
+                className="dynamic-p"
+                key={`oe-p-${addedNumber}-${n1}-${n2}-${idx}-${includedList ? JSON.stringify(originalNumbers) : null}`}
+            >
+                Would this approach work, however? Not entirely. {exampleOverwrite} Situations like these are called{' '}
+                <em>collisions</em>.
+            </p>
+        </DynamicP>
     );
 }
 
@@ -595,7 +598,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         our number in there. To check if the number is there we could compute the slot index again and
                         see if it is empty.
                     </p>
-                    <SimplifiedInsertAllBrokenOverwrittenExample
+                    <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"
                         {...siaBrokenRes}
                     />

@@ -29,7 +29,7 @@ import {
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
-import {ChapterComponent, singularOrPlural, Subcontainerize, OLIVE} from './util';
+import {ChapterComponent, singularOrPlural, Subcontainerize, DynamicP, OLIVE} from './util';
 
 import memoizeOne from 'memoize-one';
 
@@ -248,23 +248,26 @@ export const SLOT_CLASS_CODE_STRING = `class Slot(object):
 function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
     let text;
 
+    let p;
     if (extraPairs === null) {
-        return (
-            <p>
+        p = (
+            <p className="dynamic-p" key={`resize-${resizesCount}`}>
                 While elements were being inserted, {resizesCount} {singularOrPlural(resizesCount, 'resize', 'resizes')}{' '}
                 happened. Let's look at {resizesCount === 1 ? 'it' : 'the first resize'} in depth:
             </p>
         );
     } else {
-        return (
-            <p>
+        p = (
+            <p className="dynamic-p" key={`no-resize-${extraPairs.length}-${JSON.stringify(extraPairs)}`}>
                 While building the hash table from the original pairs, no resize happened, because the number of pairs
                 is too low (<code>{pairsCount}</code>), and we need at least 6 to trigger a resize. So, for this
-                specific visualization, let's add {extraPairs.length} item{extraPairs.length === 1 ? '' : 's'} to the
-                table : <code>{formatExtraPairs(extraPairs)}</code>
+                specific visualization only, let's add {extraPairs.length} item{extraPairs.length === 1 ? '' : 's'} to
+                the table : <code>{formatExtraPairs(extraPairs)}</code>
             </p>
         );
     }
+
+    return <DynamicP>{p}</DynamicP>;
 }
 
 function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUpdateRemovedAndInsert}) {
@@ -277,12 +280,16 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
     const singleOtherOutcome = Object.keys(otherOutcomes)[0];
     const inserted = otherOutcomes[singleOtherOutcome].inserted;
     const removed = otherOutcomes[singleOtherOutcome].removed;
+    let p;
 
     if (hasDummy) {
         if (outcome === 'recycled') {
             // TODO: validate?
-            return (
-                <p>
+            p = (
+                <p
+                    className="dynamic-p"
+                    key={`has-dummy-recycled-${displayStr(inserted.key)}-${displayStr(inserted.value)}}`}
+                >
                     After we inserted it, a <code>DUMMY</code> slot got recycled. However, as it was mentioned, this
                     version of <code>__setitem__</code> works just like the previous one, when there no{' '}
                     <code>DUMMY</code> slot is encountered. For example, if we instead tried to remove{' '}
@@ -291,8 +298,11 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                 </p>
             );
         } else {
-            return (
-                <p>
+            p = (
+                <p
+                    className="dynamic-p"
+                    key={`has-dummy-no-recycle-${displayStr(inserted.key)}-${displayStr(inserted.value)}`}
+                >
                     While it was being inserted, no <code>DUMMY</code> slot was encountered, so, consequently, no{' '}
                     <code>DUMMY</code> slot got recycled. So this version of <code>__setitem__</code> worked just like
                     the previous one. But, if we instead tried to insert an item with the key{' '}
@@ -304,8 +314,13 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
     } else {
         // TODO: expecting recycled here
         if (inserted) {
-            return (
-                <p>
+            p = (
+                <p
+                    className="dynamic-p"
+                    key={`no-dummy-insert-remove-${displayStr(removed.key)}-${displayStr(inserted.key)}-${displayStr(
+                        inserted.value
+                    )}`}
+                >
                     No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
                     So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
                     tried to remove the key <code>{displayStr(removed.key)}</code> and then insert an item with the key{' '}
@@ -315,17 +330,19 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                 </p>
             );
         } else {
-            return (
-                <p>
+            p = (
+                <p className="dynamic-p" key={`no-dummy-only-remove-${displayStr(removed.key)}}`}>
                     No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
                     So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
                     tried to remove the key {displayStr(removed.key)} a <code>DUMMY</code> slot would appear and then
                     get recycled.
-                    {tryIt(() => handleUpdateRemovedAndInsert(inserted, removed))}
+                    {tryIt(() => handleUpdateRemovedAndInsert(null, removed))}
                 </p>
             );
         }
     }
+
+    return <DynamicP>{p}</DynamicP>;
 }
 
 export class Chapter3_HashClass extends ChapterComponent {
@@ -461,7 +478,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                             clusterStart = null;
                         }
                     } else {
-                        if (clusterStart < originalKeyIdx && originalKeyIdx < i) {
+                        if (clusterStart <= originalKeyIdx && originalKeyIdx < i) {
                             // Try to introduce some collisions
                             idxToRemove = originalKeyIdx === i - 1 ? originalKeyIdx : i - 2;
                         }

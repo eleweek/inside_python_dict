@@ -26,6 +26,18 @@ export class CrossFade extends React.Component {
     }
 }
 
+export class DynamicP extends React.Component {
+    // TODO: hacky margin hack
+    render() {
+        return (
+            <React.Fragment>
+                <CrossFade>{this.props.children}</CrossFade>
+                <div style={{marginBottom: 16}} />
+            </React.Fragment>
+        );
+    }
+}
+
 function linebreaks(s) {
     return s
         .split('\n')
