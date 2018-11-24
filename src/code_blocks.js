@@ -443,28 +443,24 @@ class BaseBoxesComponent extends React.PureComponent {
             let toMergeRemappedKeyId = {};
             let toMergeKeyToValueAndGroup = {};
 
-            let nextKeysSet = new Set();
-            for (let idx = 0; idx < nextArray.length; ++idx) {
-                const keys = nextArrayKeys[idx];
-                for (let key of keys) {
-                    nextKeysSet.add(key);
-                }
-            }
+            let nextKeysSet = new Set(nextArrayKeys.flat(1));
 
             let needGarbageCollection = false;
             for (let key of state.keyBox.keys()) {
-                const status = state.status.get(key);
-                if (!nextKeysSet.has(key) && status !== 'removing') {
-                    toMergeStatus[key] = 'removing';
-                    toMergeKeyModId[key] = modificationId;
-                    toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
-                    const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                    const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                    newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
-                        [repr(value, true), group, key],
-                        state.remappedKeyId.get(key)
-                    );
-                    needGarbageCollection = true;
+                if (!nextKeysSet.has(key)) {
+                    const status = state.status.get(key);
+                    if (status !== 'removing') {
+                        toMergeStatus[key] = 'removing';
+                        toMergeKeyModId[key] = modificationId;
+                        toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
+                        const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                        const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                        newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
+                            [repr(value, true), group, key],
+                            state.remappedKeyId.get(key)
+                        );
+                        needGarbageCollection = true;
+                    }
                 }
             }
 
@@ -567,6 +563,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 }
             }
 
+            // Necessary to convert to ImmutableMap otherwise it does weird deep merge
             newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
             newStatus = state.status.merge(toMergeStatus);
             newKeyModId = state.keyModId.merge(toMergeKeyModId);
