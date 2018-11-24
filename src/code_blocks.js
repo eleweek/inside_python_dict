@@ -573,13 +573,11 @@ class BaseBoxesComponent extends React.PureComponent {
             newRemappedKeyId = state.remappedKeyId.merge(toMergeRemappedKeyId);
             newKeyToValueAndGroup = state.keyToValueAndGroup.merge(toMergeKeyToValueAndGroup);
 
-            for (let key of instaRemovedKeys) {
-                newStatus = newStatus.delete(key);
-                newKeyModId = newKeyModId.delete(key);
-                newKeyBox = newKeyBox.delete(key);
-                newRemappedKeyId = newRemappedKeyId.delete(key);
-                newKeyToValueAndGroup = newKeyToValueAndGroup.delete(key);
-            }
+            newStatus = newStatus.deleteAll(instaRemovedKeys);
+            newKeyModId = newKeyModId.deleteAll(instaRemovedKeys);
+            newKeyBox = newKeyBox.deleteAll(instaRemovedKeys);
+            newRemappedKeyId = newRemappedKeyId.deleteAll(instaRemovedKeys);
+            newKeyToValueAndGroup = newKeyToValueAndGroup.deleteAll(instaRemovedKeys);
 
             newState = {
                 firstRender: false,
@@ -749,14 +747,10 @@ class BaseBoxesComponent extends React.PureComponent {
                     keyToValueAndGroup,
                     removingValueToGroupToKeyToId,
                 } = state;
+
                 for (let key of removed) {
-                    status = status.delete(key);
-                    keyModId = keyModId.delete(key);
-                    keyBox = keyBox.delete(key);
-                    remappedKeyId = remappedKeyId.delete(key);
                     const value = state.keyToValueAndGroup.getIn([key, 'value']);
                     const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                    keyToValueAndGroup = keyToValueAndGroup.delete(key);
 
                     removingValueToGroupToKeyToId = BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [
                         repr(value, true),
@@ -764,6 +758,12 @@ class BaseBoxesComponent extends React.PureComponent {
                         key,
                     ]);
                 }
+
+                status = status.deleteAll(removed);
+                keyModId = keyModId.deleteAll(removed);
+                keyBox = keyBox.deleteAll(removed);
+                remappedKeyId = remappedKeyId.deleteAll(removed);
+                keyToValueAndGroup = keyToValueAndGroup.deleteAll(removed);
 
                 newState = {
                     status,
@@ -775,9 +775,14 @@ class BaseBoxesComponent extends React.PureComponent {
                     needGarbageCollection: false,
                 };
             } else {
-                newState = state;
+                newState = null;
             }
-            console.log('BaseBoxesComponent.garbageCollectAfterAnimationDone setState timing', performance.now() - t1);
+            if (newState) {
+                console.log(
+                    'Non-trivial BaseBoxesComponent.garbageCollectAfterAnimationDone setState timing',
+                    performance.now() - t1
+                );
+            }
             return newState;
         });
     }
