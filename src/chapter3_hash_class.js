@@ -570,7 +570,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         This chapter assumes you have a basic understanding of{' '}
                         <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">
                             magic methods
-                        </a>
+                        </a>{' '}
                         and how classes work in python. We will use classes to bundle data and functions together. Magic
                         methods are special methods for overloading operators, so we can write{' '}
                         <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square

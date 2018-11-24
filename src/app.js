@@ -9,6 +9,7 @@ import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
 import {faSyncAlt} from '@fortawesome/free-solid-svg-icons/faSyncAlt';
+import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight';
 import {faFirefox} from '@fortawesome/free-brands-svg-icons/faFirefox';
 
 import {library, config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
@@ -18,6 +19,7 @@ library.add(faDesktop);
 library.add(faFirefox);
 library.add(faSpinner);
 library.add(faSyncAlt);
+library.add(faChevronRight);
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -58,29 +60,72 @@ function GithubCorner() {
 }
 
 function GithubForkMe({windowWidth}) {
-    if (windowWidth > 600) {
+    if (windowWidth > 1150) {
         return <GithubRibbon />;
     } else {
         return <GithubCorner />;
     }
 }
 
-function Contents({selectedChapterId}) {
-    let selectedChapter = selectedChapterId;
-    if (selectedChapter && !selectedChapter.endsWith('.html')) {
-        selectedChapter += '.html';
+const CONTENTS_DATA = [
+    [1, 'chapter1.html', 'Searching efficiently in a list'],
+    [2, 'chapter2.html', 'Why are hash tables called hash tables?'],
+    [3, 'chapter3.html', 'Putting it all together to make an "almost"-python-dict'],
+    [4, 'chapter4.html', 'How python dict *really* works internally'],
+];
+
+function chapterIdDotHtml(chapterId) {
+    if (chapterId && !chapterId.endsWith('.html')) {
+        return chapterId + '.html';
+    } else {
+        return null;
+    }
+}
+
+function NextPrev({selectedChapterId}) {
+    const selectedChapter = chapterIdDotHtml(selectedChapterId);
+    if (selectedChapter == null) {
+        return null;
     }
 
-    const contents = [
-        [1, 'chapter1.html', 'Searching efficiently in a list'],
-        [2, 'chapter2.html', 'Why are hash tables called hash tables?'],
-        [3, 'chapter3.html', 'Putting it all together to make an "almost"-python-dict'],
-        [4, 'chapter4.html', 'How python dict *really* works internally'],
-    ];
+    let prevHref, prevTitle;
+    let nextHref, nextTitle;
+
+    for (let i = 0; i < CONTENTS_DATA.length; ++i) {
+        if (CONTENTS_DATA[i][1] === selectedChapter) {
+            if (i > 0) {
+                prevHref = CONTENTS_DATA[i - 1][1];
+                prevTitle = CONTENTS_DATA[i - 1][2];
+            }
+            if (i < CONTENTS_DATA.length - 1) {
+                nextHref = CONTENTS_DATA[i + 1][1];
+                nextTitle = CONTENTS_DATA[i + 1][2];
+            }
+            break;
+        }
+    }
+
+    if (nextHref) {
+        return (
+            <div className="next-prev">
+                <a href={nextHref} key={nextHref}>
+                    <h6 key={nextHref}>
+                        Next: {nextTitle} <FontAwesomeIcon key="chevron-right" icon="chevron-right" />{' '}
+                    </h6>
+                </a>
+            </div>
+        );
+    } else {
+        return null;
+    }
+}
+
+function Contents({selectedChapterId}) {
+    const selectedChapter = chapterIdDotHtml(selectedChapterId);
     return (
         <div className="mb-3">
             <div className="d-inline-flex flex-column">
-                {contents.map(([i, href, title]) => {
+                {CONTENTS_DATA.map(([i, href, title]) => {
                     const contentRow = (
                         <React.Fragment>
                             <div
@@ -256,6 +301,7 @@ export class App extends React.Component {
                 <Contents selectedChapterId={this.props.selectedChapterId} />
                 <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
+                <NextPrev selectedChapterId={this.props.selectedChapterId} />
             </div>
         );
     }
