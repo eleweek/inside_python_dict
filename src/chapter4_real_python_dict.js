@@ -28,7 +28,7 @@ import {AlmostPythonDict} from './chapter3_hash_class';
 import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_common';
 
 import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
-import {PyDictInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
+import {PyDictInput, PySNNInput, BlockInputToolbar} from './inputs';
 import {ChapterComponent, Subcontainerize, singularOrPlural, DynamicP} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
@@ -956,7 +956,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <div className="div-p">
                         Let's see how the algorithm works for the following key:
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyForProbingVis}
                             onChange={this.setter('keyForProbingVis')}
@@ -1040,7 +1040,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <p>Removing a key looks pretty much the same</p>
                     <div className="div-p">
                         Deleting
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
@@ -1056,7 +1056,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <div className="div-p">
                         The search is mostly the same. Let's say we want to get the following key
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToGet}
                             onChange={this.setter('keyToGet')}

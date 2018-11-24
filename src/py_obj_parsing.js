@@ -67,16 +67,16 @@ export class PyObjParser {
         throw new PyParsingError(text, posToInclude);
     }
 
-    _parseStringOrNumberOrNone(allowedSeparators) {
+    _parseStringOrNumberOrNone(allowedSeparators, fromDict, allowNonesInError) {
         // TODO: The whole None parsing and error reporting for unwrapped strings
         // TODO: is a bit of a mess
         if (this.isNextNone(allowedSeparators)) {
             return this._parseNoneOrThrowUnknownIdentifier(allowedSeparators);
         }
-        return this._parseStringOrNumber(allowedSeparators);
+        return this._parseStringOrNumber(allowedSeparators, fromDict, allowNonesInError);
     }
 
-    _parseStringOrNumber(allowedSeparators, fromDict = true) {
+    _parseStringOrNumber(allowedSeparators, fromDict = true, allowNonesInError = false) {
         this.skipWhitespace();
         let startPos = this.pos;
         const c = this.current();
@@ -94,7 +94,11 @@ export class PyObjParser {
         } else if (`"'`.includes(c)) {
             return {res: this.parseString(), startPos};
         } else {
-            this.throwErr('Expected value - string or number. If you wanted a string, wrap it in quotes');
+            this.throwErr(
+                `Expected value - string, integer ${
+                    allowNonesInError ? 'or None' : ''
+                }. If you wanted a string, wrap it in quotes`
+            );
         }
     }
 
@@ -286,6 +290,11 @@ export function parsePyList(s, allowDuplicates = true, minSize = null, extraValu
 export function parsePyStringOrNumber(s) {
     let parser = new PyObjParser(s);
     return _checkTrailingChars(parser, () => parser._parseStringOrNumber(null, false).res);
+}
+
+export function parsePyStringOrNumberOrNone(s) {
+    let parser = new PyObjParser(s);
+    return _checkTrailingChars(parser, () => parser._parseStringOrNumberOrNone(null, false, true).res);
 }
 
 // TODO: Dump functions are very hacky right now

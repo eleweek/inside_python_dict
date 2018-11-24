@@ -28,7 +28,7 @@ import {
 
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
-import {BlockInputToolbar, PyDictInput, PyStringOrNumberInput} from './inputs';
+import {BlockInputToolbar, PyDictInput, PySNNInput} from './inputs';
 import {ChapterComponent, singularOrPlural, Subcontainerize, DynamicP, OLIVE} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -699,7 +699,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     </p>
                     <div className="div-p">
                         For example, let's say we want to remove
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
@@ -719,7 +719,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     </p>
                     <div className="div-p">
                         Searching for
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToGet}
                             onChange={this.setter('keyToGet')}
@@ -756,7 +756,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     </p>
                     <div className="div-p">
                         Remember that we removed
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
                             onChange={this.setter('keyToDel')}
@@ -766,14 +766,14 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p className="inline-block">?{'\u00A0'}</p>
                     <div className="div-p">
                         Let's see what happens after we insert a key
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.keyToSetRecycling}
                             onChange={this.setter('keyToSetRecycling')}
                             anotherValue={() => anotherKey(this.state.pairs, 0.2, 0.5, 0.2)}
                         />{' '}
                         with a value
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.valueToSetRecycling}
                             onChange={this.setter('valueToSetRecycling')}

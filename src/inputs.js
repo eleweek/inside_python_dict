@@ -10,7 +10,9 @@ import {
     parsePyNumber,
     parsePyString,
     parsePyStringOrNumber,
+    parsePyStringOrNumberOrNone,
 } from './py_obj_parsing';
+import {isNone} from './hash_impl_common';
 import {isClient} from './util';
 
 import classNames from 'classnames';
@@ -353,10 +355,10 @@ export function PyDictInput({inputComponentRef, ...restProps}) {
     );
 }
 
-function _dumpStringOrNum(obj) {
+function _dumpStringOrNumOrNone(obj) {
     if (BigNumber.isBigNumber(obj)) {
         return obj.toString();
-    } else if (typeof obj === 'number') {
+    } else if (typeof obj === 'number' || isNone(obj)) {
         return obj.toString();
     } else {
         return JSON.stringify(obj);
@@ -367,7 +369,7 @@ export function PyNumberInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={_dumpStringOrNum}
+            dumpValue={_dumpStringOrNumOrNone}
             parseValue={parsePyNumber}
             inputComponentRef={inputComponentRef}
         />
@@ -378,7 +380,7 @@ export function PyStringInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={_dumpStringOrNum}
+            dumpValue={_dumpStringOrNumOrNone}
             parseValue={parsePyString}
             inputComponentRef={inputComponentRef}
         />
@@ -389,8 +391,19 @@ export function PyStringOrNumberInput({inputComponentRef, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
-            dumpValue={_dumpStringOrNum}
+            dumpValue={_dumpStringOrNumOrNone}
             parseValue={parsePyStringOrNumber}
+            inputComponentRef={inputComponentRef}
+        />
+    );
+}
+
+export function PySNNInput({inputComponentRef, ...restProps}) {
+    return (
+        <ParsableInput
+            {...restProps}
+            dumpValue={_dumpStringOrNumOrNone}
+            parseValue={parsePyStringOrNumberOrNone}
             inputComponentRef={inputComponentRef}
         />
     );

@@ -5,7 +5,7 @@ import {BigNumber} from 'bignumber.js';
 import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
-import {PyStringInput, PyNumberInput, PyListInput, PyStringOrNumberInput, BlockInputToolbar} from './inputs';
+import {PyStringInput, PyNumberInput, PyListInput, PySNNInput, BlockInputToolbar} from './inputs';
 import {
     ChapterComponent,
     Subcontainerize,
@@ -803,7 +803,7 @@ EMPTY = EmptyValueClass()
                     </p>
                     <div className="div-p">
                         For instance, let's search for
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.searchedObj}
                             onChange={this.setter('searchedObj')}
@@ -840,7 +840,7 @@ DUMMY = DummyValueClass()
               `}</SimpleCodeBlock>
                     <div className="div-p">
                         Let's see removing in action. Let's say we want to remove:
-                        <PyStringOrNumberInput
+                        <PySNNInput
                             inline={true}
                             value={this.state.objToRemove}
                             onChange={this.setter('objToRemove')}
