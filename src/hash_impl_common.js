@@ -281,6 +281,7 @@ export function pyHash(o) {
 export class BreakpointFunction {
     constructor() {
         this._breakpoints = [];
+        this._extraBpContext = null;
     }
 
     addBP(point) {
@@ -289,13 +290,22 @@ export class BreakpointFunction {
             _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null,
         };
 
-        for (let [key, value] of Object.entries(this)) {
-            if (key[0] !== '_' && value !== undefined) {
-                bp[key] = value;
+        for (let key in this) {
+            if (key[0] !== '_') {
+                const value = this[key];
+                if (value !== undefined) {
+                    bp[key] = value;
+                }
             }
         }
 
-        this._breakpoints.push({...this._extraBpContext, ...bp});
+        if (this._extraBpContext) {
+            for (let key in this._extraBpContext) {
+                bp[key] = this._extraBpContext[key];
+            }
+        }
+
+        this._breakpoints.push(bp);
     }
 
     setExtraBpContext(extraBpContext) {
