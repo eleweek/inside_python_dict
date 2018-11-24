@@ -1006,7 +1006,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <BlockInputToolbar
                         input={PyDictInput}
                         initialValue={this.state.pairs}
-                        onChange={this.setter('pairs')}
+                        onChange={this.setter('pairs', true)}
                         {...this.props}
                     />
                     <p>

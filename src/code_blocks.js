@@ -43,12 +43,6 @@ library.add(faFastBackward);
 library.add(faPause);
 library.add(faRedoAlt);
 
-function doubleRAF(callback) {
-    window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(callback);
-    });
-}
-
 function reflow(node) {
     if (!node) {
         console.error('Not reflowing non-existant node!');

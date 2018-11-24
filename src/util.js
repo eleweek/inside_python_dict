@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as React from 'react';
 
 import classNames from 'classnames';
@@ -11,6 +12,12 @@ export const RED = '#FF4136';
 export const BLUE = '#0074D9';
 
 export const COLOR_FOR_READ_OPS = '#17d831';
+
+function doubleRAF(callback) {
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(callback);
+    });
+}
 
 export class CrossFade extends React.Component {
     render() {
@@ -74,9 +81,14 @@ export function MyErrorBoundary(props) {
 export class ChapterComponent extends React.Component {
     setterFuncs = {};
 
-    setter(name) {
+    setter(name, throttled = false) {
         if (!(name in this.setterFuncs)) {
-            this.setterFuncs[name] = value => this.setState({[name]: value});
+            const func = value => this.setState({[name]: value});
+            if (throttled) {
+                this.setterFuncs[name] = _.throttle(func, 75);
+            } else {
+                this.setterFuncs[name] = func;
+            }
         }
         return this.setterFuncs[name];
     }

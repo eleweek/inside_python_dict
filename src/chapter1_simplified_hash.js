@@ -541,7 +541,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             extraValueValidator: chapter1valueRangeValidator,
                         }}
                         initialValue={this.state.numbers}
-                        onChange={this.setter('numbers')}
+                        onChange={this.setter('numbers', true)}
                         bottomBoundary=".chapter1"
                         {...this.props}
                     />

@@ -660,7 +660,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <BlockInputToolbar
                         input={PyDictInput}
                         initialValue={this.state.pairs}
-                        onChange={this.setter('pairs')}
+                        onChange={this.setter('pairs', true)}
                         bottomBoundary=".chapter3"
                         {...this.props}
                     />

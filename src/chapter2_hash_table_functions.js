@@ -784,7 +784,7 @@ EMPTY = EmptyValueClass()
                         input={PyListInput}
                         inputProps={{minSize: 1}}
                         initialValue={this.state.array}
-                        onChange={this.setter('array')}
+                        onChange={this.setter('array', true)}
                         bottomBoundary=".chapter2"
                         {...this.props}
                     />
