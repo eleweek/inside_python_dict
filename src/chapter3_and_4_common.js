@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as React from 'react';
 import {Map, List, Record} from 'immutable';
 import {BigNumber} from 'bignumber.js';
@@ -527,7 +528,7 @@ export class HashClassInsertAll extends HashBreakpointFunction {
             }
             bps.push(hcsi.getBreakpoints());
         }
-        this._breakpoints = bps.flat(1);
+        this._breakpoints = _.flatten(bps);
         return this.self;
     }
 

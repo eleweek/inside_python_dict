@@ -443,7 +443,7 @@ class BaseBoxesComponent extends React.PureComponent {
             let toMergeRemappedKeyId = {};
             let toMergeKeyToValueAndGroup = {};
 
-            let nextKeysSet = new Set(nextArrayKeys.flat(1));
+            let nextKeysSet = new Set(_.flatten(nextArrayKeys));
 
             let needGarbageCollection = false;
             for (let key of state.keyBox.keys()) {
