@@ -60,8 +60,8 @@ class ParsableInputBase extends React.Component {
                 value: this.props.parseValue(event.target.value),
             };
 
-            this.propsOnChangeThrottled(newState.value);
             this.setState(newState);
+            this.props.onChange(newState.value);
         } catch (e) {
             this.setState({
                 valueRaw: event.target.value,
@@ -70,10 +70,6 @@ class ParsableInputBase extends React.Component {
             });
         }
     };
-
-    propsOnChangeThrottled = _.throttle(value => {
-        this.props.onChange(value);
-    }, 50);
 }
 
 class ParsableInputBlock extends ParsableInputBase {
@@ -183,6 +179,7 @@ class ParsableInputInline extends ParsableInputBase {
     static getDerivedStateFromProps(props, state) {
         // TODO: general equality comparison?
         if (state.value !== props.value) {
+            console.log('Updating inline input', state.value, props.value);
             return {
                 ...state,
                 value: props.value,
@@ -212,7 +209,7 @@ class ParsableInputInline extends ParsableInputBase {
             lastError: this.state.error || this.state.lastError,
         });
 
-        this.propsOnChangeThrottled(res);
+        this.props.onChange(res);
     };
 
     render() {
