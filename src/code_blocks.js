@@ -436,7 +436,7 @@ class BaseBoxesComponent extends React.PureComponent {
         if (!state.firstRender) {
             const nextArrayKeys = nextProps.getKeys(nextArray);
 
-            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId;
+            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
             let toMergeStatus = {};
             let toMergeKeyBox = {};
             let toMergeKeyModId = {};
@@ -455,7 +455,7 @@ class BaseBoxesComponent extends React.PureComponent {
                         toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
                         const value = state.keyToValueAndGroup.getIn([key, 'value']);
                         const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                        newRemovingValueToGroupToKeyToId = newRemovingValueToGroupToKeyToId.setIn(
+                        newRemovingValueToGroupToKeyToId.setIn(
                             [repr(value, true), group, key],
                             state.remappedKeyId.get(key)
                         );
@@ -473,7 +473,6 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                     const value = someProps.value;
                     nextKeysSet.add(key);
-                    let status;
                     if (!state.status.has(key)) {
                         notExistingKeyToData[key] = {value, group, idx, someProps};
                     } else {
@@ -487,10 +486,11 @@ class BaseBoxesComponent extends React.PureComponent {
                             });
                             toMergeStatus[key] = 'adding';
                             toMergeKeyModId[key] = modificationId;
-                            newRemovingValueToGroupToKeyToId = BaseBoxesComponent.notSoDeepDel(
-                                newRemovingValueToGroupToKeyToId,
-                                [repr(value, true), group, key]
-                            );
+                            BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
+                                repr(value, true),
+                                group,
+                                key,
+                            ]);
                         }
                     }
                 }
@@ -502,7 +502,7 @@ class BaseBoxesComponent extends React.PureComponent {
             const recycleId = (key, value, groupOfKeyToId, keyToId) => {
                 const keyWithRecycledId = keyToId.keySeq().first();
                 keyToRecycledBox[key] = state.keyBox.get(keyWithRecycledId);
-                newRemovingValueToGroupToKeyToId = BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
+                BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                     repr(value, true),
                     groupOfKeyToId,
                     keyWithRecycledId,
@@ -586,7 +586,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 modificationId: modificationId,
                 lastBoxId: lastBoxId,
                 remappedKeyId: newRemappedKeyId,
-                removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId,
+                removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                 keyToValueAndGroup: newKeyToValueAndGroup,
             };
         } else {
@@ -745,15 +745,13 @@ class BaseBoxesComponent extends React.PureComponent {
                     removingValueToGroupToKeyToId,
                 } = state;
 
+                removingValueToGroupToKeyToId = removingValueToGroupToKeyToId.asMutable();
+
                 for (let key of removed) {
                     const value = state.keyToValueAndGroup.getIn([key, 'value']);
                     const group = state.keyToValueAndGroup.getIn([key, 'group']);
 
-                    removingValueToGroupToKeyToId = BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [
-                        repr(value, true),
-                        group,
-                        key,
-                    ]);
+                    BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
                 }
 
                 status = status.deleteAll(removed);
@@ -767,7 +765,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     keyBox,
                     keyModId,
                     remappedKeyId,
-                    removingValueToGroupToKeyToId,
+                    removingValueToGroupToKeyToId: removingValueToGroupToKeyToId.asImmutable(),
                     keyToValueAndGroup,
                     needGarbageCollection: false,
                 };
@@ -1580,7 +1578,6 @@ export class HashSlotsComponent extends React.PureComponent {
     }
 
     static getKeys(array) {
-        let counters = {hashCode: {}, key: {}, value: {}};
         const emptyOrKey = (v, idx, name, keyKey) => {
             if (v != null) {
                 const key = pyObjToReactKey(v);
