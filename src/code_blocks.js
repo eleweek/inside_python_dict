@@ -401,7 +401,10 @@ class BaseBoxesComponent extends React.Component {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
         if (!state.firstRender) {
-            state = {...state, ...BaseBoxesComponent.garbageCollect(state, state.gcModId)};
+            const gcState = BaseBoxesComponent.garbageCollect(state, state.gcModId);
+            if (gcState) {
+                state = {...state, ...gcState};
+            }
         }
 
         const modificationId = state.modificationId + 1;
@@ -412,7 +415,9 @@ class BaseBoxesComponent extends React.Component {
         if (isImmutableListOrMap(nextArray)) {
             // TODO: use Immutable.js api?
             console.log('immutable.js next provided');
+            const _tna = performance.now();
             nextArray = nextArray.toJS();
+            console.log('toJS() timing', performance.now() - _tna);
         } else {
             console.warn('nextArray non-immutable');
         }
@@ -723,7 +728,7 @@ class BaseBoxesComponent extends React.Component {
         /*console.log("state before");
             this.debugLogState();*/
 
-        let newState;
+        let newState = null;
         if (removed.length > 0) {
             let {status, keyBox, keyModId, remappedKeyId, keyToValueAndGroup, removingValueToGroupToKeyToId} = state;
 
@@ -751,8 +756,6 @@ class BaseBoxesComponent extends React.Component {
                 keyToValueAndGroup,
                 needGarbageCollection: false,
             };
-        } else {
-            newState = null;
         }
 
         if (newState) {
