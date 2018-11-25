@@ -455,6 +455,16 @@ class BaseBoxesComponent extends React.Component {
                 }
             }
 
+            const newBox = (key, idx, someProps, group, value) => {
+                needProcessCreatedAfterRender = true;
+                const keyId = (++lastBoxId).toString();
+                toMergeRemappedKeyId[key] = keyId;
+                toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
+                toMergeStatus[key] = 'created';
+                toMergeKeyModId[key] = modificationId;
+                toMergeKeyToValueAndGroup[key] = {group, value};
+            };
+
             let needProcessCreatedAfterRender = false;
 
             let notExistingKeyToData = {};
@@ -465,7 +475,11 @@ class BaseBoxesComponent extends React.Component {
                     const value = someProps.value;
                     nextKeysSet.add(key);
                     if (!state.status.has(key)) {
-                        notExistingKeyToData[key] = {value, group, idx, someProps};
+                        if (value != null) {
+                            notExistingKeyToData[key] = {value, group, idx, someProps};
+                        } else {
+                            newBox(key, idx, someProps, group, value);
+                        }
                     } else {
                         const box = state.keyBox.get(key);
                         // potential FIXME: does not compare someProps
@@ -501,26 +515,21 @@ class BaseBoxesComponent extends React.Component {
                 instaRemovedKeys.push(keyWithRecycledId);
             };
 
-            for (let [key, {group, value}] of Object.entries(notExistingKeyToData)) {
-                if (value == null) {
-                    continue;
-                }
-                const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([repr(value, true), group]);
+            for (let key in notExistingKeyToData) {
+                const data = notExistingKeyToData[key];
+                const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([repr(data.value, true), data.group]);
                 if (potentialKeyToId) {
-                    recycleId(key, value, group, potentialKeyToId);
+                    recycleId(key, data.value, data.group, potentialKeyToId);
                 }
             }
 
-            for (let [key, {group, value}] of Object.entries(notExistingKeyToData)) {
-                // TODO: better way of skipping null values
-                if (value == null) {
-                    continue;
-                }
-                const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(value, true));
+            for (let key in notExistingKeyToData) {
+                const data = notExistingKeyToData[key];
+                const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
                 if (potentialGroupToKeyToId) {
                     const firstGroup = potentialGroupToKeyToId.keySeq().first();
                     const keyToId = potentialGroupToKeyToId.get(firstGroup);
-                    recycleId(key, value, firstGroup, keyToId);
+                    recycleId(key, data.value, firstGroup, keyToId);
                 }
             }
 
@@ -530,27 +539,22 @@ class BaseBoxesComponent extends React.Component {
             let newRemappedKeyId = state.remappedKeyId;
             let newKeyToValueAndGroup = state.keyToValueAndGroup;
 
-            for (let [key, {idx, group, value, someProps}] of Object.entries(notExistingKeyToData)) {
+            for (let key in notExistingKeyToData) {
+                const data = notExistingKeyToData[key];
                 if (key in keyToRecycledBox) {
                     const box = keyToRecycledBox[key];
                     const keyId = box.key;
                     toMergeRemappedKeyId[key] = keyId;
                     toMergeKeyBox[key] = React.cloneElement(box, {
-                        idx,
+                        idx: data.idx,
                         status: 'adding',
                         ...someProps,
                     });
                     toMergeStatus[key] = 'adding';
                     toMergeKeyModId[key] = modificationId;
-                    toMergeKeyToValueAndGroup[key] = {group, value};
+                    toMergeKeyToValueAndGroup[key] = {group: data.group, value: data.value};
                 } else {
-                    needProcessCreatedAfterRender = true;
-                    const keyId = (++lastBoxId).toString();
-                    toMergeRemappedKeyId[key] = keyId;
-                    toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
-                    toMergeStatus[key] = 'created';
-                    toMergeKeyModId[key] = modificationId;
-                    toMergeKeyToValueAndGroup[key] = {group, value};
+                    newBox(key, data.idx, data.someProps, data.group, data.value);
                 }
             }
 
