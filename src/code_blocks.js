@@ -1056,16 +1056,13 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         const hlLines = this._highlightLines(code);
         let lines = [];
 
-        let isLineHighlighted = false;
+        let isAnyLineHighlighted = false;
         for (let i = 0; i < code.length; ++i) {
             const bpPoint = code[i][1];
 
-            let className = activeBp.point;
             let explanation = '';
-            if (bpPoint === activeBp.point) {
-                className += ' code-highlight';
-                isLineHighlighted = true;
-            }
+            let isCurrentLineHighlighted = bpPoint === activeBp.point;
+            isAnyLineHighlighted |= isCurrentLineHighlighted;
 
             if (bpPoint in visibleBreakpoints) {
                 const bpType = visibleBreakpoints[bpPoint];
@@ -1098,7 +1095,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             let formattedLine = (
                 <pre class="code-line-container">
                     <code>
-                        <span dangerouslySetInnerHTML={{__html: hlCodeHtml}} />
+                        <span
+                            className={classNames({'code-highlight': isCurrentLineHighlighted})}
+                            dangerouslySetInnerHTML={{__html: hlCodeHtml}}
+                        />
                     </code>
                 </pre>
             );
@@ -1110,7 +1110,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             );
             lines.push(<br />);
         }
-        if (!isLineHighlighted) {
+        if (!isAnyLineHighlighted) {
             throw new Error(`No line found corresponding to "${activeBp.point}`);
         }
 
