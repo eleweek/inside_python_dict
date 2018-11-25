@@ -412,22 +412,28 @@ class BaseBoxesComponent extends React.Component {
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
         let nextArray = nextProps.array;
-        if (isImmutableListOrMap(nextArray)) {
-            // TODO: use Immutable.js api?
-            console.log('immutable.js next provided');
-            const _tna = performance.now();
-            nextArray = nextArray.toJS();
-            console.log('toJS() timing', performance.now() - _tna);
-        } else {
-            console.warn('nextArray non-immutable');
-        }
+        let nextArrayPreConversion = nextArray;
+        const convertNextArray = () => {
+            if (isImmutableListOrMap(nextArray)) {
+                // TODO: use Immutable.js api?
+                console.log('immutable.js next provided');
+                const _tna = performance.now();
+                nextArray = nextArray.toJS();
+                console.log('toJS() timing', performance.now() - _tna);
+            } else {
+                console.warn('nextArray non-immutable');
+            }
+        };
         let lastBoxId = state.lastBoxId;
 
         let newState;
+        const t2 = performance.now();
+        console.log('BaseBoxesComponent::gdsp before update state timing', t2 - t1);
         if (!state.firstRender) {
             // This should help when setState is called after needProcessCreatedAfterRender = true
             // (And also can possible help sometimes when a slider is dragged)
-            if (nextArray !== state.lastNextArray) {
+            if (nextArrayPreConversion !== state.lastNextArrayPreConversion) {
+                convertNextArray();
                 nextArray = nextArray || [];
                 const nextArrayKeys = nextProps.getKeys(nextArray);
 
@@ -471,14 +477,16 @@ class BaseBoxesComponent extends React.Component {
 
                 let needProcessCreatedAfterRender = false;
 
+                const t3 = performance.now();
+                console.log('BaseBoxesComponent::gdsp before processing adding stage1', t3 - t2);
                 let notExistingKeyToData = {};
                 for (let idx = 0; idx < nextArray.length; ++idx) {
                     const keys = nextArrayKeys[idx];
                     const idxBoxesProps = boxFactory(keys, nextArray[idx]);
                     for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                         const value = someProps.value;
-                        nextKeysSet.add(key);
-                        if (!state.status.has(key)) {
+                        const status = state.status.get(key);
+                        if (!status) {
                             if (value != null) {
                                 notExistingKeyToData[key] = {value, group, idx, someProps};
                             } else {
@@ -487,8 +495,8 @@ class BaseBoxesComponent extends React.Component {
                         } else {
                             const box = state.keyBox.get(key);
                             // potential FIXME: does not compare someProps
-                            if (state.status.get(key) !== 'adding' || box.idx !== idx) {
-                                toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {
+                            if (status !== 'adding' || box.idx !== idx) {
+                                toMergeKeyBox[key] = React.cloneElement(box, {
                                     idx,
                                     status: 'adding',
                                     ...someProps,
@@ -519,6 +527,8 @@ class BaseBoxesComponent extends React.Component {
                     instaRemovedKeys.push(keyWithRecycledId);
                 };
 
+                const t4 = performance.now();
+                console.log('BaseBoxesComponent::gdsp before processing recycling 1', t4 - t3);
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([
@@ -530,6 +540,8 @@ class BaseBoxesComponent extends React.Component {
                     }
                 }
 
+                const t5 = performance.now();
+                console.log('BaseBoxesComponent::gdsp before processing recycling 2', t5 - t4);
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
@@ -539,6 +551,8 @@ class BaseBoxesComponent extends React.Component {
                         recycleId(key, data.value, firstGroup, keyToId);
                     }
                 }
+                const t6 = performance.now();
+                console.log('BaseBoxesComponent::gdsp before processing recycling 3', t6 - t5);
 
                 let newKeyBox = state.keyBox;
                 let newStatus = state.status;
@@ -564,6 +578,8 @@ class BaseBoxesComponent extends React.Component {
                         newBox(key, data.idx, data.someProps, data.group, data.value);
                     }
                 }
+                const t7 = performance.now();
+                console.log('BaseBoxesComponent::gdsp before merging', t7 - t6);
 
                 // Necessary to convert to ImmutableMap otherwise it does weird deep merge
                 newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
@@ -577,6 +593,8 @@ class BaseBoxesComponent extends React.Component {
                 newKeyBox = newKeyBox.deleteAll(instaRemovedKeys);
                 newRemappedKeyId = newRemappedKeyId.deleteAll(instaRemovedKeys);
                 newKeyToValueAndGroup = newKeyToValueAndGroup.deleteAll(instaRemovedKeys);
+                const t8 = performance.now();
+                console.log('BaseBoxesComponent::gdsp after merging', t8 - t7);
 
                 newState = {
                     firstRender: false,
@@ -592,10 +610,11 @@ class BaseBoxesComponent extends React.Component {
                     removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                     keyToValueAndGroup: newKeyToValueAndGroup,
                     shouldUpdate: true,
-                    lastNextArray: nextArray,
+                    lastNextArrayPreConversion: nextArrayPreConversion,
                 };
             }
         } else {
+            convertNextArray();
             let status = {};
             let keyModId = {};
             let keyBox = {};
