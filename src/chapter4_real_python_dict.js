@@ -1114,6 +1114,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         .
                     </p>
                     <p>However, the core idea has stayed the same throughout all versions so far.</p>
+                    {this.props.contents}
                 </Subcontainerize>
             </div>
         );

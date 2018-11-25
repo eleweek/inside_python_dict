@@ -285,21 +285,22 @@ export class App extends React.Component {
 
     render() {
         console.log('App.render()');
+        const contents = <Contents selectedChapterId={this.props.selectedChapterId} />;
+        const independentContents = this.props.selectedChapterId === 'chapter1';
         const {windowWidth, windowHeight} = this.state;
         let chapters = [];
         for (let [i, Chapter] of this.props.chapters.entries()) {
             chapters.push(
                 <MyErrorBoundary key={`error-boundary-${i}`}>
-                    <Chapter windowWidth={windowWidth} windowHeight={windowHeight} />
+                    <Chapter windowWidth={windowWidth} windowHeight={windowHeight} contents={contents} />
                 </MyErrorBoundary>
             );
         }
-        const contents = <Contents selectedChapterId={this.props.selectedChapterId} />;
         return (
             <div className="app-container container-fluid">
                 <GithubForkMe windowWidth={windowWidth} />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                {contents}
+                {!independentContents && contents}
                 <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
                 <NextPrev selectedChapterId={this.props.selectedChapterId} />

@@ -499,7 +499,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
 
         return (
             <div className="chapter chapter1">
-                <h2>Chapter 1: searching efficiently in a list</h2>
+                <h2>Introduction</h2>
                 <Subcontainerize>
                     <p>
                         Hi! This is <em>an explorable explanation</em> of python dictionaries. This page is dynamic and
@@ -563,7 +563,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         iterations if it is near the beginning of the list. But if it is not there at all, we'll have to
                         scan over the whole million of numbers.
                     </p>
-                    <h6>How does all of this relate to actual python dicts?</h6>
+                    <h5>Contents</h5>
+                    {this.props.contents}
+                    <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
                         The most important part of python dict is handling keys. Dict keys need to be organized in such
                         a way that searching, inserting and deleting is possible. In this chapter, we'll solve a
