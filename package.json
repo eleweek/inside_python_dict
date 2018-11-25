@@ -13,7 +13,7 @@
     "serve": "http-server -p 9090 dist/",
     "build:all": "npm run build:html && webpack --config webpack.prod.js",
     "build": "npm run build:all",
-    "babel-node": "npx babel-node",
+    "babel-node": "npx babel-node --presets '@babel/env'",
     "extractcode": "npm run babel-node scripts/extractPythonCode.js",
     "dictserver": "rm pynode.sock ; npm run babel-node scripts/pyReimplWrapper.js; rm pynode.sock",
     "precommit": "pretty-quick --staged",
