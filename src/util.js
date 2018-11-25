@@ -81,10 +81,10 @@ export function MyErrorBoundary(props) {
 export class ChapterComponent extends React.Component {
     setterFuncs = {};
 
-    setter(name, throttled = false) {
+    setter(name, throttledAndSetTimeout = false) {
         if (!(name in this.setterFuncs)) {
-            const func = value => this.setState({[name]: value});
-            if (throttled) {
+            const func = value => setTimeout(() => this.setState({[name]: value}), 0);
+            if (throttledAndSetTimeout) {
                 this.setterFuncs[name] = _.throttle(func, 75);
             } else {
                 this.setterFuncs[name] = func;

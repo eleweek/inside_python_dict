@@ -1176,8 +1176,8 @@ class TimeSliderWithControls extends React.Component {
     };
 
     handleTimeChange = value => {
-        this.props.handleTimeChange(value);
         this.setState({time: value});
+        this.props.handleTimeChange(value);
     };
 
     prevStep = () => {
