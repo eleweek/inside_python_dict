@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import classNames from 'classnames';
+import memoizeOne from 'memoize-one';
 import * as React from 'react';
 
 import {BigNumber} from 'bignumber.js';
@@ -1030,19 +1031,35 @@ export class Tetris extends React.PureComponent {
     }
 }
 
-// TODO: parts of this function may be optimized/memoized
 class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     constructor() {
         super();
         this.ssRef = React.createRef();
     }
 
-    getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
+    _highlightLines = memoizeOne(code => {
         let lines = [];
-        let maxLen = Math.max(...this.props.code.map(([line, bpPoint]) => line.length));
+        let maxLen = Math.max(...code.map(([line, bpPoint]) => line.length));
+        for (let i = 0; i < code.length; ++i) {
+            const line = code[i][0];
+            const paddedLine = _.padEnd(line, maxLen);
+            const hlCode = renderPythonCode(paddedLine);
+            lines.push(hlCode);
+        }
+
+        return lines;
+    });
+
+    getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
+        const t1 = performance.now();
+        const code = this.props.code;
+        const hlLines = this._highlightLines(code);
+        let lines = [];
 
         let isLineHighlighted = false;
-        for (let [line, bpPoint] of this.props.code) {
+        for (let i = 0; i < code.length; ++i) {
+            const bpPoint = code[i][1];
+
             let className = activeBp.point;
             let explanation = '';
             if (bpPoint === activeBp.point) {
@@ -1071,10 +1088,9 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 }
             }
 
-            let paddedLine = _.padEnd(line, maxLen);
-            let htCodeHtml = renderPythonCode(paddedLine);
+            let hlCodeHtml = hlLines[i];
 
-            let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${htCodeHtml}</span></code></pre>`;
+            let formattedLine = `<pre class="code-line-container"><code><span class="${className}">${hlCodeHtml}</span></code></pre>`;
             formattedLine += explanation;
             lines.push(`<span class="line-with-annotation inline-block">${formattedLine}</span><br/>`);
         }
@@ -1082,10 +1098,12 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             throw new Error(`No line found corresponding to "${activeBp.point}`);
         }
 
+        console.log('getCodeWithExplanationHtmlLines timing', performance.now() - t1);
         return lines;
     }
 
     getVisibleBreakpoints(activeBp) {
+        const t1 = performance.now();
         let visibleBreakpoints = {};
         let pointToLevel = {};
         for (let [line, bpPoint, level] of this.props.code) {
@@ -1115,6 +1133,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 
             visibleBreakpoints[bp.point] = bp;
         }
+
+        console.log('getVisibleBreakpoints timing', performance.now() - t1);
 
         return visibleBreakpoints;
     }
