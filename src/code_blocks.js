@@ -411,7 +411,7 @@ class BaseBoxesComponent extends React.Component {
         const gcModId = state.gcModId;
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
-        let nextArray = nextProps.array || [];
+        let nextArray = nextProps.array;
         if (isImmutableListOrMap(nextArray)) {
             // TODO: use Immutable.js api?
             console.log('immutable.js next provided');
@@ -425,167 +425,176 @@ class BaseBoxesComponent extends React.Component {
 
         let newState;
         if (!state.firstRender) {
-            const nextArrayKeys = nextProps.getKeys(nextArray);
+            // This should help when setState is called after needProcessCreatedAfterRender = true
+            // (And also can possible help sometimes when a slider is dragged)
+            if (nextArray !== state.lastNextArray) {
+                nextArray = nextArray || [];
+                const nextArrayKeys = nextProps.getKeys(nextArray);
 
-            let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
-            let toMergeStatus = {};
-            let toMergeKeyBox = {};
-            let toMergeKeyModId = {};
-            let toMergeRemappedKeyId = {};
-            let toMergeKeyToValueAndGroup = {};
+                let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
+                let toMergeStatus = {};
+                let toMergeKeyBox = {};
+                let toMergeKeyModId = {};
+                let toMergeRemappedKeyId = {};
+                let toMergeKeyToValueAndGroup = {};
 
-            let nextKeysSet = new Set(_.flatten(nextArrayKeys));
+                let nextKeysSet = new Set(_.flatten(nextArrayKeys));
 
-            let needGarbageCollection = false;
-            for (let key of state.keyBox.keys()) {
-                if (!nextKeysSet.has(key)) {
-                    const status = state.status.get(key);
-                    if (status !== 'removing') {
-                        toMergeStatus[key] = 'removing';
-                        toMergeKeyModId[key] = modificationId;
-                        toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
-                        const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                        const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                        newRemovingValueToGroupToKeyToId.setIn(
-                            [repr(value, true), group, key],
-                            state.remappedKeyId.get(key)
-                        );
-                        needGarbageCollection = true;
-                    }
-                }
-            }
-
-            const newBox = (key, idx, someProps, group, value) => {
-                needProcessCreatedAfterRender = true;
-                const keyId = (++lastBoxId).toString();
-                toMergeRemappedKeyId[key] = keyId;
-                toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
-                toMergeStatus[key] = 'created';
-                toMergeKeyModId[key] = modificationId;
-                toMergeKeyToValueAndGroup[key] = {group, value};
-            };
-
-            let needProcessCreatedAfterRender = false;
-
-            let notExistingKeyToData = {};
-            for (let idx = 0; idx < nextArray.length; ++idx) {
-                const keys = nextArrayKeys[idx];
-                const idxBoxesProps = boxFactory(keys, nextArray[idx]);
-                for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
-                    const value = someProps.value;
-                    nextKeysSet.add(key);
-                    if (!state.status.has(key)) {
-                        if (value != null) {
-                            notExistingKeyToData[key] = {value, group, idx, someProps};
-                        } else {
-                            newBox(key, idx, someProps, group, value);
-                        }
-                    } else {
-                        const box = state.keyBox.get(key);
-                        // potential FIXME: does not compare someProps
-                        if (state.status.get(key) !== 'adding' || box.idx !== idx) {
-                            toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {
-                                idx,
-                                status: 'adding',
-                                ...someProps,
-                            });
-                            toMergeStatus[key] = 'adding';
+                let needGarbageCollection = false;
+                for (let key of state.keyBox.keys()) {
+                    if (!nextKeysSet.has(key)) {
+                        const status = state.status.get(key);
+                        if (status !== 'removing') {
+                            toMergeStatus[key] = 'removing';
                             toMergeKeyModId[key] = modificationId;
-                            BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
-                                repr(value, true),
-                                group,
-                                key,
-                            ]);
+                            toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
+                            const value = state.keyToValueAndGroup.getIn([key, 'value']);
+                            const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                            newRemovingValueToGroupToKeyToId.setIn(
+                                [repr(value, true), group, key],
+                                state.remappedKeyId.get(key)
+                            );
+                            needGarbageCollection = true;
                         }
                     }
                 }
-            }
 
-            let keyToRecycledBox = {};
-            let instaRemovedKeys = [];
-
-            const recycleId = (key, value, groupOfKeyToId, keyToId) => {
-                const keyWithRecycledId = keyToId.keySeq().first();
-                keyToRecycledBox[key] = state.keyBox.get(keyWithRecycledId);
-                BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
-                    repr(value, true),
-                    groupOfKeyToId,
-                    keyWithRecycledId,
-                ]);
-                instaRemovedKeys.push(keyWithRecycledId);
-            };
-
-            for (let key in notExistingKeyToData) {
-                const data = notExistingKeyToData[key];
-                const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([repr(data.value, true), data.group]);
-                if (potentialKeyToId) {
-                    recycleId(key, data.value, data.group, potentialKeyToId);
-                }
-            }
-
-            for (let key in notExistingKeyToData) {
-                const data = notExistingKeyToData[key];
-                const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
-                if (potentialGroupToKeyToId) {
-                    const firstGroup = potentialGroupToKeyToId.keySeq().first();
-                    const keyToId = potentialGroupToKeyToId.get(firstGroup);
-                    recycleId(key, data.value, firstGroup, keyToId);
-                }
-            }
-
-            let newKeyBox = state.keyBox;
-            let newStatus = state.status;
-            let newKeyModId = state.keyModId;
-            let newRemappedKeyId = state.remappedKeyId;
-            let newKeyToValueAndGroup = state.keyToValueAndGroup;
-
-            for (let key in notExistingKeyToData) {
-                const data = notExistingKeyToData[key];
-                if (key in keyToRecycledBox) {
-                    const box = keyToRecycledBox[key];
-                    const keyId = box.key;
+                const newBox = (key, idx, someProps, group, value) => {
+                    needProcessCreatedAfterRender = true;
+                    const keyId = (++lastBoxId).toString();
                     toMergeRemappedKeyId[key] = keyId;
-                    toMergeKeyBox[key] = React.cloneElement(box, {
-                        idx: data.idx,
-                        status: 'adding',
-                        ...someProps,
-                    });
-                    toMergeStatus[key] = 'adding';
+                    toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
+                    toMergeStatus[key] = 'created';
                     toMergeKeyModId[key] = modificationId;
-                    toMergeKeyToValueAndGroup[key] = {group: data.group, value: data.value};
-                } else {
-                    newBox(key, data.idx, data.someProps, data.group, data.value);
+                    toMergeKeyToValueAndGroup[key] = {group, value};
+                };
+
+                let needProcessCreatedAfterRender = false;
+
+                let notExistingKeyToData = {};
+                for (let idx = 0; idx < nextArray.length; ++idx) {
+                    const keys = nextArrayKeys[idx];
+                    const idxBoxesProps = boxFactory(keys, nextArray[idx]);
+                    for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
+                        const value = someProps.value;
+                        nextKeysSet.add(key);
+                        if (!state.status.has(key)) {
+                            if (value != null) {
+                                notExistingKeyToData[key] = {value, group, idx, someProps};
+                            } else {
+                                newBox(key, idx, someProps, group, value);
+                            }
+                        } else {
+                            const box = state.keyBox.get(key);
+                            // potential FIXME: does not compare someProps
+                            if (state.status.get(key) !== 'adding' || box.idx !== idx) {
+                                toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {
+                                    idx,
+                                    status: 'adding',
+                                    ...someProps,
+                                });
+                                toMergeStatus[key] = 'adding';
+                                toMergeKeyModId[key] = modificationId;
+                                BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
+                                    repr(value, true),
+                                    group,
+                                    key,
+                                ]);
+                            }
+                        }
+                    }
                 }
+
+                let keyToRecycledBox = {};
+                let instaRemovedKeys = [];
+
+                const recycleId = (key, value, groupOfKeyToId, keyToId) => {
+                    const keyWithRecycledId = keyToId.keySeq().first();
+                    keyToRecycledBox[key] = state.keyBox.get(keyWithRecycledId);
+                    BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
+                        repr(value, true),
+                        groupOfKeyToId,
+                        keyWithRecycledId,
+                    ]);
+                    instaRemovedKeys.push(keyWithRecycledId);
+                };
+
+                for (let key in notExistingKeyToData) {
+                    const data = notExistingKeyToData[key];
+                    const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([
+                        repr(data.value, true),
+                        data.group,
+                    ]);
+                    if (potentialKeyToId) {
+                        recycleId(key, data.value, data.group, potentialKeyToId);
+                    }
+                }
+
+                for (let key in notExistingKeyToData) {
+                    const data = notExistingKeyToData[key];
+                    const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
+                    if (potentialGroupToKeyToId) {
+                        const firstGroup = potentialGroupToKeyToId.keySeq().first();
+                        const keyToId = potentialGroupToKeyToId.get(firstGroup);
+                        recycleId(key, data.value, firstGroup, keyToId);
+                    }
+                }
+
+                let newKeyBox = state.keyBox;
+                let newStatus = state.status;
+                let newKeyModId = state.keyModId;
+                let newRemappedKeyId = state.remappedKeyId;
+                let newKeyToValueAndGroup = state.keyToValueAndGroup;
+
+                for (let key in notExistingKeyToData) {
+                    const data = notExistingKeyToData[key];
+                    if (key in keyToRecycledBox) {
+                        const box = keyToRecycledBox[key];
+                        const keyId = box.key;
+                        toMergeRemappedKeyId[key] = keyId;
+                        toMergeKeyBox[key] = React.cloneElement(box, {
+                            idx: data.idx,
+                            status: 'adding',
+                            ...someProps,
+                        });
+                        toMergeStatus[key] = 'adding';
+                        toMergeKeyModId[key] = modificationId;
+                        toMergeKeyToValueAndGroup[key] = {group: data.group, value: data.value};
+                    } else {
+                        newBox(key, data.idx, data.someProps, data.group, data.value);
+                    }
+                }
+
+                // Necessary to convert to ImmutableMap otherwise it does weird deep merge
+                newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
+                newStatus = state.status.merge(toMergeStatus);
+                newKeyModId = state.keyModId.merge(toMergeKeyModId);
+                newRemappedKeyId = state.remappedKeyId.merge(toMergeRemappedKeyId);
+                newKeyToValueAndGroup = state.keyToValueAndGroup.merge(toMergeKeyToValueAndGroup);
+
+                newStatus = newStatus.deleteAll(instaRemovedKeys);
+                newKeyModId = newKeyModId.deleteAll(instaRemovedKeys);
+                newKeyBox = newKeyBox.deleteAll(instaRemovedKeys);
+                newRemappedKeyId = newRemappedKeyId.deleteAll(instaRemovedKeys);
+                newKeyToValueAndGroup = newKeyToValueAndGroup.deleteAll(instaRemovedKeys);
+
+                newState = {
+                    firstRender: false,
+                    status: newStatus,
+                    keyBox: newKeyBox,
+                    keyModId: newKeyModId,
+                    needProcessCreatedAfterRender: needProcessCreatedAfterRender,
+                    needGarbageCollection: needGarbageCollection,
+                    modificationId: modificationId,
+                    gcModId: gcModId,
+                    lastBoxId: lastBoxId,
+                    remappedKeyId: newRemappedKeyId,
+                    removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
+                    keyToValueAndGroup: newKeyToValueAndGroup,
+                    shouldUpdate: true,
+                    lastNextArray: nextArray,
+                };
             }
-
-            // Necessary to convert to ImmutableMap otherwise it does weird deep merge
-            newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
-            newStatus = state.status.merge(toMergeStatus);
-            newKeyModId = state.keyModId.merge(toMergeKeyModId);
-            newRemappedKeyId = state.remappedKeyId.merge(toMergeRemappedKeyId);
-            newKeyToValueAndGroup = state.keyToValueAndGroup.merge(toMergeKeyToValueAndGroup);
-
-            newStatus = newStatus.deleteAll(instaRemovedKeys);
-            newKeyModId = newKeyModId.deleteAll(instaRemovedKeys);
-            newKeyBox = newKeyBox.deleteAll(instaRemovedKeys);
-            newRemappedKeyId = newRemappedKeyId.deleteAll(instaRemovedKeys);
-            newKeyToValueAndGroup = newKeyToValueAndGroup.deleteAll(instaRemovedKeys);
-
-            newState = {
-                firstRender: false,
-                status: newStatus,
-                keyBox: newKeyBox,
-                keyModId: newKeyModId,
-                needProcessCreatedAfterRender: needProcessCreatedAfterRender,
-                needGarbageCollection: needGarbageCollection,
-                modificationId: modificationId,
-                gcModId: gcModId,
-                lastBoxId: lastBoxId,
-                remappedKeyId: newRemappedKeyId,
-                removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
-                keyToValueAndGroup: newKeyToValueAndGroup,
-                shouldUpdate: true,
-            };
         } else {
             let status = {};
             let keyModId = {};
@@ -621,7 +630,14 @@ class BaseBoxesComponent extends React.Component {
                 keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
                 removingValueToGroupToKeyToId: new ImmutableMap(),
                 shouldUpdate: true,
+                lastNextArray: nextArray,
             };
+        }
+
+        // Can happen when there is no change between arrays
+        if (newState == null) {
+            console.log('newState is null');
+            newState = {...state};
         }
 
         let activeBoxSelection1 = state.activeBoxSelection1;
