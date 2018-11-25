@@ -120,50 +120,55 @@ function NextPrev({selectedChapterId}) {
     }
 }
 
-function Contents({selectedChapterId}) {
-    const selectedChapter = chapterIdDotHtml(selectedChapterId);
-    return (
-        <div className="mb-3">
-            <div className="d-inline-flex flex-column">
-                {CONTENTS_DATA.map(([i, href, title]) => {
-                    const contentRow = (
-                        <React.Fragment>
-                            <div
-                                key="circle-number"
-                                className="rounded-circle d-flex align-items-center justify-content-center mr-2 toc-number"
-                                style={{width: 30, height: 30, backgroundColor: '#7FDBFF', color: 'white'}}
-                            >
-                                {i}
-                            </div>
-                            <div key="title" className="d-flex align-items-center mr-3 toc-title">
-                                <h6 className="mb-0">{title}</h6>
-                            </div>
-                        </React.Fragment>
-                    );
-                    return (
-                        <div
-                            key={`toc-row-${i}`}
-                            className="d-flex p-1"
-                            style={{backgroundColor: href === selectedChapter ? 'rgba(0,0,0,.05)' : undefined}}
-                        >
-                            {selectedChapter === href ? (
-                                contentRow
-                            ) : (
-                                <a
-                                    key="toc-a"
-                                    href={href}
-                                    style={{color: '#0074D9', fontWeight: 700}}
-                                    className="d-flex toc-a"
+class Contents extends React.PureComponent {
+    static EXTRA_ERROR_BOUNDARY = true;
+
+    render() {
+        const {selectedChapterId} = this.props;
+        const selectedChapter = chapterIdDotHtml(selectedChapterId);
+        return (
+            <div className="mb-3">
+                <div className="d-inline-flex flex-column">
+                    {CONTENTS_DATA.map(([i, href, title]) => {
+                        const contentRow = (
+                            <React.Fragment>
+                                <div
+                                    key="circle-number"
+                                    className="rounded-circle d-flex align-items-center justify-content-center mr-2 toc-number"
+                                    style={{width: 30, height: 30, backgroundColor: '#7FDBFF', color: 'white'}}
                                 >
-                                    {contentRow}
-                                </a>
-                            )}
-                        </div>
-                    );
-                })}
+                                    {i}
+                                </div>
+                                <div key="title" className="d-flex align-items-center mr-3 toc-title">
+                                    <h6 className="mb-0">{title}</h6>
+                                </div>
+                            </React.Fragment>
+                        );
+                        return (
+                            <div
+                                key={`toc-row-${i}`}
+                                className="d-flex p-1"
+                                style={{backgroundColor: href === selectedChapter ? 'rgba(0,0,0,.05)' : undefined}}
+                            >
+                                {selectedChapter === href ? (
+                                    contentRow
+                                ) : (
+                                    <a
+                                        key="toc-a"
+                                        href={href}
+                                        style={{color: '#0074D9', fontWeight: 700}}
+                                        className="d-flex toc-a"
+                                    >
+                                        {contentRow}
+                                    </a>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 }
 
 class LoadingAlert extends React.PureComponent {
@@ -298,12 +303,18 @@ export class App extends React.Component {
         }
         return (
             <div className="app-container container-fluid">
-                <GithubForkMe windowWidth={windowWidth} />
+                <MyErrorBoundary>
+                    <GithubForkMe windowWidth={windowWidth} />
+                </MyErrorBoundary>
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                {!independentContents && contents}
-                <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
+                {!independentContents && <MyErrorBoundary>{contents}</MyErrorBoundary>}
+                <MyErrorBoundary>
+                    <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
+                </MyErrorBoundary>
                 {chapters}
-                <NextPrev selectedChapterId={this.props.selectedChapterId} />
+                <MyErrorBoundary>
+                    <NextPrev selectedChapterId={this.props.selectedChapterId} />
+                </MyErrorBoundary>
             </div>
         );
     }

@@ -423,6 +423,7 @@ class ProbingStateVisualization extends React.Component {
 
 class ProbingVisualization extends React.Component {
     static FULL_WIDTH = true;
+    static EXTRA_ERROR_BOUNDARY = true;
 
     render() {
         // Pretty hacky passing links like this

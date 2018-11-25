@@ -37,10 +37,10 @@ export class DynamicP extends React.Component {
     // TODO: hacky margin hack
     render() {
         return (
-            <React.Fragment>
+            <MyErrorBoundary>
                 <CrossFade>{this.props.children}</CrossFade>
                 <div style={{marginBottom: 16}} />
-            </React.Fragment>
+            </MyErrorBoundary>
         );
     }
 }
@@ -51,6 +51,7 @@ function linebreaks(s) {
         .map((l, i) => [l, <br key={`br-${i}`} />])
         .flat();
 }
+
 function MyFallbackComponent({componentStack, error}) {
     return (
         <div style={{backgroundColor: 'pink'}}>
@@ -67,8 +68,7 @@ function MyFallbackComponent({componentStack, error}) {
 
 export function MyErrorBoundary(props) {
     const onError = (error, componentStack) => {
-        console.log(componentStack);
-        console.log(error);
+        console.error('ErrorBoundary caught error\n\n', error, '\n\n\nComponent stack', componentStack);
     };
 
     return (
@@ -100,19 +100,28 @@ export function Subcontainerize({children}) {
     const dropAccumulated = () => {
         if (accumulatedChildren.length > 0) {
             res.push(
-                <div className="subcontainer" key={res.length}>
+                <div className="subcontainer" key={`subcontainer-${res.length}`}>
                     {accumulatedChildren}
                 </div>
             );
             accumulatedChildren = [];
         }
     };
+    let ebCount = 0;
+    const wrapEbIfNeeded = child => {
+        if (child.type && child.type.EXTRA_ERROR_BOUNDARY) {
+            return <MyErrorBoundary key={child.key || `subcontainerize-eb-${++ebCount}`}>{child}</MyErrorBoundary>;
+        } else {
+            return child;
+        }
+    };
+
     for (let child of children) {
         if (typeof child.type === 'string' || typeof child.type === 'undefined' || !child.type.FULL_WIDTH) {
-            accumulatedChildren.push(child);
+            accumulatedChildren.push(wrapEbIfNeeded(child));
         } else {
             dropAccumulated();
-            res.push(child);
+            res.push(wrapEbIfNeeded(child));
         }
     }
 

@@ -407,6 +407,7 @@ export function PySNNInput({inputComponentRef, ...restProps}) {
 
 export class BlockInputToolbar extends React.Component {
     static FULL_WIDTH = true;
+    static EXTRA_ERROR_BOUNDARY = true;
 
     constructor() {
         super();

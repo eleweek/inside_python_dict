@@ -897,6 +897,7 @@ function deepGet(obj, path) {
 export function TetrisFactory(lines) {
     return class extends React.PureComponent {
         static FULL_WIDTH = true;
+        static EXTRA_ERROR_BOUNDARY = true;
 
         static getExpectedHeight() {
             return Tetris.getExpectedHeight(lines);
@@ -1384,6 +1385,7 @@ class TimeSliderWithControls extends React.Component {
 
 export class VisualizedCode extends React.Component {
     static FULL_WIDTH = true;
+    static EXTRA_ERROR_BOUNDARY = true;
 
     constructor(props) {
         super(props);
