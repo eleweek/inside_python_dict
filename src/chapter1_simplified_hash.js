@@ -502,35 +502,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <h2>Chapter 1: searching efficiently in a list</h2>
                 <Subcontainerize>
                     <p>
-                        Before we begin, here are a couple of notes. First, this is <em>an explorable explanation</em>{' '}
-                        of python dictionaries. This page is dynamic and interactive &mdash; you can plug in your and
-                        see how the algorithms work on it.
+                        Hi! This is <em>an explorable explanation</em> of python dictionaries. This page is dynamic and
+                        interactive &mdash; you can plug in your data and see how the algorithms work on it (once the
+                        javascript loads).
                     </p>
                     <p>
-                        Second, this page discusses <code>dict</code> as it is implemented in{' '}
-                        <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of
-                        the python language (if you are not sure what implementation you use, it is almost certainly
-                        CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>,{' '}
-                        <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>.
-                        The way dict works in each of these implementations may be similar to CPython (in the case of
-                        PyPy) or very different from CPython (in the case of Jython).
-                    </p>
-                    <p>
-                        Third, even though dict in CPython is implemented in C, this explanation uses python for code
-                        snippets. The goal of this page is to help you understand{' '}
-                        <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
-                        are interesting too, but are beyond of the scope of this page).
-                    </p>
-                    <h5>Let's get started!</h5>
-                    <p>
-                        The most important part of python dict is handling keys. Dict keys need to be organized in such
-                        a way that searching, inserting and deleting is possible. We will begin with a simplified
-                        problem. We won't have any values. And "keys" will be just plain integers. So, the simplified
-                        problem is to check if a number is present in a list, but we have to do this{' '}
-                        <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me.
-                    </p>
-                    <p>
-                        Let's say we have a simple list of numbers (which you can change if you want - and the page will
+                        Let's say we have a simple list of distinct integers (change it if you want - the page will
                         update):
                     </p>
                     <BlockInputToolbar
@@ -547,29 +524,20 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
-                        misleading to people who are unfamiliar with python but know about double-linked lists. You can
-                        picture a list as a row of slots, where each slot can hold a single python object:
+                        misleading to people who know about double-linked lists but are unfamiliar with python. You can
+                        picture a pythonl list as a contiguous row of slots, where each slot can hold a python object:
                     </p>
                     <div className="div-p">
                         <LineOfBoxesComponent array={this.state.numbers} />
                     </div>
                     <p>
-                        Accessing an element by index is very fast. Appending to a list is fast too. But if there is no
-                        order whatsoever, searching for a specific element will be slow. We may get lucky and find an
-                        element in only a few iterations if it is near the beginning of the list. But if it is not there
-                        at all, we'll have to scan over the whole list.
-                    </p>
-                    <p>
-                        The simplest way to write a list scan in python is just{' '}
-                        <SimpleCodeInline>number in simple_list</SimpleCodeInline>, which would return <code>True</code>{' '}
-                        or <code>False</code> dependinding on whether <code>number</code> is present in{' '}
-                        <code>simple_list</code>. Python hides a great deal of complexity in this really short snippet.
-                        But let's rewrite the same code in a much more verbose manner so that we can see how linear
-                        search is done.
+                        To check if an element is present in a list, we can use the <code>in</code> operator, like this{' '}
+                        <SimpleCodeInline>number in simple_list</SimpleCodeInline>. Under the hood this short snippet
+                        does a lot of work. Let's intentionally rewrite it to see all the steps:{' '}
                     </p>
                     <div className="div-p">
-                        And let's say we want to search for the following number (which is changeable - the
-                        visualization will update accordingly):
+                        For example, let's say we are looking for the following number in the original list (which is
+                        changeable - the visualization will update accordingly):
                         <PySmallIntInput
                             inline={true}
                             value={this.state.simpleSearchNumber}
@@ -577,11 +545,6 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                             anotherValue={() => anotherValue(this.state.numbers)}
                         />
                     </div>
-                    <p>
-                        (Speaking of the visualization: the buttons allow to step through code steps and the time slider
-                        is draggable - feel free to rewind time or move it forward. Also, feel free to mess with inputs
-                        and the original list.)
-                    </p>
                     <VisualizedCode
                         code={SIMPLE_LIST_SEARCH}
                         breakpoints={slsRes.bp}
@@ -590,16 +553,32 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        Of course, we only have a few elements here, so scanning over them is no big deal. But what if
-                        we have a million distinct numbers? Scanning the entire million would be slow.
+                        (Speaking of the visualization: the buttons allow to step through code steps and the time slider
+                        is draggable - feel free to rewind time or move it forward. Also, feel free to mess with the
+                        input and the original list)
                     </p>
                     <p>
-                        In order to do this faster, what we need to do is cleverly organize our data. Here's how. Let's
-                        begin by creating a new list. You can picture this list as a list of slots. Each slot will hold
-                        a number from the original list. But, we'll use the number itself to compute an index of a slot.
-                        The simplest way to do this is to just take the slot <code>number % len(the_list)</code> and put
-                        our number in there. To check if the number is there we could compute the slot index again and
-                        see if it is empty.
+                        Of course, we only have a few elements here, so scanning over them is no big deal. But what if
+                        we have a million distinct numbers? We may get lucky and find an element in only a few
+                        iterations if it is near the beginning of the list. But if it is not there at all, we'll have to
+                        scan over the whole million of numbers.
+                    </p>
+                    <h6>How does all of this relate to actual python dicts?</h6>
+                    <p>
+                        The most important part of python dict is handling keys. Dict keys need to be organized in such
+                        a way that searching, inserting and deleting is possible. In this chapter, we'll solve a
+                        simplified problem. We won't have any values. And "keys" will be just plain integers. So, the
+                        simplified problem is to check if a number is present in a list, but we have to do this{' '}
+                        <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me.
+                    </p>
+                    <p>
+                        Accessing a single element by index is very fast. Accessing only a few elements would be fast
+                        too. We can exploit this. What we need to do is cleverly organize our data. Here's how. Let's
+                        begin by creating a new list. You can picture this list as a list of slots. Each slot will
+                        either hold a number from the original list or <code>None</code>. But, we'll use the number
+                        itself to compute an index of a slot. The simplest way to do this is to just take the slot{' '}
+                        <code>number % len(the_list)</code> and put our number in there. To check if the number is there
+                        we could compute the slot index again and see if it is empty.
                     </p>
                     <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"
@@ -621,10 +600,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         called <em>linear probing</em>.
                     </p>
                     <p>
-                        If we make the new list the same size as the original list, we'll have too many collisions. So
-                        what size should it be? If we make it 10x larger, we'll have very few collisions, but we'll
-                        waste a lot of memory. So, we want to hit the sweet spot where we don't use up too much memory
-                        but also don't have too many collisions. Twice the size of the original list is reasonable.
+                        Also, if we make the new list the same size as the original list, we'll have too many
+                        collisions. So what size should it be? If we make it 10x larger, we'll have very few collisions,
+                        but we'll waste a lot of memory. So, we want to hit the sweet spot where we don't use up too
+                        much memory but also don't have too many collisions. Twice the size of the original list is
+                        reasonable.
                     </p>
                     <p>
                         Let's transform the original list using this method (when reading this code, remember that{' '}
@@ -670,13 +650,30 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         We still haven't discussed adding more elements (what happens if a table overflows?), removing
                         elements (removing an element without a trace would cause a hole to appear, wouldn't this cause
                         the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling
-                        objects other than integers - strings, tuples, floats.
+                        objects other than integers - strings, tuples, floats. We'll do this in the next chapters.
                     </p>
+                    <h6>Separate chaining</h6>
                     <p>
-                        P.S.: There is a different method of collision resolution, called{' '}
+                        There is a different method of collision resolution, called{' '}
                         <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
                         is also quite popular in the real world. But that's now how python resolves collision in dicts,
                         so this method is beyond the scope of this explanation.{' '}
+                    </p>
+                    <h6>A couple of the notes about the explanation</h6>
+                    <p>
+                        First, this explanation discusses <code>dict</code> as it is implemented in{' '}
+                        <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of
+                        the python language (if you are not sure what implementation you use, it is almost certainly
+                        CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>,{' '}
+                        <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>.
+                        The way dict works in each of these implementations may be similar to CPython (in the case of
+                        PyPy) or very different from CPython (in the case of Jython).
+                    </p>
+                    <p>
+                        Second, even though dict in CPython is implemented in C, this explanation uses python for code
+                        snippets. The goal of this page is to help you understand{' '}
+                        <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
+                        are interesting too, but are beyond of the scope of this page).
                     </p>
                 </Subcontainerize>
             </div>

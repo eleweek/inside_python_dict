@@ -294,11 +294,12 @@ export class App extends React.Component {
                 </MyErrorBoundary>
             );
         }
+        const contents = <Contents selectedChapterId={this.props.selectedChapterId} />;
         return (
             <div className="app-container container-fluid">
                 <GithubForkMe windowWidth={windowWidth} />
                 <h1> Inside python dict &mdash; an explorable explanation</h1>
-                <Contents selectedChapterId={this.props.selectedChapterId} />
+                {contents}
                 <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                 {chapters}
                 <NextPrev selectedChapterId={this.props.selectedChapterId} />
