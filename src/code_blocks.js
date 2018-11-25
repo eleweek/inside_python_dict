@@ -209,29 +209,7 @@ function ActiveBoxSelection(props) {
     const isDynamicDuration = getUxSettings().DYNAMIC_SELECTION_TRANSITION_DURATION;
     const Component = isThrottled ? ActiveBoxSelectionThrottled : ActiveBoxSelectionUnthrottled;
 
-    if (isDynamicDuration) {
-        return <ActiveBoxSelectionDynamicTransition {...props} componentClass={Component} />;
-    } else {
-        return <Component {...props} transitionDuration={300} />;
-    }
-}
-
-class ActiveBoxSelectionDynamicTransition extends React.Component {
-    constructor() {
-        super();
-        this.lastRender = null;
-    }
-
-    render() {
-        let transitionDuration = 300;
-        if (this.lastRender != null && performance.now() - this.lastRender < 200) {
-            transitionDuration = 200;
-        }
-        this.lastRender = performance.now();
-
-        const Component = this.props.componentClass;
-        return <Component {...this.props} transitionDuration={transitionDuration} />;
-    }
+    return <Component {...props} transitionDuration={300} />;
 }
 
 class Box extends React.PureComponent {
