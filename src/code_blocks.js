@@ -555,7 +555,7 @@ class BaseBoxesComponent extends React.Component {
                         toMergeKeyBox[key] = React.cloneElement(box, {
                             idx: data.idx,
                             status: 'adding',
-                            ...someProps,
+                            ...data.someProps,
                         });
                         toMergeStatus[key] = 'adding';
                         toMergeKeyModId[key] = modificationId;
