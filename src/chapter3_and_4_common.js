@@ -552,7 +552,7 @@ export const HashClassInsertAllVisualization = TetrisFactory([
             'pairs',
             'oldIdx',
             undefined,
-            {linesCount: 2, selection1color: COLOR_FOR_READ_OPS},
+            {linesCount: 2, selection1color: COLOR_FOR_READ_OPS, kvHack: true},
         ],
     ],
     [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],

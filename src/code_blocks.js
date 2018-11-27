@@ -1730,6 +1730,22 @@ export class LineOfBoxesComponent extends React.PureComponent {
         return keys;
     }
 
+    // TODO: This is a bit of a specific hack for key-value pairs
+    // TODO: maybe it should be refactored out elsewhere
+    static getKeysForKVPairs(array) {
+        let keys = [];
+        // Does not support nulls/"empty"
+        for (let i = 0; i < array.length; ++i) {
+            const [k, v] = array[i];
+
+            const keyPart = pyObjToReactKey(k);
+            const valuePart = pyObjToReactKey(v);
+            keys.push([`${keyPart}-key`, `${keyPart}-${valuePart}-value`]);
+        }
+
+        return keys;
+    }
+
     static boxFactory(keys, values) {
         if (keys.length === 1) {
             return [[keys[0], {value: values}]];
@@ -1752,10 +1768,11 @@ export class LineOfBoxesComponent extends React.PureComponent {
 
     render() {
         const height = LineOfBoxesComponent.getExpectedGeometry(this.props).height;
+        const {kvHack, ...restProps} = this.props;
         return (
             <BaseBoxesComponent
-                {...this.props}
-                getKeys={LineOfBoxesComponent.getKeys}
+                {...restProps}
+                getKeys={!kvHack ? LineOfBoxesComponent.getKeys : LineOfBoxesComponent.getKeysForKVPairs}
                 boxFactory={LineOfBoxesComponent.boxFactory}
                 selectionClass={LineOfBoxesSelection}
                 selectionProps={{count: this.props.linesCount || 1}}
