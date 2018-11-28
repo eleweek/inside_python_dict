@@ -398,6 +398,8 @@ class BaseBoxesComponent extends React.Component {
         return this.state.shouldUpdate;
     }
 
+    // FIXME: this function
+    // FIXME: you may not like it, but this is what peak engineering looks like
     static getDerivedStateFromProps(nextProps, state) {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
@@ -457,10 +459,10 @@ class BaseBoxesComponent extends React.Component {
                             toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
                             const value = state.keyToValueAndGroup.getIn([key, 'value']);
                             const group = state.keyToValueAndGroup.getIn([key, 'group']);
-                            newRemovingValueToGroupToKeyToId.setIn(
-                                [repr(value, true), group, key],
-                                state.remappedKeyId.get(key)
-                            );
+                            newRemovingValueToGroupToKeyToId.setIn([repr(value, true), group, key], {
+                                id: state.remappedKeyId.get(key),
+                                idx: toMergeKeyBox[key].props.idx,
+                            });
                             needGarbageCollection = true;
                         }
                     }
@@ -517,8 +519,21 @@ class BaseBoxesComponent extends React.Component {
                 let keyToRecycledBox = {};
                 let instaRemovedKeys = [];
 
-                const recycleId = (key, value, groupOfKeyToId, keyToId) => {
-                    const keyWithRecycledId = keyToId.keySeq().first();
+                const recycleId = (key, idx, value, groupOfKeyToId, keyToId) => {
+                    let keyWithRecycledId;
+                    if (keyToId.size > 1) {
+                        for (let [key, {idx: otherIdx}] of keyToId.entries()) {
+                            // TODO: the best value could probably be selected based as argmin |otherIdx - idx|
+                            // TODO: but for now this feels good enough, since it does not swap two boxes with the same value
+                            if (otherIdx === idx) {
+                                keyWithRecycledId = key;
+                                break;
+                            }
+                        }
+                    }
+                    if (keyWithRecycledId == null) {
+                        keyWithRecycledId = keyToId.keySeq().first();
+                    }
                     keyToRecycledBox[key] = state.keyBox.get(keyWithRecycledId);
                     BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                         repr(value, true),
@@ -537,7 +552,7 @@ class BaseBoxesComponent extends React.Component {
                         data.group,
                     ]);
                     if (potentialKeyToId) {
-                        recycleId(key, data.value, data.group, potentialKeyToId);
+                        recycleId(key, data.idx, data.value, data.group, potentialKeyToId);
                     }
                 }
 
@@ -547,9 +562,11 @@ class BaseBoxesComponent extends React.Component {
                     const data = notExistingKeyToData[key];
                     const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
                     if (potentialGroupToKeyToId) {
+                        // TODO: might be better to prefer keys and values for each others rather than select randoml
+                        //       (this might lead to box from hash codes being transferred to keys/values)
                         const firstGroup = potentialGroupToKeyToId.keySeq().first();
                         const keyToId = potentialGroupToKeyToId.get(firstGroup);
-                        recycleId(key, data.value, firstGroup, keyToId);
+                        recycleId(key, data.idx, data.value, firstGroup, keyToId);
                     }
                 }
                 const t6 = performance.now();
