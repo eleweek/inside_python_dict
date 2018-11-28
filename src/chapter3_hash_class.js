@@ -426,7 +426,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         key,
                         value
                     );
-                    const noRecycleOccured = newResize || varNewPySelf.get('fill') > varNewPySelf.get('fill');
+                    const noRecycleOccured = newResize || varNewPySelf.get('fill') > originalPySelf.get('fill');
                     if (noRecycleOccured) {
                         const singleOtherOutcome = newResize ? 'missed' : 'missed_resized';
                         otherOutcomes[singleOtherOutcome] = {inserted: {key, value}};
