@@ -1100,7 +1100,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 if (desc) {
                     explanation = (
                         <span
-                            class="code-explanation"
+                            key="explanation"
+                            className="code-explanation"
                             dangerouslySetInnerHTML={{__html: `\u00A0\u00A0\u00A0\u00A0~ ${desc}`}}
                         />
                     );
@@ -1110,7 +1111,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             let hlCodeHtml = hlLines[i];
 
             let formattedLine = (
-                <pre class="code-line-container">
+                <pre className="code-line-container" key="pre">
                     <code>
                         <span
                             className={classNames({'code-highlight': isCurrentLineHighlighted})}
@@ -1120,12 +1121,12 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 </pre>
             );
             lines.push(
-                <span class="line-with-annotation inline-block">
+                <span className="line-with-annotation inline-block" key={`line-${i}`}>
                     {formattedLine}
                     {explanation}
                 </span>
             );
-            lines.push(<br />);
+            lines.push(<br key={`br-${i}`} />);
         }
         if (!isAnyLineHighlighted) {
             throw new Error(`No line found corresponding to "${activeBp.point}`);
