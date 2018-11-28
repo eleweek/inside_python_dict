@@ -664,6 +664,9 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
                     <BlockInputToolbar
                         input={PyDictInput}
+                        inputProps={{
+                            minSize: 1,
+                        }}
                         initialValue={this.state.pairs}
                         onChange={this.setter('pairs', true)}
                         bottomBoundary=".chapter3"

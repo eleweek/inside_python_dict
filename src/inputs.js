@@ -340,12 +340,12 @@ export function PyListInput({inputComponentRef, extraValueValidator, allowDuplic
     );
 }
 
-export function PyDictInput({inputComponentRef, ...restProps}) {
+export function PyDictInput({inputComponentRef, minSize, ...restProps}) {
     return (
         <ParsableInput
             {...restProps}
             dumpValue={dumpPyDict}
-            parseValue={parsePyDict}
+            parseValue={s => parsePyDict(s, minSize)}
             inputComponentRef={inputComponentRef}
         />
     );

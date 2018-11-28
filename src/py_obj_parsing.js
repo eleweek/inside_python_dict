@@ -102,7 +102,7 @@ export class PyObjParser {
         }
     }
 
-    parseDict() {
+    parseDict(minSize = null) {
         const allowedSeparators = ',:}';
         const c = this.current();
 
@@ -122,6 +122,15 @@ export class PyObjParser {
             if (this.current() !== '}' && this.current() != null) this.consume(',');
         }
         this.consumeWS('}');
+        if (minSize != null) {
+            if (res.length < minSize) {
+                if (minSize > 1) {
+                    this.throwErr(`In this chapter, there should be at least ${minSize} pairs`);
+                } else {
+                    this.throwErr(`In this chapter, the data cannot be empty`);
+                }
+            }
+        }
         return res;
     }
 
@@ -159,9 +168,9 @@ export class PyObjParser {
         if (minSize != null) {
             if (res.length < minSize) {
                 if (minSize > 1) {
-                    this.throwErr(`List need to have length at least ${minSize}`);
+                    this.throwErr(`In this chapter, the list need to have length at least ${minSize}`);
                 } else {
-                    this.throwErr(`Empty lists are not allowed in this chapter`);
+                    this.throwErr(`In this chapter, the list cannot be empty`);
                 }
             }
         }
@@ -277,9 +286,9 @@ export function parsePyNumber(s) {
     return _checkTrailingChars(parser, () => parser.parseNumber());
 }
 
-export function parsePyDict(s) {
+export function parsePyDict(s, minSize = null) {
     let parser = new PyObjParser(s);
-    return _checkTrailingChars(parser, () => parser.parseDict());
+    return _checkTrailingChars(parser, () => parser.parseDict(minSize));
 }
 
 export function parsePyList(s, allowDuplicates = true, minSize = null, extraValueValidator) {
