@@ -555,15 +555,15 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         return (
             <div className="chapter chapter3">
-                <h2> Chapter 3. Putting it all together to make an "almost"-python-dict</h2>
+                <h2> Chapter 3. Putting it all together to make an "almost"-Python-dict</h2>
                 <Subcontainerize>
                     <p>
-                        We now have all the building blocks that allow us to make <em>something like a python dict</em>.
+                        We now have all the building blocks that allow us to make <em>something like a Python dict</em>.
                         In this section, we'll make functions track the <code>fill</code> and <code>used</code>{' '}
                         counters, so we know when a table overflows. We will also handle values (in addition to keys)
                         and make a class that supports all basic operations from <code>dict</code>. On the inside, this
                         class would work differently from the actual implementation of dict. In the following chapter we
-                        will turn this code into python 3.2's version of dict by making changes to the probing
+                        will turn this code into Python 3.2's version of dict by making changes to the probing
                         algorithm.
                     </p>
                     <p>
@@ -571,7 +571,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">
                             magic methods
                         </a>{' '}
-                        and how classes work in python. We will use classes to bundle data and functions together. Magic
+                        and how classes work in Python. We will use classes to bundle data and functions together. Magic
                         methods are special methods for overloading operators, so we can write{' '}
                         <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square
                         brackets look nicer.
@@ -590,7 +590,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         How do we initialize an empty hash table? In previous chapters, we based the initial size of
                         hash tables on the original list. Since we now know how to resize tables, we can start with an
                         empty table and grow it. But what should be the initial size? The size shouldn't be too small or
-                        too big. Hash tables inside python dictionaries are size 8 when they are empty, so let's make
+                        too big. Hash tables inside Python dictionaries are size 8 when they are empty, so let's make
                         ours that size. Python hash table sizes are powers of 2, so we will also use powers of 2.
                         Technically, nothing prevents us from using "non-round" values. The primary reason for using
                         "round" powers of 2 is efficiency: computing <code>% 2**n</code> can be implemented using bit
@@ -600,7 +600,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         We have already started to imitate the interface and some implementation details of the real
                         dict. In this chapter, we will get pretty close to it, but we will not get there fully. In the
-                        next chapter we will start exploring the actual implementation of python dict. But for now,
+                        next chapter we will start exploring the actual implementation of Python dict. But for now,
                         please bear with me.
                     </p>
                     <p>Here is how our class is going to look:</p>

@@ -668,10 +668,9 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         input domain, hence the name "hash".
                     </p>
                     <p>
-                        In python, there are built-in implementations of hash functions for many built-in types. They
-                        are all available through a single interface: python function <code>hash()</code>. This python
-                        function can take any python object as an input and call an appropriate implementation (if it
-                        exists).
+                        In Python, there are built-in implementations of hash functions for many built-in types. They
+                        are all available through a single interface: the function <code>hash()</code>. This function
+                        can take any Python object as an input and call an appropriate implementation (if it exists).
                     </p>
                     <HashExamples />
                     <p>
@@ -681,22 +680,22 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         deliberate design decision by Python Core Developers.
                     </p>
                     <p>
-                        For big("long") integers, python uses a different algorithm. Try typing a relatively big number,
-                        for example, <code>12345678901234567890</code> to see this.
+                        For long") integers, Python uses a different algorithm. Try typing a relatively big number, for
+                        example, <code>12345678901234567890</code> to see this.
                     </p>
                     <h5>hash() implementation notes</h5>
                     <p>
-                        This chapter and the next two chapters will use <code>hash()</code> implementation from python
-                        3.2 (running on an x86_64 system). So if you run python 3.2 on your x86_64 system, you should
+                        This chapter and the next two chapters will use <code>hash()</code> implementation from Python
+                        3.2 (running on an x86_64 system). So if you run Python 3.2 on your x86_64 system, you should
                         see the same hash values for integers and strings (and the same data structure states).{' '}
                         <code>hash(None)</code> changes between runs, but this page does not change{' '}
                         <code>hash(None)</code> between refreshes and assumes that{' '}
                         <code>hash(None) == -9223372036581563745</code>
                     </p>
                     <p>
-                        Why python 3.2? Because dict implementation changed over time, but python 3.2's dict implements
-                        all major ideas, and thus python 3.2 is a perfect starting point for exploring implementations
-                        of python dict. Later versions of python extend (rather than completely replace) python 3.2's
+                        Why Python 3.2? Because dict implementation changed over time, but Python 3.2's dict implements
+                        all major ideas, and thus Python 3.2 is a perfect starting point for exploring implementations
+                        of Python dict. Later versions of Python extend (rather than completely replace) Python 3.2's
                         implementation. Eventually, we will get to these implementations as well.
                     </p>
                     <h5> Unhashable types </h5>
@@ -707,7 +706,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not
                         prevent us from defining a hash function. However changing a list would change the value of the
                         hash function as well, and therefore we will not be able to find the mutated list! Hashing and
-                        using lists as keys in dicts would lead to many accidental bugs, so developers of python chose
+                        using lists as keys in dicts would lead to many accidental bugs, so developers of Python chose
                         not to allow this.
                     </p>
                     <h5>A note on the word "hash"</h5>
@@ -715,7 +714,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         Because hash tables use hash functions and because hash tables mix up inserted elements, they
                         are called hash tables. Sometimes people shorten "hash table" to simply "hash". The output of a
                         hash function is sometimes called "hash value" or "hash code", but very often it is shortened to
-                        simple "hash". Also, python's built-in hash function is called <code>hash()</code>. Because
+                        simple "hash". Also, Python's built-in hash function is called <code>hash()</code>. Because
                         people like to shorten things, three different (but related) concepts end up having the same
                         shortened name. This can get a bit confusing sometimes.
                     </p>
@@ -735,7 +734,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <p>
                         Because <code>None</code> is hashable too, we will need to use some other value as a placeholder
                         for an empty slot. The cleanest way to do this is to create a new type and use a value of this
-                        type. In python, this is quite simple:
+                        type. In Python, this is quite simple:
                     </p>
                     <SimpleCodeBlock>{`
 class EmptyValueClass(object):

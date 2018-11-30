@@ -504,7 +504,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <h2>Introduction</h2>
                 <Subcontainerize>
                     <p>
-                        Hi! This is <em>an explorable explanation</em> of python dictionaries. This page is dynamic and
+                        Hi! This is <em>an explorable explanation</em> of Python dictionaries. This page is dynamic and
                         interactive &mdash; you can plug in your data and see how the algorithms work on it (once the
                         javascript loads).
                     </p>
@@ -526,8 +526,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
-                        misleading to people who know about double-linked lists but are unfamiliar with python. You can
-                        picture a pythonl list as a contiguous row of slots, where each slot can hold a python object:
+                        misleading to people who know about double-linked lists but are unfamiliar with Python. You can
+                        picture a Pythonl list as a contiguous row of slots, where each slot can hold a Python object:
                     </p>
                     <div className="div-p">
                         <LineOfBoxesComponent array={this.state.numbers} />
@@ -560,7 +560,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         input and the original list)
                     </p>
                     <p>
-                        A python dict implementation is basically a pretty weird scan of a list. We'll build the actual
+                        A Python dict implementation is basically a pretty weird scan of a list. We'll build the actual
                         algorithm of Python dictionary step by step, and it starts with the code above - which is
                         intentionally verbose.
                     </p>
@@ -574,7 +574,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
-                        The most important part of python dict is handling keys. Keys need to be organized in such a way
+                        The most important part of Python dict is handling keys. Keys need to be organized in such a way
                         that efficient searching, inserting and deleting is possible. In this chapter, we'll solve a
                         simplified problem. To keep things simple, we won't have any values, and "keys" will be just
                         plain integers. So, the simplified problem is to check if a number is present in a list, but we
@@ -655,7 +655,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         Calculating an index based on the values of numbers and doing linear probing in the case of a
-                        collision is incredibly powerful. And this idea is a major one behind python dict. What we've
+                        collision is incredibly powerful. And this idea is a major one behind Python dict. What we've
                         just implemented is a super simple <em>hash table</em>. Python dict uses a hash table
                         internally, albeit a more complex variant.
                     </p>
@@ -669,21 +669,21 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <p>
                         There is a different method of collision resolution, called{' '}
                         <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
-                        is also quite popular in the real world. But that's now how python resolves collision in dicts,
+                        is also quite popular in the real world. But that's now how Python resolves collision in dicts,
                         so this method is beyond the scope of this explanation.{' '}
                     </p>
                     <h6>A couple of the notes about the explanation</h6>
                     <p>
                         First, this explanation discusses <code>dict</code> as it is implemented in{' '}
                         <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of
-                        the python language (if you are not sure what implementation you use, it is almost certainly
+                        the Python language (if you are not sure what implementation you use, it is almost certainly
                         CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>,{' '}
                         <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>.
                         The way dict works in each of these implementations may be similar to CPython (in the case of
                         PyPy) or very different from CPython (in the case of Jython).
                     </p>
                     <p>
-                        Second, even though dict in CPython is implemented in C, this explanation uses python for code
+                        Second, even though dict in CPython is implemented in C, this explanation uses Python for code
                         snippets. The goal of this page is to help you understand{' '}
                         <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
                         are interesting too, but are beyond of the scope of this page).

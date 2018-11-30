@@ -874,16 +874,16 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
 
         return (
             <div className="chapter chapter4">
-                <h2>Chapter 4. How python dict *really* works internally</h2>
+                <h2>Chapter 4. How Python dict *really* works internally</h2>
                 <Subcontainerize>
-                    <p>Now it is (finally!) time to explore how the dict works in python!</p>
+                    <p>Now it is (finally!) time to explore how the dict works in Python!</p>
                     <p>
                         This explanation is about the dict in CPython (the most popular, "default", implementation of
-                        python). CPython evolved over time, and so did its dictionary implementation. But, the core
+                        Python). CPython evolved over time, and so did its dictionary implementation. But, the core
                         ideas stayed the same, and implementations in all versions are similar to each other.
                     </p>
                     <p>
-                        The main difference between almost-python-dict from the chapter 3 and real python dict is the
+                        The main difference between almost-python-dict from the chapter 3 and real Python dict is the
                         probing algorithm.{' '}
                     </p>
                     <h5>The probing algorithm</h5>
@@ -900,7 +900,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <p>
                         It is possible to address this problem by using a better hash function, in particular when it
-                        comes to integers (<code>hash(x)</code> == <code>x</code> for small integers in python). But it
+                        comes to integers (<code>hash(x)</code> == <code>x</code> for small integers in Python). But it
                         is also possible to address this problem by using a different probing algorithm - and this is
                         what CPython developers decided.
                     </p>
@@ -949,7 +949,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
                     </p>
                     <p>
-                        We can reimplement this algorithm in pure python. However, in python there are no unsigned
+                        We can reimplement this algorithm in pure Python. However, in Python there are no unsigned
                         (logical) bit shifts, and there is also no built-in way to convert a 64-bit signed integer to a
                         64-bit unsigned integer. The solution is to do the conversion with the following one-liner:{' '}
                         <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit
@@ -1099,7 +1099,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         In 3.3 there were significant changes to the internal structure of dicts (
                         <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
                         memory consumption in certain cases. "Seed" for hash function was also randomized, so you
-                        wouldn't get the same hash() for the same object if you relaunched the python interpreter
+                        wouldn't get the same hash() for the same object if you relaunched the Python interpreter
                         (object hashes are still stable within the same "run").
                     </p>
                     <p>
