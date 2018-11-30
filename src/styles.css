@@ -183,7 +183,8 @@ div.hash-example-instance {
 }
 
 pre > code,
-.code-explanation {
+.code-explanation,
+.code-explanation > code {
     font-size: 12px !important;
 }
 

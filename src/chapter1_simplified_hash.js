@@ -112,7 +112,9 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
             return `Start from the beginning of the list`;
         case 'check-boundary':
             return bp.idx < bp.size
-                ? `<code>${bp.idx} < ${bp.size}</code>, so some elements have not been processed yet`
+                ? `[Try #${bp.idx + 1}]: <code>${bp.idx} < ${
+                      bp.size
+                  }</code>, so some elements have not been processed yet, and the number may be there`
                 : `<code>${bp.idx} === ${bp.size}</code>, so all elements were processed`;
         case 'check-found':
             return bp.found
@@ -123,7 +125,7 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
         case 'found-nothing':
             return `The wanted number <code>${bp.arg}</code> was not found, so return <code>False</code>`;
         case 'next-idx':
-            return `Go to the next index: <code>${bp.idx}</code>`;
+            return `Go to the next index: <code>${bp.idx}</code> == <code>${bp.idx - 1} + 1</code>`;
     }
 };
 
@@ -531,13 +533,13 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         <LineOfBoxesComponent array={this.state.numbers} />
                     </div>
                     <p>
-                        To check if an element is present in a list, we can use the <code>in</code> operator, like this{' '}
-                        <SimpleCodeInline>number in simple_list</SimpleCodeInline>. Under the hood this short snippet
-                        does a lot of work. Let's intentionally rewrite it to see all the steps:{' '}
+                        To check if an element is present in a list, we can use the <code>in</code> operator, like this:{' '}
+                        <code>number in simple_list</code>, which returns either <code>True</code> or <code>False</code>
+                        . Under the hood this short snippet does a linear scan, this can be a lot of work. To see this,
+                        let's reimplement it in Python.
                     </p>
                     <div className="div-p">
-                        For example, let's say we are looking for the following number in the original list (which is
-                        changeable - the visualization will update accordingly):
+                        Anyway, let's say we're looking for the following number in the original list:
                         <PySmallIntInput
                             inline={true}
                             value={this.state.simpleSearchNumber}
@@ -558,29 +560,38 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         input and the original list)
                     </p>
                     <p>
-                        Of course, we only have a few elements here, so scanning over them is no big deal. But what if
-                        we have a million distinct numbers? We may get lucky and find an element in only a few
-                        iterations if it is near the beginning of the list. But if it is not there at all, we'll have to
-                        scan over the whole million of numbers.
+                        A python dict implementation is basically a pretty weird scan of a list. We'll build the actual
+                        algorithm of Python dictionary step by step, and it starts with the code above - which is
+                        intentionally verbose.
+                    </p>
+                    <p>
+                        The thing is, scanning over a few elements is no big deal. But what if we have a million
+                        distinct numbers? We may get lucky and find an element in only a few iterations if it is near
+                        the beginning of the list. But if it is not there at all, we'll have to scan over the whole
+                        million of numbers.
                     </p>
                     <h5>Contents</h5>
                     {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
-                        The most important part of python dict is handling keys. Dict keys need to be organized in such
-                        a way that searching, inserting and deleting is possible. In this chapter, we'll solve a
-                        simplified problem. We won't have any values. And "keys" will be just plain integers. So, the
-                        simplified problem is to check if a number is present in a list, but we have to do this{' '}
-                        <strong>fast</strong>. We'll tackle the real problem eventually, but for now, bear with me.
+                        The most important part of python dict is handling keys. Keys need to be organized in such a way
+                        that efficient searching, inserting and deleting is possible. In this chapter, we'll solve a
+                        simplified problem. To keep things simple, we won't have any values, and "keys" will be just
+                        plain integers. So, the simplified problem is to check if a number is present in a list, but we
+                        have to do this{' '}
+                        <em>
+                            <strong>fast</strong>
+                        </em>
+                        . We'll tackle the real problem soon, but for now, bear with me.
                     </p>
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
                         too. We can exploit this. What we need to do is cleverly organize our data. Here's how. Let's
                         begin by creating a new list. You can picture this list as a list of slots. Each slot will
-                        either hold a number from the original list or <code>None</code>. But, we'll use the number
-                        itself to compute an index of a slot. The simplest way to do this is to just take the slot{' '}
-                        <code>number % len(the_list)</code> and put our number in there. To check if the number is there
-                        we could compute the slot index again and see if it is empty.
+                        either hold a number from the original list or be empty (empty slots will hold <code>None</code>
+                        ). We'll use the number itself to compute an index of a slot. The simplest way to do this is to
+                        just take the slot <code>number % len(the_list)</code> and put our number in there. To check if
+                        the number is there we could compute the slot index again and see if it is empty.
                     </p>
                     <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"

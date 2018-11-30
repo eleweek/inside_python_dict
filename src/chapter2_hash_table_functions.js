@@ -799,7 +799,9 @@ EMPTY = EmptyValueClass()
                     <p>
                         The search algorithm isn't changed much. We just get the <code>hash()</code> function value for
                         the object, and just like with the inserting algorithm, during linear probing we compare actual
-                        objects only when hashes are equal.
+                        objects only when hashes are equal. Just like in the first chapter, we have essentially a bunch
+                        of "islands", interspersed by holes. Each island contains few enough elements that a linear
+                        search is possible.
                     </p>
                     <div className="div-p">
                         For instance, let's search for
