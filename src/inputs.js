@@ -422,6 +422,7 @@ export class BlockInputToolbar extends React.Component {
         const {bottomBoundary, ...restProps} = this.props;
         const wideScreen = this.props.windowWidth && this.props.windowWidth > 600;
         const tallScreen = this.props.windowHeight && this.props.windowHeight > 450;
+        // TODO: 50, 10 are hardcoded and I am not sure why
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
                 <div style={{height: (this.state.height || 50) + 10}}>

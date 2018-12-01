@@ -405,7 +405,7 @@ function formatHashResize(bp) {
             } else if (bp.keys.get(bp.oldIdx) === DUMMY) {
                 return `The current slot contains DUMMY placeholder`;
             } else {
-                return `The current slot is occupied by a non-removed key`;
+                return `The current slot is occupied by an actually existing key`;
             }
         case 'continue':
             return 'So skip it';

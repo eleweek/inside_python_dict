@@ -508,9 +508,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         interactive &mdash; you can plug in your data and see how the algorithms work on it (once the
                         javascript loads).
                     </p>
-                    <p>
-                        Let's say we have a simple list of distinct integers (change it if you want - the page will
-                        update):
+                    <p className="mb-2">
+                        To start with, let's say we have a simple list of distinct integers (change it if you want - the
+                        page will update):
                     </p>
                     <BlockInputToolbar
                         input={PyListInput}
@@ -524,12 +524,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         bottomBoundary=".chapter1"
                         {...this.props}
                     />
-                    <p>
+                    <p className="mb-2">
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
                         misleading to people who know about double-linked lists but are unfamiliar with Python. You can
                         picture a Pythonl list as a contiguous row of slots, where each slot can hold a Python object:
                     </p>
-                    <div className="div-p">
+                    <div className="div-p mb-4">
                         <LineOfBoxesComponent array={this.state.numbers} />
                     </div>
                     <p>
