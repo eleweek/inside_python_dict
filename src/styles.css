@@ -269,6 +269,10 @@ div.slider-row {
     padding-bottom: 7px;
 }
 
+.fix-animation {
+    transform: translateZ(0);
+}
+
 .tetris-row {
     display: flex;
     margin-bottom: 10px;

@@ -529,7 +529,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         misleading to people who know about double-linked lists but are unfamiliar with Python. You can
                         picture a Pythonl list as a contiguous row of slots, where each slot can hold a Python object:
                     </p>
-                    <div className="div-p mb-4">
+                    <div className="div-p mb-4 fix-animation">
                         <LineOfBoxesComponent array={this.state.numbers} />
                     </div>
                     <p>

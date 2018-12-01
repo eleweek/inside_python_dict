@@ -1036,7 +1036,7 @@ export class Tetris extends React.PureComponent {
         }
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style}>
-                <div>
+                <div className="fix-animation">
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
                         <div className="tetris-labels">{labels}</div>
