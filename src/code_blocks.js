@@ -257,7 +257,7 @@ class Box extends React.PureComponent {
         const {value, idx, status, extraStyleWhenAdding, removedOffset, createdOffset} = this.props;
         let yOffset = this.props.yOffset || 0;
 
-        let classes = ['box', 'box-animated'];
+        let classes = ['box', {'box-animated': status !== 'removed' && status !== 'created'}];
         let content;
         if (value != null) {
             const {shortenedValue, extraType} = this.shortDisplayedString(value);
@@ -284,12 +284,15 @@ class Box extends React.PureComponent {
         let extraStyle;
 
         switch (status) {
-            case 'removing':
+            case 'removed':
                 classes.push('box-removed');
+                break;
+            case 'removing':
+                classes.push('box-removing');
                 y = value != null ? yOffset - (removedOffset != null ? removedOffset : BOX_SIZE) : yOffset;
                 break;
             case 'created':
-                classes.push('box-just-added');
+                classes.push('box-created');
                 y = value != null ? yOffset - (createdOffset != null ? createdOffset : BOX_SIZE) : yOffset;
                 break;
             case 'adding':
@@ -367,7 +370,7 @@ class LineOfBoxesSelection extends React.PureComponent {
 class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1300
     // Because it seems to produce less "stupid" looking results
-    static ANIMATION_DURATION_TIMEOUT = 1300;
+    static ANIMATION_DURATION_TIMEOUT = 1100;
 
     constructor() {
         super();
@@ -394,16 +397,43 @@ class BaseBoxesComponent extends React.PureComponent {
         this.gcTimeout = null;
     }
 
+    static markRemoved(state) {
+        let updatedCount = 0;
+        let toMergeKeyBox = {};
+        let toMergeStatus = {};
+        for (const [key, modId] of state.keyModId.entries()) {
+            if (state.status.get(key) === 'removing' && modId <= state.gcModId) {
+                updatedCount++;
+                toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removed'});
+                toMergeStatus[key] = 'removed';
+            }
+        }
+        if (updatedCount > 0) {
+            console.log('BaseBoxesComponent.markRemoved() removed', updatedCount);
+            return {
+                status: state.status.merge(toMergeStatus),
+                keyBox: state.keyBox.merge(toMergeKeyBox),
+                needProcessCreatedAfterRender: true,
+            };
+        } else {
+            return null;
+        }
+    }
+
     // FIXME: this function
     // FIXME: you may not like it, but this is what peak engineering looks like
     static getDerivedStateFromProps(nextProps, state) {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
-        if (!state.firstRender) {
+        if (!state.firstRender && state.epoch != nextProps.epoch) {
             const gcState = BaseBoxesComponent.garbageCollect(state, state.gcModId);
             if (gcState) {
                 state = {...state, ...gcState};
             }
+        }
+
+        if (!state.firstRender) {
+            state = {...state, ...BaseBoxesComponent.markRemoved(state)};
         }
 
         const modificationId = state.modificationId + 1;
@@ -495,12 +525,18 @@ class BaseBoxesComponent extends React.PureComponent {
                             const box = state.keyBox.get(key);
                             // potential FIXME: does not compare someProps
                             if (status !== 'adding' || box.idx !== idx) {
+                                const oldModId = state.keyModId.get(key);
+                                const newStatus = status === 'removed' ? 'created' : 'adding';
+                                if (newStatus === 'created') {
+                                    console.log('REVIVED');
+                                    needProcessCreatedAfterRender = true;
+                                }
                                 toMergeKeyBox[key] = React.cloneElement(box, {
                                     idx,
-                                    status: 'adding',
+                                    status: newStatus,
                                     ...someProps,
                                 });
-                                toMergeStatus[key] = 'adding';
+                                toMergeStatus[key] = newStatus;
                                 toMergeKeyModId[key] = modificationId;
                                 BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                                     repr(value, true),
@@ -580,12 +616,20 @@ class BaseBoxesComponent extends React.PureComponent {
                         const box = keyToRecycledBox[key];
                         const keyId = box.key;
                         toMergeRemappedKeyId[key] = keyId;
+
+                        const oldModId = state.keyModId.get(key);
+                        const newStatus = status === 'removed' ? 'created' : 'adding';
+                        if (newStatus === 'created') {
+                            console.log('REVIVED');
+                            needProcessCreatedAfterRender = true;
+                        }
+
                         toMergeKeyBox[key] = React.cloneElement(box, {
                             idx: data.idx,
-                            status: 'adding',
+                            status: newStatus,
                             ...data.someProps,
                         });
-                        toMergeStatus[key] = 'adding';
+                        toMergeStatus[key] = newStatus;
                         toMergeKeyModId[key] = modificationId;
                         toMergeKeyToValueAndGroup[key] = {group: data.group, value: data.value};
                     } else {
@@ -624,6 +668,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                     keyToValueAndGroup: newKeyToValueAndGroup,
                     lastNextArrayPreConversion: nextArrayPreConversion,
+                    epoch: nextProps.epoch,
                 };
             }
         } else {
@@ -662,6 +707,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
                 removingValueToGroupToKeyToId: new ImmutableMap(),
                 lastNextArray: nextArray,
+                epoch: nextProps.epoch,
             };
         }
 
@@ -764,6 +810,7 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     static garbageCollect(state, targetModId) {
+        console.log('Boxes garbageCollect()', targetModId);
         const t1 = performance.now();
 
         const removed = [];
@@ -819,16 +866,22 @@ class BaseBoxesComponent extends React.PureComponent {
     updateModIdForGC = modId => {
         this.setState(state => {
             const gcModId = Math.max(state.gcModId, modId);
-            return {gcModId};
+            if (gcModId != state.gcModId) {
+                return {gcModId};
+            } else {
+                return null;
+            }
         });
     };
 
-    garbageCollectAfterAnimationDone = targetModId => {
+    // It is probably better to don't let unnecessary dom objects persist for too long
+    // But for now disabling, as this seems to make dragging the time slider faster
+    /*garbageCollectAfterAnimationDone = targetModId => {
         this.gcTimeout = null;
         this.setState(state => {
             return BaseBoxesComponent.garbageCollect(state, targetModId);
         });
-    };
+    };*/
 
     debugLogState() {
         BaseBoxesComponent.staticDebugLogState(this.state);
@@ -860,11 +913,11 @@ class BaseBoxesComponent extends React.PureComponent {
                 clearTimeout(this.gcTimeout);
             }
 
-            // It is probably better to don't let unnecessary dom objects persist for too long
-            this.gcTimeout = setTimeout(
-                () => this.garbageCollectAfterAnimationDone(currentModificationId),
-                BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
-            );
+            this.gcTimeout = setTimeout(() => {
+                this.setState(state => {
+                    return BaseBoxesComponent.markRemoved(state, currentModificationId);
+                });
+            }, BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT);
 
             // Also do clean up inside getDerivedStateFromProps()
             setTimeout(
@@ -985,6 +1038,7 @@ export class Tetris extends React.PureComponent {
                     array={deepGet(props.bp, dataName)}
                     idx={props.bp[idxName]}
                     idx2={props.bp[idx2Name]}
+                    epoch={props.epoch}
                     {...subProps}
                 />
             );
@@ -1484,6 +1538,7 @@ export class VisualizedCode extends React.Component {
             time: props.breakpoints.length - 1,
             userAdjustedToMax: true,
             isClient: false,
+            breakpointsUpdatedCounter: 0,
         };
         this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
     }
@@ -1502,6 +1557,7 @@ export class VisualizedCode extends React.Component {
                 ...state,
                 breakpoints: props.breakpoints,
                 time: props.breakpoints.length - 1,
+                breakpointsUpdatedCounter: state.breakpointsUpdatedCounter + 1,
             };
         } else {
             return null;
@@ -1566,6 +1622,7 @@ export class VisualizedCode extends React.Component {
                             this.props.breakpoints
                         }
                         bpIdx={time}
+                        epoch={this.state.breakpointsUpdatedCounter}
                     />
                     {this.props.comment}
                 </div>

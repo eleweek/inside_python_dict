@@ -142,7 +142,6 @@ div.hash-example-instance {
 }
 
 .box-animated {
-    /* transition-property: left,top,opacity,transform; */
     transition-property: opacity, transform;
     transition-duration: 1.3s;
     transition-timing-function: ease;
@@ -173,9 +172,15 @@ div.hash-example-instance {
     transition-timing-function: ease;
 }
 
-.box.box-just-added,
+.box.box-created,
+.box.box-removing,
 .box.box-removed {
     opacity: 0;
+}
+
+.box.box-removed,
+.box.box-created {
+    transition: none;
 }
 
 .highlight {
