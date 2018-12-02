@@ -364,7 +364,7 @@ class LineOfBoxesSelection extends React.PureComponent {
     }
 }
 
-class BaseBoxesComponent extends React.Component {
+class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1300
     // Because it seems to produce less "stupid" looking results
     static ANIMATION_DURATION_TIMEOUT = 1300;
@@ -392,10 +392,6 @@ class BaseBoxesComponent extends React.Component {
         };
         this.ref = React.createRef();
         this.gcTimeout = null;
-    }
-
-    shouldComponentUpdate() {
-        return this.state.shouldUpdate;
     }
 
     // FIXME: this function
@@ -627,7 +623,6 @@ class BaseBoxesComponent extends React.Component {
                     remappedKeyId: newRemappedKeyId,
                     removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                     keyToValueAndGroup: newKeyToValueAndGroup,
-                    shouldUpdate: true,
                     lastNextArrayPreConversion: nextArrayPreConversion,
                 };
             }
@@ -666,7 +661,6 @@ class BaseBoxesComponent extends React.Component {
                 remappedKeyId: new ImmutableMap(remappedKeyId),
                 keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
                 removingValueToGroupToKeyToId: new ImmutableMap(),
-                shouldUpdate: true,
                 lastNextArray: nextArray,
             };
         }
