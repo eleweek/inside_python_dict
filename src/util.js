@@ -78,19 +78,34 @@ export function MyErrorBoundary(props) {
     );
 }
 
+// TODO: This does not seem to be better than _.debounce(..., 0)
+// TODO: should probably get rid of this function and use debounce()
+function squashUpdates(func) {
+    let queue = [];
+    let epoch = 0;
+    return value => {
+        let currentEpoch = epoch;
+        queue.push(value);
+        setTimeout(() => {
+            if (queue.length > 0 && currentEpoch === epoch) {
+                func(queue[queue.length - 1]);
+                queue = [];
+                epoch++;
+            }
+        }, 0);
+    };
+}
+
 export class ChapterComponent extends React.Component {
     setterFuncs = {};
 
     setter(name, throttled = false) {
         if (!(name in this.setterFuncs)) {
-            const updateStateDebounced = _.debounce(value => this.setState({[name]: value}), 0);
-            const func = value => {
-                setTimeout(() => updateStateDebounced(value), 0);
-            };
+            const updateStateDebounced = squashUpdates(value => this.setState({[name]: value}));
             if (throttled) {
-                this.setterFuncs[name] = _.throttle(func, 75);
+                this.setterFuncs[name] = _.throttle(updateStateDebounced, 50);
             } else {
-                this.setterFuncs[name] = func;
+                this.setterFuncs[name] = updateStateDebounced;
             }
         }
         return this.setterFuncs[name];
