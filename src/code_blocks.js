@@ -1205,8 +1205,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 className="code-block-with-annotations-scrollbar-container"
             >
                 <div
-                    style={{maxHeight: this.props.height || 300, transform: 'translateZ(0)'}}
-                    className="code-block-with-annotations"
+                    style={{maxHeight: this.props.height || 300}}
+                    className="code-block-with-annotations fix-animation"
                 >
                     {lines}
                 </div>
@@ -1468,7 +1468,7 @@ class TimeSliderWithControls extends React.Component {
                         </div>
                     </div>
                 </div>
-                <div className="row slider-row">
+                <div className="row slider-row fix-animation">
                     <div className="col-md-6 col-sm-12">
                         <Slider
                             marks={marks}
@@ -1575,7 +1575,7 @@ export class VisualizedCode extends React.Component {
                         shortenedLabels={this.props.windowWidth && this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
                     />
-                    <div className="row code-block-row">
+                    <div className="row code-block-row fix-animation">
                         <div className="col">
                             <CodeBlockWithActiveLineAndAnnotations
                                 height={codeHeight}

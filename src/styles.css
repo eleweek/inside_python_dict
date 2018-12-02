@@ -272,8 +272,10 @@ div.slider-row {
     padding-bottom: 7px;
 }
 
+/* supposedly creates another layer */
 .fix-animation {
     transform: translateZ(0);
+    will-change: transform;
 }
 
 .tetris-row {
