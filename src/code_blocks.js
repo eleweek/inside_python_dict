@@ -1300,7 +1300,7 @@ class TimeSliderWithControls extends React.Component {
         this.stop();
         if (this.props.time > 0) {
             const newTime = this.props.time - 1;
-            this.props.handleTimeChange(newTime);
+            this.handleTimeChange(newTime);
         }
     };
 
@@ -1308,7 +1308,7 @@ class TimeSliderWithControls extends React.Component {
         this.stop();
         if (this.props.time < this.props.maxTime) {
             const newTime = this.props.time + 1;
-            this.props.handleTimeChange(newTime);
+            this.handleTimeChange(newTime);
         }
     };
 
