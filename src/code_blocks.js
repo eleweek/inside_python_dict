@@ -207,7 +207,6 @@ class ActiveBoxSelectionThrottled extends React.Component {
 function ActiveBoxSelection(props) {
     const isThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
 
-    const isDynamicDuration = getUxSettings().DYNAMIC_SELECTION_TRANSITION_DURATION;
     const Component = isThrottled ? ActiveBoxSelectionThrottled : ActiveBoxSelectionUnthrottled;
 
     return <Component {...props} transitionDuration={300} />;
@@ -1510,7 +1509,15 @@ export class VisualizedCode extends React.Component {
             isClient: false,
             breakpointsUpdatedCounter: 0,
         };
-        this.handleTimeChangeThrottled = _.throttle(this.handleTimeChange, getUxSettings().TIME_SLIDER_THROTTLE_TIME);
+        const throttleTime = getUxSettings().TIME_SLIDER_THROTTLE_TIME;
+        if (throttleTime != null) {
+            this.handleTimeChangeThrottled = _.throttle(
+                this.handleTimeChange,
+                getUxSettings().TIME_SLIDER_THROTTLE_TIME
+            );
+        } else {
+            this.handleTimeChangeThrottled = this.handleTimeChange;
+        }
     }
 
     handleTimeChange = time => {

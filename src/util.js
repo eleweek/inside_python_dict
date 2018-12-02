@@ -181,10 +181,9 @@ export class BootstrapAlert extends React.Component {
 }
 
 const defaultUxSettings = {
-    TIME_SLIDER_THROTTLE_TIME: 125,
+    TIME_SLIDER_THROTTLE_TIME: 50,
     CODE_SCROLL_DEBOUNCE_TIME: 300,
     THROTTLE_SELECTION_TRANSITIONS: true,
-    DYNAMIC_SELECTION_TRANSITION_DURATION: false,
 };
 
 export function initUxSettings() {
@@ -207,20 +206,17 @@ export function initUxSettings() {
         case 'yandexbrowser':
         case 'safari':
             // kind of ended up optimizing for chrome
-            settings.TIME_SLIDER_THROTTLE_TIME = 50;
+            settings.TIME_SLIDER_THROTTLE_TIME = null;
             settings.CODE_SCROLL_DEBOUNCE_TIME = 150;
-            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = true;
             break;
         case 'firefox':
-            settings.TIME_SLIDER_THROTTLE_TIME = 150;
+            settings.TIME_SLIDER_THROTTLE_TIME = null;
             // Firefox doesn't seems to tolerate auto-scrolling
             settings.CODE_SCROLL_DEBOUNCE_TIME = 200;
-            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = false;
             break;
         default:
             settings.TIME_SLIDER_THROTTLE_TIME = defaultUxSettings.TIME_SLIDER_THROTTLE_TIME;
             settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
-            settings.DYNAMIC_SELECTION_TRANSITION_DURATION = defaultUxSettings.DYNAMIC_SELECTION_TRANSITION_DURATION;
     }
 
     window.insidePythonDictUxSettings = settings;
