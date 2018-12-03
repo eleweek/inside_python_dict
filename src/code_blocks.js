@@ -148,7 +148,6 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
     }
 
     handleTransitionEnd = transitionId => {
-        console.log('handleTransitionEnd', this.props.propsId);
         this.props.onTransitionEnd(this.props.propsId);
     };
 
@@ -182,7 +181,6 @@ class SelectionGroup extends React.Component {
         const isSelectionThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
 
         const {idx, status} = this.state;
-        console.log('SG render', idx, status);
 
         const {individualSelectionsProps, ...restProps} = this.props;
         return individualSelectionsProps.map(extraProps => (
@@ -198,11 +196,9 @@ class SelectionGroup extends React.Component {
     }
 
     handleTransitionEnd = epoch => {
-        console.log('SG handleTransitionEnd', epoch, this.state.epoch, this.state.idx);
         if (epoch === this.state.epoch) {
             this.setState(state => {
                 if (state.transitionRunning) {
-                    console.log('setting transitionRunning to false');
                     return {transitionRunning: false};
                 } else {
                     return null;
@@ -226,14 +222,12 @@ class SelectionGroup extends React.Component {
         const currentEpoch = this.state.epoch;
         setTimeout(() => {
             if (currentEpoch === this.state.epoch) {
-                console.log('SG setTimeout transition');
                 this.handleTransitionEnd(currentEpoch);
             }
         }, this.TRANSITION_DURATION);
     }
 
     static getDerivedStateFromProps(props, state) {
-        console.log('SG gdsp', props, state);
         const isSelectionThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
         if (isSelectionThrottled) {
             if (!state.transitionRunning && (state.idx !== props.idx || state.status !== props.status)) {
@@ -245,7 +239,6 @@ class SelectionGroup extends React.Component {
                     transitionStarting: statusAllowsTransition,
                     epoch: state.epoch + 1,
                 };
-                console.log('SG newState', newState);
                 return newState;
             } else {
                 return null;
@@ -719,7 +712,6 @@ class BaseBoxesComponent extends React.PureComponent {
 
         // Can happen when there is no change between arrays
         if (newState == null) {
-            console.log('newState is null');
             newState = {...state};
         }
 
@@ -1216,13 +1208,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             visibleBreakpoints[bp.point] = bp;
         }
 
-        console.log('getVisibleBreakpoints timing', performance.now() - t1);
-
         return visibleBreakpoints;
     }
 
     render() {
-        console.log('CodeBlockWithActiveLineAndAnnotations render', this.props.height);
         let activeBp = this.props.breakpoints[this.props.time];
 
         const visibleBreakpoints = this.getVisibleBreakpoints(activeBp);
