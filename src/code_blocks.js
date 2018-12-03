@@ -135,25 +135,31 @@ class ActiveBoxSelectionThrottled extends React.Component {
             currentIdx: null,
             currentStatus: null,
         };
+        this.transitionId = 0;
     }
 
     handleRef = node => {
         this.node = node;
     };
 
+    static getDerivedStateFromProps(props, state) {
+        if (!state.transitionRunning && (state.idx !== props.idx || state.status !== props.status)) {
+            const statusAllowsTransition = state.status === 'adding' && props.status === 'adding';
+            return {
+                idx: props.idx,
+                status: props.status,
+                transitionRunning: statusAllowsTransition,
+                transitionStarting: statusAllowsTransition,
+            };
+        }
+    }
+
     shouldComponentUpdate() {
-        return !this.state.transitionRunning;
+        return !this.state.transitionRunning || this.state.transitionStarting;
     }
 
     render() {
-        let idx, status;
-        if (this.state.transitionRunning) {
-            idx = this.state.currentIdx;
-            status = this.state.currentStatus;
-        } else {
-            idx = this.props.idx;
-            status = this.props.status;
-        }
+        let {idx, status} = this.state;
         const extraClassName = this.props.extraClassName;
         const yOffset = this.props.yOffset;
         const color = this.props.color;
@@ -170,27 +176,42 @@ class ActiveBoxSelectionThrottled extends React.Component {
         );
     }
 
-    handleTransitionEnd = () => {
-        this.setState({
-            transitionRunning: false,
-        });
+    handleTransitionEnd = transitionId => {
+        console.log('handleTransitionEnd', transitionId);
+        if (transitionId === this.transitionId) {
+            this.setState(state => {
+                if (state.transitionRunning) {
+                    return {transitionRunning: false};
+                } else {
+                    return null;
+                }
+            });
+        }
     };
 
     componentDidUpdate() {
-        const targetIdx = this.props.idx;
-        const targetStatus = this.props.status;
-
-        if (
-            !this.state.transitionRunning &&
-            (this.state.currentIdx != targetIdx || this.state.currentStatus != targetStatus)
-        ) {
-            const statusAllowsTransition = targetStatus === 'adding' && this.state.currentStatus === 'adding';
-            this.setState({
-                transitionRunning: statusAllowsTransition && this.state.currentIdx != targetIdx,
-                currentIdx: targetIdx,
-                currentStatus: targetStatus,
+        if (this.state.transitionRunning) {
+            this.setState(state => {
+                return {
+                    transitionStarting: false,
+                };
             });
+            this.handleStartingTransition();
         }
+    }
+
+    handleStartingTransition() {
+        ++this.transitionId;
+        const currentTransitionId = this.transitionId;
+        const handleCurrentTransitionEnd = () => this.handleTransitionEnd(currentTransitionId);
+        this.node.addEventListener('transitionend', handleCurrentTransitionEnd, {
+            once: true,
+            capture: false,
+        });
+        setTimeout(() => {
+            console.log('setTimeout transition');
+            handleCurrentTransitionEnd();
+        }, this.props.transitionDuration);
     }
 
     componentDidMount() {
@@ -199,16 +220,12 @@ class ActiveBoxSelectionThrottled extends React.Component {
             currentIdx: this.props.idx,
             currentStatus: this.props.status,
         });
-
-        this.node.addEventListener('transitionend', this.handleTransitionEnd, false);
     }
 }
 
 function ActiveBoxSelection(props) {
     const isThrottled = getUxSettings().THROTTLE_SELECTION_TRANSITIONS;
-
     const Component = isThrottled ? ActiveBoxSelectionThrottled : ActiveBoxSelectionUnthrottled;
-
     return <Component {...props} transitionDuration={300} />;
 }
 
