@@ -9,6 +9,7 @@ import {
     randint,
     randomChoice,
     singularOrPlural,
+    fixFirstValues,
 } from './util';
 
 import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
@@ -639,17 +640,20 @@ export function anotherKey(pairs, ARRAY_CHANCE = 0.5, MEANINGFUL_CHANCE = 0.25, 
     }
 }
 
-export function generateNewKey(MEANINGFUL_CHANCE = 0.7, NUMBER_CHANCE = 0.2) {
-    const roll = Math.random();
+export const generateNewKey = fixFirstValues(
+    function generateNewKey(MEANINGFUL_CHANCE = 0.7, NUMBER_CHANCE = 0.2) {
+        const roll = Math.random();
 
-    if (roll < MEANINGFUL_CHANCE) {
-        return randomMeaningfulString();
-    } else if (roll < MEANINGFUL_CHANCE + NUMBER_CHANCE) {
-        return BigNumber(randint(-300, 300));
-    } else {
-        return randomString3len();
-    }
-}
+        if (roll < MEANINGFUL_CHANCE) {
+            return randomMeaningfulString();
+        } else if (roll < MEANINGFUL_CHANCE + NUMBER_CHANCE) {
+            return BigNumber(randint(-300, 300));
+        } else {
+            return randomString3len();
+        }
+    },
+    ['head', 'tail', 'tee', 'wc', 'bc', 'dc']
+);
 
 export function generateNonPresentKey(pySelf, getitem) {
     while (true) {

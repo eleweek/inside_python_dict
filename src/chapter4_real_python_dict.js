@@ -20,7 +20,6 @@ import {
     postBpTransform,
     findNearestSize,
     anotherKey,
-    generateNewKey,
     selectOrCreateResize,
     formatExtraPairs,
 } from './chapter3_and_4_common';

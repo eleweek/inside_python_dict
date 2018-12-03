@@ -307,3 +307,21 @@ export function randomString3len() {
 }
 
 export const isClient = process.env.NODE_ENV !== 'ssr';
+
+// This is useful for set first few values of a random()-like function
+// Useful for SSR
+export function fixFirstValues(func, values) {
+    let calledCounter = 0;
+    return function() {
+        let res;
+        if (calledCounter < values.length) {
+            res = values[calledCounter];
+        } else {
+            res = func();
+        }
+
+        calledCounter++;
+
+        return res;
+    };
+}

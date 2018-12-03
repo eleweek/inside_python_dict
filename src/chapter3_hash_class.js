@@ -29,7 +29,7 @@ import {
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
 import {BlockInputToolbar, PyDictInput, PySNNInput} from './inputs';
-import {ChapterComponent, singularOrPlural, Subcontainerize, DynamicP, OLIVE} from './util';
+import {ChapterComponent, singularOrPlural, Subcontainerize, DynamicP} from './util';
 
 import memoizeOne from 'memoize-one';
 
@@ -252,8 +252,9 @@ function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
     if (extraPairs === null) {
         p = (
             <p className="dynamic-p" key={`resize-${resizesCount}`}>
-                While elements were being inserted, {resizesCount} {singularOrPlural(resizesCount, 'resize', 'resizes')}{' '}
-                happened. Let's look at {resizesCount === 1 ? 'it' : 'the first resize'} in depth:
+                While elements were being inserted, {resizesCount === 1 ? 'a' : resizesCount}{' '}
+                {singularOrPlural(resizesCount, 'resize', 'resizes')} happened. Let's look at{' '}
+                {resizesCount === 1 ? 'it' : 'the first resize'} in depth:
             </p>
         );
     } else {
