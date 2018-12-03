@@ -1223,10 +1223,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 alwaysShowTracks={true}
                 className="code-block-with-annotations-scrollbar-container"
             >
-                <div
-                    style={{maxHeight: this.props.height || 300}}
-                    className="code-block-with-annotations fix-animation"
-                >
+                <div style={{maxHeight: this.props.height}} className="code-block-with-annotations fix-animation">
                     {lines}
                 </div>
             </SmoothScrollbar>
