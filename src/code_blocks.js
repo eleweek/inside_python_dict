@@ -420,6 +420,29 @@ class BaseBoxesComponent extends React.PureComponent {
         this.gcTimeout = null;
     }
 
+    static markRemoved(state) {
+        let updatedCount = 0;
+        let toMergeKeyBox = {};
+        let toMergeStatus = {};
+        for (const [key, modId] of state.keyModId.entries()) {
+            if (state.status.get(key) === 'removing' && modId <= state.gcModId) {
+                updatedCount++;
+                toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removed'});
+                toMergeStatus[key] = 'removed';
+            }
+        }
+        if (updatedCount > 0) {
+            console.log('BaseBoxesComponent.markRemoved() removed', updatedCount);
+            return {
+                status: state.status.merge(toMergeStatus),
+                keyBox: state.keyBox.merge(toMergeKeyBox),
+                needProcessCreatedAfterRender: true,
+            };
+        } else {
+            return null;
+        }
+    }
+
     // FIXME: this function
     // FIXME: you may not like it, but this is what peak engineering looks like
     static getDerivedStateFromProps(nextProps, state) {
@@ -430,6 +453,10 @@ class BaseBoxesComponent extends React.PureComponent {
             if (gcState) {
                 state = {...state, ...gcState};
             }
+        }
+
+        if (!state.firstRender) {
+            state = {...state, ...BaseBoxesComponent.markRemoved(state)};
         }
 
         const modificationId = state.modificationId + 1;
@@ -522,19 +549,17 @@ class BaseBoxesComponent extends React.PureComponent {
                             // potential FIXME: does not compare someProps
                             if (status !== 'adding' || box.idx !== idx) {
                                 const oldModId = state.keyModId.get(key);
-                                const newBoxStatus =
-                                    status === 'removing' && oldModId <= gcModId && value != null
-                                        ? 'created'
-                                        : 'adding';
-                                if (newBoxStatus === 'created') {
+                                const newStatus = status === 'removed' ? 'created' : 'adding';
+                                if (newStatus === 'created') {
+                                    console.log('REVIVED');
                                     needProcessCreatedAfterRender = true;
                                 }
                                 toMergeKeyBox[key] = React.cloneElement(box, {
                                     idx,
-                                    status: newBoxStatus,
+                                    status: newStatus,
                                     ...someProps,
                                 });
-                                toMergeStatus[key] = newBoxStatus;
+                                toMergeStatus[key] = newStatus;
                                 toMergeKeyModId[key] = modificationId;
                                 BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                                     repr(value, true),
@@ -613,20 +638,19 @@ class BaseBoxesComponent extends React.PureComponent {
                     if (key in keyToRecycledBox) {
                         const value = data.someProps.value;
                         const box = keyToRecycledBox[key];
-                        const boxStatus = newStatus.get(key);
                         const keyId = box.key;
                         toMergeRemappedKeyId[key] = keyId;
 
                         const oldModId = state.keyModId.get(key);
-                        const newBoxStatus =
-                            boxStatus === 'removing' && oldModId <= gcModId && value != null ? 'created' : 'adding';
-                        if (newBoxStatus === 'created') {
+                        const newStatus = status === 'removed' ? 'created' : 'adding';
+                        if (newStatus === 'created') {
+                            console.log('REVIVED');
                             needProcessCreatedAfterRender = true;
                         }
 
                         toMergeKeyBox[key] = React.cloneElement(box, {
                             idx: data.idx,
-                            status: newBoxStatus,
+                            status: newStatus,
                             ...data.someProps,
                         });
                         toMergeStatus[key] = newStatus;
@@ -908,9 +932,15 @@ class BaseBoxesComponent extends React.PureComponent {
             console.log(this.state);*/
             const currentModificationId = this.state.modificationId;
 
-            /*if (this.gcTimeout) {
+            if (this.gcTimeout) {
                 clearTimeout(this.gcTimeout);
-            }*/
+            }
+
+            this.gcTimeout = setTimeout(() => {
+                this.setState(state => {
+                    return BaseBoxesComponent.markRemoved(state, currentModificationId);
+                });
+            }, BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT);
 
             // Also do clean up inside getDerivedStateFromProps()
             setTimeout(

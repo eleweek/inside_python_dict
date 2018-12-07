@@ -172,10 +172,12 @@ div.hash-example-instance {
 }
 
 .box.box-created,
-.box.box-removing {
+.box.box-removing,
+.box.box-removed {
     opacity: 0;
 }
 
+.box.box-removed,
 .box.box-created {
     transition: none;
 }
