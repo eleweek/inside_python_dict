@@ -611,6 +611,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     if (key in keyToRecycledBox) {
+                        const value = data.someProps.value;
                         const box = keyToRecycledBox[key];
                         const boxStatus = newStatus.get(key);
                         const keyId = box.key;

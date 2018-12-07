@@ -433,13 +433,11 @@ export class Ops {
 }
 
 function anotherValue(array, RANDOM_NUMBER_CHANCE = 0.3) {
-    do {
-        if (Math.random() > RANDOM_NUMBER_CHANCE) {
-            return +randomChoice(array).toString();
-        } else {
-            return randint(Math.floor(-CHAPTER1_MAXNUM / 10), Math.floor(CHAPTER1_MAXNUM / 10));
-        }
-    } while (res === last);
+    if (Math.random() > RANDOM_NUMBER_CHANCE) {
+        return +randomChoice(array).toString();
+    } else {
+        return randint(Math.floor(-CHAPTER1_MAXNUM / 10), Math.floor(CHAPTER1_MAXNUM / 10));
+    }
 }
 
 export class Chapter1_SimplifiedHash extends ChapterComponent {
