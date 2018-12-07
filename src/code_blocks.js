@@ -339,7 +339,11 @@ class Box extends React.PureComponent {
 
         return (
             <div
-                style={{transform: computeBoxTransformProperty(this.props.idx, y), ...extraStyle}}
+                style={{
+                    transform:
+                        status !== 'removed' ? computeBoxTransformProperty(this.props.idx, y) : 'translate(0px, 0px)',
+                    ...extraStyle,
+                }}
                 className={classNames(classes)}
             >
                 {content}
@@ -409,6 +413,7 @@ class BaseBoxesComponent extends React.PureComponent {
             lastIdx: null,
             lastIdx2: null,
             needProcessCreatedAfterRender: false,
+            needReflow: false,
             firstRender: true,
             modificationId: 0,
             lastBoxId: 0,
@@ -436,7 +441,7 @@ class BaseBoxesComponent extends React.PureComponent {
             return {
                 status: state.status.merge(toMergeStatus),
                 keyBox: state.keyBox.merge(toMergeKeyBox),
-                needProcessCreatedAfterRender: true,
+                needReflow: true,
             };
         } else {
             return null;
@@ -519,6 +524,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
                 const newBox = (key, idx, someProps, group, value) => {
                     needProcessCreatedAfterRender = true;
+                    needReflow = true;
                     const keyId = (++lastBoxId).toString();
                     toMergeRemappedKeyId[key] = keyId;
                     toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
@@ -528,6 +534,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 };
 
                 let needProcessCreatedAfterRender = false;
+                let needReflow = false;
 
                 const t3 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before processing adding stage1', t3 - t2);
@@ -551,8 +558,8 @@ class BaseBoxesComponent extends React.PureComponent {
                                 const oldModId = state.keyModId.get(key);
                                 const newStatus = status === 'removed' ? 'created' : 'adding';
                                 if (newStatus === 'created') {
-                                    console.log('REVIVED');
                                     needProcessCreatedAfterRender = true;
+                                    needReflow = true;
                                 }
                                 toMergeKeyBox[key] = React.cloneElement(box, {
                                     idx,
@@ -644,8 +651,8 @@ class BaseBoxesComponent extends React.PureComponent {
                         const oldModId = state.keyModId.get(key);
                         const newStatus = status === 'removed' ? 'created' : 'adding';
                         if (newStatus === 'created') {
-                            console.log('REVIVED');
                             needProcessCreatedAfterRender = true;
+                            needReflow = true;
                         }
 
                         toMergeKeyBox[key] = React.cloneElement(box, {
@@ -684,6 +691,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     keyBox: newKeyBox,
                     keyModId: newKeyModId,
                     needProcessCreatedAfterRender: needProcessCreatedAfterRender,
+                    needReflow: needReflow,
                     needGarbageCollection: needGarbageCollection,
                     modificationId: modificationId,
                     gcModId: gcModId,
@@ -972,10 +980,22 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.state.needProcessCreatedAfterRender) {
-            const t1 = performance.now();
-            const node = this.ref.current;
+        console.log(this.context);
+        const node = this.ref.current;
+        if (this.state.needReflow) {
             reflow(node);
+            this.props.onExpectedWidthChange();
+            // check to prevent extra setState
+            if (!this.state.needProcessCreatedAfterRender) {
+                this.setState({
+                    needReflow: false,
+                });
+            }
+        }
+
+        if (this.state.needProcessCreatedAfterRender) {
+            reflow(node);
+            const t1 = performance.now();
 
             this.setState(state => {
                 const modificationId = state.modificationId + 1;
@@ -995,6 +1015,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     keyBox: state.keyBox.merge(new ImmutableMap(toMergeKeyBox)),
                     keyModId: state.keyModId.merge(toMergeKeyModId),
                     needProcessCreatedAfterRender: false,
+                    needReflow: false,
                     modificationId,
                 };
             });
@@ -1050,6 +1071,16 @@ export class Tetris extends React.PureComponent {
         );
     }
 
+    constructor() {
+        super();
+        this.scrollbarRef = React.createRef();
+    }
+
+    updateScrollbar = () => {
+        console.log(this.scrollbarRef.current);
+        this.scrollbarRef.current.scrollbar.update(false);
+    };
+
     render() {
         const props = this.props;
         let elems = [];
@@ -1058,6 +1089,7 @@ export class Tetris extends React.PureComponent {
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
+                    onExpectedWidthChange={this.updateScrollbar}
                     array={deepGet(props.bp, dataName)}
                     idx={props.bp[idxName]}
                     idx2={props.bp[idx2Name]}
@@ -1106,7 +1138,7 @@ export class Tetris extends React.PureComponent {
             style = {position: 'relative', top: -BOX_SIZE};
         }
         return (
-            <SmoothScrollbar alwaysShowTracks={true} style={style}>
+            <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
                 <div className="fix-animation">
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
