@@ -425,12 +425,16 @@ class BaseBoxesComponent extends React.PureComponent {
         this.gcTimeout = null;
     }
 
-    static markRemoved(state) {
+    static markRemoved(state, targetModId) {
         let updatedCount = 0;
         let toMergeKeyBox = {};
         let toMergeStatus = {};
+        let gcModId = state.gcModId;
+        if (targetModId) {
+            gcModId = Math.max(gcModId, targetModId);
+        }
         for (const [key, modId] of state.keyModId.entries()) {
-            if (state.status.get(key) === 'removing' && modId <= state.gcModId) {
+            if (state.status.get(key) === 'removing' && modId <= gcModId) {
                 updatedCount++;
                 toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removed'});
                 toMergeStatus[key] = 'removed';
@@ -442,6 +446,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 status: state.status.merge(toMergeStatus),
                 keyBox: state.keyBox.merge(toMergeKeyBox),
                 needReflow: true,
+                gcModId,
             };
         } else {
             return null;
@@ -461,7 +466,10 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         if (!state.firstRender) {
-            state = {...state, ...BaseBoxesComponent.markRemoved(state)};
+            const mrState = BaseBoxesComponent.markRemoved(state);
+            if (mrState) {
+                state = {...state, ...BaseBoxesComponent.markRemoved(state)};
+            }
         }
 
         const modificationId = state.modificationId + 1;
@@ -949,12 +957,6 @@ class BaseBoxesComponent extends React.PureComponent {
                     return BaseBoxesComponent.markRemoved(state, currentModificationId);
                 });
             }, BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT);
-
-            // Also do clean up inside getDerivedStateFromProps()
-            setTimeout(
-                () => this.updateModIdForGC(currentModificationId),
-                BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
-            );
         }
 
         const boxes = [];
