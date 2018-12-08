@@ -59,26 +59,11 @@ function GithubCorner() {
     );
 }
 
-class GithubForkMe extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            mounted: false,
-        };
-    }
-
-    render() {
-        if (this.state.mounted && this.props.windowWidth > 1150) {
-            return <GithubRibbon />;
-        } else {
-            return <GithubCorner />;
-        }
-    }
-
-    componentDidMount() {
-        this.setState({
-            mounted: true,
-        });
+function GithubForkMe({windowWidth}) {
+    if (windowWidth > 1150) {
+        return <GithubRibbon />;
+    } else {
+        return <GithubCorner />;
     }
 }
 
@@ -270,11 +255,13 @@ export class App extends React.Component {
         super();
         if (global.window) {
             this.state = {
+                mounted: false,
                 windowWidth: window.innerWidth,
                 windowHeight: window.innerHeight,
             };
         } else {
             this.state = {
+                mounted: false,
                 windowWidth: null,
                 windowHeight: null,
             };
@@ -297,6 +284,9 @@ export class App extends React.Component {
 
     componentDidMount() {
         window.addEventListener('resize', this.windowSizeChangeHandle);
+        this.setState({
+            mounted: true,
+        });
     }
 
     componentWillUnmount() {
@@ -307,7 +297,17 @@ export class App extends React.Component {
         console.log('App.render()');
         const contents = <Contents selectedChapterId={this.props.selectedChapterId} />;
         const independentContents = this.props.selectedChapterId === 'chapter1';
-        const {windowWidth, windowHeight} = this.state;
+        let windowWidth, windowHeight;
+
+        // Make sure SSR works
+        if (this.state.mounted) {
+            windowWidth = this.state.windowWidth;
+            windowHeight = this.state.windowHeight;
+        } else {
+            windowWidth = null;
+            windowHeight = null;
+        }
+
         let chapters = [];
         for (let [i, Chapter] of this.props.chapters.entries()) {
             chapters.push(
