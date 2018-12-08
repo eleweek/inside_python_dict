@@ -59,11 +59,26 @@ function GithubCorner() {
     );
 }
 
-function GithubForkMe({windowWidth}) {
-    if (windowWidth > 1150) {
-        return <GithubRibbon />;
-    } else {
-        return <GithubCorner />;
+class GithubForkMe extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            mounted: false,
+        };
+    }
+
+    render() {
+        if (this.state.mounted && this.props.windowWidth > 1150) {
+            return <GithubRibbon />;
+        } else {
+            return <GithubCorner />;
+        }
+    }
+
+    componentDidMount() {
+        this.setState({
+            mounted: true,
+        });
     }
 }
 

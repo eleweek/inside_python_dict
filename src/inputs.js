@@ -443,7 +443,6 @@ export class BlockInputToolbar extends React.Component {
                 height,
             });
         }
-        console.log('new height is', height);
     }
 
     componentDidMount() {

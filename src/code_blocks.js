@@ -1586,7 +1586,7 @@ export class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
             userAdjustedToMax: true,
-            isClient: false,
+            mounted: false,
             breakpointsUpdatedCounter: 0,
         };
         const throttleTime = getUxSettings().TIME_SLIDER_THROTTLE_TIME;
@@ -1623,7 +1623,7 @@ export class VisualizedCode extends React.Component {
 
     componentDidMount() {
         this.setState({
-            isClient: true,
+            mounted: true,
         });
     }
 
@@ -1631,7 +1631,7 @@ export class VisualizedCode extends React.Component {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
         let codeHeight;
-        if (this.props.windowHeight && this.state.isClient) {
+        if (this.props.windowHeight && this.state.mounted) {
             const approximateSliderAndControlsHeight = 100;
             // Hacky extraspace. Usually 135, but add some more
             // when play+speed controls and input toolbar get bigger height on narrower screen
@@ -1659,7 +1659,7 @@ export class VisualizedCode extends React.Component {
                     <TimeSliderWithControls
                         handleTimeChange={this.handleTimeChangeThrottled}
                         time={time}
-                        shortenedLabels={this.props.windowWidth && this.props.windowWidth < 600}
+                        shortenedLabels={!this.state.mounted && this.props.windowWidth && this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
                     />
                     <div className="row code-block-row fix-animation">
