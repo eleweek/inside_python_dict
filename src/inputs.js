@@ -179,7 +179,6 @@ class ParsableInputInline extends ParsableInputBase {
     static getDerivedStateFromProps(props, state) {
         // TODO: general equality comparison?
         if (state.value !== props.value) {
-            console.log('Updating inline input', state.value, props.value);
             return {
                 ...state,
                 value: props.value,

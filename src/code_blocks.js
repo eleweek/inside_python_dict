@@ -980,7 +980,6 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     componentDidUpdate() {
-        console.log(this.context);
         const node = this.ref.current;
         if (this.state.needReflow) {
             reflow(node);
@@ -994,7 +993,6 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         if (this.state.needProcessCreatedAfterRender) {
-            reflow(node);
             const t1 = performance.now();
 
             this.setState(state => {
@@ -1077,7 +1075,6 @@ export class Tetris extends React.PureComponent {
     }
 
     updateScrollbar = () => {
-        console.log(this.scrollbarRef.current);
         this.scrollbarRef.current.scrollbar.update(false);
     };
 
@@ -1235,7 +1232,6 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             throw new Error(`No line found corresponding to "${activeBp.point}`);
         }
 
-        console.log('getCodeWithExplanationHtmlLines timing', performance.now() - t1);
         return lines;
     }
 
