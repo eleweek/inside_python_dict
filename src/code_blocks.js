@@ -104,20 +104,20 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
         const animatedClass = 'active-box-selection-animated';
         let classes = ['active-box-selection', extraClassName, animatedClass];
 
-        let visibility;
+        let opacity;
         switch (status) {
             case 'removing':
-                visibility = 'hidden';
+                opacity = 0;
                 break;
             case 'created':
-                visibility = 'hidden';
+                opacity = 0;
                 break;
             case 'adding':
-                visibility = 'visible';
+                opacity = 1;
                 break;
         }
         const style = {
-            visibility: visibility,
+            opacity: opacity,
             transitionDuration: `${transitionDuration}ms`,
             borderColor: color,
             // TODO: the part after : is weird/wrong

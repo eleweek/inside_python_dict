@@ -167,7 +167,7 @@ div.hash-example-instance {
 }
 
 .active-box-selection-animated {
-    transition-property: transform;
+    transition-property: opacity, transform;
     transition-timing-function: ease;
 }
 
