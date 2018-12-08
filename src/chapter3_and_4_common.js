@@ -414,7 +414,7 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
 
             this.addBP('resize');
         }
-        this.addBP('done-no-return');
+        // this.addBP('done-no-return');
         return this.self;
     }
 
@@ -514,7 +514,6 @@ export class HashClassInsertAll extends HashBreakpointFunction {
     run(_self, _pairs, useRecycling, SetItem, Resize, optimalSizeQuot) {
         this.self = _self;
         this.pairs = _pairs;
-        let bps = [];
         for ([this.oldIdx, [this.oldKey, this.oldValue]] of this.pairs.entries()) {
             this.addBP('for-pairs');
             this.addBP('run-setitem');
@@ -527,9 +526,9 @@ export class HashClassInsertAll extends HashBreakpointFunction {
             if (hcsi.getResize()) {
                 this._resizes.push(hcsi.getResize());
             }
-            bps.push(hcsi.getBreakpoints());
+            this._breakpoints.push(hcsi.getBreakpoints());
         }
-        this._breakpoints = _.flatten(bps);
+        this._breakpoints = _.flatten(this._breakpoints);
         return this.self;
     }
 

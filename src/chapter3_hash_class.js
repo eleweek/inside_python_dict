@@ -56,11 +56,13 @@ export class AlmostPythonDict {
         ie.setExtraBpContext({pairs});
         let pySelf = ie.run(null, pairs.length);
         let bp = ie.getBreakpoints();
+        console.log('f0', bp);
 
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
             pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
             bp = [...bp, ...ia.getBreakpoints()];
+            console.log('f1', bp);
             const resizes = ia.getResizes();
 
             return {pySelf, resizes: resizes, bp: bp};
@@ -136,24 +138,24 @@ export const HASH_CLASS_SETITEM_SIMPLIFIED_CODE = [
     ['    self.slots[idx] = Slot(hash_code, key, value)', 'assign-slot', 1],
     ['    if self.fill * 3 >= len(self.slots) * 2:', 'check-resize', 1],
     ['        self.resize()', 'resize', 1],
-    ['', 'done-no-return', 0],
+    ['', 'done-no-return', 1],
 ];
 
 export const HASH_CLASS_INIT_CODE = [
     ['def __init__(self, pairs=None):', 'start-execution', 0],
-    ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 1],
-    ['    self.fill = 0', 'init-fill', 1],
-    ['    self.used = 0', 'init-used', 1],
-    ['    if pairs:', 'check-pairs', 1],
+    ['    self.slots = [Slot() for _ in range(8)]', 'init-slots', 0],
+    ['    self.fill = 0', 'init-fill', 0],
+    ['    self.used = 0', 'init-used', 0],
+    ['    if pairs:', 'check-pairs', 0],
     ['        for k, v in pairs:', 'for-pairs', 1],
-    ['            self[k] = v', 'run-setitem', 2],
+    ['            self[k] = v', 'run-setitem', 1],
     ['', ''],
 ];
 
 const HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE = [...HASH_CLASS_INIT_CODE, ...HASH_CLASS_SETITEM_SIMPLIFIED_CODE];
 
 export const HASH_CLASS_SETITEM_RECYCLING_CODE = [
-    ['def __setitem__(self, key, value):', 'start-execution', 0],
+    ['def __setitem__(self, key, value):', 'start-execution-setitem', 0],
     ['    hash_code = hash(key)', 'compute-hash', 1],
     ['    idx = hash_code % len(self.slots)', 'compute-idx', 1],
     ['    target_idx = None', 'target-idx-none', 1],
@@ -177,7 +179,7 @@ export const HASH_CLASS_SETITEM_RECYCLING_CODE = [
     ['    self.slots[target_idx] = Slot(hash_code, key, value)', 'assign-slot', 1],
     ['    if self.fill * 3 >= len(self.slots) * 2:', 'check-resize', 1],
     ['        self.resize()', 'resize', 1],
-    ['', 'done-no-return', 0],
+    ['', 'done-no-return', 1],
 ];
 
 export const HASH_CLASS_RESIZE_CODE = [
