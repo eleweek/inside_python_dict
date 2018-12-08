@@ -293,7 +293,7 @@ export class BreakpointFunction {
         for (let key in this) {
             if (key[0] !== '_') {
                 const value = this[key];
-                if (value !== undefined) {
+                if (value !== undefined && typeof value !== 'function') {
                     bp[key] = value;
                 }
             }
