@@ -56,13 +56,11 @@ export class AlmostPythonDict {
         ie.setExtraBpContext({pairs});
         let pySelf = ie.run(null, pairs.length);
         let bp = ie.getBreakpoints();
-        console.log('f0', bp);
 
         if (pairs && pairs.length > 0) {
             const ia = new HashClassInsertAll();
             pySelf = ia.run(pySelf, pairs, false, HashClassSetItem, HashClassResize, 2);
             bp = [...bp, ...ia.getBreakpoints()];
-            console.log('f1', bp);
             const resizes = ia.getResizes();
 
             return {pySelf, resizes: resizes, bp: bp};

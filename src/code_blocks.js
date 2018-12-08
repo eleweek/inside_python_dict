@@ -807,7 +807,14 @@ class BaseBoxesComponent extends React.PureComponent {
         newState.activeBoxSelection1 = activeBoxSelection1;
         newState.activeBoxSelection2 = activeBoxSelection2;
 
-        console.log('BaseBoxesComponent.getDerivedStateFromProps timing', performance.now() - t1);
+        const totalTiming = performance.now() - t1;
+        if (typeof window !== 'undefined') {
+            if (!('bbTiming' in window)) {
+                window.bbTiming = 0;
+            }
+            window.bbTiming += totalTiming;
+        }
+        console.log('BaseBoxesComponent.getDerivedStateFromProps timing', totalTiming);
         return newState;
     }
 
