@@ -34,7 +34,12 @@ import {faFastForward} from '@fortawesome/free-solid-svg-icons/faFastForward';
 import {faFastBackward} from '@fortawesome/free-solid-svg-icons/faFastBackward';
 import {faPause} from '@fortawesome/free-solid-svg-icons/faPause';
 import {faRedoAlt} from '@fortawesome/free-solid-svg-icons/faRedoAlt';
-import {List as ImmutableList, Map as ImmutableMap, fromJS as immutableFromJS} from 'immutable';
+import {
+    List as ImmutableList,
+    Map as ImmutableMap,
+    fromJS as immutableFromJS,
+    Record as ImmutableRecord,
+} from 'immutable';
 
 library.add(faPlay);
 library.add(faStepForward);
@@ -394,6 +399,8 @@ class LineOfBoxesSelection extends React.PureComponent {
     }
 }
 
+const BBRecord = ImmutableRecord({status: null, modId: null, box: null, value: null, group: null, id: null, idx: null});
+
 class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1300
     // Because it seems to produce less "stupid" looking results
@@ -403,9 +410,7 @@ class BaseBoxesComponent extends React.PureComponent {
         super();
 
         this.state = {
-            status: null,
-            keyModId: null,
-            keyBox: null,
+            keyData: null,
             activeBoxSelection1: null,
             activeBoxSelection1status: null,
             activeBoxSelection2: null,
@@ -417,9 +422,7 @@ class BaseBoxesComponent extends React.PureComponent {
             firstRender: true,
             modificationId: 0,
             lastBoxId: 0,
-            remappedKeyId: null,
             removingValueToGroupToKeyToId: null,
-            keyToValueAndGroup: null,
         };
         this.ref = React.createRef();
         this.gcTimeout = null;
@@ -427,24 +430,24 @@ class BaseBoxesComponent extends React.PureComponent {
 
     static markRemoved(state, targetModId) {
         let updatedCount = 0;
-        let toMergeKeyBox = {};
-        let toMergeStatus = {};
+        let toMerge = {};
         let gcModId = state.gcModId;
         if (targetModId) {
             gcModId = Math.max(gcModId, targetModId);
         }
-        for (const [key, modId] of state.keyModId.entries()) {
-            if (state.status.get(key) === 'removing' && modId <= gcModId) {
+        for (const [key, data] of state.keyData.entries()) {
+            if (data.status === 'removing' && data.modId <= gcModId) {
                 updatedCount++;
-                toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removed'});
-                toMergeStatus[key] = 'removed';
+                toMerge[key] = {
+                    box: React.cloneElement(data.box, {status: 'removed'}),
+                    status: 'removed',
+                };
             }
         }
         if (updatedCount > 0) {
             console.log('BaseBoxesComponent.markRemoved() removed', updatedCount);
             return {
-                status: state.status.merge(toMergeStatus),
-                keyBox: state.keyBox.merge(toMergeKeyBox),
+                keyData: state.keyData.mergeDeep(toMerge),
                 needReflow: true,
                 gcModId,
             };
@@ -503,27 +506,22 @@ class BaseBoxesComponent extends React.PureComponent {
                 const nextArrayKeys = nextProps.getKeys(nextArray);
 
                 let newRemovingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
-                let toMergeStatus = {};
-                let toMergeKeyBox = {};
-                let toMergeKeyModId = {};
-                let toMergeRemappedKeyId = {};
-                let toMergeKeyToValueAndGroup = {};
+                let toMerge = {};
 
                 let nextKeysSet = new Set(_.flatten(nextArrayKeys));
 
                 let needGarbageCollection = false;
-                for (let key of state.keyBox.keys()) {
+                for (let [key, oldData] of state.keyData.entries()) {
                     if (!nextKeysSet.has(key)) {
-                        const status = state.status.get(key);
+                        const group = oldData.group;
+                        const value = oldData.value;
+                        const status = oldData.status;
                         if (status !== 'removing' && status !== 'removed') {
-                            toMergeStatus[key] = 'removing';
-                            toMergeKeyModId[key] = modificationId;
-                            toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
-                            const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                            const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                            const box = React.cloneElement(oldData.box, {status: 'removing'});
+                            toMerge[key] = {status: 'removing', modId: modificationId, box};
                             newRemovingValueToGroupToKeyToId.setIn([repr(value, true), group, key], {
-                                id: state.remappedKeyId.get(key),
-                                idx: toMergeKeyBox[key].props.idx,
+                                id: oldData.id,
+                                idx: oldData.idx,
                             });
                             needGarbageCollection = true;
                         }
@@ -533,12 +531,9 @@ class BaseBoxesComponent extends React.PureComponent {
                 const newBox = (key, idx, someProps, group, value) => {
                     needProcessCreatedAfterRender = true;
                     needReflow = true;
-                    const keyId = (++lastBoxId).toString();
-                    toMergeRemappedKeyId[key] = keyId;
-                    toMergeKeyBox[key] = <Box idx={idx} status="created" key={keyId} {...someProps} />;
-                    toMergeStatus[key] = 'created';
-                    toMergeKeyModId[key] = modificationId;
-                    toMergeKeyToValueAndGroup[key] = {group, value};
+                    const id = (++lastBoxId).toString();
+                    const box = <Box idx={idx} status="created" key={id} {...someProps} />;
+                    toMerge[key] = new BBRecord({status: 'created', id, box, modId: modificationId, group, value, idx});
                 };
 
                 let needProcessCreatedAfterRender = false;
@@ -552,30 +547,36 @@ class BaseBoxesComponent extends React.PureComponent {
                     const idxBoxesProps = boxFactory(keys, nextArray[idx]);
                     for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                         const value = someProps.value;
-                        const status = state.status.get(key);
-                        if (!status) {
+
+                        const oldData = state.keyData.get(key);
+
+                        if (!oldData) {
                             if (value != null) {
                                 notExistingKeyToData[key] = {value, group, idx, someProps};
                             } else {
                                 newBox(key, idx, someProps, group, value);
                             }
                         } else {
-                            const box = state.keyBox.get(key);
+                            const status = oldData.status;
                             // potential FIXME: does not compare someProps
-                            if (status !== 'adding' || box.idx !== idx) {
-                                const oldModId = state.keyModId.get(key);
+                            if (status !== 'adding' || oldData.idx !== idx) {
+                                const box = oldData.box;
                                 const newStatus = status === 'removed' ? 'created' : 'adding';
                                 if (newStatus === 'created') {
                                     needProcessCreatedAfterRender = true;
                                     needReflow = true;
                                 }
-                                toMergeKeyBox[key] = React.cloneElement(box, {
+                                const newBox = React.cloneElement(box, {
                                     idx,
                                     status: newStatus,
                                     ...someProps,
                                 });
-                                toMergeStatus[key] = newStatus;
-                                toMergeKeyModId[key] = modificationId;
+                                toMerge[key] = {
+                                    box: newBox,
+                                    status: newStatus,
+                                    modId: modificationId,
+                                    idx,
+                                };
                                 BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                                     repr(value, true),
                                     group,
@@ -593,7 +594,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     let keyWithRecycledId;
                     if (keyToId.size > 1) {
                         for (let [key, {idx: otherIdx}] of keyToId.entries()) {
-                            // TODO: the best value could probably be selected based as argmin |otherIdx - idx|
+                            // TODO: the best value could probably be selected based as argmin(abs(otherIdx - idx))
                             // TODO: but for now this feels good enough, since it does not swap two boxes with the same value
                             if (otherIdx === idx) {
                                 keyWithRecycledId = key;
@@ -604,7 +605,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     if (keyWithRecycledId == null) {
                         keyWithRecycledId = keyToId.keySeq().first();
                     }
-                    keyToRecycledBox[key] = state.keyBox.get(keyWithRecycledId);
+                    keyToRecycledBox[key] = state.keyData.get(keyWithRecycledId).box;
                     BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                         repr(value, true),
                         groupOfKeyToId,
@@ -642,35 +643,34 @@ class BaseBoxesComponent extends React.PureComponent {
                 const t6 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before processing recycling 3', t6 - t5);
 
-                let newKeyBox = state.keyBox;
-                let newStatus = state.status;
-                let newKeyModId = state.keyModId;
-                let newRemappedKeyId = state.remappedKeyId;
-                let newKeyToValueAndGroup = state.keyToValueAndGroup;
-
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     if (key in keyToRecycledBox) {
                         const value = data.someProps.value;
                         const box = keyToRecycledBox[key];
-                        const keyId = box.key;
-                        toMergeRemappedKeyId[key] = keyId;
+                        const id = box.key;
+                        const idx = data.idx;
 
-                        const oldModId = state.keyModId.get(key);
                         const newStatus = status === 'removed' ? 'created' : 'adding';
                         if (newStatus === 'created') {
                             needProcessCreatedAfterRender = true;
                             needReflow = true;
                         }
 
-                        toMergeKeyBox[key] = React.cloneElement(box, {
-                            idx: data.idx,
+                        const newBox = React.cloneElement(box, {
+                            idx: idx,
                             status: newStatus,
                             ...data.someProps,
                         });
-                        toMergeStatus[key] = newStatus;
-                        toMergeKeyModId[key] = modificationId;
-                        toMergeKeyToValueAndGroup[key] = {group: data.group, value: data.value};
+                        toMerge[key] = new BBRecord({
+                            box: newBox,
+                            idx,
+                            id,
+                            status: newStatus,
+                            modId: modificationId,
+                            group: data.group,
+                            value: data.value,
+                        });
                     } else {
                         newBox(key, data.idx, data.someProps, data.group, data.value);
                     }
@@ -679,73 +679,49 @@ class BaseBoxesComponent extends React.PureComponent {
                 console.log('BaseBoxesComponent::gdsp before merging', t7 - t6);
 
                 // Necessary to convert to ImmutableMap otherwise it does weird deep merge
-                newKeyBox = state.keyBox.merge(new ImmutableMap(toMergeKeyBox));
-                newStatus = state.status.merge(toMergeStatus);
-                newKeyModId = state.keyModId.merge(toMergeKeyModId);
-                newRemappedKeyId = state.remappedKeyId.merge(toMergeRemappedKeyId);
-                newKeyToValueAndGroup = state.keyToValueAndGroup.merge(toMergeKeyToValueAndGroup);
-
-                newStatus = newStatus.deleteAll(instaRemovedKeys);
-                newKeyModId = newKeyModId.deleteAll(instaRemovedKeys);
-                newKeyBox = newKeyBox.deleteAll(instaRemovedKeys);
-                newRemappedKeyId = newRemappedKeyId.deleteAll(instaRemovedKeys);
-                newKeyToValueAndGroup = newKeyToValueAndGroup.deleteAll(instaRemovedKeys);
+                let newKeyData = state.keyData.mergeDeep(toMerge);
+                newKeyData = newKeyData.deleteAll(instaRemovedKeys);
                 const t8 = performance.now();
                 console.log('BaseBoxesComponent::gdsp after merging', t8 - t7);
 
                 newState = {
+                    keyData: newKeyData,
+                    removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
                     firstRender: false,
-                    status: newStatus,
-                    keyBox: newKeyBox,
-                    keyModId: newKeyModId,
                     needProcessCreatedAfterRender: needProcessCreatedAfterRender,
                     needReflow: needReflow,
                     needGarbageCollection: needGarbageCollection,
                     modificationId: modificationId,
                     gcModId: gcModId,
                     lastBoxId: lastBoxId,
-                    remappedKeyId: newRemappedKeyId,
-                    removingValueToGroupToKeyToId: newRemovingValueToGroupToKeyToId.asImmutable(),
-                    keyToValueAndGroup: newKeyToValueAndGroup,
                     lastNextArrayPreConversion: nextArrayPreConversion,
                     epoch: nextProps.epoch,
                 };
             }
         } else {
             convertNextArray();
-            let status = {};
-            let keyModId = {};
-            let keyBox = {};
-            let remappedKeyId = {};
+            let keyData = {};
             let arrayBoxKeys = nextProps.getKeys(nextArray);
-            let keyToValueAndGroup = {};
             for (let idx = 0; idx < nextArray.length; ++idx) {
                 const keys = arrayBoxKeys[idx];
                 const idxBoxesProps = boxFactory(keys, nextArray[idx]);
                 for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                     const value = someProps.value;
-                    const keyId = (++lastBoxId).toString();
-                    remappedKeyId[key] = keyId;
-                    status[key] = 'adding';
-                    keyModId[key] = modificationId;
-                    keyBox[key] = <Box idx={idx} key={keyId} status="adding" {...someProps} />;
-                    keyToValueAndGroup[key] = {group, value};
+                    const id = (++lastBoxId).toString();
+                    const box = <Box idx={idx} key={id} status="adding" {...someProps} />;
+                    keyData[key] = new BBRecord({status: 'adding', modId: modificationId, box, id, group, value});
                 }
             }
 
             newState = {
+                keyData: new ImmutableMap(keyData),
+                removingValueToGroupToKeyToId: new ImmutableMap(),
                 firstRender: false,
-                status: new ImmutableMap(status),
-                keyBox: new ImmutableMap(keyBox),
-                keyModId: new ImmutableMap(keyModId),
                 needProcessCreatedAfterRender: false,
                 needGarbageCollection: false,
                 gcModId: -1,
                 modificationId: modificationId,
                 lastBoxId: lastBoxId,
-                remappedKeyId: new ImmutableMap(remappedKeyId),
-                keyToValueAndGroup: immutableFromJS(keyToValueAndGroup),
-                removingValueToGroupToKeyToId: new ImmutableMap(),
                 lastNextArray: nextArray,
                 epoch: nextProps.epoch,
             };
@@ -854,8 +830,8 @@ class BaseBoxesComponent extends React.PureComponent {
 
         const removed = [];
 
-        for (const [key, modId] of state.keyModId.entries()) {
-            if (state.status.get(key) === 'removing' && modId <= targetModId) {
+        for (const [key, data] of state.keyData.entries()) {
+            if (data.status === 'removing' && data.modId <= targetModId) {
                 removed.push(key);
             }
         }
@@ -867,30 +843,20 @@ class BaseBoxesComponent extends React.PureComponent {
 
         let newState = null;
         if (removed.length > 0) {
-            let {status, keyBox, keyModId, remappedKeyId, keyToValueAndGroup, removingValueToGroupToKeyToId} = state;
-
+            let {keyData, removingValueToGroupToKeyToId} = state;
             removingValueToGroupToKeyToId = removingValueToGroupToKeyToId.asMutable();
 
             for (let key of removed) {
-                const value = state.keyToValueAndGroup.getIn([key, 'value']);
-                const group = state.keyToValueAndGroup.getIn([key, 'group']);
+                const valueAndGroup = state.keyToValueAndGroup.get(key);
+                const value = valueAndGroup.get('value');
+                const group = groupAndGroup.get('group');
 
                 BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
             }
 
-            status = status.deleteAll(removed);
-            keyModId = keyModId.deleteAll(removed);
-            keyBox = keyBox.deleteAll(removed);
-            remappedKeyId = remappedKeyId.deleteAll(removed);
-            keyToValueAndGroup = keyToValueAndGroup.deleteAll(removed);
-
             newState = {
-                status,
-                keyBox,
-                keyModId,
-                remappedKeyId,
+                keyData: state.keyData.deleteAll(removed),
                 removingValueToGroupToKeyToId: removingValueToGroupToKeyToId.asImmutable(),
-                keyToValueAndGroup,
                 needGarbageCollection: false,
             };
         }
@@ -901,17 +867,6 @@ class BaseBoxesComponent extends React.PureComponent {
 
         return newState;
     }
-
-    updateModIdForGC = modId => {
-        this.setState(state => {
-            const gcModId = Math.max(state.gcModId, modId);
-            if (gcModId != state.gcModId) {
-                return {gcModId};
-            } else {
-                return null;
-            }
-        });
-    };
 
     // It is probably better to don't let unnecessary dom objects persist for too long
     // But for now disabling, as this seems to make dragging the time slider faster
@@ -960,8 +915,8 @@ class BaseBoxesComponent extends React.PureComponent {
         }
 
         const boxes = [];
-        for (let key of this.state.keyBox.keys()) {
-            boxes.push(this.state.keyBox.get(key));
+        for (let key of this.state.keyData.keys()) {
+            boxes.push(this.state.keyData.get(key).box);
         }
         boxes.sort((b1, b2) => (b1.key > b2.key ? 1 : b1.key < b2.key ? -1 : 0));
         // console.log('BaseBoxesComponent rendered', boxes);
@@ -1000,20 +955,18 @@ class BaseBoxesComponent extends React.PureComponent {
             this.setState(state => {
                 const modificationId = state.modificationId + 1;
 
-                let toMergeStatus = {};
-                let toMergeKeyBox = {};
-                let toMergeKeyModId = {};
-                for (let [key, status] of state.status.entries()) {
-                    if (status === 'created') {
-                        toMergeStatus[key] = 'adding';
-                        toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'adding'});
-                        toMergeKeyModId[key] = modificationId;
+                let toMerge = {};
+                for (let [key, oldData] of state.keyData.entries()) {
+                    if (oldData.status === 'created') {
+                        toMerge[key] = {
+                            status: 'adding',
+                            box: React.cloneElement(oldData.box, {status: 'adding'}),
+                            modId: modificationId,
+                        };
                     }
                 }
                 return {
-                    status: state.status.merge(toMergeStatus),
-                    keyBox: state.keyBox.merge(new ImmutableMap(toMergeKeyBox)),
-                    keyModId: state.keyModId.merge(toMergeKeyModId),
+                    keyData: state.keyData.mergeDeep(toMerge),
                     needProcessCreatedAfterRender: false,
                     needReflow: false,
                     modificationId,
