@@ -507,7 +507,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (let key of state.keyBox.keys()) {
                     if (!nextKeysSet.has(key)) {
                         const status = state.status.get(key);
-                        if (status !== 'removing') {
+                        if (status !== 'removing' && status !== 'removed') {
                             toMergeStatus[key] = 'removing';
                             toMergeKeyModId[key] = modificationId;
                             toMergeKeyBox[key] = React.cloneElement(state.keyBox.get(key), {status: 'removing'});
