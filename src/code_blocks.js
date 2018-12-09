@@ -461,6 +461,9 @@ class BaseBoxesComponent extends React.PureComponent {
     static getDerivedStateFromProps(nextProps, state) {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
+
+        // Epoch changes when the main "toolbar input changes". It is a hack to make dragging sliders work better
+        // Re-using old boxes rather than creating new ones seems to work better in most browsers (and much better in firefox)
         if (!state.firstRender && state.epoch != nextProps.epoch) {
             const gcState = BaseBoxesComponent.garbageCollect(state, state.gcModId);
             if (gcState) {
@@ -468,6 +471,7 @@ class BaseBoxesComponent extends React.PureComponent {
             }
         }
 
+        // Some boxes are already timed out, so mark them as such
         if (!state.firstRender) {
             const mrState = BaseBoxesComponent.markRemoved(state);
             if (mrState) {
@@ -511,12 +515,14 @@ class BaseBoxesComponent extends React.PureComponent {
                 let nextKeysSet = new Set(_.flatten(nextArrayKeys));
 
                 let needGarbageCollection = false;
+                // First check boxes that will be removed
+                // FIXME: some are already removed, it might be a good idea to maintain a list of "present" boxes
                 for (let [key, oldData] of state.keyData.entries()) {
                     if (!nextKeysSet.has(key)) {
-                        const group = oldData.group;
-                        const value = oldData.value;
                         const status = oldData.status;
                         if (status !== 'removing' && status !== 'removed') {
+                            const group = oldData.group;
+                            const value = oldData.value;
                             const box = React.cloneElement(oldData.box, {status: 'removing'});
                             toMerge[key] = {status: 'removing', modId: modificationId, box};
                             newRemovingValueToGroupToKeyToId.setIn([repr(value, true), group, key], {
@@ -551,15 +557,23 @@ class BaseBoxesComponent extends React.PureComponent {
                         const oldData = state.keyData.get(key);
 
                         if (!oldData) {
+                            // if box does not exist at all
+                            // Then there are two options
                             if (value != null) {
+                                // There may be an opportunity to recycle non-empty boxes
                                 notExistingKeyToData[key] = {value, group, idx, someProps};
                             } else {
+                                // But empty boxes should be recreated. It may make sense to recycle
+                                // non-empty boxes as well, but in the current explanation there are no patterns
+                                // where it'd help (empty box keys are very regular and have index in it)
                                 newBox(key, idx, someProps, group, value);
                             }
                         } else {
+                            // if box already exists
                             const status = oldData.status;
-                            // potential FIXME: does not compare someProps
+                            // potential FIXME: does not compare someProps, may not update boxes if someProps become more important
                             if (status !== 'adding' || oldData.idx !== idx) {
+                                // Box is changed, time to update it
                                 const box = oldData.box;
                                 const newStatus = status === 'removed' ? 'created' : 'adding';
                                 if (newStatus === 'created') {
@@ -616,6 +630,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
                 const t4 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before processing recycling 1', t4 - t3);
+                // Do a first pass and attempt to recycle boxes in the same row
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     const potentialKeyToId = newRemovingValueToGroupToKeyToId.getIn([
@@ -629,6 +644,7 @@ class BaseBoxesComponent extends React.PureComponent {
 
                 const t5 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before processing recycling 2', t5 - t4);
+                // Do a second pass and attempt to recycle boxes in other rows
                 for (let key in notExistingKeyToData) {
                     if (key in keyToRecycledBox) {
                         continue;
@@ -649,6 +665,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
                     if (key in keyToRecycledBox) {
+                        // if found a recycled box
                         const value = data.someProps.value;
                         const box = keyToRecycledBox[key];
                         const id = box.key;
@@ -675,13 +692,13 @@ class BaseBoxesComponent extends React.PureComponent {
                             value: data.value,
                         });
                     } else {
+                        // if no recycled box found, then just create a new box
                         newBox(key, data.idx, data.someProps, data.group, data.value);
                     }
                 }
                 const t7 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before merging', t7 - t6);
 
-                // Necessary to convert to ImmutableMap otherwise it does weird deep merge
                 let newKeyData = state.keyData.mergeDeep(toMerge);
                 newKeyData = newKeyData.deleteAll(instaRemovedKeys);
                 const t8 = performance.now();
