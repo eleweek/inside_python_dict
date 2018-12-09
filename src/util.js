@@ -309,8 +309,9 @@ export class BootstrapAlert extends React.Component {
 
 const defaultUxSettings = {
     TIME_SLIDER_THROTTLE_TIME: 50,
-    CODE_SCROLL_DEBOUNCE_TIME: 300,
+    CODE_SCROLL_DEBOUNCE_TIME: 200,
     THROTTLE_SELECTION_TRANSITIONS: true,
+    MAX_CODE_PLAY_SPEED: 8,
 };
 
 export function initUxSettings() {
@@ -320,7 +321,7 @@ export function initUxSettings() {
     if (!browser || !browser.name) return;
     const browserName = browser.name;
 
-    let settings = {};
+    let settings = {...defaultUxSettings};
 
     if (browserName === 'chrome') {
         settings.THROTTLE_SELECTION_TRANSITIONS = false;
@@ -335,6 +336,7 @@ export function initUxSettings() {
             // kind of ended up optimizing for chrome
             settings.TIME_SLIDER_THROTTLE_TIME = null;
             settings.CODE_SCROLL_DEBOUNCE_TIME = 150;
+            settings.MAX_CODE_PLAY_SPEED = 16;
             break;
         case 'firefox':
             settings.TIME_SLIDER_THROTTLE_TIME = null;

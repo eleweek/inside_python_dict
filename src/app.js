@@ -5,8 +5,8 @@ import stylesCss from './styles.css';
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 
-import {MyErrorBoundary, initUxSettings, BootstrapAlert, doubleRAF} from './util';
-import {scroll} from './store';
+import {MyErrorBoundary, initUxSettings, getUxSettings, BootstrapAlert, doubleRAF} from './util';
+import {scroll, globalSettings} from './store';
 
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
@@ -281,6 +281,7 @@ export class App extends React.Component {
             windowHeight: window.innerHeight,
             mounted: true,
         });
+        globalSettings.maxCodePlaySpeed = getUxSettings().MAX_CODE_PLAY_SPEED;
     }
 
     componentWillUnmount() {

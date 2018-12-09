@@ -1489,6 +1489,9 @@ class TimeSliderWithControls extends React.Component {
         const speeds = [0.5, 1, 2, 4, 8, 16];
         for (let i = 0; i < speeds.length; ++i) {
             const speed = speeds[i];
+            if (speed > globalSettings.maxCodePlaySpeed) {
+                break;
+            }
             const isActive = speed === globalSettings.codePlaySpeed;
             let label = i === 0 ? `Autoplay speed ${speed}x` : `${speed}x`;
             speedControls.push(
