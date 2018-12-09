@@ -62,7 +62,7 @@ function GithubCorner() {
 }
 
 function GithubForkMe({windowWidth}) {
-    if (windowWidth > 1150) {
+    if (windowWidth != null && windowWidth > 1150) {
         return <GithubRibbon />;
     } else {
         return <GithubCorner />;
@@ -255,19 +255,11 @@ class Alerts extends React.Component {
 export class App extends React.Component {
     constructor() {
         super();
-        if (global.window) {
-            this.state = {
-                mounted: false,
-                windowWidth: window.innerWidth,
-                windowHeight: window.innerHeight,
-            };
-        } else {
-            this.state = {
-                mounted: false,
-                windowWidth: null,
-                windowHeight: null,
-            };
-        }
+        this.state = {
+            mounted: false,
+            windowWidth: null,
+            windowHeight: null,
+        };
     }
 
     windowSizeChangeHandle = () => {
@@ -278,8 +270,6 @@ export class App extends React.Component {
                 windowWidth: window.innerWidth,
                 windowHeight: window.innerHeight,
             });
-            // TODO: is it really necessary ?
-            this.forceUpdate();
             fixStickyResize();
         }
     };
@@ -287,6 +277,8 @@ export class App extends React.Component {
     componentDidMount() {
         window.addEventListener('resize', this.windowSizeChangeHandle);
         this.setState({
+            windowWidth: window.innerWidth,
+            windowHeight: window.innerHeight,
             mounted: true,
         });
     }
@@ -299,16 +291,8 @@ export class App extends React.Component {
         console.log('App.render()');
         const contents = <Contents selectedChapterId={this.props.selectedChapterId} />;
         const independentContents = this.props.selectedChapterId === 'chapter1';
-        let windowWidth, windowHeight;
-
         // Make sure SSR works
-        if (this.state.mounted) {
-            windowWidth = this.state.windowWidth;
-            windowHeight = this.state.windowHeight;
-        } else {
-            windowWidth = null;
-            windowHeight = null;
-        }
+        const {windowWidth, windowHeight} = this.state.mounted ? this.state : {};
 
         let chapters = [];
         for (let [i, Chapter] of this.props.chapters.entries()) {
