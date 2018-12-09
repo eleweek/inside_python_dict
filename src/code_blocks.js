@@ -20,7 +20,7 @@ import 'rc-slider/assets/index.css';
 
 import SmoothScrollbar from 'react-smooth-scrollbar';
 
-import {MyErrorBoundary, getUxSettings, RED, BLUE} from './util';
+import {MyErrorBoundary, getUxSettings, DebounceWhenOutOfView, RED, BLUE} from './util';
 import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
 import {globalSettings} from './store';
 import {observer} from 'mobx-react';
@@ -1015,7 +1015,7 @@ export function TetrisFactory(lines) {
         }
 
         render() {
-            return <Tetris lines={lines} {...this.props} />;
+            return <Tetris lines={lines} {...this.props} innerRef={this.props.innerRef} />;
         }
     };
 }
@@ -1098,7 +1098,7 @@ export class Tetris extends React.PureComponent {
         }
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
-                <div className="fix-animation">
+                <div className="fix-animation" ref={this.props.innerRef}>
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
                         <div className="tetris-labels">{labels}</div>
@@ -1631,13 +1631,17 @@ export class VisualizedCode extends React.Component {
                             />
                         </div>
                     </div>
-                    <StateVisualization
-                        bp={bp}
-                        /* the breakpoints and bpIdx is for chapter4 probing visualization */ breakpoints={
-                            this.props.breakpoints
-                        }
-                        bpIdx={time}
-                        epoch={this.state.breakpointsUpdatedCounter}
+                    <DebounceWhenOutOfView
+                        childProps={{
+                            /* TODO: probably better not figure out how to not construct this object every time */
+                            bp: bp,
+                            /* the breakpoints and bpIdx is for chapter4 probing visualization */
+                            breakpoints: this.props.breakpoints,
+                            bpIdx: time,
+                            epoch: this.state.breakpointsUpdatedCounter,
+                        }}
+                        windowHeight={this.props.windowHeight}
+                        childFunc={(props, innerRef) => <StateVisualization {...props} innerRef={innerRef} />}
                     />
                     {this.props.comment}
                 </div>

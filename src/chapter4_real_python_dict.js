@@ -415,8 +415,8 @@ class ProbingStateVisualization extends React.Component {
     }
 
     render() {
-        const {breakpoints, bpIdx} = this.props;
-        return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} />;
+        const {breakpoints, bpIdx, innerRef} = this.props;
+        return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} innerRef={innerRef} />;
     }
 }
 
@@ -488,7 +488,7 @@ class ProbingVisualizationImpl extends React.Component {
 
     render() {
         return (
-            <div className="col">
+            <div className="col" ref={innerRef}>
                 <svg
                     width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)}
                     height={

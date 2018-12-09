@@ -1,10 +1,12 @@
+import _ from 'lodash';
 import Bootstrap from 'bootstrap/dist/css/bootstrap.min.css';
 import stylesCss from './styles.css';
 
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 
-import {MyErrorBoundary, initUxSettings, BootstrapAlert} from './util';
+import {MyErrorBoundary, initUxSettings, BootstrapAlert, doubleRAF} from './util';
+import {scroll} from './store';
 
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
@@ -377,6 +379,19 @@ export function initAndRender(chapters, chapterIds) {
             }
             // Seems to fix stickynode not stickying on page reload
             fixSticky();
+            // doubleRAF is probably not needed here, adding just in case
+            doubleRAF(() => scroll.setScrollY(window.scrollY));
         });
+
+        const MEANINGFUL_Y_DIFF = 50; // components that depend on scroll should allow some leeway
+        let lastScrollY = null;
+        const onScroll = _.throttle(() => {
+            if (!lastScrollY || Math.abs(lastScrollY - window.scrollY) > MEANINGFUL_Y_DIFF) {
+                console.log('onScroll triggered', window.scrollY);
+                scroll.setScrollY(window.scrollY);
+                lastScrollY = window.scrollY;
+            }
+        }, 100);
+        window.addEventListener('scroll', onScroll);
     }
 }

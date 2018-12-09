@@ -8,3 +8,11 @@ globalSettings.setCodePlaySpeed = action(function setCodePlaySpeed(speed) {
     console.log('action setCodePlaySpeed', speed);
     globalSettings.codePlaySpeed = speed;
 });
+
+export let scroll = observable({
+    scrollY: 0,
+});
+
+scroll.setScrollY = action(function setScrollY(scrollY) {
+    scroll.scrollY = scrollY;
+});
