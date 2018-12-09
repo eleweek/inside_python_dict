@@ -630,6 +630,9 @@ class BaseBoxesComponent extends React.PureComponent {
                 const t5 = performance.now();
                 console.log('BaseBoxesComponent::gdsp before processing recycling 2', t5 - t4);
                 for (let key in notExistingKeyToData) {
+                    if (key in keyToRecycledBox) {
+                        continue;
+                    }
                     const data = notExistingKeyToData[key];
                     const potentialGroupToKeyToId = newRemovingValueToGroupToKeyToId.get(repr(data.value, true));
                     if (potentialGroupToKeyToId) {
