@@ -922,6 +922,17 @@ class BaseBoxesComponent extends React.PureComponent {
         console.log('~~~~~~~~~~~~~~~');
     }
 
+    updateModIdForGC = modId => {
+        this.setState(state => {
+            const gcModId = Math.max(state.gcModId, modId);
+            if (gcModId != state.gcModId) {
+                return {gcModId};
+            } else {
+                return null;
+            }
+        });
+    };
+
     render() {
         // console.log('BaseBoxesComponent.render()');
         // this.debugLogState();
@@ -930,7 +941,7 @@ class BaseBoxesComponent extends React.PureComponent {
             console.log(this.state);*/
             const currentModificationId = this.state.modificationId;
 
-            if (this.gcTimeout) {
+            /*if (this.gcTimeout) {
                 clearTimeout(this.gcTimeout);
             }
 
@@ -938,7 +949,13 @@ class BaseBoxesComponent extends React.PureComponent {
                 this.setState(state => {
                     return BaseBoxesComponent.markRemoved(state, currentModificationId);
                 });
-            }, BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT);
+            }, BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT);*/
+
+            // The next line is very important, and this timer does not need to be heavily debounced
+            setTimeout(
+                () => this.updateModIdForGC(currentModificationId),
+                BaseBoxesComponent.ANIMATION_DURATION_TIMEOUT
+            );
         }
 
         const boxes = [];
