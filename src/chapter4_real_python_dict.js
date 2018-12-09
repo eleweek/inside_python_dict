@@ -28,7 +28,7 @@ import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_co
 
 import {VisualizedCode, TetrisFactory, HashSlotsComponent} from './code_blocks';
 import {PyDictInput, PySNNInput, BlockInputToolbar} from './inputs';
-import {ChapterComponent, Subcontainerize, singularOrPlural, DynamicP} from './util';
+import {ChapterComponent, Subcontainerize, singularOrPlural, DynamicP, DebounceWhenOutOfView} from './util';
 import {Map as ImmutableMap, List as ImmutableList, Set as ImmutableSet} from 'immutable';
 
 import memoizeOne from 'memoize-one';
@@ -81,10 +81,27 @@ let chapter4Extend = Base =>
         }
     };
 
-const SideBySideDicts = TetrisFactory([
+const SideBySideDictsImpl = TetrisFactory([
     [HashSlotsComponent, [{labels: ['almost-python-dict'], marginBottom: 20}, 'almostPythonDictSlots']],
     [HashSlotsComponent, [{labels: ['python 3.2 dict']}, 'pythonDictSlots']],
 ]);
+
+class SideBySideDicts extends React.Component {
+    static FULL_WIDTH = true;
+    static EXTRA_ERROR_BOUNDARY = true;
+
+    render() {
+        const {windowHeight, ...restProps} = this.props;
+
+        return (
+            <DebounceWhenOutOfView
+                windowHeight={windowHeight}
+                childProps={restProps}
+                childFunc={(props, innerRef) => <SideBySideDictsImpl {...props} innerRef={innerRef} />}
+            />
+        );
+    }
+}
 
 export {hashClassConstructor, HashClassGetItem, HashClassDelItem};
 export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
@@ -488,7 +505,7 @@ class ProbingVisualizationImpl extends React.Component {
 
     render() {
         return (
-            <div className="col" ref={innerRef}>
+            <div className="col" ref={this.props.innerRef}>
                 <svg
                     width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)}
                     height={
@@ -1036,6 +1053,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             pythonDictSlots: newRes.pySelf.get('slots'),
                         }}
                         compensateTopPadding={true}
+                        windowHeight={this.props.windowHeight}
                     />
                     <p>Removing a key looks pretty much the same</p>
                     <div className="div-p">
