@@ -482,7 +482,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         }
                     } else {
                         console.log('clusterStart', clusterStart, originalKeyIdx, i);
-                        if (clusterStart <= originalKeyIdx && originalKeyIdx < i) {
+                        if (clusterStart != null && clusterStart <= originalKeyIdx && originalKeyIdx < i) {
                             // Try to introduce some collisions
                             idxToRemove = originalKeyIdx === i - 1 ? originalKeyIdx : i - 2;
                         }
