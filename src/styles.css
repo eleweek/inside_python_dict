@@ -387,3 +387,9 @@ blockquote.blockquote {
 .dynamic-p {
     margin-bottom: 0;
 }
+
+.dynamic-p-inner-wrapper {
+    transition-property: background-color;
+    transition-duration: 750ms;
+    transition-function: ease;
+}

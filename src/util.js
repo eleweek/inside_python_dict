@@ -35,15 +35,53 @@ export class CrossFade extends React.Component {
     }
 }
 
-export class DynamicP extends React.Component {
+export class DynamicP extends React.PureComponent {
+    HIGHLIGHT_TIMEOUT = 1500;
+
     // TODO: hacky margin hack
+    constructor() {
+        super();
+        this.timeoutId = null;
+        this.state = {highlight: false, key: null};
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        const oldKey = state.key;
+        const newKey = React.Children.only(props.children).key;
+        // CrossFade / ReactCSSTransitionReplace relies on key changing
+        if (oldKey !== newKey) {
+            const firstRender = oldKey == null;
+            return {key: newKey, highlight: !firstRender};
+        } else {
+            return null;
+        }
+    }
+
     render() {
+        const className = classNames('dynamic-p-inner-wrapper', {highlight: this.state.highlight});
         return (
             <MyErrorBoundary>
-                <CrossFade>{this.props.children}</CrossFade>
+                <div className={className}>
+                    <CrossFade>{this.props.children}</CrossFade>
+                </div>
                 <div style={{marginBottom: 16}} />
             </MyErrorBoundary>
         );
+    }
+
+    removeHighlight = () => {
+        this.setState({
+            highlight: false,
+        });
+    };
+
+    componentDidUpdate() {
+        if (this.state.highlight) {
+            if (this.timeoutId != null) {
+                clearTimeout(this.timeoutId);
+            }
+            this.timeoutId = setTimeout(this.removeHighlight, this.HIGHLIGHT_TIMEOUT);
+        }
     }
 }
 
