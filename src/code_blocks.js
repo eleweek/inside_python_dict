@@ -857,29 +857,19 @@ class BaseBoxesComponent extends React.PureComponent {
 
         const removed = [];
 
+        let removingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
         for (const [key, data] of state.keyData.entries()) {
             if (data.status === 'removing' && data.modId <= targetModId) {
                 removed.push(key);
+                const value = data.value;
+                const group = data.group;
+                BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
             }
         }
-
-        /*console.log(`garbage collecting older than ${targetModId}`);
-            console.log(removed);*/
-        /*console.log("state before");
-            this.debugLogState();*/
 
         let newState = null;
         if (removed.length > 0) {
             let {keyData, removingValueToGroupToKeyToId} = state;
-            removingValueToGroupToKeyToId = removingValueToGroupToKeyToId.asMutable();
-
-            for (let key of removed) {
-                const valueAndGroup = state.keyToValueAndGroup.get(key);
-                const value = valueAndGroup.get('value');
-                const group = groupAndGroup.get('group');
-
-                BaseBoxesComponent.notSoDeepDel(removingValueToGroupToKeyToId, [repr(value, true), group, key]);
-            }
 
             newState = {
                 keyData: state.keyData.deleteAll(removed),
