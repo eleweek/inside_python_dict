@@ -550,6 +550,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         breakpoints={slsRes.bp}
                         formatBpDesc={formatSimpleListSearchBreakpointDescription}
                         stateVisualization={SimpleListSearchStateVisualization}
+                        autoplayByDefault={true}
                         {...this.props}
                     />
                     <p>

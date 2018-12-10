@@ -974,7 +974,9 @@ class BaseBoxesComponent extends React.PureComponent {
         const node = this.ref.current;
         if (this.state.needReflow) {
             reflow(node);
-            this.props.onExpectedWidthChange();
+            if (this.props.onExpectedWidthChange) {
+                this.props.onExpectedWidthChange();
+            }
             // check to prevent extra setState
             if (!this.state.needProcessCreatedAfterRender) {
                 this.setState({
@@ -1337,7 +1339,7 @@ class TimeSliderWithControls extends React.Component {
 
     constructor() {
         super();
-        this.state = {time: null, autoPlaying: false, speed: 1};
+        this.state = {time: null, autoPlaying: false, speed: 1, userInteracted: false};
         this.timeoutId = null;
         this.timeoutStarted = null;
     }
@@ -1355,8 +1357,8 @@ class TimeSliderWithControls extends React.Component {
         this.handleTimeChange(value);
     };
 
-    handleTimeChange = value => {
-        this.setState({time: value});
+    handleTimeChange = (value, userInteracted = true, autoPlaying = false) => {
+        this.setState(state => ({time: value, autoPlaying, userInteracted: state.userInteracted || userInteracted}));
         this.props.handleTimeChange(value);
     };
 
@@ -1390,36 +1392,30 @@ class TimeSliderWithControls extends React.Component {
         return this.AUTOPLAY_BASE_TIMEOUT / (speed || globalSettings.codePlaySpeed);
     };
 
-    autoPlayNextStep = () => {
-        if (this.props.time < this.props.maxTime) {
-            const newTime = this.state.time + 1;
-            this.handleTimeChange(newTime);
-            let autoPlaying;
+    autoPlayNextStep = (userInteracted = false) => {
+        if (this.state.time < this.props.maxTime) {
+            let newTime = this.state.time + 1;
             if (newTime < this.props.maxTime) {
                 this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
                 this.timeoutStarted = this.unixtimestamp();
-                if (!this.state.autoPlaying) {
-                    this.setState({autoPlaying: true});
-                }
             } else {
                 this.timeoutId = null;
-                this.setState({autoPlaying: false});
             }
+            this.handleTimeChange(newTime, userInteracted, newTime < this.props.maxTime);
         }
     };
 
-    repeatPlay = () => {
-        this.setState({autoPlaying: true});
-        this.handleTimeChange(0);
+    repeatPlay = (userInteracted = true) => {
+        this.handleTimeChange(0, userInteracted, true);
         this.timeoutId = setTimeout(this.autoPlayNextStep, this.getAutoplayTimeout());
         this.timeoutStarted = this.unixtimestamp();
     };
 
-    autoPlay = () => {
+    autoPlay = (userInteracted = true) => {
         if (this.props.time < this.props.maxTime) {
-            this.autoPlayNextStep();
+            this.autoPlayNextStep(userInteracted);
         } else {
-            this.repeatPlay();
+            this.repeatPlay(userInteracted);
         }
     };
 
@@ -1429,8 +1425,8 @@ class TimeSliderWithControls extends React.Component {
             this.timeoutId = null;
             this.timeoutStarted = null;
         }
-        if (this.state.autoPlaying) {
-            this.setState({autoPlaying: false});
+        if (this.state.autoPlaying || !this.state.userInteracted) {
+            this.setState({autoPlaying: false, userInteracted: true});
         }
     };
 
@@ -1459,6 +1455,16 @@ class TimeSliderWithControls extends React.Component {
     componentDidUpdate() {
         if (!this.state.autoPlaying && this.timeoutId) {
             this.stop();
+        }
+        const stillDefaultAutoplay = this.props.autoplayByDefault && !this.state.userInteracted;
+        if (!this.state.autoPlaying && stillDefaultAutoplay) {
+            this.autoPlay(false);
+        }
+    }
+
+    componentDidMount() {
+        if (this.props.autoplayByDefault) {
+            this.autoPlay(false);
         }
     }
 
@@ -1649,6 +1655,7 @@ export class VisualizedCode extends React.Component {
                         time={time}
                         shortenedLabels={this.props.windowWidth && this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
+                        autoplayByDefault={this.props.autoplayByDefault}
                     />
                     <div className="row code-block-row fix-animation">
                         <div className="col">
