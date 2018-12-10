@@ -211,9 +211,22 @@ function squashUpdates(func) {
 export class ChapterComponent extends React.Component {
     setterFuncs = {};
 
-    setter(name, throttled = false) {
+    setter(name, throttled = false, incId = false) {
         if (!(name in this.setterFuncs)) {
-            const updateStateDebounced = squashUpdates(value => this.setState({[name]: value}));
+            let updateState;
+            if (!incId) {
+                updateState = value => this.setState({[name]: value});
+            } else {
+                updateState = value =>
+                    this.setState(state => {
+                        const idKey = `${name}IdHack`;
+                        let id = state[idKey];
+                        id++;
+                        console.log('incId', state);
+                        return {[name]: value, [idKey]: id};
+                    });
+            }
+            const updateStateDebounced = squashUpdates(updateState);
             if (throttled) {
                 this.setterFuncs[name] = _.throttle(updateStateDebounced, 50);
             } else {

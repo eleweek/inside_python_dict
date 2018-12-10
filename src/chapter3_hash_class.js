@@ -364,6 +364,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                 ['vim', BigNumber(100)],
             ],
             keyToDel: 'rm',
+            keyToDelIdHack: 1, // this is to connect (mirror) two inputs together
             keyToGet: 'mkdir',
             keyToSetRecycling: 'recycle',
             valueToSetRecycling: 499,
@@ -711,7 +712,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
-                            onChange={this.setter('keyToDel')}
+                            valueId={this.state.keyToDelIdHack}
+                            onChange={this.setter('keyToDel', false, true)}
                             anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>
@@ -768,7 +770,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
-                            onChange={this.setter('keyToDel')}
+                            valueId={this.state.keyToDelIdHack}
+                            onChange={this.setter('keyToDel', false, true)}
                             anotherValue={() => anotherKey(this.state.pairs)}
                         />
                     </div>

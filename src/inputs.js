@@ -48,6 +48,7 @@ class ParsableInputBase extends React.Component {
         this.setState({
             valueRaw: this.props.dumpValue(value),
             value: value,
+            valueId: this.props.valueId != null ? this.props.valueId + 1 : null,
         });
     }
 
@@ -58,6 +59,7 @@ class ParsableInputBase extends React.Component {
                 lastError: this.state.error || this.state.lastError,
                 error: null,
                 value: this.props.parseValue(event.target.value),
+                valueId: this.props.valueId != null ? this.props.valueId + 1 : null,
             };
 
             this.setState(newState);
@@ -177,10 +179,12 @@ class ParsableInputBlock extends ParsableInputBase {
 
 class ParsableInputInline extends ParsableInputBase {
     static getDerivedStateFromProps(props, state) {
-        // TODO: general equality comparison?
-        if (state.value !== props.value) {
+        // TODO: this is a hack
+        // TODO: also if the user changes both inputs fast enough, there may be some issues
+        if (props.valueId != null && state.valueId < props.valueId) {
             return {
                 ...state,
+                valueId: props.valueId,
                 value: props.value,
                 valueRaw: props.dumpValue(props.value),
                 lastError: state.error || state.lastError,
@@ -203,6 +207,7 @@ class ParsableInputInline extends ParsableInputBase {
                 last: res,
             },
             valueRaw: this.props.dumpValue(res),
+            valueId: this.props.valueId + 1,
             value: res,
             error: null,
             lastError: this.state.error || this.state.lastError,
