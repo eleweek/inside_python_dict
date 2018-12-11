@@ -16,6 +16,21 @@ import {HashSlotsComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock
 import {BreakpointFunction, HashBreakpointFunction, pyHash, DUMMY, EQ, displayStr} from './hash_impl_common';
 import {commonFormatCheckCollisionLoopEndedPart, commonFormatCheckNotFound} from './common_formatters';
 
+export const DEFAULT_STATE = {
+    pairs: [
+        ['git', 'stash'],
+        ['cp', 'a.py b.py'],
+        ['ed', BigNumber(36)],
+        ['uniq', '-c'],
+        ['ls', '/'],
+        ['su', BigNumber(0)],
+        ['du', '-h'],
+        ['cut', '-f 1'],
+        [BigNumber(-27), BigNumber(42)],
+    ],
+    keyToDel: 'rm',
+};
+
 export function singleFormatCheckCollision(slots, idx, fmtCollisionCount) {
     if (slots.get(idx).key == null) {
         return commonFormatCheckCollisionLoopEndedPart(idx, fmtCollisionCount);

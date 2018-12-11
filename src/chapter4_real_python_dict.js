@@ -22,6 +22,7 @@ import {
     anotherKey,
     selectOrCreateResize,
     formatExtraPairs,
+    DEFAULT_STATE,
 } from './chapter3_and_4_common';
 import {AlmostPythonDict} from './chapter3_hash_class';
 import {BreakpointFunction, pyHash, computeIdx, displayStr} from './hash_impl_common';
@@ -791,19 +792,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
         super();
 
         this.state = {
-            pairs: [
-                ['ping', 'wiki'],
-                [BigNumber(42), 'ans'],
-                ['dmesg', BigNumber(42)],
-                [BigNumber(-3), BigNumber(42)],
-                ['find', 'fun'],
-                ['rm', BigNumber(36)],
-                ['test', 'this'],
-                ['mv', BigNumber(64)],
-                ['mkdir', BigNumber(81)],
-            ],
-            keyToDel: 'rm',
-            keyToGet: 'mkdir',
+            pairs: DEFAULT_STATE.pairs,
+            keyToDel: 'du',
+            keyToGet: 'uniq',
             keyForProbingVis: 'hello',
         };
     }
