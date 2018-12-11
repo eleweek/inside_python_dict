@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import * as React from 'react';
 import {observer} from 'mobx-react';
-import {scroll} from './store';
+import {reaction} from 'mobx';
+import {win} from './store';
 
 import classNames from 'classnames';
 
@@ -41,8 +42,11 @@ export class DynamicP extends React.PureComponent {
     // TODO: hacky margin hack
     constructor() {
         super();
+        this.ref = React.createRef();
         this.timeoutId = null;
         this.state = {highlight: false, key: null};
+
+        this.resizeReaction = reaction(() => win.width, () => this.setState({height: undefined}));
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -51,7 +55,7 @@ export class DynamicP extends React.PureComponent {
         // CrossFade / ReactCSSTransitionReplace relies on key changing
         if (oldKey !== newKey) {
             const firstRender = oldKey == null;
-            return {key: newKey, highlight: !firstRender};
+            return {...state, key: newKey, highlight: !firstRender};
         } else {
             return null;
         }
@@ -61,7 +65,7 @@ export class DynamicP extends React.PureComponent {
         const className = classNames('dynamic-p-inner-wrapper', {highlight: this.state.highlight});
         return (
             <MyErrorBoundary>
-                <div className={className}>
+                <div className={className} ref={this.ref} style={{minHeight: this.state.height}}>
                     <CrossFade>{this.props.children}</CrossFade>
                 </div>
                 <div style={{marginBottom: 16}} />
@@ -75,6 +79,11 @@ export class DynamicP extends React.PureComponent {
         });
     };
 
+    updateHeight = () => {
+        const {height} = this.ref.current.getBoundingClientRect();
+        this.setState({height});
+    };
+
     componentDidUpdate() {
         if (this.state.highlight) {
             if (this.timeoutId != null) {
@@ -82,13 +91,18 @@ export class DynamicP extends React.PureComponent {
             }
             this.timeoutId = setTimeout(this.removeHighlight, this.HIGHLIGHT_TIMEOUT);
         }
+        this.updateHeight();
+    }
+
+    componentDidMount() {
+        this.updateHeight();
     }
 }
 
 @observer
 export class DebounceWhenOutOfView extends React.Component {
     render() {
-        return <DebounceWhenOutOfViewImpl {...this.props} scrollY={scroll.scrollY} />;
+        return <DebounceWhenOutOfViewImpl {...this.props} scrollY={win.scrollY} />;
     }
 }
 

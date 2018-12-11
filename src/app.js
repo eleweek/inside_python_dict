@@ -6,7 +6,7 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 
 import {MyErrorBoundary, initUxSettings, getUxSettings, BootstrapAlert, doubleRAF} from './util';
-import {scroll, globalSettings} from './store';
+import {win, globalSettings} from './store';
 
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
@@ -263,25 +263,41 @@ export class App extends React.Component {
     }
 
     windowSizeChangeHandle = () => {
-        console.log('App size changed', this.state);
+        console.log('App size changed from', this.state);
         logViewportStats();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
         if (this.state.windowWidth !== window.innerWidth || this.state.windowHeight !== window.innerHeight) {
             this.setState({
-                windowWidth: window.innerWidth,
-                windowHeight: window.innerHeight,
+                windowWidth,
+                windowHeight,
             });
             fixStickyResize();
         }
+        win.setWH(windowWidth, windowHeight);
     };
 
     componentDidMount() {
-        window.addEventListener('resize', this.windowSizeChangeHandle);
+        window.addEventListener('resize', _.throttle(this.windowSizeChangeHandle, 500));
         this.setState({
             windowWidth: window.innerWidth,
             windowHeight: window.innerHeight,
             mounted: true,
         });
         globalSettings.maxCodePlaySpeed = getUxSettings().MAX_CODE_PLAY_SPEED;
+
+        const MEANINGFUL_Y_DIFF = 50; // components that depend on scroll should allow some leeway
+        let lastScrollY = null;
+        const onScroll = _.throttle(() => {
+            if (!lastScrollY || Math.abs(lastScrollY - window.scrollY) > MEANINGFUL_Y_DIFF) {
+                console.log('onScroll triggered', window.scrollY);
+                win.setScrollY(window.scrollY);
+                lastScrollY = window.scrollY;
+            }
+        }, 100);
+        window.addEventListener('scroll', onScroll);
+        // doubleRAF is probably not needed here, adding just in case
+        doubleRAF(() => win.setScrollY(window.scrollY));
     }
 
     componentWillUnmount() {
@@ -364,19 +380,6 @@ export function initAndRender(chapters, chapterIds) {
             }
             // Seems to fix stickynode not stickying on page reload
             fixSticky();
-            // doubleRAF is probably not needed here, adding just in case
-            doubleRAF(() => scroll.setScrollY(window.scrollY));
         });
-
-        const MEANINGFUL_Y_DIFF = 50; // components that depend on scroll should allow some leeway
-        let lastScrollY = null;
-        const onScroll = _.throttle(() => {
-            if (!lastScrollY || Math.abs(lastScrollY - window.scrollY) > MEANINGFUL_Y_DIFF) {
-                console.log('onScroll triggered', window.scrollY);
-                scroll.setScrollY(window.scrollY);
-                lastScrollY = window.scrollY;
-            }
-        }, 100);
-        window.addEventListener('scroll', onScroll);
     }
 }

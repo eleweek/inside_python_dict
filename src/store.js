@@ -15,10 +15,18 @@ globalSettings.setMaxCodePlaySpeed = action(function setCodePlaySpeed(maxSpeed) 
     globalSettings.maxCodePlaySpeed = maxSpeed;
 });
 
-export let scroll = observable({
+export let win = observable({
     scrollY: 0,
+    height: null,
+    width: null,
 });
 
-scroll.setScrollY = action(function setScrollY(scrollY) {
-    scroll.scrollY = scrollY;
+win.setScrollY = action(function setScrollY(scrollY) {
+    win.scrollY = scrollY;
+});
+
+win.setWH = action(function setWH(w, h) {
+    console.log('setWH', w, h);
+    win.width = w;
+    win.height = h;
 });
