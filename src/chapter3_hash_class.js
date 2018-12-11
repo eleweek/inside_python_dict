@@ -361,7 +361,6 @@ export class Chapter3_HashClass extends ChapterComponent {
                 ['test', 'this'],
                 ['mv', BigNumber(64)],
                 ['mkdir', BigNumber(81)],
-                ['vim', BigNumber(100)],
             ],
             keyToDel: 'rm',
             keyToDelIdHack: 1, // this is to connect (mirror) two inputs together

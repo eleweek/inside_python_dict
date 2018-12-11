@@ -801,7 +801,6 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                 ['test', 'this'],
                 ['mv', BigNumber(64)],
                 ['mkdir', BigNumber(81)],
-                ['vim', BigNumber(100)],
             ],
             keyToDel: 'rm',
             keyToGet: 'mkdir',
