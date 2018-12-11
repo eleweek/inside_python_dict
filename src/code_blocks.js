@@ -1859,13 +1859,19 @@ export class LineOfBoxesComponent extends React.PureComponent {
     // TODO: maybe it should be refactored out elsewhere
     static getKeysForKVPairs(array) {
         let keys = [];
+        let counter = {};
         // Does not support nulls/"empty"
         for (let i = 0; i < array.length; ++i) {
             const [k, v] = array[i];
 
             const keyPart = pyObjToReactKey(k);
+            if (!(k in counter)) {
+                counter[k] = 0;
+            } else {
+                counter[k]++;
+            }
             const valuePart = pyObjToReactKey(v);
-            keys.push([`${keyPart}-key`, `${keyPart}-${valuePart}-value`]);
+            keys.push([`${keyPart}-${counter[k]}-key`, `${keyPart}-${counter[k]}-${valuePart}-value`]);
         }
 
         return keys;
