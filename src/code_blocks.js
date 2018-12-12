@@ -1755,7 +1755,8 @@ export class HashBoxesComponent extends React.PureComponent {
 }
 
 export class HashBoxesBrokenComponent extends React.PureComponent {
-    static HEIGHT = BOX_SIZE * 2.6;
+    static HEIGHT = BOX_SIZE * 3.5;
+    static MAX_BOXES = 4;
 
     static getExpectedGeometry() {
         return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 1};
@@ -1764,7 +1765,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
     static getKeys(array) {
         return array.map((value, idx) => {
             if (value.length != 0) {
-                return value.slice(0, 3).map(subValue => pyObjToReactKey(subValue));
+                return value.slice(0, HashBoxesBrokenComponent.MAX_BOXES).map(subValue => pyObjToReactKey(subValue));
             } else {
                 return [`empty-${idx}`];
             }
@@ -1773,13 +1774,13 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
 
     static boxFactory(keys, value) {
         if (value.length != 0) {
-            return value.slice(0, 3).map((subValue, i) => {
+            return value.slice(0, HashBoxesBrokenComponent.MAX_BOXES).map((subValue, i) => {
                 return [
                     keys[i],
                     {
                         value: subValue,
-                        yOffset: (BOX_SIZE / 3) * 2 * i,
-                        extraStyleWhenAdding: {opacity: 1.0 / Math.pow(3, i)},
+                        yOffset: BOX_SIZE * 0.7 * (i > 0 ? 1 : 0) + (BOX_SIZE / 3) * 2 * i,
+                        extraStyleWhenAdding: {opacity: 1.0 / Math.pow(2.5, i)},
                         removedOffset: i === 0 ? undefined : 0,
                         createdOffset: i === 0 ? undefined : 0,
                     },
