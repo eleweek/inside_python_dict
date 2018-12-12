@@ -167,7 +167,7 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
 }
 
 function SingleBoxSelection({idx, status, ...restProps}) {
-    return <SelectionGroup idx={idx} status={status} individualSelectionsProps={[restProps]} />;
+    return <SelectionGroup idx={idx} status={status} individualSelectionsProps={[{key: 0, ...restProps}]} />;
 }
 
 class SelectionGroup extends React.Component {
@@ -399,7 +399,16 @@ class LineOfBoxesSelection extends React.PureComponent {
     }
 }
 
-const BBRecord = ImmutableRecord({status: null, modId: null, box: null, value: null, group: null, id: null, idx: null});
+const BBRecord = ImmutableRecord({
+    status: null,
+    modId: null,
+    box: null,
+    value: null,
+    group: null,
+    id: null,
+    idx: null,
+    someProps: null,
+});
 
 class BaseBoxesComponent extends React.PureComponent {
     // Use slightly lower number than the actual 1300
@@ -539,7 +548,16 @@ class BaseBoxesComponent extends React.PureComponent {
                     needReflow = true;
                     const id = (++lastBoxId).toString();
                     const box = <Box idx={idx} status="created" key={id} {...someProps} />;
-                    toMerge[key] = new BBRecord({status: 'created', id, box, modId: modificationId, group, value, idx});
+                    toMerge[key] = new BBRecord({
+                        status: 'created',
+                        id,
+                        box,
+                        modId: modificationId,
+                        group,
+                        value,
+                        idx,
+                        someProps,
+                    });
                 };
 
                 let needProcessCreatedAfterRender = false;
@@ -571,8 +589,12 @@ class BaseBoxesComponent extends React.PureComponent {
                         } else {
                             // if box already exists
                             const status = oldData.status;
-                            // potential FIXME: does not compare someProps, may not update boxes if someProps become more important
-                            if (status !== 'adding' || oldData.idx !== idx) {
+                            // potential FIXME: does not properly compare someProps, may not update boxes if someProps become more important
+                            if (
+                                status !== 'adding' ||
+                                oldData.idx !== idx ||
+                                oldData.someProps.yOffset !== someProps.yOffset
+                            ) {
                                 // Box is changed, time to update it
                                 const box = oldData.box;
                                 const newStatus = status === 'removed' ? 'created' : 'adding';
@@ -580,6 +602,7 @@ class BaseBoxesComponent extends React.PureComponent {
                                     needProcessCreatedAfterRender = true;
                                     needReflow = true;
                                 }
+                                console.log('cloneElement', box, someProps);
                                 const newBox = React.cloneElement(box, {
                                     idx,
                                     status: newStatus,
@@ -590,6 +613,7 @@ class BaseBoxesComponent extends React.PureComponent {
                                     status: newStatus,
                                     modId: modificationId,
                                     idx,
+                                    someProps,
                                 };
                                 BaseBoxesComponent.notSoDeepDel(newRemovingValueToGroupToKeyToId, [
                                     repr(value, true),
@@ -690,6 +714,7 @@ class BaseBoxesComponent extends React.PureComponent {
                             modId: modificationId,
                             group: data.group,
                             value: data.value,
+                            someProps: data.someProps,
                         });
                     } else {
                         // if no recycled box found, then just create a new box
@@ -729,7 +754,15 @@ class BaseBoxesComponent extends React.PureComponent {
                     const value = someProps.value;
                     const id = (++lastBoxId).toString();
                     const box = <Box idx={idx} key={id} status="adding" {...someProps} />;
-                    keyData[key] = new BBRecord({status: 'adding', modId: modificationId, box, id, group, value});
+                    keyData[key] = new BBRecord({
+                        status: 'adding',
+                        modId: modificationId,
+                        box,
+                        id,
+                        group,
+                        value,
+                        someProps,
+                    });
                 }
             }
 
