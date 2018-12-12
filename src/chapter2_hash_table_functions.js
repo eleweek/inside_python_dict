@@ -507,38 +507,38 @@ class HashExamples extends React.Component {
     render() {
         return (
             <div>
-                <span>Strings: </span>
-                <code>hash(</code>
-                <PyStringInput
-                    inline={true}
-                    value={this.state.string}
-                    onChange={value => this.setState({string: value})}
-                />
-                <code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
-                <br />
-                <br />
-                <span>Integers: </span>
-                <code>hash(</code>
-                <PyNumberInput
-                    inline={true}
-                    value={this.state.integer}
-                    onChange={value => this.setState({integer: value})}
-                />
-                <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
-                <br />
-                <br />
-                <span>Floats: </span>
-                <code>hash(42.5)</code> = <code>1426259968</code>
-                <br />
-                <br />
-                <span>Tuples: </span>
-                <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
-                <br />
-                <br />
-                <span>None: </span>
-                <code>hash(None)</code> = <code>-9223372036581563745</code>
-                <br />
-                <br />
+                <div className="div-p">
+                    <span>Strings: </span>
+                    <code>hash(</code>
+                    <PyStringInput
+                        inline={true}
+                        value={this.state.string}
+                        onChange={value => this.setState({string: value})}
+                    />
+                    <code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
+                </div>
+                <div className="div-p">
+                    <span>Integers: </span>
+                    <code>hash(</code>
+                    <PyNumberInput
+                        inline={true}
+                        value={this.state.integer}
+                        onChange={value => this.setState({integer: value})}
+                    />
+                    <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
+                </div>
+                <p>
+                    <span>Floats: </span>
+                    <code>hash(42.5)</code> = <code>1426259968</code>
+                </p>
+                <p>
+                    <span>Tuples: </span>
+                    <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
+                </p>
+                <p>
+                    <span>None: </span>
+                    <code>hash(None)</code> = <code>-9223372036581563745</code>
+                </p>
             </div>
         );
     }
@@ -650,17 +650,17 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                 <h2> Chapter 2. Why are hash tables called hash tables? </h2>
                 <Subcontainerize>
                     <p>
-                        Now that we have the solution for searching in a list of numbers, can we use this for
-                        non-integer objects? We can if we find a way to turn objects into numbers for indexing. We don't
-                        need a perfect one-to-one correspondence between objects and integers. In fact, it is totally
-                        fine if two unrelated objects are turned into the same number &mdash; we can use linear probing
-                        to resolve this collision anyway! However, if we turn all objects into the same number, for
+                        Now that we have the solution for searching in a list of numbers, can we use it for non-integer
+                        objects? We can if we find a way to turn objects into numbers for indexing. We don't need a
+                        perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if
+                        two unrelated objects are turned into the same number &mdash; we can use linear probing to
+                        resolve this collision anyway! However, if we turn all objects into the same number, for
                         example, <code>42</code>, our hash table would work, but its performance would severely degrade.
                         So, for performance reasons it is desirable to get distinct numbers for distinct objects
-                        usually. The transformation also needs to be completely predictable and deterministic, i.e. we
-                        need to always get the same value for the same object. In other words, something like{' '}
-                        <code>random()</code> would not work, because we would "forget" where we placed our objects and
-                        we wouldn't be able to locate them during a search.
+                        usually. The transformation also needs to be completely deterministic, i.e. we need to always
+                        get the same value for the same object. In other words, something like <code>random()</code>{' '}
+                        would not work, because we would "forget" where we placed our objects and we wouldn't be able to
+                        locate them during a search.
                     </p>
                     <p>
                         Functions that do this kind of transformation are called <em>hash functions</em>. Since it is
@@ -672,25 +672,29 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         are all available through a single interface: the function <code>hash()</code>. This function
                         can take any Python object as an input and call an appropriate implementation (if it exists).
                     </p>
+                    <p> Here are the examples of hash function values for some of the built-in types. </p>
                     <HashExamples />
                     <p>
                         In the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should.
-                        One major exception is integers; you can notice that <code>hash(x) == x</code> for small
-                        numbers. This fact may seem surprising to people familiar with hash functions, however it is a
-                        deliberate design decision by Python Core Developers.
+                        However, for small integers <code>hash(x) == x</code>. This fact may seem surprising to people
+                        familiar with hash functions, however it is a deliberate design decision by Python core
+                        developers.
                     </p>
                     <p>
-                        For long") integers, Python uses a different algorithm. Try typing a relatively big number, for
+                        For "long" integers Python uses a different algorithm. Try typing a relatively big number, for
                         example, <code>12345678901234567890</code> to see this.
+                    </p>
+                    <p>
+                        Fun fact: <code>hash()</code> never returns <code>-1</code>, because <code>-1</code> used
+                        internally as an indicator of an error. That's why <code> hash(-1)</code> is <code>-2</code>.
                     </p>
                     <h5>hash() implementation notes</h5>
                     <p>
                         This chapter and the next two chapters will use <code>hash()</code> implementation from Python
                         3.2 (running on an x86_64 system). So if you run Python 3.2 on your x86_64 system, you should
                         see the same hash values for integers and strings (and the same data structure states).{' '}
-                        <code>hash(None)</code> changes between runs, but this page does not change{' '}
-                        <code>hash(None)</code> between refreshes and assumes that{' '}
-                        <code>hash(None) == -9223372036581563745</code>
+                        <code>hash(None)</code> changes between runs, but in this explanation
+                        <code>hash(None)</code> is always <code>-9223372036581563745</code>.
                     </p>
                     <p>
                         Why Python 3.2? Because dict implementation changed over time, but Python 3.2's dict implements
@@ -700,14 +704,14 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     </p>
                     <h5> Unhashable types </h5>
                     <p>
-                        Not all types are hashable. For example, for lists if you call{' '}
+                        Not all types are hashable. For example, lists aren't and if you call{' '}
                         <code>hash(["some", "values"])</code> you will get{' '}
                         <code>TypeError: unhashable type: 'list'</code>. Why can't we use the same hash function as for
                         tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not
                         prevent us from defining a hash function. However changing a list would change the value of the
                         hash function as well, and therefore we will not be able to find the mutated list! Hashing and
-                        using lists as keys in dicts would lead to many accidental bugs, so developers of Python chose
-                        not to allow this.
+                        using lists as keys in dicts would lead to many accidental bugs, so core developers of Python
+                        chose not to allow this.
                     </p>
                     <h5>A note on the word "hash"</h5>
                     <p>
@@ -758,19 +762,20 @@ EMPTY = EmptyValueClass()
                         still get numbers from hash functions. So, we can cache these numbers and compare them before
                         comparing actual objects. When comparing hashes, there are two different outcomes. First, the
                         hashes are different; in this case, we can safely conclude that the objects are different as
-                        well. Second, the hashes are equal; in this case, there is still a possibility of two distinct
-                        objects having the same hash, so we have to compare the actual objects.
+                        well. Second, the hashes are equal; in this case, there is a good chance that the objects are
+                        equal but there is still a possibility of two distinct objects having the same hash, so we have
+                        to compare the actual objects.
                     </p>
                     <p>
-                        This optimization is an example of a space-time tradeoff. We spend extra memory to make the
-                        algorithm faster.
+                        This optimization is a space-time tradeoff. We spend extra memory to make the algorithm faster.
                     </p>
                     <p>
-                        Let's allow duplicates. Remember how search works in chapter 1? We retrace the steps necessary
-                        to insert the element, and check if any slot on the way contains it. We also retrace all the
-                        steps necessary to insert the element when we are actually inserting it. Let's use this fact for
-                        handling duplicates - we can terminate the insertion process if we find the element. And if we
-                        hit an empty slot without finding the element, then it is not in the table and we can insert it.
+                        In this chapter, let's allow duplicates. Remember how search works in chapter 1? We retrace the
+                        steps necessary to insert the element, and check if any slot on the way contains it. We also
+                        retrace all the steps necessary to insert the element when we are actually inserting it. This
+                        means that handling duplicates is straightforward &mdash; we can terminate the insertion process
+                        if we find the element. And if we hit an empty slot without finding the element, then it is not
+                        in the table, and it means that we can safely insert it.
                     </p>
                     <p>
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}

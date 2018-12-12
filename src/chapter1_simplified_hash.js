@@ -606,21 +606,20 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         To make this approach viable, we need to somehow <em>resolve collisions</em>. Let's do the
                         following. If the slot is already occupied by some other number, we'll just check the slot that
                         comes right after it. And if that slot is empty, we'll put the number there. But, what if that
-                        slot is also occupied? We'll repeat the process until we finally hit an empty slot! This process
-                        of searching for an empty slot is called <em>probing</em>. And because we do it linearly, it is
-                        called <em>linear probing</em>.
+                        slot is also occupied? We'll check the next slot. We'll keep repeating this process until we
+                        finally hit an empty slot. This process is called <em>probing</em>. And because we do it
+                        linearly, it is called <em>linear probing</em>.
                     </p>
                     <p>
-                        Also, if we make the new list the same size as the original list, we'll have too many
-                        collisions. So what size should it be? If we make it 10x larger, we'll have very few collisions,
-                        but we'll waste a lot of memory. So, we want to hit the sweet spot where we don't use up too
-                        much memory but also don't have too many collisions. Twice the size of the original list is
-                        reasonable.
+                        If we make the new list the same size as the original list, we'll have too many collisions. If
+                        we make it 10x larger, we'll have very few collisions, but we'll waste a lot of memory. So what
+                        size should it be? We want to hit the sweet spot where we don't use up too much memory but also
+                        don't have too many collisions. Twice the size of the original list is reasonable.
                     </p>
                     <p>
-                        Let's transform the original list using this method (when reading this code, remember that{' '}
+                        Let's transform the original list using this method (when reading this code, keep in mind that{' '}
                         <code>original_list</code> is a list of <em>distinct numbers</em>, so we don't need to handle
-                        duplicates just yet.
+                        duplicates just yet).
                     </p>
                     <VisualizedCode
                         code={SIMPLIFIED_INSERT_ALL_CODE}
@@ -654,8 +653,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <p>
                         Calculating an index based on the values of numbers and doing linear probing in the case of a
                         collision is incredibly powerful. And this idea is a major one behind Python dict. What we've
-                        just implemented is a super simple <em>hash table</em>. Python dict uses a hash table
-                        internally, albeit a more complex variant.
+                        just implemented is a simple <em>hash table</em>. Python dict uses a hash table internally,
+                        albeit a more complex variant.
                     </p>
                     <p>
                         We still haven't discussed adding more elements (what happens if a table overflows?), removing
@@ -663,11 +662,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         the search algorithm to stop prematurely in many cases?), and perhaps most importantly, handling
                         objects other than integers - strings, tuples, floats. We'll do this in the next chapters.
                     </p>
-                    <h6>Separate chaining</h6>
+                    <h6>Collision resolution via separate chaining</h6>
                     <p>
                         There is a different method of collision resolution, called{' '}
-                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
-                        is also quite popular in the real world. But that's now how Python resolves collision in dicts,
+                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It a
+                        powerful method which is commonly used. But that's now how Python resolves collision in dicts,
                         so this method is beyond the scope of this explanation.{' '}
                     </p>
                     <h6>A couple of the notes about the explanation</h6>
@@ -684,7 +683,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         Second, even though dict in CPython is implemented in C, this explanation uses Python for code
                         snippets. The goal of this page is to help you understand{' '}
                         <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
-                        are interesting too, but are beyond of the scope of this page).
+                        details are interesting too - they are just are beyond the scope of this explanation).
                     </p>
                 </Subcontainerize>
             </div>
