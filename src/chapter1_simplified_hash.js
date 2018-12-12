@@ -112,10 +112,10 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
             return `Start from the beginning of the list`;
         case 'check-boundary':
             return bp.idx < bp.size
-                ? `[Try #${bp.idx + 1}]: <code>${bp.idx} < ${
+                ? `[Try #${bp.idx + 1}] <code>${bp.idx} < ${
                       bp.size
                   }</code>, so some elements have not been processed yet, and the number may be there`
-                : `<code>${bp.idx} === ${bp.size}</code>, so all elements were processed`;
+                : `<code>${bp.idx} == ${bp.size}</code>, so all elements were processed`;
         case 'check-found':
             return bp.found
                 ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the wanted number is found`
@@ -554,40 +554,39 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        (Speaking of the visualization: the buttons allow to step through code steps and the time slider
-                        is draggable - feel free to rewind time or move it forward. Also, feel free to mess with the
-                        input and the original list)
+                        (The visualization is interactive: the buttons allow to step through code steps and the time
+                        slider is draggable - feel free to rewind time or move it forward. Also, feel free to mess with
+                        the input and the original list - the visualization will update automatically)
                     </p>
                     <p>
-                        A Python dict implementation is basically a pretty weird scan of a list. We'll build the actual
-                        algorithm of Python dictionary step by step, and it starts with the code above - which is
-                        intentionally verbose.
+                        A Python dict implementation is basically a scan of a list (but a pretty weird scan). We'll
+                        build the actual algorithm and data structure inside Python dictionary step by step. The first
+                        step is the code above, and the code is intentionally verbose.{' '}
                     </p>
                     <p>
-                        The thing is, scanning over a few elements is no big deal. But what if we have a million
-                        distinct numbers? We may get lucky and find an element in only a few iterations if it is near
-                        the beginning of the list. But if it is not there at all, we'll have to scan over the whole
-                        million of numbers.
+                        What's not great about the code? Scanning over a few elements is no big deal. But if we have a
+                        million distinct number, we may need to scan the whole list in the worst case. We want something
+                        faster.
                     </p>
                     <h5>Contents</h5>
                     {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
-                        The most important part of Python dict is handling keys. Keys need to be organized in such a way
-                        that efficient searching, inserting and deleting is possible. In this chapter, we'll solve a
-                        simplified problem. To keep things simple, we won't have any values, and "keys" will be just
-                        plain integers. So, the simplified problem is to check if a number is present in a list, but we
-                        have to do this{' '}
+                        Python dict is a collection of key-value pairs. And the most important part of it is handling
+                        keys. Keys need to be organized in such a way that efficient searching, inserting and deleting
+                        is possible. In this chapter, to keep things simple, we won't have any values, and "keys" will
+                        be just plain integers. So, the simplified problem is to check if a number is present in a list,
+                        but we have to do this{' '}
                         <em>
                             <strong>fast</strong>
                         </em>
-                        . We'll tackle the real problem soon, but for now, bear with me.
+                        . We'll tackle the real problem in the following chapters. But for now, bear with me.
                     </p>
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
-                        too. We can exploit this. What we need to do is cleverly organize our data. Here's how. Let's
-                        begin by creating a new list. You can picture this list as a list of slots. Each slot will
-                        either hold a number from the original list or be empty (empty slots will hold <code>None</code>
+                        too. What we need to do is organize our data in a clever way. Here's how. Let's begin by
+                        creating a new list. You can picture this list as a list of slots. Each slot will either hold a
+                        number from the original list or be empty (empty slots will hold <code>None</code>
                         ). We'll use the number itself to compute an index of a slot. The simplest way to do this is to
                         just take the slot <code>number % len(the_list)</code> and put our number in there. To check if
                         the number is there we could compute the slot index again and see if it is empty.
