@@ -231,7 +231,6 @@ class SelectionGroup extends React.Component {
             selectionTimeout = Math.min(this.TRANSITION_DURATION + 20, selectionTimeout);
         }
         const currentEpoch = this.state.epoch;
-        console.log('selectionTimeout = ', selectionTimeout);
         setTimeout(() => {
             if (currentEpoch === this.state.epoch) {
                 this.handleTransitionEnd(currentEpoch);
@@ -451,6 +450,7 @@ class BaseBoxesComponent extends React.PureComponent {
         if (targetModId) {
             gcModId = Math.max(gcModId, targetModId);
         }
+        console.log('BaseBoxesComponent markRemoved', gcModId);
         for (const [key, data] of state.keyData.entries()) {
             if (data.status === 'removing' && data.modId <= gcModId) {
                 updatedCount++;
@@ -478,20 +478,11 @@ class BaseBoxesComponent extends React.PureComponent {
         const t1 = performance.now();
         // BaseBoxesComponent.staticDebugLogState(state);
 
-        // Epoch changes when the main "toolbar input changes". It is a hack to make dragging sliders work better
-        // Re-using old boxes rather than creating new ones seems to work better in most browsers (and much better in firefox)
-        if (!state.firstRender && state.epoch != nextProps.epoch) {
-            const gcState = BaseBoxesComponent.garbageCollect(state, state.gcModId);
-            if (gcState) {
-                state = {...state, ...gcState};
-            }
-        }
-
         // Some boxes are already timed out, so mark them as such
         if (!state.firstRender) {
             const mrState = BaseBoxesComponent.markRemoved(state);
             if (mrState) {
-                state = {...state, ...BaseBoxesComponent.markRemoved(state)};
+                state = {...state, ...mrState};
             }
         }
 
@@ -698,6 +689,7 @@ class BaseBoxesComponent extends React.PureComponent {
                         // if found a recycled box
                         const value = data.someProps.value;
                         const box = keyToRecycledBox[key];
+                        const status = box.props.status;
                         const id = box.key;
                         const idx = data.idx;
 
@@ -784,6 +776,19 @@ class BaseBoxesComponent extends React.PureComponent {
                 lastNextArray: nextArray,
                 epoch: nextProps.epoch,
             };
+        }
+
+        // This can be located in the beginning of the function, but I think it is better to move it here, b/c this might lead
+        //  to better recycling of boxes
+        //
+        // Epoch changes when the main "toolbar input changes". It is a hack to make dragging sliders work better
+        // Re-using old boxes rather than creating new ones seems to work better in most browsers (and much better in firefox)
+        if (!state.firstRender && state.epoch != nextProps.epoch) {
+            const currentState = newState != null ? newState : state;
+            const gcState = BaseBoxesComponent.garbageCollect(currentState, gcModId);
+            if (gcState) {
+                newState = {...currentState, ...gcState};
+            }
         }
 
         // Can happen when there is no change between arrays
@@ -891,14 +896,14 @@ class BaseBoxesComponent extends React.PureComponent {
     }
 
     static garbageCollect(state, targetModId) {
-        console.log('Boxes garbageCollect()', targetModId);
+        console.log('Boxes garbageCollect() older than', targetModId);
         const t1 = performance.now();
 
         const removed = [];
 
         let removingValueToGroupToKeyToId = state.removingValueToGroupToKeyToId.asMutable();
         for (const [key, data] of state.keyData.entries()) {
-            if (data.status === 'removing' && data.modId <= targetModId) {
+            if ((data.status === 'removing' || data.status === 'removed') && data.modId <= targetModId) {
                 removed.push(key);
                 const value = data.value;
                 const group = data.group;
@@ -908,14 +913,13 @@ class BaseBoxesComponent extends React.PureComponent {
 
         let newState = null;
         if (removed.length > 0) {
-            let {keyData, removingValueToGroupToKeyToId} = state;
-
             newState = {
                 keyData: state.keyData.deleteAll(removed),
                 removingValueToGroupToKeyToId: removingValueToGroupToKeyToId.asImmutable(),
                 needGarbageCollection: false,
             };
         }
+        console.log('Boxes garbageCollect() collected', removed.length);
 
         if (newState) {
             console.log('Non-trivial garbageCollect timing', performance.now() - t1);
