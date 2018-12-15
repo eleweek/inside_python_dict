@@ -127,7 +127,7 @@ const HashCreateNewStateVisualization = TetrisFactory([
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
 ]);
 
-function formatHashCreateNewAndInsert(bp) {
+function formatHashCreateNewAndInsert(bp, prevBp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create a new list of size <code>${bp.hashCodes.size}</code> for hash codes`;
@@ -170,11 +170,11 @@ function formatHashCreateNewAndInsert(bp) {
         case 'check-dup-return':
             return 'Because the key is found, stop';
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${prevBp.idx} + 1) % ${
                 bp.keys.size
             }</code>`;
         case 'assign-elem':
-            if (bp._prevBp.keys.get(bp.idx) === null) {
+            if (prevBp.keys.get(bp.idx) === null) {
                 return `Put <code>${displayStr(bp.key)}</code> and its hash <code>${
                     bp.hashCode
                 }</code> in the empty slot <code>${bp.idx}</code>`;
@@ -200,7 +200,7 @@ export const HASH_SEARCH_CODE = [
     ['    return False', 'return-false', 1],
 ];
 
-function formatHashRemoveSearch(bp) {
+function formatHashRemoveSearch(bp, prevBp) {
     switch (bp.point) {
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
@@ -234,7 +234,7 @@ function formatHashRemoveSearch(bp) {
             return `The key is removed, now return`;
         case 'next-idx':
             return `Keep retracing probing steps, the next slot will be <code>${bp.idx}</code> == <code>(${
-                bp._prevBp.idx
+                prevBp.idx
             } + 1) % ${bp.keys.size}</code>`;
         case 'throw-key-error':
             return `Throw an exception, because no key was found`;
@@ -387,7 +387,7 @@ class HashResize extends HashBreakpointFunction {
     }
 }
 
-function formatHashResize(bp) {
+function formatHashResize(bp, prevBp) {
     switch (bp.point) {
         case 'create-new-empty-hashes':
             return `Create a new list of size <code>${bp.newHashCodes.size}</code> for hash codes`;
@@ -412,7 +412,7 @@ function formatHashResize(bp) {
         case 'check-collision':
             return chapter1_2_FormatCheckCollision(bp.newKeys, bp.idx, bp.fmtCollisionCount);
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${prevBp.idx} + 1) % ${
                 bp.keys.size
             }</code>`;
         case 'assign-elem':

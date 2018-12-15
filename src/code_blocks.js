@@ -1216,13 +1216,13 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             isAnyLineHighlighted |= isCurrentLineHighlighted;
 
             if (bpPoint in visibleBreakpoints) {
-                const bpType = visibleBreakpoints[bpPoint];
+                const {bp, prevBp} = visibleBreakpoints[bpPoint];
                 let desc = null;
                 if (typeof this.props.formatBpDesc === 'function') {
-                    desc = this.props.formatBpDesc(bpType);
+                    desc = this.props.formatBpDesc(bp, prevBp);
                 } else {
                     for (const formatBpDesc of this.props.formatBpDesc) {
-                        desc = formatBpDesc(bpType);
+                        desc = formatBpDesc(bp, prevBp);
                         if (desc != null) break;
                     }
                 }
@@ -1284,6 +1284,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
             pointToLevel[bpPoint] = level;
         }
 
+        let prevBp = null;
         for (let [time, bp] of this.props.breakpoints.entries()) {
             if (time > this.props.time) {
                 break;
@@ -1298,7 +1299,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 }
             }
 
-            visibleBreakpoints[bp.point] = bp;
+            visibleBreakpoints[bp.point] = {bp, prevBp};
+            prevBp = bp;
         }
 
         return visibleBreakpoints;

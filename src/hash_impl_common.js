@@ -287,7 +287,6 @@ export class BreakpointFunction {
     addBP(point) {
         let bp = {
             point: point,
-            _prevBp: this._breakpoints.length > 0 ? this._breakpoints[this._breakpoints.length - 1] : null,
         };
 
         for (let key in this) {

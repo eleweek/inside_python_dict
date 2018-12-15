@@ -226,7 +226,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
     }
 }
 
-let formatSimplifiedInsertAllDescription = function(bp) {
+let formatSimplifiedInsertAllDescription = function(bp, prevBp) {
     switch (bp.point) {
         case 'create-new-list':
             return `Create a new list of size <code>${bp.newList.size}</code>`;
@@ -242,10 +242,10 @@ let formatSimplifiedInsertAllDescription = function(bp) {
             return chapter1_2_FormatCheckCollision(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'next-idx':
             return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
-                bp._prevBp.newListIdx
+                prevBp.newListIdx
             } + 1) % ${bp.newList.size}</code>`;
         case 'assign-elem': {
-            const prevNumber = bp._prevBp.newList.get(bp.newListIdx);
+            const prevNumber = prevBp.newList.get(bp.newListIdx);
             if (prevNumber != null) {
                 return `Collision of <code>${bp.number}</code> with <code>${prevNumber}</code> in slot <code>${
                     bp.newListIdx

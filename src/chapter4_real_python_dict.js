@@ -109,7 +109,7 @@ export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
 export class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
 export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
 
-function formatDict32IdxRelatedBp(bp) {
+function formatDict32IdxRelatedBp(bp, prevBp) {
     switch (bp.point) {
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
@@ -122,17 +122,17 @@ function formatDict32IdxRelatedBp(bp) {
                 bp.perturb
             }</code>`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>(${bp._prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
+            return `Keep probing, the next slot will be <code>(${prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Shifting perturb <code>perturb</code> : <code>${bp._prevBp.perturb} >> 5</code> == <code>${
+            return `Shifting perturb <code>perturb</code> : <code>${prevBp.perturb} >> 5</code> == <code>${
                 bp.perturb
             }</code>`;
     }
 }
 
-function formatPythonProbing(bp) {
+function formatPythonProbing(bp, prevBp) {
     switch (bp.point) {
         case 'const-perturb':
             return `<code>PERTURB_SHIFT</code> needs to be greater than 0, set it to <code>${
@@ -149,11 +149,11 @@ function formatPythonProbing(bp) {
                 bp.hashCode
             }</code> to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
-            return `The next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} * 5 + ${
-                bp.perturb
-            } + 1) % ${bp.slotsCount}</code>`;
+            return `The next slot will be <code>${bp.idx}</code> == <code>(${prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
+                bp.slotsCount
+            }</code>`;
         case 'perturb-shift':
-            return `Shifting perturb <code>perturb</code>: <code>${bp._prevBp.perturb} >> 5</code> == <code>${
+            return `Shifting perturb <code>perturb</code>: <code>${prevBp.perturb} >> 5</code> == <code>${
                 bp.perturb
             }</code>`;
         case 'create-empty-set':
