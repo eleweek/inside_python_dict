@@ -224,12 +224,19 @@ class SelectionGroup extends React.Component {
     }
 
     handleStartingTransition() {
+        let selectionTimeout = getUxSettings().THROTTLE_SELECTION_TIMEOUT;
+        if (typeof selectionTimeout !== 'number') {
+            selectionTimeout = this.TRANSITION_DURATION + 20;
+        } else {
+            selectionTimeout = Math.min(this.TRANSITION_DURATION + 20, selectionTimeout);
+        }
         const currentEpoch = this.state.epoch;
+        console.log('selectionTimeout = ', selectionTimeout);
         setTimeout(() => {
             if (currentEpoch === this.state.epoch) {
                 this.handleTransitionEnd(currentEpoch);
             }
-        }, this.TRANSITION_DURATION);
+        }, selectionTimeout);
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -602,7 +609,6 @@ class BaseBoxesComponent extends React.PureComponent {
                                     needProcessCreatedAfterRender = true;
                                     needReflow = true;
                                 }
-                                console.log('cloneElement', box, someProps);
                                 const newBox = React.cloneElement(box, {
                                     idx,
                                     status: newStatus,

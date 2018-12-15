@@ -376,6 +376,7 @@ const defaultUxSettings = {
     TIME_SLIDER_THROTTLE_TIME: 50,
     CODE_SCROLL_DEBOUNCE_TIME: 200,
     THROTTLE_SELECTION_TRANSITIONS: true,
+    THROTTLE_SELECTION_TIMEOUT: 150,
     MAX_CODE_PLAY_SPEED: 8,
 };
 
@@ -388,10 +389,23 @@ export function initUxSettings() {
 
     let settings = {...defaultUxSettings};
 
+    // 'Throttling' transitions for selection is important because they can be buggy as heck
+    // The problem is jumpiness (if transform: translate(...) is changed while transition is running, it resets)
+    // This works fine in Chrome/Blink-based browsers
+    // (I think there is a similar problem for boxes, but it is less acute, because boxes transitions are longer)
     if (browserName === 'chrome') {
         settings.THROTTLE_SELECTION_TRANSITIONS = false;
     } else {
         settings.THROTTLE_SELECTION_TRANSITIONS = true;
+        if (browser.os.match(/(OS X)|(macOS)/i)) {
+            // For firefox & safari on OS X, it is necessary to wait for transition to end
+            settings.THROTTLE_SELECTION_TIMEOUT = 'transitionend';
+        } else {
+            // Firefox is almost ok on linux, but a bit buggy
+            // Midori (webkit-based) seemed to be slow in general, but no visible issues with jumpiness
+            // still, it is better to fall on the safe side even for webkit-based browsers
+            settings.THROTTLE_SELECTION_TIMEOUT = 125;
+        }
     }
 
     switch (browserName) {
