@@ -1117,6 +1117,7 @@ export class Tetris extends React.PureComponent {
         let elems = [];
         let labels = [];
         const transformedBp = props.bp;
+        let labelsEnabled = false;
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
@@ -1131,6 +1132,7 @@ export class Tetris extends React.PureComponent {
 
             const tetrisRowMarginBottom = linesData.marginBottom || Tetris.VIS_MARGIN;
             const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry(subProps);
+            labelsEnabled = labelsEnabled || !linesData.labels.every(label => label == null);
 
             labels = labels.concat(
                 linesData.labels.map((label, index) => {
@@ -1149,7 +1151,7 @@ export class Tetris extends React.PureComponent {
                                 marginBottom: marginBottom,
                             }}
                         >
-                            <span className="tetris-label">{label}</span>
+                            <span className="tetris-label">{label || ''}</span>
                         </div>
                     );
                 })
@@ -1165,15 +1167,15 @@ export class Tetris extends React.PureComponent {
         }
 
         let style;
-        if (this.props.compensateTopPadding) {
-            style = {position: 'relative', top: -BOX_SIZE};
+        if (this.props.compensateTopPadding && this.props.compensateTopPadding > 0) {
+            style = {position: 'relative', top: -this.props.compensateTopPadding};
         }
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
                 <div className="fix-animation" ref={this.props.innerRef}>
                     <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
                     <div className="tetris">
-                        <div className="tetris-labels">{labels}</div>
+                        {labelsEnabled && <div className="tetris-labels">{labels}</div>}
                         <div className="tetris-rows">{elems}</div>
                     </div>
                 </div>

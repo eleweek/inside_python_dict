@@ -133,6 +133,8 @@ const SimpleListSearchStateVisualization = TetrisFactory([
     [LineOfBoxesComponent, [{labels: ['simple_list']}, 'data', 'idx']],
 ]);
 
+const UnnamedListVisualization = TetrisFactory([[LineOfBoxesComponent, [{labels: [null]}, 'data']]]);
+
 export const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
     ['def build_not_quite_what_we_want(original_list):', 'start-execution', 0],
     ['    new_list = [None] * len(original_list)', 'create-new-list', 1],
@@ -522,14 +524,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         bottomBoundary=".chapter1"
                         {...this.props}
                     />
-                    <p className="mb-2">
+                    <p className="mb-0">
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
                         misleading to people who know about double-linked lists but are unfamiliar with Python. You can
-                        picture a Pythonl list as a contiguous row of slots, where each slot can hold a Python object:
+                        picture a Python list as a contiguous row of slots, where each slot can hold a Python object:
                     </p>
-                    <div className="div-p mb-4 fix-animation">
-                        <LineOfBoxesComponent array={this.state.numbers} />
-                    </div>
+                    <UnnamedListVisualization bp={{data: this.state.numbers}} compensateTopPadding={25} />
                     <p>
                         To check if an element is present in a list, we can use the <code>in</code> operator, like this:{' '}
                         <code>number in simple_list</code>, which returns either <code>True</code> or <code>False</code>
@@ -585,8 +585,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
                         too. What we need to do is organize our data in a clever way. Here's how. Let's begin by
-                        creating a new list. You can picture this list as a list of slots. Each slot will either hold a
-                        number from the original list or be empty (empty slots will hold <code>None</code>
+                        creating a new list of slots. Each slot will either hold a number from the original list or be
+                        empty (empty slots will hold <code>None</code>
                         ). We'll use the number itself to compute an index of a slot. The simplest way to do this is to
                         just take the slot <code>number % len(the_list)</code> and put our number in there. To check if
                         the number is there we could compute the slot index again and see if it is empty.

@@ -1042,7 +1042,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             almostPythonDictSlots: almostPythonDictSelf.get('slots'),
                             pythonDictSlots: newRes.pySelf.get('slots'),
                         }}
-                        compensateTopPadding={true}
+                        compensateTopPadding={30}
                         windowHeight={this.props.windowHeight}
                     />
                     <p>Removing a key looks pretty much the same</p>
