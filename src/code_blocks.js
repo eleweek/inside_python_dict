@@ -115,7 +115,7 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
                 opacity = 0;
                 break;
             case 'created':
-                opacity = 0;
+                opacity = 0.15;
                 break;
             case 'adding':
                 opacity = 1;
