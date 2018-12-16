@@ -75,7 +75,9 @@ module.exports = {
         ],
     },
     plugins: [
-        new MiniCssExtractPlugin({filename: 'bundle.css'}),
+        new MiniCssExtractPlugin({
+            filename: '[name].[contenthash].css',
+        }),
         new HackySSR(),
         new HtmlWebpackPlugin({
             template: 'build/chapter1.html',
@@ -101,5 +103,17 @@ module.exports = {
     watchOptions: {
         // does not work properly, ssr/mustache/etc is a mess now
         ignored: /\.html$/,
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+                    chunks: 'all',
+                },
+            },
+        },
     },
 };
