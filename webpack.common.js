@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {RawSource} = require('webpack-sources');
 const {exec} = require('child_process');
 const fs = require('fs');
@@ -19,25 +20,26 @@ class HackySSR {
             'chapter4.html': '["chapter4"]',
         };
 
-        if (compiler.options.mode === 'development') {
-            for (let name in files) {
-                console.log('emit', name);
+        for (let [name, chapters] of Object.entries(files)) {
+            const origName = name.replace('.html', '.before-hwp.html');
+            if (compiler.options.mode === 'development') {
+                console.log('emit', origName);
                 compiler.plugin('emit', (compilation, cb) => {
-                    fs.readFile(`build/${name}`, 'utf8', function(err, file) {
-                        compilation.assets[name] = new RawSource(file);
+                    fs.readFile(`build/${origName}`, 'utf8', function(err, file) {
+                        fs.writeFileSync(`build/${name}`, file);
+                        // compilation.assets[name] = new RawSource(file);
                         cb();
                     });
                 });
-            }
-        } else {
-            for (let [name, chapters] of Object.entries(files)) {
+            } else {
                 compiler.plugin('emit', (compilation, cb) => {
-                    exec(`npm run --silent babel-node scripts/ssr.js build/${name} '${chapters}'`, function(
+                    exec(`npm run --silent babel-node scripts/ssr.js build/${origName} '${chapters}'`, function(
                         error,
                         stdout,
                         stderr
                     ) {
-                        compilation.assets[name] = new RawSource(stdout);
+                        fs.writeFileSync(`build/${name}`, stdout);
+                        // compilation.assets[name] = new RawSource(stdout);
                         cb();
                     });
                 });
@@ -70,5 +72,28 @@ module.exports = {
             },
         ],
     },
-    plugins: [new MiniCssExtractPlugin({filename: 'bundle.css'}), new HackySSR()],
+    plugins: [
+        new MiniCssExtractPlugin({filename: 'bundle.css'}),
+        new HackySSR(),
+        new HtmlWebpackPlugin({
+            template: 'build/chapter1.html',
+            filename: 'chapter1.html',
+        }),
+        new HtmlWebpackPlugin({
+            template: 'build/chapter2.html',
+            filename: 'chapter2.html',
+        }),
+        new HtmlWebpackPlugin({
+            template: 'build/chapter3.html',
+            filename: 'chapter3.html',
+        }),
+        new HtmlWebpackPlugin({
+            template: 'build/chapter4.html',
+            filename: 'chapter4.html',
+        }),
+        new HtmlWebpackPlugin({
+            template: 'build/all.html',
+            filename: 'all.html',
+        }),
+    ],
 };
