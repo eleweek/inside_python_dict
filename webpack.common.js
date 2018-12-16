@@ -33,15 +33,17 @@ class HackySSR {
                 });
             } else {
                 compiler.plugin('emit', (compilation, cb) => {
-                    exec(`npm run --silent babel-node scripts/ssr.js build/${origName} '${chapters}'`, function(
-                        error,
-                        stdout,
-                        stderr
-                    ) {
-                        fs.writeFileSync(`build/${name}`, stdout);
-                        // compilation.assets[name] = new RawSource(stdout);
-                        cb();
-                    });
+                    exec(
+                        `npm run --silent babel-node scripts/ssr.js build/${origName} '${chapters}'`,
+                        {maxBuffer: 10 * 1024 * 1024},
+                        function(error, stdout, stderr) {
+                            error && console.error(error);
+                            stderr && console.error(stderr);
+                            fs.writeFileSync(`build/${name}`, stdout);
+                            // compilation.assets[name] = new RawSource(stdout);
+                            cb();
+                        }
+                    );
                 });
             }
         }
@@ -51,7 +53,7 @@ class HackySSR {
 module.exports = {
     entry: './src/index.js',
     output: {
-        filename: 'app-bundle.js',
+        filename: '[name].[contenthash].js',
         path: path.resolve(__dirname, 'dist'),
     },
     module: {
@@ -96,4 +98,8 @@ module.exports = {
             filename: 'all.html',
         }),
     ],
+    watchOptions: {
+        // does not work properly, ssr/mustache/etc is a mess now
+        ignored: /\.html$/,
+    },
 };
