@@ -16,6 +16,11 @@ import {
     randomChoice,
 } from './util';
 import {chapter1_2_FormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faRedoAlt} from '@fortawesome/free-solid-svg-icons/faRedoAlt';
+import {faTrashAlt} from '@fortawesome/free-solid-svg-icons/faTrashAlt';
+library.add(faTrashAlt);
 
 import memoizeOne from 'memoize-one';
 
@@ -597,6 +602,65 @@ function ListDescription({array}) {
     }
 }
 
+class HashResizeInPlaceAnimation extends React.PureComponent {
+    static FULL_WIDTH = true;
+    static EXTRA_ERROR_BOUNDARY = true;
+
+    constructor() {
+        super();
+        this.state = {
+            isStart: true,
+            breakpointsUpdatedCounter: 0,
+        };
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        if (props.breakpoints !== state.breakpoints) {
+            return {
+                ...state,
+                breakpoints: props.breakpoints,
+                breakpointsUpdatedCounter: state.breakpointsUpdatedCounter + 1,
+            };
+        } else {
+            return null;
+        }
+    }
+
+    runAnimation = () => {
+        console.log('runAnimation');
+        this.setState(state => ({
+            isStart: !state.isStart,
+        }));
+    };
+
+    render() {
+        let hashCodes, keys;
+        let buttonIcon, buttonLabel;
+        if (this.state.isStart) {
+            ({hashCodes, keys} = this.state.breakpoints[0]);
+            buttonLabel = 'Throw away old table';
+            buttonIcon = <FontAwesomeIcon icon="trash-alt" />;
+        } else {
+            ({newHashCodes: hashCodes, newKeys: keys} = this.state.breakpoints[this.state.breakpoints.length - 1]);
+            buttonLabel = 'Reset';
+            buttonIcon = <FontAwesomeIcon icon="redo-alt" />;
+        }
+        return (
+            <div>
+                <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={this.runAnimation}
+                    style={{minWidth: 180}}
+                >
+                    {buttonIcon} {buttonLabel}
+                </button>
+                <HashNormalStateVisualization bp={{hashCodes, keys}} epoch={this.state.breakpointsUpdatedCounter} />
+            </div>
+        );
+    }
+}
+
 export class Chapter2_HashTableFunctions extends ChapterComponent {
     constructor() {
         super();
@@ -881,6 +945,7 @@ DUMMY = DummyValueClass()
                         table, we will do the resize operation rarely enough that the heavy cost of it will amortize
                         (spread out) over many insertions/deletions.
                     </p>
+                    <HashResizeInPlaceAnimation breakpoints={resizeRes.bp} />
                     <p>Let's see how we could resize the current table</p>
                     <VisualizedCode
                         code={HASH_RESIZE_CODE}

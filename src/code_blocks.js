@@ -1718,13 +1718,21 @@ export class VisualizedCode extends React.Component {
     };
 
     static getDerivedStateFromProps(props, state) {
-        if (props.breakpoints !== state.breakpoints && !props.keepTimeOnNewBreakpoints) {
-            return {
-                ...state,
-                breakpoints: props.breakpoints,
-                time: props.breakpoints.length - 1,
-                breakpointsUpdatedCounter: state.breakpointsUpdatedCounter + 1,
-            };
+        if (props.breakpoints !== state.breakpoints) {
+            if (!props.keepTimeOnNewBreakpoints) {
+                return {
+                    ...state,
+                    breakpoints: props.breakpoints,
+                    time: props.breakpoints.length - 1,
+                    breakpointsUpdatedCounter: state.breakpointsUpdatedCounter + 1,
+                };
+            } else {
+                return {
+                    ...state,
+                    breakpoints: props.breakpoints,
+                    breakpointsUpdatedCounter: state.breakpointsUpdatedCounter + 1,
+                };
+            }
         } else {
             return null;
         }
