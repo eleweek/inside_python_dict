@@ -403,7 +403,7 @@ function formatHashResize(bp, prevBp) {
             if (bp.keys.get(bp.oldIdx) === null) {
                 return `The current slot is empty`;
             } else if (bp.keys.get(bp.oldIdx) === DUMMY) {
-                return `The current slot contains DUMMY placeholder`;
+                return `The current slot contains a <code>DUMMY</code> placeholder`;
             } else {
                 return `The current slot is occupied by an actually existing key`;
             }
@@ -604,7 +604,6 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         this.state = {
             array: ['ping', BigNumber(42), 'dmesg', BigNumber(-3), 'find', 'rm', 'test', 'mv', 'mkdir', 'vim'],
             objToRemove: 'rm',
-            objToInsert: 'grep',
             searchedObj: 'vim',
         };
     }
@@ -619,8 +618,8 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
     });
 
     runRemove = memoizeOne((hashCodes, keys, objToRemove) => {
-        const bp = Ops.remove(hashCodes, keys, objToRemove).bp;
-        return {bp};
+        const {bp, hashCodes: newHashCodes, keys: newKeys} = Ops.remove(hashCodes, keys, objToRemove);
+        return {bp, hashCodes: newHashCodes, keys: newKeys};
     });
 
     runResize = memoizeOne((hashCodes, keys) => {
@@ -628,21 +627,23 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
         return {bp};
     });
 
-    runInsert = memoizeOne((hashCodes, keys, objToInsert) => {
+    /*runInsert = memoizeOne((hashCodes, keys, objToInsert) => {
         const bp = Ops.insert(hashCodes, keys, objToInsert).bp;
         return {bp};
-    });
+    });*/
 
     render() {
         const t1 = performance.now();
         const newRes = this.runCreateNew(this.state.array);
         let {hashCodes, keys} = newRes;
 
-        // TODO: make results of operations connected to each other ?
         const searchRes = this.runSearch(hashCodes, keys, this.state.searchedObj);
         const removeRes = this.runRemove(hashCodes, keys, this.state.objToRemove);
+        hashCodes = removeRes.hashCodes;
+        keys = removeRes.keys;
+
         const resizeRes = this.runResize(hashCodes, keys);
-        const insertRes = this.runInsert(hashCodes, keys, this.state.objToInsert);
+        /*const insertRes = this.runInsert(hashCodes, keys, this.state.objToInsert);*/
         console.log('Chapter2 render timing', performance.now() - t1);
 
         return (
