@@ -84,16 +84,10 @@ export function SimpleCodeInline(props) {
     return <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />;
 }
 
-const BOX_SIZE = 40;
-const SPACING_X = 2;
-const SPACING_Y_SLOT = 7;
+const DEFAULT_BOX_GEOMETRY = {boxSize: 40, spacingX: 2, spacingY: 7};
 
-function computeBoxX(idx) {
-    return (SPACING_X + BOX_SIZE) * idx;
-}
-
-function computeBoxTransformProperty(idx, y) {
-    let x = computeBoxX(idx);
+function computeBoxTransformProperty(idx, y, boxSize, spacingX) {
+    let x = (spacingX + boxSize) * idx;
     return `translate(${x}px, ${y}px)`;
 }
 
@@ -103,7 +97,7 @@ function pyObjToReactKey(obj) {
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        let {extraClassName, idx, status, transitionDuration, color} = this.props;
+        let {extraClassName, idx, status, transitionDuration, color, boxSize, spacingX} = this.props;
         let yOffset = this.props.yOffset || 0;
 
         const animatedClass = 'active-box-selection-animated';
@@ -126,7 +120,7 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
             transitionDuration: `${transitionDuration}ms`,
             borderColor: color,
             // TODO: the part after : is weird/wrong
-            transform: idx != null ? computeBoxTransformProperty(idx, yOffset) : undefined,
+            transform: idx != null ? computeBoxTransformProperty(idx, yOffset, boxSize, spacingX) : undefined,
         };
         return <div ref={this.props.setInnerRef} className={classNames(classes)} style={style} />;
     }
@@ -138,7 +132,7 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
     };
 
     render() {
-        let {idx, status, extraClassName, yOffset, color} = this.props;
+        let {idx, status, extraClassName, yOffset, color, boxSize, spacingX} = this.props;
         return (
             <ActiveBoxSelectionUnthrottled
                 setInnerRef={this.handleRef}
@@ -147,6 +141,8 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
                 status={status}
                 yOffset={yOffset}
                 color={color}
+                boxSize={boxSize}
+                spacingX={spacingX}
                 transitionDuration={this.props.transitionDuration}
             />
         );
@@ -166,8 +162,17 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
     }
 }
 
-function SingleBoxSelection({idx, status, ...restProps}) {
-    return <SelectionGroup idx={idx} status={status} individualSelectionsProps={[{key: 0, ...restProps}]} />;
+function SingleBoxSelection({idx, status, boxSize, spacingX, spacingY, ...restProps}) {
+    return (
+        <SelectionGroup
+            idx={idx}
+            status={status}
+            individualSelectionsProps={[{key: 0, ...restProps}]}
+            boxSize={boxSize}
+            spacingX={spacingX}
+            spacingY={spacingY}
+        />
+    );
 }
 
 class SelectionGroup extends React.Component {
@@ -191,6 +196,7 @@ class SelectionGroup extends React.Component {
         return individualSelectionsProps.map(extraProps => (
             <ActiveBoxSelectionThrottledHelper
                 {...extraProps}
+                {...restProps}
                 idx={idx}
                 status={status}
                 transitionDuration={this.TRANSITION_DURATION}
@@ -301,8 +307,18 @@ class Box extends React.PureComponent {
     }
 
     render() {
-        const {value, idx, status, extraStyleWhenAdding, removedOffset, createdOffset} = this.props;
-        let yOffset = this.props.yOffset || 0;
+        const {
+            value,
+            idx,
+            status,
+            extraStyleWhenAdding,
+            removedOffset,
+            createdOffset,
+            boxSize,
+            spacingX,
+            spacingY,
+        } = this.props;
+        const yOffset = (this.props.yRel || 0) * (boxSize + spacingY);
 
         let classes = ['box', {'box-animated': status !== 'removed' && status !== 'created'}];
         let content;
@@ -336,11 +352,11 @@ class Box extends React.PureComponent {
                 break;
             case 'removing':
                 classes.push('box-removing');
-                y = value != null ? yOffset - (removedOffset != null ? removedOffset : BOX_SIZE) : yOffset;
+                y = value != null ? yOffset - (removedOffset != null ? removedOffset : boxSize) : yOffset;
                 break;
             case 'created':
                 classes.push('box-created');
-                y = value != null ? yOffset - (createdOffset != null ? createdOffset : BOX_SIZE) : yOffset;
+                y = value != null ? yOffset - (createdOffset != null ? createdOffset : boxSize) : yOffset;
                 break;
             case 'adding':
                 y = yOffset;
@@ -352,7 +368,9 @@ class Box extends React.PureComponent {
             <div
                 style={{
                     transform:
-                        status !== 'removed' ? computeBoxTransformProperty(this.props.idx, y) : 'translate(0px, 0px)',
+                        status !== 'removed'
+                            ? computeBoxTransformProperty(idx, y, boxSize, spacingX)
+                            : 'translate(0px, 0px)',
                     ...extraStyle,
                 }}
                 className={classNames(classes)}
@@ -365,7 +383,7 @@ class Box extends React.PureComponent {
 
 class SlotSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, color} = this.props;
+        const {extraClassName, idx, status, color, boxSize, spacingX, spacingY} = this.props;
 
         const individualSelectionsProps = [
             {
@@ -374,22 +392,30 @@ class SlotSelection extends React.PureComponent {
                 color,
                 yOffset: 0,
             },
-            {key: `${extraClassName}-key`, extraClassName, color, yOffset: BOX_SIZE + SPACING_Y_SLOT},
+            {key: `${extraClassName}-key`, extraClassName, color, yOffset: boxSize + spacingY},
             {
                 key: `${extraClassName}-value`,
                 extraClassName,
                 color,
-                yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT),
+                yOffset: 2 * (boxSize + spacingY),
             },
         ];
 
-        return <SelectionGroup individualSelectionsProps={individualSelectionsProps} idx={idx} status={status} />;
+        return (
+            <SelectionGroup
+                individualSelectionsProps={individualSelectionsProps}
+                idx={idx}
+                status={status}
+                boxSize={boxSize}
+                spacingX={spacingX}
+            />
+        );
     }
 }
 
 class LineOfBoxesSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, count, color} = this.props;
+        const {extraClassName, idx, status, count, color, boxSize, spacingX, spacingY} = this.props;
 
         let individualSelectionsProps = [];
         for (let i = 0; i < this.props.count; ++i) {
@@ -397,11 +423,19 @@ class LineOfBoxesSelection extends React.PureComponent {
                 key: `${extraClassName}-${i}`,
                 extraClassName,
                 color,
-                yOffset: i * (BOX_SIZE + SPACING_Y_SLOT),
+                yOffset: i * (boxSize + spacingY),
             });
         }
 
-        return <SelectionGroup individualSelectionsProps={individualSelectionsProps} idx={idx} status={status} />;
+        return (
+            <SelectionGroup
+                individualSelectionsProps={individualSelectionsProps}
+                idx={idx}
+                status={status}
+                boxSize={boxSize}
+                spacingX={spacingX}
+            />
+        );
     }
 }
 
@@ -490,6 +524,7 @@ class BaseBoxesComponent extends React.PureComponent {
         const gcModId = state.gcModId;
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
+        const {boxSize, spacingY, spacingX} = nextProps;
         let nextArray = nextProps.array;
         let nextArrayPreConversion = nextArray;
         const convertNextArray = () => {
@@ -545,7 +580,17 @@ class BaseBoxesComponent extends React.PureComponent {
                     needProcessCreatedAfterRender = true;
                     needReflow = true;
                     const id = (++lastBoxId).toString();
-                    const box = <Box idx={idx} status="created" key={id} {...someProps} />;
+                    const box = (
+                        <Box
+                            idx={idx}
+                            status="created"
+                            key={id}
+                            boxSize={boxSize}
+                            spacingY={spacingY}
+                            spacingX={spacingX}
+                            {...someProps}
+                        />
+                    );
                     toMerge[key] = new BBRecord({
                         status: 'created',
                         id,
@@ -591,7 +636,8 @@ class BaseBoxesComponent extends React.PureComponent {
                             if (
                                 status !== 'adding' ||
                                 oldData.idx !== idx ||
-                                oldData.someProps.yOffset !== someProps.yOffset
+                                oldData.someProps.yOffset !== someProps.yOffset ||
+                                oldData.someProps.yRel !== someProps.yRel
                             ) {
                                 // Box is changed, time to update it
                                 const box = oldData.box;
@@ -751,7 +797,17 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                     const value = someProps.value;
                     const id = (++lastBoxId).toString();
-                    const box = <Box idx={idx} key={id} status="adding" {...someProps} />;
+                    const box = (
+                        <Box
+                            idx={idx}
+                            key={id}
+                            status="adding"
+                            boxSize={boxSize}
+                            spacingY={spacingY}
+                            spacingX={spacingX}
+                            {...someProps}
+                        />
+                    );
                     keyData[key] = new BBRecord({
                         status: 'adding',
                         modId: modificationId,
@@ -824,6 +880,9 @@ class BaseBoxesComponent extends React.PureComponent {
                         idx={idx}
                         status={status}
                         color={color}
+                        boxSize={boxSize}
+                        spacingY={spacingY}
+                        spacingX={spacingX}
                     />,
                     status,
                 ];
@@ -1099,7 +1158,12 @@ export class Tetris extends React.PureComponent {
         // TODO: use linesData.marginBottom in computation
         return (
             this.VIS_MARGIN * (lines.length - 1) +
-            _.sum(lines.map(([Component, [ld, d, i, i2, subProps]]) => Component.getExpectedGeometry(subProps).height))
+            _.sum(
+                lines.map(
+                    ([Component, [ld, d, i, i2, subProps]]) =>
+                        Component.getExpectedGeometry({...DEFAULT_BOX_GEOMETRY, ...subProps}).height
+                )
+            )
         );
     }
 
@@ -1126,12 +1190,16 @@ export class Tetris extends React.PureComponent {
                     idx={props.bp[idxName]}
                     idx2={props.bp[idx2Name]}
                     epoch={props.epoch}
+                    {...DEFAULT_BOX_GEOMETRY}
                     {...subProps}
                 />
             );
 
             const tetrisRowMarginBottom = linesData.marginBottom || Tetris.VIS_MARGIN;
-            const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry(subProps);
+            const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry({
+                ...DEFAULT_BOX_GEOMETRY,
+                ...subProps,
+            });
             labelsEnabled = labelsEnabled || !linesData.labels.every(label => label == null);
 
             labels = labels.concat(
@@ -1173,7 +1241,7 @@ export class Tetris extends React.PureComponent {
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
                 <div className="fix-animation" ref={this.props.innerRef}>
-                    <div className="some-hacky-padding" style={{height: BOX_SIZE}} />
+                    <div className="some-hacky-padding" style={{height: DEFAULT_BOX_GEOMETRY.boxSize}} />
                     <div className="tetris">
                         {labelsEnabled && <div className="tetris-labels">{labels}</div>}
                         <div className="tetris-rows">{elems}</div>
@@ -1735,10 +1803,8 @@ export class VisualizedCode extends React.Component {
 }
 
 export class HashBoxesComponent extends React.PureComponent {
-    static HEIGHT = BOX_SIZE;
-
-    static getExpectedGeometry() {
-        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 1};
+    static getExpectedGeometry({boxSize, spacingY}) {
+        return {height: boxSize, rowHeight: boxSize, rowMarginBottom: spacingY, rowsNumber: 1};
     }
 
     static getKeys(array) {
@@ -1756,24 +1822,33 @@ export class HashBoxesComponent extends React.PureComponent {
     }
 
     render() {
+        const height = HashBoxesComponent.getExpectedGeometry(this.props).height;
         return (
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashBoxesComponent.getKeys}
                 boxFactory={HashBoxesComponent.boxFactory}
                 selectionClass={SingleBoxSelection}
-                height={HashBoxesComponent.HEIGHT}
+                height={height}
             />
         );
     }
 }
 
 export class HashBoxesBrokenComponent extends React.PureComponent {
-    static HEIGHT = BOX_SIZE * 3.5;
     static MAX_BOXES = 4;
 
-    static getExpectedGeometry() {
-        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 1};
+    static height(boxSize) {
+        return (HashBoxesBrokenComponent.MAX_BOXES - 0.5) * boxSize;
+    }
+
+    static getExpectedGeometry({boxSize, spacingY}) {
+        return {
+            height: HashBoxesBrokenComponent.height(boxSize),
+            rowHeight: boxSize,
+            rowMarginBottom: spacingY,
+            rowsNumber: 1,
+        };
     }
 
     static getKeys(array) {
@@ -1793,7 +1868,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
                     keys[i],
                     {
                         value: subValue,
-                        yOffset: BOX_SIZE * 0.7 * (i > 0 ? 1 : 0) + (BOX_SIZE / 3) * 2 * i,
+                        yRel: 0.7 * (i > 0 ? 1 : 0) + (1 / 3) * 2 * i,
                         extraStyleWhenAdding: {opacity: 1.0 / Math.pow(2.5, i)},
                         removedOffset: i === 0 ? undefined : 0,
                         createdOffset: i === 0 ? undefined : 0,
@@ -1806,31 +1881,31 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
     }
 
     render() {
+        const {boxSize} = this.props;
+        const height = HashBoxesBrokenComponent.height(boxSize);
         return (
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashBoxesBrokenComponent.getKeys}
                 boxFactory={HashBoxesBrokenComponent.boxFactory}
                 selectionClass={SingleBoxSelection}
-                height={HashBoxesBrokenComponent.HEIGHT}
+                height={height}
             />
         );
     }
 }
 
 export class HashSlotsComponent extends React.PureComponent {
-    static HEIGHT = 3 * BOX_SIZE + 2 * SPACING_Y_SLOT;
-
-    static getExpectedGeometry() {
-        return {height: this.HEIGHT, rowHeight: BOX_SIZE, rowMarginBottom: SPACING_Y_SLOT, rowsNumber: 3};
+    static getExpectedGeometry({boxSize, spacingY}) {
+        return {height: 3 * boxSize + 2 * spacingY, rowHeight: boxSize, rowMarginBottom: spacingY, rowsNumber: 3};
     }
 
     static boxFactory(keys, value) {
         const slot = value;
         return [
             [keys[0], {value: slot.pyHashCode, yOffset: 0}],
-            [keys[1], {value: slot.key, yOffset: BOX_SIZE + SPACING_Y_SLOT}],
-            [keys[2], {value: slot.value, yOffset: 2 * (BOX_SIZE + SPACING_Y_SLOT)}],
+            [keys[1], {value: slot.key, yRel: 1}],
+            [keys[2], {value: slot.value, yRel: 2}],
         ];
     }
 
@@ -1854,13 +1929,14 @@ export class HashSlotsComponent extends React.PureComponent {
     }
 
     render() {
+        const height = HashSlotsComponent.getExpectedGeometry(this.props).height;
         return (
             <BaseBoxesComponent
                 {...this.props}
                 getKeys={HashSlotsComponent.getKeys}
                 boxFactory={HashSlotsComponent.boxFactory}
                 selectionClass={SlotSelection}
-                height={HashSlotsComponent.HEIGHT}
+                height={height}
             />
         );
     }
@@ -1931,16 +2007,17 @@ export class LineOfBoxesComponent extends React.PureComponent {
         }
 
         return _.zip(keys, values).map(([key, value], j) => {
-            return [key, {value, yOffset: j * (BOX_SIZE + SPACING_Y_SLOT)}];
+            return [key, {value, yRel: j}];
         });
     }
 
-    static getExpectedGeometry(subProps) {
-        const linesCount = (subProps && subProps.linesCount) || 1;
+    static getExpectedGeometry(props) {
+        const linesCount = props.linesCount || 1;
+        const {boxSize, spacingY} = props;
         return {
-            height: linesCount * BOX_SIZE + (linesCount - 1) * SPACING_Y_SLOT,
-            rowHeight: BOX_SIZE,
-            rowMarginBottom: SPACING_Y_SLOT,
+            height: linesCount * boxSize + (linesCount - 1) * spacingY,
+            rowHeight: boxSize,
+            rowMarginBottom: spacingY,
             rowsNumber: linesCount,
         };
     }

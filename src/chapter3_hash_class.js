@@ -105,7 +105,7 @@ export class AlmostPythonDict {
     }
 }
 
-function formatHashClassChapter3IdxRelatedBp(bp) {
+function formatHashClassChapter3IdxRelatedBp(bp, prevBp) {
     switch (bp.point) {
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
@@ -114,7 +114,7 @@ function formatHashClassChapter3IdxRelatedBp(bp) {
                 bp.self.get('slots').size
             }</code>`;
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${bp._prevBp.idx} + 1) % ${
+            return `Keep probing, the next slot will be <code>${bp.idx}</code> == <code>(${prevBp.idx} + 1) % ${
                 bp.self.get('slots').size
             }</code>`;
     }
