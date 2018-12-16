@@ -457,11 +457,13 @@ class ProbingVisualizationImpl extends React.Component {
 
     transitionId = null;
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.state = {
             firstRender: true,
+            bpIdx: props.bpIdx,
+            breakpoints: props.breakpoints,
             transitionRunning: false,
             transitionToBpIdx: null,
         };
@@ -479,8 +481,8 @@ class ProbingVisualizationImpl extends React.Component {
             waitForTransition = true;
             shouldUpdate = true;
         } else if (
-            nextProps.bpIdx != nextState.bpIdx &&
-            (nextState.transitionToBpIdx == null || nextProps.bpIdx != nextState.transitionToBpIdx)
+            nextProps.bpIdx !== nextState.bpIdx &&
+            (nextState.transitionToBpIdx == null || nextProps.bpIdx !== nextState.transitionToBpIdx)
         ) {
             shouldUpdate = true;
             waitForTransition =
@@ -490,18 +492,6 @@ class ProbingVisualizationImpl extends React.Component {
         }
 
         return shouldUpdate && (!nextState.transitionRunning || !waitForTransition);
-    }
-
-    static getDerivedStateFromProps(nextProps, state) {
-        if (state.firstRender) {
-            return {
-                firstRender: true,
-                bpIdx: nextProps.bpIdx,
-                breakpoints: nextProps.breakpoints,
-            };
-        } else {
-            return null;
-        }
     }
 
     render() {
@@ -544,16 +534,13 @@ class ProbingVisualizationImpl extends React.Component {
     transitionEnd() {
         const newBpIdx = this.transitionToBpIdx;
         this.transitionId = null;
-        // TODO: looks very suspicious, probably need a better way to call setState asynchronously
-        setTimeout(
-            () =>
-                this.setState({
-                    transitionRunning: false,
-                    bpIdx: this.state.transitionToBpIdx,
-                    transitionToBpIdx: null,
-                }),
-            0
-        );
+        if (this.state.transitionRunning) {
+            this.setState({
+                transitionRunning: false,
+                bpIdx: this.state.transitionToBpIdx,
+                transitionToBpIdx: null,
+            });
+        }
     }
 
     d3render() {
@@ -586,13 +573,14 @@ class ProbingVisualizationImpl extends React.Component {
         let transitionTime;
         let newState = {
             transitionToBpIdx: this.props.bpIdx,
+            breakpoints: this.props.breakpoints,
         };
         if (this.state.firstRender) {
-            newState['firstRender'] = false;
+            newState.firstRender = false;
             transitionTime = 0;
         } else {
             transitionTime = this.TRANSITION_TIME;
-            newState['transitionRunning'] = true;
+            newState.transitionRunning = true;
         }
 
         let t = d3.transition().duration(transitionTime);
