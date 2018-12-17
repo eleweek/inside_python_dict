@@ -737,7 +737,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         are all available through a single interface: the function <code>hash()</code>. This function
                         can take any Python object as an input and call an appropriate implementation (if it exists).
                     </p>
-                    <p> Here are the examples of hash function values for some of the built-in types. </p>
+                    <p> Here are some examples of hash function values for some of the built-in types. </p>
                     <HashExamples />
                     <p>
                         In the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should.

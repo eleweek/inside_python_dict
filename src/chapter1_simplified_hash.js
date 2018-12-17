@@ -531,13 +531,13 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <UnnamedListVisualization bp={{data: this.state.numbers}} compensateTopPadding={25} />
                     <p>
-                        To check if an element is present in a list, we can use the <code>in</code> operator, like this:{' '}
+                        To check if an element is present in a list, we can use the <code>in</code> operator like this:{' '}
                         <code>number in simple_list</code>, which returns either <code>True</code> or <code>False</code>
-                        . Under the hood this short snippet does a linear scan, this can be a lot of work. To see this,
+                        . Under the hood this short snippet does a linear scan. This can be a lot of work. To see this,
                         let's reimplement it in Python.
                     </p>
                     <div className="div-p">
-                        Anyway, let's say we're looking for the following number in the original list:
+                        Let's say we're looking for the following number in the original list:
                         <PySmallIntInput
                             inline={true}
                             value={this.state.simpleSearchNumber}
@@ -554,28 +554,27 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        (The visualization is interactive: the buttons allow to step through code steps and the time
-                        slider is draggable - feel free to rewind time or move it forward. Also, feel free to mess with
-                        the input and the original list - the visualization will update automatically)
+                        (The visualization is interactive. The buttons allow you to step through the code. Notice here
+                        that the time slider is draggable - feel free to rewind the time or move it forward. Also, feel
+                        free to mess with the input and the original list - the visualization will update automatically)
                     </p>
                     <p>
                         A Python dict implementation is basically a scan of a list (but a pretty weird scan). We'll
                         build the actual algorithm and data structure inside Python dictionary step by step. The first
-                        step is the code above, and the code is intentionally verbose.{' '}
+                        step is the code above, which is intentionally verbose.
                     </p>
                     <p>
-                        What's not great about the code? Scanning over a few elements is no big deal. But if we have a
-                        million distinct number, we may need to scan the whole list in the worst case. We want something
-                        faster.
+                        What's not so great about linear scans? Scanning over a few elements is no big deal. But if we
+                        have a million distinct numbers, in the worst case scenario, we may need to scan the whole list.
                     </p>
                     <h5>Contents</h5>
                     {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
-                        Python dict is a collection of key-value pairs. And the most important part of it is handling
+                        Python dict is a collection of key-value pairs. And, the most important part of it is handling
                         keys. Keys need to be organized in such a way that efficient searching, inserting and deleting
                         is possible. In this chapter, to keep things simple, we won't have any values, and "keys" will
-                        be just plain integers. So, the simplified problem is to check if a number is present in a list,
+                        just be plain integers. So, the simplified problem is to check if a number is present in a list,
                         but we have to do this{' '}
                         <em>
                             <strong>fast</strong>
@@ -604,11 +603,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         To make this approach viable, we need to somehow <em>resolve collisions</em>. Let's do the
-                        following. If the slot is already occupied by some other number, we'll just check the slot that
+                        following: if the slot is already occupied by some other number, we'll just check the slot that
                         comes right after it. And if that slot is empty, we'll put the number there. But, what if that
-                        slot is also occupied? We'll check the next slot. We'll keep repeating this process until we
-                        finally hit an empty slot. This process is called <em>probing</em>. And because we do it
-                        linearly, it is called <em>linear probing</em>.
+                        slot is also occupied? Once again, we'll go ahead and check the next slot. We'll keep repeating
+                        this process until we finally hit an empty slot. This process is called <em>probing</em>. And
+                        because we do it linearly, it is called <em>linear probing</em>. In the code, we would write
+                        this as <code>(idx + 1) % len(simple_list)</code>
                     </p>
                     <p>
                         If we make the new list the same size as the original list, we'll have too many collisions. If
@@ -651,10 +651,10 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        Calculating an index based on the values of numbers and doing linear probing in the case of a
-                        collision is incredibly powerful. And this idea is a major one behind Python dict. What we've
-                        just implemented is a simple <em>hash table</em>. Python dict uses a hash table internally,
-                        albeit a more complex variant.
+                        Calculating an index based on the value of the number and resolving collisions by linear probing
+                        is incredibly powerful. This idea is a major one behind Python dict. What we've just implemented
+                        is a simple <em>hash table</em>. Python dict uses a hash table internally, albeit a more complex
+                        variant.
                     </p>
                     <p>
                         We still haven't discussed adding more elements (what happens if a table overflows?), removing
@@ -665,9 +665,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <h6>Collision resolution via separate chaining</h6>
                     <p>
                         There is a different method of collision resolution, called{' '}
-                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It a
-                        powerful method which is commonly used. But that's now how Python resolves collision in dicts,
-                        so this method is beyond the scope of this explanation.{' '}
+                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
+                        is also a powerful method which is commonly used. But that's not how Python resolves collision
+                        in dicts, so this method is beyond the scope of this explanation.{' '}
                     </p>
                     <h6>A couple of the notes about the explanation</h6>
                     <p>
