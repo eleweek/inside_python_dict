@@ -126,9 +126,7 @@ function formatDict32IdxRelatedBp(bp, prevBp) {
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Shifting perturb <code>perturb</code> : <code>${prevBp.perturb} >> 5</code> == <code>${
-                bp.perturb
-            }</code>`;
+            return `Shifting <code>perturb</code> : <code>${prevBp.perturb} >> 5</code> == <code>${bp.perturb}</code>`;
     }
 }
 
@@ -877,26 +875,23 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         ideas stayed the same, and implementations in all versions are similar to each other.
                     </p>
                     <p>
-                        The main difference between almost-python-dict from the chapter 3 and real Python dict is the
-                        probing algorithm.{' '}
+                        The main difference between almost-python-dict from the chapter 3 and the real Python dict is
+                        the probing algorithm.{' '}
                     </p>
                     <h5>The probing algorithm</h5>
                     <p>
                         The problem with simple linear probing is that it doesn't mix up the keys well in many
                         real-world data patterns. Real world data patterns tend to be regular, and a pattern like{' '}
                         <code>16</code>, <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
-                        <code>...</code> would lead to many collisions.
+                        <code>...</code> would lead to many collisions. Linear probing is prone to clustering: once you
+                        get a "clump" of keys, the clump tends to grow, which causes more collisions, which cause the
+                        clump to grow further, which causes even more collisions. This is detrimental to performance.
                     </p>
                     <p>
-                        Linear probing is prone to clustering: once you get a "clump" of keys, the clump tends to grow,
-                        which causes more collisions, which cause the clump to grow further, which causes even more
-                        collisions. This is detrimental to performance.
-                    </p>
-                    <p>
-                        It is possible to address this problem by using a better hash function, in particular when it
-                        comes to integers (<code>hash(x)</code> == <code>x</code> for small integers in Python). But it
-                        is also possible to address this problem by using a different probing algorithm - and this is
-                        what CPython developers decided.
+                        One way to address this problem by using a better hash function, in particular when it comes to
+                        integers (<code>hash(x)</code> == <code>x</code> for small integers in Python). Another way to
+                        address this problem is by using a different probing algorithm - and this is what CPython
+                        developers decided.
                     </p>
                     <p>There are two requirements for a probing algorithm:</p>
                     <ol>
@@ -920,25 +915,23 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
                     <p>
-                        <code>idx = (5 * idx + 1) % size</code> guarantees to eventually hit every possible slot if{' '}
-                        <code>size</code> is a power of two (the proof of this fact is outside the scope of this page).
-                        Also, the algorithm is obviously deterministic. So, both requirements for a probing algorithm
-                        are satisfied. This algorithm scrambles the order of indexes quite a bit. However, it is still
-                        regular and prone to clustering.
+                        <code>idx = (5 * idx + 1) % size</code> still guarantees to eventually hit every possible slot
+                        if <code>size</code> is a power of two (the proof of this fact is outside the scope of this
+                        page). Also, the algorithm is obviously deterministic. So, both requirements for a probing
+                        algorithm are satisfied. This algorithm scrambles the order of indexes a bit. However, it is
+                        still regular and and it is still prone to clustering.
                     </p>
                     <p>
-                        The probing algorithm in CPython takes this recurrence and adds even more scrambling to it:{' '}
+                        The probing algorithm in CPython takes this recurrence and adds a ton of scrambling to it:{' '}
                         <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
-                        though?
-                    </p>
-                    <p>
-                        In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>. Then,
-                        in every iteration, it is right-shifted by <code>5</code> bits (<code>{'perturb >>= 5'}</code>
+                        though? In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>
+                        . Then, in every iteration, it is right-shifted by <code>5</code> bits (
+                        <code>{'perturb >>= 5'}</code>
                         ).
                     </p>
                     <p>
-                        This probing algorithm uses some "randomness" in the form of bits from the hash code - but it is
-                        still fully deterministic because hash functions by their nature are deterministic.{' '}
+                        This probing algorithm uses some "randomness" in the form of bits from the hash code - but the
+                        probing is still fully deterministic because hash functions by their nature are deterministic.{' '}
                         <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
                         <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
                     </p>
@@ -946,8 +939,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         We can reimplement this algorithm in pure Python. However, in Python there are no unsigned
                         (logical) bit shifts, and there is also no built-in way to convert a 64-bit signed integer to a
                         64-bit unsigned integer. The solution is to do the conversion with the following one-liner:{' '}
-                        <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use a regular bit
-                        shift (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
+                        <code>{'2**64 + hash_code if hash_code < 0 else hash_code'}</code> and then use regular bit
+                        shifts (i.e. <code>{`>>`}</code> or <code>{`>>=`}</code>)
                     </p>
                     <div className="div-p">
                         Let's see how the algorithm works for the following key:
@@ -979,11 +972,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        Adding noise (in the form of <code>perturb</code>) makes things slower when a hash table is
-                        full. The worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
-                        ). However, in practice, dicts are quite sparse (since we're capping load factor at around{' '}
+                        Adding noise (from <code>perturb</code>) makes things slower when a hash table is full, the
+                        worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
+                        ). However, in practice, we keep dicts sparse, by ensuring the load factor never goes above{' '}
                         <code>2/3</code>
-                        ), so there are many chances to hit an empty slot.
+                        ), so naturally there are many chances to hit an empty slot.
                     </p>
                     <p>
                         If you are interested in more subtleties and technical details, you can check{' '}
@@ -1006,13 +999,20 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <p>
                         Python actually knows the number of key-value pairs and tries to guess the optimal hash table
-                        size to possibly avoid some or all resizes. This is because it performs better than just
-                        starting with the size of <code>8</code>. In most cases, the resulting hash table ends up being
-                        the same size or smaller. However, in some cases the resulting hash table may actually be larger
-                        if there are a lot of repeated keys in the literal (e.g.{' '}
+                        size to possibly avoid some or all resizes. In most cases, the resulting hash table ends up
+                        being the same size or smaller. However, in some cases the resulting hash table may actually be
+                        larger if there are a lot of repeated keys in the literal (e.g.{' '}
                         <code>{'{1: 1, 1: 2, 1: 3, 1: 4, 1: 5, 1: 6, 1: 7, 1: 8, 1: 9}'}</code>)
                     </p>
-                    <p>Insert:</p>
+                    <p>
+                        So in <code>__init__</code> we use the familiar <code>find_closest_size()</code> function to
+                        find the power of two greater than the items count. This guarantees that there will be at most
+                        one resize. The resize is a bit different, it can increase the size of the hashtable by 4x. The{' '}
+                        <code>__setitem__</code> is the same, except for the probing algorithm, and it also tries to
+                        recycle slots containing tombstones (<code>DUMMY</code> placeholders). Though in case of
+                        <code>__init__</code> recycling is not going to happen, as we start with an empty table
+                        containing no dummy slots.
+                    </p>
                     <VisualizedCode
                         code={DICT32_SETITEM_WITH_INIT}
                         breakpoints={newRes.bp}
@@ -1021,9 +1021,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        How much the difference in the resulting state does the probing algorithm make? How different is
-                        the resulting dict compared to almost-python-dict from chapter 3? Let's take a look at them
-                        side-by-side:{' '}
+                        How much difference the probing algorithm make? How different is the resulting dict compared to
+                        almost-python-dict from chapter 3? Here are the two versions side-by-side:{' '}
                     </p>
                     <SideBySideDicts
                         bp={{
@@ -1033,7 +1032,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         compensateTopPadding={30}
                         windowHeight={this.props.windowHeight}
                     />
-                    <p>Removing a key looks pretty much the same</p>
+                    <p>
+                        Removing a key remains the same. Again, a different probing algoithm is used, but conceptually
+                        it is the same: try to find a key, and if it is there, put a <code>DUMMY</code> placeholder in
+                        the slot.
+                    </p>
                     <div className="div-p">
                         Deleting
                         <PySNNInput
@@ -1051,7 +1054,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         {...this.props}
                     />
                     <div className="div-p">
-                        The search is mostly the same. Let's say we want to get the following key
+                        The search is also conceptually the same, with the only difference being &mdash; you probably
+                        guessed it at this point &mdash; the probing algorithm. For example, let's say we want to get
+                        the following key
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToGet}
@@ -1068,10 +1073,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <h5> Resize </h5>
                     <p>
-                        In Python 3.2, the size of a hash table can quadrupled when there are less than or equal to
+                        In Python 3.2, the size of a hash table can be quadrupled when there are less than or equal to
                         50000 elements, and can only be doubled when there are more than 50000 elements. Quadrupling a
-                        table leads to fewer resizes at the cost of memory. Memory overhead is more critical when tables
-                        are large, so having a certain cut off strikes a balance.
+                        table leads to fewer resizes at the cost of memory. Memory overhead is proportional to the size
+                        of a table, so it gets bigger when the table is bigger, so having a certain cut off strikes a
+                        balance between having too many resizes and wasting memory.
                     </p>
                     <p>
                         And just like in previous chapter, a resize operation can decrease the size of a table, if too
