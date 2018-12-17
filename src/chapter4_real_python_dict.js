@@ -18,7 +18,7 @@ import {
     formatHashClassResize,
     formatHashClassInit,
     postBpTransform,
-    findNearestSize,
+    findClosestSize,
     anotherKey,
     selectOrCreateResize,
     formatExtraPairs,
@@ -285,7 +285,7 @@ export class Dict32 {
         let startSize;
         let pairsLength;
         if (pairs && pairs.length > 0) {
-            startSize = findNearestSize(pairs.length);
+            startSize = findClosestSize(pairs.length);
             pairsLength = pairs.length;
         } else {
             startSize = 8;

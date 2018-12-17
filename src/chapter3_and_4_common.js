@@ -257,7 +257,7 @@ export function formatHashClassInit(bp) {
         case 'init-used':
             return `Set <code>used</code> to <code>0</code>, because there are no items (yet)`;
         case 'check-pairs':
-            return `Check if there are <code>pairs</code> to insert, and there are <code>${
+            return `Check if there are <code>pairs</code> to insert: there are <code>${
                 bp.pairs.length
             }</code> ${singularOrPlural(bp.pairs.length, 'pair', 'pairs')}`;
         case 'for-pairs':
@@ -322,10 +322,19 @@ export class HashClassInitEmpty extends BreakpointFunction {
 
 export const Slot = Record({pyHashCode: null, key: null, value: null});
 
-export function findNearestSize(minused) {
+export function findClosestSize(minused) {
     let newSize = 8;
     while (newSize <= minused) {
         newSize *= 2;
+    }
+
+    return newSize;
+}
+
+export function findClosestSizeBN(minused) {
+    let newSize = BigNumber(8);
+    while (newSize.lte(minused)) {
+        newSize = newSize.times(2);
     }
 
     return newSize;
@@ -595,7 +604,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
         this.addBP('start-execution');
         this.oldSlots = this.self.get('slots');
         this.addBP('assign-old-slots');
-        this.newSize = findNearestSize(this.self.get('used') * optimalSizeQuot);
+        this.newSize = findClosestSize(this.self.get('used') * optimalSizeQuot);
         this.addBP('compute-new-size');
 
         let slotsTemp = [];

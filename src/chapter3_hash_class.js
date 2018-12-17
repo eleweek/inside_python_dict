@@ -25,11 +25,12 @@ import {
     formatExtraPairs,
     generateNonPresentKey,
     DEFAULT_STATE,
+    findClosestSizeBN,
 } from './chapter3_and_4_common';
 
 import {SimpleCodeBlock, VisualizedCode} from './code_blocks';
 
-import {BlockInputToolbar, PyDictInput, PySNNInput} from './inputs';
+import {BlockInputToolbar, PyDictInput, PySNNInput, PyNumberInput} from './inputs';
 import {ChapterComponent, singularOrPlural, Subcontainerize, DynamicP} from './util';
 
 import memoizeOne from 'memoize-one';
@@ -253,7 +254,7 @@ function DynamicPartResize({extraPairs, resize, pairsCount, resizesCount}) {
     if (extraPairs === null) {
         p = (
             <p className="dynamic-p" key={`resize-${resizesCount}`}>
-                While elements were being inserted, {resizesCount === 1 ? 'a' : resizesCount}{' '}
+                While the original items were being inserted, {resizesCount === 1 ? 'a' : resizesCount}{' '}
                 {singularOrPlural(resizesCount, 'resize', 'resizes')} happened. Let's look at{' '}
                 {resizesCount === 1 ? 'it' : 'the first resize'} in depth:
             </p>
@@ -345,6 +346,37 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
     }
 
     return <DynamicP>{p}</DynamicP>;
+}
+
+class FindClosestSizeExample extends React.PureComponent {
+    constructor() {
+        super();
+        this.state = {
+            used: BigNumber(14),
+            usedDouble: BigNumber(28),
+            res: BigNumber(32),
+        };
+    }
+
+    handleInputChange = used => {
+        const usedDouble = used.times(2);
+        this.setState({
+            used,
+            usedDouble,
+            res: findClosestSizeBN(usedDouble),
+        });
+    };
+
+    render() {
+        return (
+            <div>
+                <code>find_closest_size(2 * self.used)</code> == <code>find_closest_size(2 * </code>
+                <PyNumberInput inline={true} value={this.state.used} onChange={this.handleInputChange} />
+                <code>)</code> == <code>find_closest_size({displayStr(this.state.usedDouble)})</code> =={' '}
+                <code>{displayStr(this.state.res)}</code>
+            </div>
+        );
+    }
 }
 
 export class Chapter3_HashClass extends ChapterComponent {
@@ -550,110 +582,83 @@ export class Chapter3_HashClass extends ChapterComponent {
                 <h2> Chapter 3. Putting it all together to make an "almost"-Python-dict</h2>
                 <Subcontainerize>
                     <p>
-                        We now have all the building blocks that allow us to make <em>something like a Python dict</em>.
-                        In this section, we'll make functions track the <code>fill</code> and <code>used</code>{' '}
-                        counters, so we know when a table overflows. We will also handle values (in addition to keys)
-                        and make a class that supports all basic operations from <code>dict</code>. On the inside, this
-                        class would work differently from the actual implementation of dict. In the following chapter we
-                        will turn this code into Python 3.2's version of dict by making changes to the probing
-                        algorithm.
+                        In this chapter, we'll make a class that supports the basic interface of a Python dict. The
+                        class will keep track of the counters necessary for computing the load factor and auto-resize
+                        the hash table when necessary. On the inside, it'll work differently from Python dict, but we'll
+                        adress the differences in the next chapter. (Spoiler: the main difference is the probing
+                        algorithm)
                     </p>
                     <p>
-                        This chapter assumes you have a basic understanding of{' '}
-                        <a href="https://docs.python.org/3/reference/datamodel.html#special-method-names">
-                            magic methods
-                        </a>{' '}
-                        and how classes work in Python. We will use classes to bundle data and functions together. Magic
-                        methods are special methods for overloading operators, so we can write{' '}
-                        <code>our_dict[key]</code> instead of writing <code>our_dict.__getitem__(key)</code>. The square
-                        brackets look nicer.
-                    </p>
-                    <p>
-                        To handle values we could add another list (in addition to <code>hash_codes</code> and{' '}
-                        <code>keys</code>
+                        The almost-Python-dict class needs to support values. To handle values we could add another list
+                        (in addition to <code>hash_codes</code> and <code>keys</code>
                         ). This would totally work. Another alternative is to bundle <code>hash_code</code>,{' '}
                         <code>key</code>, <code>value</code> corresponding to each slot in a single object. To do this,
                         we'll need to create a class:
                     </p>
                     <SimpleCodeBlock>{SLOT_CLASS_CODE_STRING}</SimpleCodeBlock>
-                    <p>This is similar to how slots are organized in CPython.</p>
-
                     <p>
                         How do we initialize an empty hash table? In previous chapters, we based the initial size of
                         hash tables on the original list. Since we now know how to resize tables, we can start with an
-                        empty table and grow it. But what should be the initial size? The size shouldn't be too small or
-                        too big. Hash tables inside Python dictionaries are size 8 when they are empty, so let's make
-                        ours that size. Python hash table sizes are powers of 2, so we will also use powers of 2.
-                        Technically, nothing prevents us from using "non-round" values. The primary reason for using
-                        "round" powers of 2 is efficiency: computing <code>% 2**n</code> can be implemented using bit
-                        operations (<code>{'& (1 << n)'}</code>
+                        empty table and grow it. Hash tables inside Python dictionaries are size 8 when they are empty,
+                        so let's use 8 as the initial size. Python hash table sizes are powers of 2, so we will also use
+                        powers of 2. even though nothing prevents us from using "non-round" values. The primary reason
+                        Python uses "round" powers of 2 is efficiency: computing <code>% 2**n</code> can be implemented
+                        using bit operations (<code>{'& (1 << n)'}</code>
                         ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
                     </p>
-                    <p>
-                        We have already started to imitate the interface and some implementation details of the real
-                        dict. In this chapter, we will get pretty close to it, but we will not get there fully. In the
-                        next chapter we will start exploring the actual implementation of Python dict. But for now,
-                        please bear with me.
-                    </p>
-                    <p>Here is how our class is going to look:</p>
+                    <p>Here is the overview of the interface of the class:</p>
                     <SimpleCodeBlock>
                         {`class AlmostDict(object):
     def __init__(self, pairs=None):
         self.slots = [Slot() for _ in range(8)]
         self.fill = 0
         self.used = 0
-        # Insert all initial pairs. [] automatically calls __setitem__
+        # Insert all initial pairs
         if pairs:
             for k, v in pairs:
+                # This is syntactic sugar for self.__setitem__(k, v)
                 self[k] = v
 
     def __setitem__(self, key, value):
         # Allows us to set a value in a dict-like fashion
         # d = Dict()
-        # d[1] = 2
+        # d[1] = 2 and d.__setitem__(1, 2) gets called
         <implementation goes here>
 
     def __getitem__(self, key):
         # Allows us to get a value from a dict, for example:
         # d = Dict()
         # d[1] = 2
-        # d[1] is equal to 2 now
+        # d[1] calls d.__getitem__(1) and returns 2
         <implementation goes here>
 
     def __delitem__(self, key):
         # Allows us to use "del" in a dict-like fashion, for example:
         # d = Dict()
         # d[1] = 2
-        # del d[1]
-        # d[1] raises KeyError now
+        # del d[1] calls d.__delitem__(1)
+        # d[1] or d.__getitem__(1) raises KeyError now
         <implementation goes here>
 `}
                     </SimpleCodeBlock>
                     <p>
-                        Each method is going to update <code>self.fill</code> and <code>self.used</code>, so that the
-                        fill factor is tracked correctly.
+                        <code>__setitem__</code>, <code>__getitem__</code> and <code>__delitem__</code> are a special
+                        kind of methods, called{' '}
+                        <a href="https://www.instagram.com/the_goddamn_sex_number/">magic methods</a>. They are called
+                        magic, because you don't have to invoke them directly: Python does it for you behind the scenes,
+                        when you use square brackets (e.g. <code>d[1]</code>). Other than that, they are normal methods.{' '}
                     </p>
                     <p>
-                        When resizing a hash table, how do we find a new optimal size? As was mentioned before, there is
-                        no definitive one-size-fits-all answer, so we find the nearest power of two that is greater{' '}
-                        <code>2 * self.used</code>:<br />
-                        <code>self.find_closest_size(2 * self.minused)</code>
+                        Each method is going to keep track of <code>self.fill</code> (the number of non-empty slots
+                        including dummy slots) and <code>self.used</code> (the number of items in the dictionary). Fill
+                        factor is the ratio between <code>self.fill</code> and <code>len(slots)</code>. When it reaches
+                        2/3, the table gets resized. The new size is based on the actual useful usage of the table,
+                        which is <code>self.used</code>.
                     </p>
-                    <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
                     <p>
-                        The code only uses <code>self.used</code>. It does not depend on <code>self.fill</code> in any
-                        way. This means that even though usually the size of the table doubles, it can also potentially
-                        shrink if <code>self.used</code> is significantly smaller than <code>self.fill</code> (i.e. most
-                        slots are filled with dummy placeholders).
+                        Let's take a look at the code, starting with the <code>__init__</code> method. We're creating
+                        the dict from the following pairs:
                     </p>
-
-                    <p>
-                        Since we now have a class, we can also move the <code>for</code> loop from{' '}
-                        <code>create_new()</code> to the <code>__init__</code> method. The code in __init__ also assumes
-                        that the dict contents are passed as a list of pairs (rather than as an actual dict - which we
-                        are reimplementing).
-                    </p>
-                    <p>Let's take a look at the code. We're creating the dict from the following pairs:</p>
                     <BlockInputToolbar
                         input={PyDictInput}
                         inputProps={{
@@ -664,6 +669,12 @@ export class Chapter3_HashClass extends ChapterComponent {
                         bottomBoundary=".chapter3"
                         {...this.props}
                     />
+                    <p>
+                        The code in __init__ also assumes that the dict contents are passed as a list of pairs (rather
+                        than as an actual dict - which we are reimplementing). The code for inserting an individual item
+                        moved to <code>__setitem__</code>. It also increments the counters if necessary. And most
+                        importantly, it calls <code>resize()</code> after inserting an element if necessary.
+                    </p>
 
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
@@ -676,6 +687,19 @@ export class Chapter3_HashClass extends ChapterComponent {
                         stateVisualization={HashClassInsertAllVisualization}
                         {...this.props}
                     />
+                    <p>
+                        When resizing a hash table, how do we find a new optimal size? We find the nearest power of two
+                        that is greater <code>2 * self.used</code> and also a valid hash table size (which simply means
+                        it is at least <code>8</code>): <br /> <code>self.find_closest_size(2 * self.used)</code>
+                    </p>
+                    <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
+                    <p>
+                        The code only uses <code>self.used</code> (which the total number of non-empty slots, including
+                        dummy slots). It does not depend on <code>self.fill</code> (which actually tracks the number of
+                        items) in any way. The idea is to double the size of the table if there are very few dummy slots
+                        and shrink it if there are too many dummy slots (so that the memory is saved).
+                    </p>
+                    <FindClosestSizeExample />
 
                     <DynamicPartResize {...resizeRes} pairsCount={this.state.pairs.length} />
                     <VisualizedCode
@@ -688,7 +712,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         In the previous chapter, the code for removing and the code for searching were very similar,
                         because, to remove an element, we need to find it first. We can reorganize the code so that the
-                        removing and searching functions share much of the same code. We will call the common function{' '}
+                        removing and searching functions share much of the same code. The common function's name will be{' '}
                         <code>lookdict()</code>.
                     </p>
                     <p>
@@ -744,12 +768,11 @@ export class Chapter3_HashClass extends ChapterComponent {
                         Dummy keys are used as placeholders. The only purpose of a dummy slot is to prevent a probing
                         algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
                         something, be it a dummy placeholder or a normal item. This means that while inserting an item,
-                        if we end up hitting a slot with a dummy placeholder, we can put the item in the slot (assuming
-                        the key does not exist elsewhere in the dictionary). So, we still need to do a full look up, but
-                        we will also save an index of the first dummy slot to <code>target_idx</code> (if we encounter
-                        it). If we find that a key already exists, we save the index to <code>target_idx</code> and
-                        break. If we find neither a dummy slot nor the key, then we insert it in the first empty slot -
-                        as we did before.
+                        if we end up hitting a dummy slot, we can put the item in that slot (if the key does isn't
+                        already inserted). So, we still need to do a full look up, but we will also save an index of the
+                        first dummy slot to <code>target_idx</code> (if we encounter it). If we find that a key already
+                        exists, we save the index to <code>target_idx</code> and break. If we find neither a dummy slot
+                        nor the key, then we insert it in the first empty slot - as we did before.
                     </p>
                     <p>
                         In the absence of dummy slots, the code works the same. So, even though we built the table with

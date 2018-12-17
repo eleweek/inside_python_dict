@@ -946,7 +946,12 @@ DUMMY = DummyValueClass()
                         (spread out) over many insertions/deletions.
                     </p>
                     <HashResizeInPlaceAnimation breakpoints={resizeRes.bp} />
-                    <p>Let's see how we could resize the current table</p>
+                    <p className="mt-2">
+                        Since we're re-building the table, the code is fairly similar to building it from scratch.
+                        However, the hash codes are already there, so we don't need to compute them the second time. We
+                        also don't have to check for duplicates, because we know that there are no duplicates in the
+                        original table. And, of course, we can skip empty and dummy slots.
+                    </p>
                     <VisualizedCode
                         code={HASH_RESIZE_CODE}
                         breakpoints={resizeRes.bp}
@@ -965,14 +970,14 @@ DUMMY = DummyValueClass()
                         ratio between fill and table size is called the <em>load factor</em> (also, sometimes:{' '}
                         <em>fill factor</em> or <em>fill ratio</em>
                         ). So, using the new terms, we can say that a hash table is resized when the load factor reaches
-                        66%. Usually, the size is increased, we may also need to shrink the table in case there are a
-                        lot of dummy placeholders.
+                        66%. When a table is resized, it's size usually goes up, but sometimes it can actually go down,
+                        if there are a lot of dummy slots.
                     </p>
                     <p>
-                        To implement this efficiently, we need to track the load factor. So, we will need two counters
-                        for tracking fill and "real" usage. With the current code structure, tracking these counters
-                        would be messy because we would need to pass these counters to and from every function. A much
-                        cleaner solution would be using classes.
+                        To implement this efficiently, we need to track the load factor. We will need two counters for
+                        tracking fill and "real" usage. With the current code structure, tracking these counters would
+                        be messy because we would need to pass these counters to and from every function. A much cleaner
+                        solution would be using classes. More on that in the next chapter.
                     </p>
                 </Subcontainerize>
             </div>
