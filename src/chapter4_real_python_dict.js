@@ -871,12 +871,18 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <p>Now it is (finally!) time to explore how the dict works in Python!</p>
                     <p>
                         This explanation is about the dict in CPython (the most popular, "default", implementation of
-                        Python). CPython evolved over time, and so did its dictionary implementation. But, the core
-                        ideas stayed the same, and implementations in all versions are similar to each other.
+                        Python). CPython is written in C, and so is its dict implementation. This explanation has
+                        everything reimplemented in Python, because the primary goal of it is to show algorithms and
+                        data structures and not the small details of implementation. But the state of hash tables on
+                        this page matches the state of hash tables inside an actual CPython 3.2 interpreter (running on
+                        a x86_64 system). Why CPython 3.2? It's a good starting point, later versions expand the
+                        implementation (rather than replace it), so this chapter focuses on CPython 3.2's dict, and
+                        future chapters will discuss changes in the later versions.
                     </p>
                     <p>
-                        The main difference between almost-python-dict from the chapter 3 and the real Python dict is
-                        the probing algorithm.{' '}
+                        CPython evolved over time, from version to version, and so did its dictionary implementation.
+                        The central difference between almost-python-dict from the chapter 3 and the real Python dicts
+                        is the probing algorithm.
                     </p>
                     <h5>The probing algorithm</h5>
                     <p>
@@ -1073,15 +1079,12 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <h5> Resize </h5>
                     <p>
-                        In Python 3.2, the size of a hash table can be quadrupled when there are less than or equal to
-                        50000 elements, and can only be doubled when there are more than 50000 elements. Quadrupling a
-                        table leads to fewer resizes at the cost of memory. Memory overhead is proportional to the size
-                        of a table, so it gets bigger when the table is bigger, so having a certain cut off strikes a
-                        balance between having too many resizes and wasting memory.
-                    </p>
-                    <p>
-                        And just like in previous chapter, a resize operation can decrease the size of a table, if too
-                        many slots are wasted by <code>DUMMY</code> placeholders.
+                        Resizes are expensive, so it is better to have less of them. So instead merely doubling the hash
+                        table size, Python 3.2 aims for quadrupling it. This is more reasonable for smaller hash tables.
+                        So when the number of items is greater than 50000, Python doubles the table, otherwise it tries
+                        to quadruple it. Thoigh just like in previous chapter, a resize operation can decrease the size
+                        of a table or keep it the same while dropping all dummy placeholders, if too many slots are
+                        wasted by <code>DUMMY</code> placeholders.
                     </p>
                     <DynamicPartResize {...resizeRes} />
                     <p>
@@ -1095,16 +1098,35 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         stateVisualization={HashClassResizeVisualization}
                         {...this.props}
                     />
-                    <h5>A brief history of changes in the following versions</h5>
+                    <h5>More chapters to come</h5>
                     <p>
-                        In 3.3 there were significant changes to the internal structure of dicts (
-                        <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
-                        memory consumption in certain cases. "Seed" for hash function was also randomized, so you
-                        wouldn't get the same hash() for the same object if you relaunched the Python interpreter
-                        (object hashes are still stable within the same "run").
+                        This is the last chapter currently available. Developing and debugging the engine for this
+                        explorable explanation took way, way longer than I expected, so I am releasing the first few
+                        chapters before the following ones.
                     </p>
                     <p>
-                        In 3.4, the hash function itself was changed{' '}
+                        Did interactive visualizations help you understand something? Did you discover something
+                        interested because of interactivity and animations? Did it help building an intuition for hash
+                        tables? I am really curious about this, I'd love to hear from you, so drop me a message. And if
+                        you find a bug,{' '}
+                        <a href="https://github.com/eleweek/inside_python_dict">please open a new issue on Github</a>.
+                    </p>
+                    <p>
+                        Is dict in Python 3.7 similar to dict Python 3.2? I'd say yes. It's still an open addressing
+                        hash table with weird perturb-based probing. The hash function for strings changed a couple of
+                        times, some memory sharing for keys was introduced, and dicts became ordered.
+                    </p>
+                    <h5>A very brief history of changes in versions 3.3 - 3.7</h5>
+                    <p>
+                        3.3 introduced changes to internal structure of dicts (
+                        <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
+                        memory consumption in certain cases. 3.3 also randomizes seed for hash functions, so that
+                        <code>hash()</code> return values are less predictable from the outside. This is a
+                        security-related change, and object hashes are still stable within the same "run" of Python
+                        interpreter.
+                    </p>
+                    <p>
+                        In 3.4, the hash function for strings was changed{' '}
                         <a href="https://www.python.org/dev/peps/pep-0456/">to a more secure algorithm</a> which is more
                         resistant to hash collision attacks.
                     </p>
@@ -1115,7 +1137,6 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         </a>
                         .
                     </p>
-                    <p>However, the core idea has stayed the same throughout all versions so far.</p>
                     {this.props.contents}
                 </Subcontainerize>
             </div>
