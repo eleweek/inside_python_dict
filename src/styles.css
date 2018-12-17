@@ -11,10 +11,30 @@
     }
 }
 
-.app-container {
-    padding-top: 20px;
+.app-container,
+.footer-container {
     padding-right: 30px;
     padding-left: 30px;
+}
+
+.app-container {
+    padding-top: 20px;
+}
+
+.footer-container {
+    margin-top: 40px;
+    padding-bottom: 30px;
+}
+
+.footer-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.footer-list-item {
+    padding-right: 30px;
+    padding-bottom: 8px;
 }
 
 .chapter > .subcontainer {

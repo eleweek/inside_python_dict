@@ -13,6 +13,8 @@ import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
 import {faSyncAlt} from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight';
 import {faFirefox} from '@fortawesome/free-brands-svg-icons/faFirefox';
+import {faGithub} from '@fortawesome/free-brands-svg-icons/faGithub';
+import {faMailchimp} from '@fortawesome/free-brands-svg-icons/faMailchimp';
 
 import {library, config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
 fontAwesomeConfig.autoAddCss = false;
@@ -22,6 +24,8 @@ library.add(faFirefox);
 library.add(faSpinner);
 library.add(faSyncAlt);
 library.add(faChevronRight);
+library.add(faGithub);
+library.add(faMailchimp);
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -37,6 +41,7 @@ function logViewportStats() {
 }
 
 const GITHUB_REPO_URL = 'https://github.com/eleweek/inside_python_dict';
+const MAILCHIMP_URL = 'http://eepurl.com/gbzhvn';
 
 function GithubRibbon() {
     return (
@@ -252,6 +257,28 @@ class Alerts extends React.Component {
     }
 }
 
+function Footer() {
+    return (
+        <footer className="footer">
+            <div className="footer-container container-fluid">
+                <hr />
+                <div className="footer-list">
+                    <div className="footer-list-item">
+                        <a className="text-muted" href={GITHUB_REPO_URL}>
+                            <FontAwesomeIcon icon={['fab', 'github']} /> GitHub repo
+                        </a>
+                    </div>
+                    <div className="footer-list-item">
+                        <a className="text-muted" href={MAILCHIMP_URL}>
+                            <FontAwesomeIcon icon={['fab', 'mailchimp']} /> Get notified about new chapters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    );
+}
+
 export class App extends React.Component {
     constructor() {
         super();
@@ -320,20 +347,23 @@ export class App extends React.Component {
             );
         }
         return (
-            <div className="app-container container-fluid">
-                <MyErrorBoundary>
-                    <GithubForkMe windowWidth={windowWidth} />
-                </MyErrorBoundary>
-                <h1> Inside python dict &mdash; an explorable explanation</h1>
-                {!independentContents && <MyErrorBoundary>{contents}</MyErrorBoundary>}
-                <MyErrorBoundary>
-                    <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
-                </MyErrorBoundary>
-                {chapters}
-                <MyErrorBoundary>
-                    <NextPrev selectedChapterId={this.props.selectedChapterId} />
-                </MyErrorBoundary>
-            </div>
+            <React.Fragment>
+                <div className="app-container container-fluid">
+                    <MyErrorBoundary>
+                        <GithubForkMe windowWidth={windowWidth} />
+                    </MyErrorBoundary>
+                    <h1> Inside python dict &mdash; an explorable explanation</h1>
+                    {!independentContents && <MyErrorBoundary>{contents}</MyErrorBoundary>}
+                    <MyErrorBoundary>
+                        <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
+                    </MyErrorBoundary>
+                    {chapters}
+                    <MyErrorBoundary>
+                        <NextPrev selectedChapterId={this.props.selectedChapterId} />
+                    </MyErrorBoundary>
+                </div>
+                <Footer />
+            </React.Fragment>
         );
     }
 }
