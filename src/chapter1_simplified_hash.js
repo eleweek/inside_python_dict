@@ -601,8 +601,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         creating a new list of slots. Each slot will either hold a number from the original list or be
                         empty (empty slots will hold <code>None</code>
                         ). We'll use the number itself to compute an index of a slot. The simplest way to do this is to
-                        just take the slot <code>number % len(the_list)</code> and put our number in there. To check if
-                        the number is there we could compute the slot index again and see if it is empty.
+                        just take the slot <code className="text-nowrap">number % len(the_list)</code> and put our
+                        number in there. To check if the number is there we could compute the slot index again and see
+                        if it is empty.
                     </p>
                     <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"
@@ -646,8 +647,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         To search for a number, we retrace all the steps necessary to insert it. So we start from the
-                        slot <code>number % len(new_list)</code> and do linear probing. We either end up finding the
-                        number or hitting an empty slot. The latter situation means that the number is not present.
+                        slot <code className="text-nowrap">number % len(new_list)</code> and do linear probing. We
+                        either end up finding the number or hitting an empty slot. The latter situation means that the
+                        number is not present.
                     </p>
                     <p>Here is how the search process would look:</p>
                     <div className="div-p">

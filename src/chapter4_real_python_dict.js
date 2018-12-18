@@ -485,9 +485,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <p>
                         One way to address this problem by using a better hash function, in particular when it comes to
-                        integers (<code>hash(x)</code> == <code>x</code> for small integers in Python). Another way to
-                        address this problem is by using a different probing algorithm - and this is what CPython
-                        developers decided.
+                        integers (<code className="text-nowrap">hash(x)</code> == <code>x</code> for small integers in
+                        Python). Another way to address this problem is by using a different probing algorithm - and
+                        this is what CPython developers decided.
                     </p>
                     <p>There are two requirements for a probing algorithm:</p>
                     <ol>
@@ -499,37 +499,38 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </ol>
                     <p>
                         Let's take a look at linear probing first. If we repeatedly run its recurrence (
-                        <code>idx = (idx + 1) % size</code>) until we end up hitting a slot twice, we get the following
-                        picture:
+                        <code className="text-nowrap">idx = (idx + 1) % size</code>) until we end up hitting a slot
+                        twice, we get the following picture:
                     </p>
                     <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
                     <p>
                         It does not matter what slot we start from, the picture will look exactly the same. Linear
                         probing is very regular and predictable. Now, let's change the recurrence to{' '}
-                        <code>idx = (5 * idx + 1) % size</code> (note the <code>5</code>
+                        <code className="text-nowrap">idx = (5 * idx + 1) % size</code> (note the <code>5</code>
                         ):
                     </p>
                     <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
                     <p>
-                        <code>idx = (5 * idx + 1) % size</code> still guarantees to eventually hit every possible slot
-                        if <code>size</code> is a power of two (the proof of this fact is outside the scope of this
-                        page). Also, the algorithm is obviously deterministic. So, both requirements for a probing
-                        algorithm are satisfied. This algorithm scrambles the order of indexes a bit. However, it is
-                        still regular and and it is still prone to clustering.
+                        <code className="text-nowrap">idx = (5 * idx + 1) % size</code> still guarantees to eventually
+                        hit every possible slot if <code>size</code> is a power of two (the proof of this fact is
+                        outside the scope of this page). Also, the algorithm is obviously deterministic. So, both
+                        requirements for a probing algorithm are satisfied. This algorithm scrambles the order of
+                        indexes a bit. However, it is still regular and and it is still prone to clustering.
                     </p>
                     <p>
                         The probing algorithm in CPython takes this recurrence and adds a ton of scrambling to it:{' '}
-                        <code>idx = ((5 * idx) + 1 + perturb) % size</code>. What is this <code>perturb</code> weirdness
-                        though? In C code, it is initialized as basically this: <code> size_t perturb = hash_code</code>
-                        . Then, in every iteration, it is right-shifted by <code>5</code> bits (
-                        <code>{'perturb >>= 5'}</code>
+                        <code className="text-nowrap">idx = ((5 * idx) + 1 + perturb) % size</code>. What is this{' '}
+                        <code>perturb</code> weirdness though? In C code, it is initialized as basically this:{' '}
+                        <code className="text-nowrap">size_t perturb = hash_code</code>. Then, in every iteration, it is
+                        right-shifted by <code>5</code> bits (<code>{'perturb >>= 5'}</code>
                         ).
                     </p>
                     <p>
                         This probing algorithm uses some "randomness" in the form of bits from the hash code - but the
                         probing is still fully deterministic because hash functions by their nature are deterministic.{' '}
                         <code>perturb</code> eventually reaches zero, and the recurrence becomes{' '}
-                        <code>idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot (eventually).
+                        <code className="text-nowrap">idx = (5 * idx) + 1</code>, which is guaranteed to hit every slot
+                        (eventually).
                     </p>
                     <p>
                         We can reimplement this algorithm in pure Python. However, in Python there are no unsigned
@@ -569,7 +570,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <p>
                         Adding noise (from <code>perturb</code>) makes things slower when a hash table is full, the
-                        worst case scenario becomes even worse (compared to <code>(5 * idx) + 1</code>
+                        worst case scenario becomes even worse (compared to{' '}
+                        <code className="text-nowrap">(5 * idx) + 1</code>
                         ). However, in practice, we keep dicts sparse, by ensuring the load factor never goes above{' '}
                         <code>2/3</code>
                         ), so naturally there are many chances to hit an empty slot.

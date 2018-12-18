@@ -741,9 +741,9 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <HashExamples />
                     <p>
                         In the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should.
-                        However, for small integers <code>hash(x) == x</code>. This fact may seem surprising to people
-                        familiar with hash functions, however it is a deliberate design decision by Python core
-                        developers.
+                        However, for small integers <code className="text-nowrap">hash(x) == x</code>. This fact may
+                        seem surprising to people familiar with hash functions, however it is a deliberate design
+                        decision by Python core developers.
                     </p>
                     <p>
                         For "long" integers Python uses a different algorithm. Try typing a relatively big number, for
@@ -751,7 +751,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     </p>
                     <p>
                         Fun fact: <code>hash()</code> never returns <code>-1</code>, because <code>-1</code> used
-                        internally as an indicator of an error. That's why <code> hash(-1)</code> is <code>-2</code>.
+                        internally as an indicator of an error. That's why <code>hash(-1)</code> is <code>-2</code>.
                     </p>
                     <h5>hash() implementation notes</h5>
                     <p>
@@ -770,7 +770,7 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <h5> Unhashable types </h5>
                     <p>
                         Not all types are hashable. For example, lists aren't and if you call{' '}
-                        <code>hash(["some", "values"])</code> you will get{' '}
+                        <code className="text-nowrap">hash(["some", "values"])</code> you will get{' '}
                         <code>TypeError: unhashable type: 'list'</code>. Why can't we use the same hash function as for
                         tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not
                         prevent us from defining a hash function. However changing a list would change the value of the

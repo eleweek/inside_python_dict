@@ -370,7 +370,8 @@ class FindClosestSizeExample extends React.PureComponent {
     render() {
         return (
             <div>
-                <code>find_closest_size(2 * self.used)</code> == <code>find_closest_size(2 * </code>
+                <code className="text-nowrap">find_closest_size(2 * self.used)</code> =={' '}
+                <code className="text-nowrap">find_closest_size(2 * </code>
                 <PyNumberInput inline={true} value={this.state.used} onChange={this.handleInputChange} />
                 <code>)</code> == <code>find_closest_size({displayStr(this.state.usedDouble)})</code> =={' '}
                 <code>{displayStr(this.state.res)}</code>
@@ -689,8 +690,9 @@ export class Chapter3_HashClass extends ChapterComponent {
                     />
                     <p>
                         When resizing a hash table, how do we find a new optimal size? We find the nearest power of two
-                        that is greater <code>2 * self.used</code> and also a valid hash table size (which simply means
-                        it is at least <code>8</code>): <br /> <code>self.find_closest_size(2 * self.used)</code>
+                        that is greater <code className="text-nowrap">2 * self.used</code> and also a valid hash table
+                        size (which simply means it is at least <code>8</code>):{' '}
+                        <code className="text-nowrap">self.find_closest_size(2 * self.used)</code>
                     </p>
                     <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
                     <p>
@@ -718,8 +720,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         Other than that, removing a key will look pretty much the same as in the previous chapter.{' '}
                         <code>__delitem__</code> magic method is now used for realism so that we can do{' '}
-                        <code>del almost_dict[42]</code>. And we decrement the <code>self.used</code> counter if we end
-                        up finding the element and removing it.
+                        <code className="text-nowrap">del almost_dict[42]</code>. And we decrement the{' '}
+                        <code>self.used</code> counter if we end up finding the element and removing it.
                     </p>
                     <div className="div-p">
                         For example, let's say we want to remove
@@ -739,7 +741,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        After using the new <code>lookdict</code> function, search function <code>__getitem__</code>{' '}
+                        After using the new <code>lookdict()</code> function, search function <code>__getitem__</code>{' '}
                         also gets very short.
                     </p>
                     <div className="div-p">
