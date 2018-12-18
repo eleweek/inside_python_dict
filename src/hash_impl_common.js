@@ -364,3 +364,26 @@ export function EQ(o1, o2) {
 
     return o1 === o2;
 }
+
+function signedToUnsigned(num) {
+    if (num.lt(0)) {
+        return num.plus(BigNumber(2).pow(64));
+    } else {
+        return num;
+    }
+}
+
+export function computePerturb(hashCode) {
+    return signedToUnsigned(hashCode);
+}
+
+export function nextIdxPerturb(idx, perturb, size) {
+    return +BigNumber(5 * idx + 1)
+        .plus(perturb)
+        .mod(size)
+        .toString();
+}
+
+export function perturbShift(perturb) {
+    return perturb.idiv(BigNumber(2).pow(5)); // >>= 5
+}

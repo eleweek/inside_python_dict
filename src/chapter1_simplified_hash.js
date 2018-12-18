@@ -23,6 +23,7 @@ import {
     randomChoice,
 } from './util';
 import {chapter1_2_FormatCheckCollision, commonFormatCheckNotFound} from './common_formatters';
+import {ProbingVisualization, GenerateProbingLinks} from './probing_visualization';
 import {parsePyNumber} from './py_obj_parsing';
 
 import {BigNumber} from 'bignumber.js';
@@ -480,6 +481,16 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         }
     });
 
+    runProbingSimple = memoizeOne(slotsCount => {
+        let g = new GenerateProbingLinks();
+        const {links} = g.run(slotsCount, '', 'i+1');
+
+        return {
+            links,
+            bp: g.getBreakpoints(),
+        };
+    });
+
     runSimplifiedInsertAllBroken = memoizeOne(numbers => {
         return Ops.createNewBroken(numbers);
     });
@@ -498,6 +509,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
         const siaBrokenRes = this.generateAlternativeDataForInsertAllBroken(this.state.numbers);
         const siaRes = this.runSimplifiedInsertAll(this.state.numbers);
         const ssRes = this.runSimplifiedSearch(siaRes.keys, this.state.simplifiedHashSearchNumber);
+
+        const probingVisSlotsCount = 8;
+        const probingSimple = this.runProbingSimple(probingVisSlotsCount);
 
         return (
             <div className="chapter chapter1">
@@ -532,9 +546,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <UnnamedListVisualization bp={{data: this.state.numbers}} compensateTopPadding={25} />
                     <p>
                         To check if an element is present in a list, we can use the <code>in</code> operator like this:{' '}
-                        <code>number in simple_list</code>, which returns either <code>True</code> or <code>False</code>
-                        . Under the hood this short snippet does a linear scan. This can be a lot of work. To see this,
-                        let's reimplement it in Python.
+                        <code className="text-nowrap">number in simple_list</code>, which returns either{' '}
+                        <code>True</code> or <code>False</code>. Under the hood this short snippet does a linear scan.
+                        This can be a lot of work. To see this, let's reimplement it in Python.
                     </p>
                     <div className="div-p">
                         Let's say we're looking for the following number in the original list:
@@ -607,9 +621,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         comes right after it. And if that slot is empty, we'll put the number there. But, what if that
                         slot is also occupied? Once again, we'll go ahead and check the next slot. We'll keep repeating
                         this process until we finally hit an empty slot. This process is called <em>probing</em>. And
-                        because we do it linearly, it is called <em>linear probing</em>. In the code, we would write
-                        this as <code>(idx + 1) % len(simple_list)</code>
+                        because we do it linearly, it is called <em>linear probing</em>. In code, we would write this as{' '}
+                        <code className="text-nowrap">(idx + 1) % len(simple_list)</code>, so it wraps around back to
+                        the beginning at the last index:
                     </p>
+                    <ProbingVisualization slotsCount={probingVisSlotsCount} links={probingSimple.links} />
                     <p>
                         If we make the new list the same size as the original list, we'll have too many collisions. If
                         we make it 10x larger, we'll have very few collisions, but we'll waste a lot of memory. So what
