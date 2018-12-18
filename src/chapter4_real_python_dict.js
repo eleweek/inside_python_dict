@@ -454,6 +454,7 @@ class ProbingVisualizationImpl extends React.Component {
     BOX_SPACING = 8;
 
     transitionId = null;
+    lastTransitionId = 0;
 
     constructor(props) {
         super(props);
@@ -583,12 +584,15 @@ class ProbingVisualizationImpl extends React.Component {
 
         let t = d3.transition().duration(transitionTime);
 
-        this.transitionId++;
-        let transitionId = this.transitionId;
+        this.lastTransitionId++;
+        let transitionId = this.lastTransitionId;
+        this.transitionId = transitionId;
 
         t.on('end', () => {
             if (this.transitionId === transitionId) {
-                this.transitionEnd();
+                // XXX: this is a hack for d3, because .end() callbacks seem to be executed in the weird order
+                // XXX: it is necessary, because .end() removes some necessary classes as well
+                setTimeout(() => this.transitionEnd(), 0);
             }
         });
 
@@ -969,7 +973,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                                 <code>perturb == 0</code>{' '}
                                 {isWeirdPattern
                                     ? [
-                                          <br />,
+                                          <br key="weird-pattern-br" />,
                                           '(Also, it may seem surprising, but this weird repeated pattern is totally real)',
                                       ]
                                     : null}

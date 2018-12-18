@@ -787,8 +787,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                             onChange={this.setter('keyToDel', false, true)}
                             anotherValue={() => anotherKey(this.state.pairs)}
                         />
+                        ?
                     </div>
-                    <p className="inline-block">?{'\u00A0'}</p>
                     <div className="div-p">
                         Let's see what happens after we insert a key
                         <PySNNInput
