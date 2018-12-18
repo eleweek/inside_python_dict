@@ -436,7 +436,7 @@ class ProbingStateVisualization extends React.Component {
     }
 }
 
-class ProbingVisualization extends React.Component {
+class ProbingVisualization extends React.PureComponent {
     static FULL_WIDTH = true;
     static EXTRA_ERROR_BOUNDARY = true;
 
