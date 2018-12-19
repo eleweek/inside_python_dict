@@ -264,12 +264,12 @@ function Footer() {
                 <hr />
                 <div className="footer-list">
                     <div className="footer-list-item">
-                        <a className="text-muted" href={GITHUB_REPO_URL}>
+                        <a className="text-muted" href={GITHUB_REPO_URL} target="_blank">
                             <FontAwesomeIcon icon={['fab', 'github']} /> GitHub repo
                         </a>
                     </div>
                     <div className="footer-list-item">
-                        <a className="text-muted" href={MAILCHIMP_URL}>
+                        <a className="text-muted" href={MAILCHIMP_URL} target="_blank">
                             <FontAwesomeIcon icon={['fab', 'mailchimp']} /> Get notified about new chapters
                         </a>
                     </div>

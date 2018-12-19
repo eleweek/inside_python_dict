@@ -573,13 +573,15 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         free to mess with the input and the original list - the visualization will update automatically)
                     </p>
                     <p>
-                        A Python dict implementation is basically a scan of a list (but a pretty weird scan). We'll
-                        build the actual algorithm and data structure inside Python dictionary step by step. The first
-                        step is the code above, which is intentionally verbose.
+                        What's not so great about linear scans? If we have a million distinct numbers, in the worst case
+                        scenario, we may need to scan the whole list. But scanning over a few elements is no big deal.
+                        We need to have some order and predictability to make the search fast. We need to have some idea
+                        of where the searched element is located.
                     </p>
                     <p>
-                        What's not so great about linear scans? Scanning over a few elements is no big deal. But if we
-                        have a million distinct numbers, in the worst case scenario, we may need to scan the whole list.
+                        A Python dict implementation is basically a scan of a list (but a pretty weird scan). We'll
+                        build the actual algorithm and data structure inside Python dictionary step by step, starting
+                        with the code above, which is intentionally verbose.{' '}
                     </p>
                     <h5>Contents</h5>
                     {this.props.contents}
@@ -599,11 +601,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
                         too. What we need to do is organize our data in a clever way. Here's how. Let's begin by
                         creating a new list of slots. Each slot will either hold a number from the original list or be
-                        empty (empty slots will hold <code>None</code>
-                        ). We'll use the number itself to compute an index of a slot. The simplest way to do this is to
-                        just take the slot <code className="text-nowrap">number % len(the_list)</code> and put our
-                        number in there. To check if the number is there we could compute the slot index again and see
-                        if it is empty.
+                        empty (empty slots will hold <code>None</code>). We'll use the number itself to compute an index
+                        of a slot. The simplest way to do this is to take the remainder of <code>number</code> divided
+                        by <code>len(the_list)</code>: <code className="text-nowrap">number % len(the_list)</code> and
+                        put our number in there. To check if the number is there we could compute the slot index again
+                        and see if it is empty.
                     </p>
                     <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"
@@ -646,12 +648,11 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        To search for a number, we retrace all the steps necessary to insert it. So we start from the
-                        slot <code className="text-nowrap">number % len(new_list)</code> and do linear probing. We
-                        either end up finding the number or hitting an empty slot. The latter situation means that the
-                        number is not present.
+                        To search for a number, we retrace all the steps necessary to insert it: we start from the slot{' '}
+                        <code className="text-nowrap">number % len(new_list)</code> and do linear probing. We either end
+                        up finding the number or hitting an empty slot. The latter situation means that the number is
+                        not present.
                     </p>
-                    <p>Here is how the search process would look:</p>
                     <div className="div-p">
                         Let's say we want to search for
                         <PySmallIntInput
@@ -671,8 +672,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <p>
                         Calculating an index based on the value of the number and resolving collisions by linear probing
                         is incredibly powerful. This idea is a major one behind Python dict. What we've just implemented
-                        is a simple <em>hash table</em>. Python dict uses a hash table internally, albeit a more complex
-                        variant.
+                        is a simple <em>hash table</em> (more about the term in the next chapter). Python dict uses a
+                        hash table internally, albeit a more complex variant.
                     </p>
                     <p>
                         We still haven't discussed adding more elements (what happens if a table overflows?), removing
@@ -683,18 +684,32 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <h6>Collision resolution via separate chaining</h6>
                     <p>
                         There is a different method of collision resolution, called{' '}
-                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining">separate chaining</a>. It
-                        is also a powerful method which is commonly used. But that's not how Python resolves collision
-                        in dicts, so this method is beyond the scope of this explanation.{' '}
+                        <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining" target="_blank">
+                            separate chaining
+                        </a>
+                        . It is also a powerful method which is commonly used. But that's not how Python resolves
+                        collision in dicts, so this method is beyond the scope of this explanation.{' '}
                     </p>
                     <h6>A couple of the notes about the explanation</h6>
                     <p>
                         First, this explanation discusses <code>dict</code> as it is implemented in{' '}
-                        <a href="http://python.org/">CPython</a> &mdash; the "default" and most common implementation of
-                        the Python language (if you are not sure what implementation you use, it is almost certainly
-                        CPython). Some other implementations are <a href="https://pypy.org/">PyPy</a>,{' '}
-                        <a href="http://www.jython.org/">Jython</a> and <a href="http://ironpython.net/">IronPython</a>.
-                        The way dict works in each of these implementations may be similar to CPython (in the case of
+                        <a href="http://python.org/" target="_blank">
+                            CPython
+                        </a>{' '}
+                        &mdash; the "default" and most common implementation of the Python language (if you are not sure
+                        what implementation you use, it is almost certainly CPython). Some other implementations are{' '}
+                        <a href="https://pypy.org/" target="_blank">
+                            PyPy
+                        </a>
+                        ,{' '}
+                        <a href="http://www.jython.org/" target="_blank">
+                            Jython
+                        </a>{' '}
+                        and{' '}
+                        <a href="http://ironpython.net/" target="_blank">
+                            IronPython
+                        </a>
+                        . The way dict works in each of these implementations may be similar to CPython (in the case of
                         PyPy) or very different from CPython (in the case of Jython).
                     </p>
                     <p>

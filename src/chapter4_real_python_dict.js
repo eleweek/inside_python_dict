@@ -578,11 +578,11 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <p>
                         If you are interested in more subtleties and technical details, you can check{' '}
-                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt">
+                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictnotes.txt" target="_blank">
                             Objects/dictnotes.txt
                         </a>{' '}
                         and{' '}
-                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c">
+                        <a href="https://github.com/python/cpython/blob/3.2/Objects/dictobject.c" target="_blank">
                             comments near the top of Objects/dictobject.c
                         </a>
                     </p>
@@ -674,9 +674,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         Resizes are expensive, so it is better to have less of them. So instead merely doubling the hash
                         table size, Python 3.2 aims for quadrupling it. This is more reasonable for smaller hash tables.
                         So when the number of items is greater than 50000, Python doubles the table, otherwise it tries
-                        to quadruple it. Thoigh just like in previous chapter, a resize operation can decrease the size
-                        of a table or keep it the same while dropping all dummy placeholders, if too many slots are
-                        wasted by <code>DUMMY</code> placeholders.
+                        to quadruple it. (Although, just like in previous chapter, a resize operation can decrease the
+                        size of a table or keep it the same while dropping all dummy placeholders, if too many slots are
+                        wasted by <code>DUMMY</code> placeholders).
                     </p>
                     <DynamicPartResize {...resizeRes} />
                     <p>
@@ -701,7 +701,10 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         interested because of interactivity and animations? Did it help building an intuition for hash
                         tables? I am really curious about this, I'd love to hear from you, so drop me a message. And if
                         you find a bug,{' '}
-                        <a href="https://github.com/eleweek/inside_python_dict">please open a new issue on Github</a>.
+                        <a href="https://github.com/eleweek/inside_python_dict" target="_blank">
+                            please open a new issue on Github
+                        </a>
+                        .
                     </p>
                     <p>
                         Is dict in Python 3.7 similar to dict Python 3.2? I'd say yes. It's still an open addressing
@@ -711,20 +714,25 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <h5>A very brief history of changes in versions 3.3 - 3.7</h5>
                     <p>
                         3.3 introduced changes to internal structure of dicts (
-                        <a href="https://www.python.org/dev/peps/pep-0412/">"Key-Sharing Dictionary"</a>) that improved
-                        memory consumption in certain cases. 3.3 also randomizes seed for hash functions, so that
+                        <a href="https://www.python.org/dev/peps/pep-0412/" target="_blank">
+                            "Key-Sharing Dictionary"
+                        </a>
+                        ) that improved memory consumption in certain cases. 3.3 also randomizes seed for hash
+                        functions, so that
                         <code>hash()</code> return values are less predictable from the outside. This is a
                         security-related change, and object hashes are still stable within the same "run" of Python
                         interpreter.
                     </p>
                     <p>
                         In 3.4, the hash function for strings was changed{' '}
-                        <a href="https://www.python.org/dev/peps/pep-0456/">to a more secure algorithm</a> which is more
-                        resistant to hash collision attacks.
+                        <a href="https://www.python.org/dev/peps/pep-0456/" target="_blank">
+                            to a more secure algorithm
+                        </a>{' '}
+                        which is more resistant to hash collision attacks.
                     </p>
                     <p>
                         In 3.6{' '}
-                        <a href="https://bugs.python.org/issue27350">
+                        <a href="https://bugs.python.org/issue27350" target="_blank">
                             the dict internal structure became more compact and the dict became "ordered"
                         </a>
                         .

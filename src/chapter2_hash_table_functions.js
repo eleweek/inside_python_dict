@@ -538,7 +538,7 @@ class HashExamples extends React.Component {
                 </p>
                 <p>
                     <span>Tuples: </span>
-                    <code>hash(("Hello", 42))</code> = <code>4421265786515608844</code>
+                    <code>hash(("Hi", 11))</code> = <code>4421265786515608844</code>
                 </p>
                 <p>
                     <span>None: </span>
@@ -719,13 +719,18 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         objects? We can if we find a way to turn objects into numbers for indexing. We don't need a
                         perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if
                         two unrelated objects are turned into the same number &mdash; we can use linear probing to
-                        resolve this collision anyway! However, if we turn all objects into the same number, for
-                        example, <code>42</code>, our hash table would work, but its performance would severely degrade.
-                        So, for performance reasons it is desirable to get distinct numbers for distinct objects
-                        usually. The transformation also needs to be completely deterministic, i.e. we need to always
-                        get the same value for the same object. In other words, something like <code>random()</code>{' '}
-                        would not work, because we would "forget" where we placed our objects and we wouldn't be able to
-                        locate them during a search.
+                        resolve this collision anyway!
+                    </p>
+                    <p>
+                        However, if we turn all objects into the same number, for example, <code>42</code>, our hash
+                        table would work, but its performance would severely degrade. So, for performance reasons it is
+                        desirable to get distinct numbers for distinct objects usually.{' '}
+                    </p>
+                    <p>
+                        The transformation also needs to be completely deterministic, i.e. we need to always get the
+                        same value for the same object. In other words, something like <code>random()</code> would not
+                        work, because we would "forget" where we placed our objects and we wouldn't be able to locate
+                        them during a search.
                     </p>
                     <p>
                         Functions that do this kind of transformation are called <em>hash functions</em>. Since it is
@@ -758,8 +763,8 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         This chapter and the next two chapters will use <code>hash()</code> implementation from Python
                         3.2 (running on an x86_64 system). So if you run Python 3.2 on your x86_64 system, you should
                         see the same hash values for integers and strings (and the same data structure states).{' '}
-                        <code>hash(None)</code> changes between runs, but in this explanation
-                        <code>hash(None)</code> is always <code>-9223372036581563745</code>.
+                        <code>hash(None)</code> changes between runs, but in this explanation <code>hash(None)</code> is
+                        always <code>-9223372036581563745</code>.
                     </p>
                     <p>
                         Why Python 3.2? Because dict implementation changed over time, but Python 3.2's dict implements
@@ -772,28 +777,30 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         Not all types are hashable. For example, lists aren't and if you call{' '}
                         <code className="text-nowrap">hash(["some", "values"])</code> you will get{' '}
                         <code>TypeError: unhashable type: 'list'</code>. Why can't we use the same hash function as for
-                        tuples? The answer is because lists are mutable and tuples are not. Mutability, per se, does not
-                        prevent us from defining a hash function. However changing a list would change the value of the
-                        hash function as well, and therefore we will not be able to find the mutated list! Hashing and
-                        using lists as keys in dicts would lead to many accidental bugs, so core developers of Python
-                        chose not to allow this.
+                        tuples? The answer is because lists are mutable and tuples are not. We could still define a hash
+                        function for lists and other mutable objects. However changing a list would change the value of
+                        the hash function as well, and therefore we will not be able to find the mutated list! Hashing
+                        and using lists as keys in dicts would lead to many accidental bugs, so core developers of
+                        Python chose not to allow this.
                     </p>
                     <h5>A note on the word "hash"</h5>
                     <p>
                         Because hash tables use hash functions and because hash tables mix up inserted elements, they
                         are called hash tables. Sometimes people shorten "hash table" to simply "hash". The output of a
                         hash function is sometimes called "hash value" or "hash code", but very often it is shortened to
-                        simple "hash". Also, Python's built-in hash function is called <code>hash()</code>. Because
-                        people like to shorten things, three different (but related) concepts end up having the same
-                        shortened name. This can get a bit confusing sometimes.
+                        simple "hash". Also, Python's built-in hash function is called <code>hash()</code>.
+                    </p>
+                    <p>
+                        Because people like to shorten things, three different (but related) concepts end up having the
+                        same shortened name. This can get a bit confusing sometimes.
                     </p>
                     <h5> Using hash functions for hash tables </h5>
                     <p>
                         Recall that we started with a simple problem: searching efficiently in a list of distinct
-                        numbers. Now, let's make this problem harder: our hash table needs to support types other than
-                        integers, handle duplicates and support removing and adding keys (and therefore resizing). We
-                        will see how to handle values in the next chapter, but for now let's assume we only need to
-                        search for keys.
+                        numbers. Now, let's make this problem harder: our hash table needs to handle duplicate, support
+                        types other than integers, support removing and adding keys (and therefore resizing). We will
+                        see how to handle values in the next chapter, but for now let's assume we only need to search
+                        for keys.
                     </p>
                     <p>How does using hash functions change the insertion algorithm?</p>
                     <p>
@@ -824,7 +831,7 @@ EMPTY = EmptyValueClass()
                     <p>
                         When we only had integers, we didn't have this problem, because comparing integers is cheap. But
                         here is a neat trick we can use to improve the performance in the case of arbitrary objects. We
-                        still get numbers from hash functions. So, we can cache these numbers and compare them before
+                        still get numbers from hash functions. So, we can save these numbers and compare them before
                         comparing actual objects. When comparing hashes, there are two different outcomes. First, the
                         hashes are different; in this case, we can safely conclude that the objects are different as
                         well. Second, the hashes are equal; in this case, there is a good chance that the objects are

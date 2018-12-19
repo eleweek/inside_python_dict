@@ -601,10 +601,13 @@ export class Chapter3_HashClass extends ChapterComponent {
                         How do we initialize an empty hash table? In previous chapters, we based the initial size of
                         hash tables on the original list. Since we now know how to resize tables, we can start with an
                         empty table and grow it. Hash tables inside Python dictionaries are size 8 when they are empty,
-                        so let's use 8 as the initial size. Python hash table sizes are powers of 2, so we will also use
-                        powers of 2. even though nothing prevents us from using "non-round" values. The primary reason
-                        Python uses "round" powers of 2 is efficiency: computing <code>% 2**n</code> can be implemented
-                        using bit operations (<code>{'& (1 << n)'}</code>
+                        so let's use 8 as the initial size.
+                    </p>
+                    <p>
+                        Python hash table sizes are powers of 2, so we will also use powers of 2. even though nothing
+                        prevents us from using "non-round" values. The primary reason Python uses "round" powers of 2 is
+                        efficiency: computing <code>% 2**n</code> can be implemented using bit operations (
+                        <code>{'& (1 << n)'}</code>
                         ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
                     </p>
                     <p>Here is the overview of the interface of the class:</p>
@@ -645,9 +648,15 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         <code>__setitem__</code>, <code>__getitem__</code> and <code>__delitem__</code> are a special
                         kind of methods, called{' '}
-                        <a href="https://www.instagram.com/the_goddamn_sex_number/">magic methods</a>. They are called
-                        magic, because you don't have to invoke them directly: Python does it for you behind the scenes,
-                        when you use square brackets (e.g. <code>d[1]</code>). Other than that, they are normal methods.{' '}
+                        <a
+                            href="https://docs.python.org/3/reference/datamodel.html#special-method-names"
+                            target="_blank"
+                        >
+                            magic methods
+                        </a>
+                        . They are called magic, because you don't have to invoke them directly: Python does it for you
+                        behind the scenes, when you use square brackets (e.g. <code>d[1]</code>). Other than that, they
+                        are normal methods.{' '}
                     </p>
                     <p>
                         Each method is going to keep track of <code>self.fill</code> (the number of non-empty slots
@@ -769,12 +778,18 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         Dummy keys are used as placeholders. The only purpose of a dummy slot is to prevent a probing
                         algorithm from breaking. The algorithm will work as long as the "deleted" slot is occupied by
-                        something, be it a dummy placeholder or a normal item. This means that while inserting an item,
-                        if we end up hitting a dummy slot, we can put the item in that slot (if the key does isn't
-                        already inserted). So, we still need to do a full look up, but we will also save an index of the
-                        first dummy slot to <code>target_idx</code> (if we encounter it). If we find that a key already
-                        exists, we save the index to <code>target_idx</code> and break. If we find neither a dummy slot
-                        nor the key, then we insert it in the first empty slot - as we did before.
+                        something, be it a dummy placeholder or a normal item.{' '}
+                    </p>
+                    <p>
+                        {' '}
+                        This means that while inserting an item, if we end up hitting a dummy slot, we can put the item
+                        in that slot (if the key does isn't already inserted).{' '}
+                    </p>
+                    <p>
+                        So, we still need to do a full look up, but we will also save an index of the first dummy slot
+                        to <code>target_idx</code> (if we encounter it). If we find that a key already exists, we save
+                        the index to <code>target_idx</code> and break. If we find neither a dummy slot nor the key,
+                        then we insert it in the first empty slot - as we did before.
                     </p>
                     <p>
                         In the absence of dummy slots, the code works the same. So, even though we built the table with
