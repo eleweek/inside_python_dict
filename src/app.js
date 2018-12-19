@@ -324,7 +324,10 @@ export class App extends React.Component {
         }, 100);
         window.addEventListener('scroll', onScroll);
         // doubleRAF is probably not needed here, adding just in case
-        doubleRAF(() => win.setScrollY(window.scrollY));
+        doubleRAF(() => {
+            win.setScrollY(window.scrollY);
+            win.jsLoaded = true;
+        });
     }
 
     componentWillUnmount() {

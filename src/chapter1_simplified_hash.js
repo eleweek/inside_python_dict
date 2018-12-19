@@ -29,6 +29,8 @@ import {parsePyNumber} from './py_obj_parsing';
 import {BigNumber} from 'bignumber.js';
 
 import memoizeOne from 'memoize-one';
+import {observer} from 'mobx-react';
+import {win} from './store';
 
 const CHAPTER1_MAXNUM = 999;
 
@@ -306,6 +308,10 @@ export const SIMPLIFIED_SEARCH_CODE = [
     ['    return False', 'found-nothing', 1],
 ];
 
+const HideSpanWhenJsLoaded = observer(function HideWhenJsLoaded({children, tag}) {
+    return <span style={{opacity: win.jsLoaded ? 0 : 1, transition: 'opacity 1s ease'}}>{children}</span>;
+});
+
 class SimplifiedSearch extends BreakpointFunction {
     run(_newList, _number) {
         this.newList = new ImmutableList(_newList);
@@ -519,8 +525,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                 <Subcontainerize>
                     <p>
                         Hi! This is <em>an explorable explanation</em> of Python dictionaries. This page is dynamic and
-                        interactive &mdash; you can plug in your data and see how the algorithms work on it (once the
-                        javascript loads).
+                        interactive &mdash; you can plug in your data and see how the algorithms work on it.{' '}
+                        <HideSpanWhenJsLoaded>(Once the javascript loads)</HideSpanWhenJsLoaded>
                     </p>
                     <p className="mb-2">
                         To start with, let's say we have a simple list of distinct integers (change it if you want - the

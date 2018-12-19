@@ -19,6 +19,7 @@ export let win = observable({
     scrollY: 0,
     height: null,
     width: null,
+    jsLoaded: false,
 });
 
 win.setScrollY = action(function setScrollY(scrollY) {
