@@ -974,7 +974,7 @@ DUMMY = DummyValueClass()
                     </p>
                     <p>
                         The number of non-empty slots (including dummy/tombstone slots) is called <em>fill</em>. The
-                        ratio between fill and table size is called the <em>load factor</em> (also, sometimes:{' '}
+                        ratio between fill and table capacity is called the <em>load factor</em> (also, sometimes:{' '}
                         <em>fill factor</em> or <em>fill ratio</em>
                         ). So, using the new terms, we can say that a hash table is resized when the load factor reaches
                         66%. When a table is resized, it's size usually goes up, but sometimes it can actually go down,

@@ -646,24 +646,24 @@ export class Chapter3_HashClass extends ChapterComponent {
 `}
                     </SimpleCodeBlock>
                     <p>
-                        <code>__setitem__</code>, <code>__getitem__</code> and <code>__delitem__</code> are a special
-                        kind of methods, called{' '}
+                        <code>__setitem__</code>, <code>__getitem__</code> and <code>__delitem__</code> are special
+                        methods, often called{' '}
                         <a
                             href="https://docs.python.org/3/reference/datamodel.html#special-method-names"
                             target="_blank"
                         >
                             magic methods
                         </a>
-                        . They are called magic, because you don't have to invoke them directly: Python does it for you
-                        behind the scenes, when you use square brackets (e.g. <code>d[1]</code>). Other than that, they
-                        are normal methods.{' '}
+                        . They are called this way, because you don't have to invoke them directly: Python does it for
+                        you behind the scenes, when you use square brackets (e.g. <code>d[1]</code>). Other than that,
+                        they are normal methods.{' '}
                     </p>
                     <p>
                         Each method is going to keep track of <code>self.fill</code> (the number of non-empty slots
-                        including dummy slots) and <code>self.used</code> (the number of items in the dictionary). Fill
-                        factor is the ratio between <code>self.fill</code> and <code>len(slots)</code>. When it reaches
-                        2/3, the table gets resized. The new size is based on the actual useful usage of the table,
-                        which is <code>self.used</code>.
+                        including dummy slots) and <code>self.used</code> (the number of normal items in the dictionary,
+                        same as dictionary size). Fill factor is the ratio between <code>self.fill</code> and{' '}
+                        <code>len(slots)</code>. When it reaches 2/3, the table gets resized. The new size is based on
+                        the actual useful usage of the table, which is <code>self.used</code>.
                     </p>
                     <p>
                         Let's take a look at the code, starting with the <code>__init__</code> method. We're creating
@@ -680,10 +680,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        The code in __init__ also assumes that the dict contents are passed as a list of pairs (rather
-                        than as an actual dict - which we are reimplementing). The code for inserting an individual item
-                        moved to <code>__setitem__</code>. It also increments the counters if necessary. And most
-                        importantly, it calls <code>resize()</code> after inserting an element if necessary.
+                        The code in <code>__init__</code> also assumes that the dict contents are passed as a list of
+                        pairs (rather than as an actual dict - which we are reimplementing). The code for inserting an
+                        individual item moved to <code>__setitem__</code>. It also increments the counters if necessary.
+                        And most importantly, it calls <code>resize()</code> after inserting an element if necessary.
                     </p>
 
                     <VisualizedCode
