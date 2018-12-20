@@ -585,9 +585,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         In this chapter, we'll make a class that supports the basic interface of a Python dict. The
                         class will keep track of the counters necessary for computing the load factor and auto-resize
-                        the hash table when necessary. On the inside, it'll work differently from Python dict, but we'll
-                        adress the differences in the next chapter. (Spoiler: the main difference is the probing
-                        algorithm)
+                        the hash table when necessary. On the inside, it'll work differently from Python dict, and we'll
+                        discuss these differences in the next chapter.
                     </p>
                     <p>
                         The almost-Python-dict class needs to support values. To handle values we could add another list
@@ -608,7 +607,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         prevents us from using "non-round" values. The primary reason Python uses "round" powers of 2 is
                         efficiency: computing <code>% 2**n</code> can be implemented using bit operations (
                         <code>{'& (1 << n)'}</code>
-                        ). However, for elegance in our code we will keep using modulo operations instead of bit ops.
+                        ).
                     </p>
                     <p>Here is the overview of the interface of the class:</p>
                     <SimpleCodeBlock>
@@ -654,16 +653,17 @@ export class Chapter3_HashClass extends ChapterComponent {
                         >
                             magic methods
                         </a>
-                        . They are called this way, because you don't have to invoke them directly: Python does it for
+                        . They are called this way because you don't have to invoke them directly: Python does it for
                         you behind the scenes, when you use square brackets (e.g. <code>d[1]</code>). Other than that,
                         they are normal methods.{' '}
                     </p>
                     <p>
                         Each method is going to keep track of <code>self.fill</code> (the number of non-empty slots
                         including dummy slots) and <code>self.used</code> (the number of normal items in the dictionary,
-                        same as dictionary size). Fill factor is the ratio between <code>self.fill</code> and{' '}
+                        same as the dictionary size). Fill factor is the ratio between <code>self.fill</code> and{' '}
                         <code>len(slots)</code>. When it reaches 2/3, the table gets resized. The new size is based on
-                        the actual useful usage of the table, which is <code>self.used</code>.
+                        the number of noraml items of the table, which is <code>self.used</code>, and typically it is 2x
+                        of original size.
                     </p>
                     <p>
                         Let's take a look at the code, starting with the <code>__init__</code> method. We're creating
@@ -681,11 +681,23 @@ export class Chapter3_HashClass extends ChapterComponent {
                     />
                     <p>
                         The code in <code>__init__</code> also assumes that the dict contents are passed as a list of
-                        pairs (rather than as an actual dict - which we are reimplementing). The code for inserting an
-                        individual item moved to <code>__setitem__</code>. It also increments the counters if necessary.
-                        And most importantly, it calls <code>resize()</code> after inserting an element if necessary.
+                        pairs (not an actual dict &mdash; which we are reimplementing).
                     </p>
-
+                    <p>
+                        Compared to the previous chapter, the differences in building hash tables are:
+                        <ul>
+                            <li>
+                                inserting an individual item is now in a dedicated <code>__setitem__</code> method;
+                            </li>
+                            <li>
+                                The <code>fill</code> and <code>used</code> counters are incremented if necessary;
+                            </li>
+                            <li>
+                                most importantly, <code>resize()</code> gets called after inserting an element if the
+                                fill factor gets too high.
+                            </li>
+                        </ul>
+                    </p>
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
                         breakpoints={newRes.bp}
@@ -696,22 +708,20 @@ export class Chapter3_HashClass extends ChapterComponent {
                         ]}
                         stateVisualization={HashClassInsertAllVisualization}
                         {...this.props}
-                    />
+                    />{' '}
                     <p>
-                        When resizing a hash table, how do we find a new optimal size? We find the nearest power of two
-                        that is greater <code className="text-nowrap">2 * self.used</code> and also a valid hash table
-                        size (which simply means it is at least <code>8</code>):{' '}
-                        <code className="text-nowrap">self.find_closest_size(2 * self.used)</code>
+                        When resizing a hash table, how do we find a new optimal size? We find a valid table size
+                        greater than <code className="text-nowrap">2 * self.used</code>. A valid hash table size is a
+                        power of two which is at least 8.
                     </p>
                     <SimpleCodeBlock>{FIND_NEAREST_SIZE_CODE_STRING}</SimpleCodeBlock>
                     <p>
-                        The code only uses <code>self.used</code> (which the total number of non-empty slots, including
-                        dummy slots). It does not depend on <code>self.fill</code> (which actually tracks the number of
-                        items) in any way. The idea is to double the size of the table if there are very few dummy slots
-                        and shrink it if there are too many dummy slots (so that the memory is saved).
+                        The code only uses <code>self.used</code> (the number of "useful" non-empty slots). It does not
+                        depend on <code>self.fill</code> (the total number of non-empty slots) in any way. The idea is
+                        to double the size of the table if there are very few dummy slots and shrink it if there are too
+                        many dummy slots (so that the memory is saved).
                     </p>
                     <FindClosestSizeExample />
-
                     <DynamicPartResize {...resizeRes} pairsCount={this.state.pairs.length} />
                     <VisualizedCode
                         code={HASH_CLASS_RESIZE_CODE}
@@ -769,7 +779,6 @@ export class Chapter3_HashClass extends ChapterComponent {
                         stateVisualization={HashClassNormalStateVisualization}
                         {...this.props}
                     />
-
                     <p>
                         So we now have a class that emulates the basic part of the dict interface. Before we move on to
                         the next chapter, let's discuss a neat trick for inserting new items.
@@ -793,7 +802,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     </p>
                     <p>
                         In the absence of dummy slots, the code works the same. So, even though we built the table with
-                        a simpler version of <code>__setitem__</code>, it would look exactly the same.
+                        a simpler version of <code>__setitem__</code>, it would look exactly the same as if we built it
+                        applying this optimization.
                     </p>
                     <div className="div-p">
                         Remember that we removed
@@ -807,7 +817,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         ?
                     </div>
                     <div className="div-p">
-                        Let's see what happens after we insert a key
+                        What happens after we insert a key
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToSetRecycling}
@@ -819,7 +829,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                             inline={true}
                             value={this.state.valueToSetRecycling}
                             onChange={this.setter('valueToSetRecycling')}
-                        />
+                        />{' '}
+                        to the modified hash table?
                     </div>
                     <DynamicPartSetItemRecycling
                         {...recyclingRes}

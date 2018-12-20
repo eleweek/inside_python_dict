@@ -755,22 +755,22 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         example, <code>12345678901234567890</code> to see this.
                     </p>
                     <p>
-                        Fun fact: <code>hash()</code> never returns <code>-1</code>, because <code>-1</code> used
+                        Another fact: <code>hash()</code> never returns <code>-1</code>, because <code>-1</code> used
                         internally as an indicator of an error. That's why <code>hash(-1)</code> is <code>-2</code>.
                     </p>
                     <h5>hash() implementation notes</h5>
                     <p>
                         This chapter and the next two chapters will use <code>hash()</code> implementation from Python
                         3.2 (running on an x86_64 system). So if you run Python 3.2 on your x86_64 system, you should
-                        see the same hash values for integers and strings (and the same data structure states).{' '}
-                        <code>hash(None)</code> changes between runs, but in this explanation <code>hash(None)</code> is
-                        always <code>-9223372036581563745</code>.
+                        see the same hash values for integers and strings (and the same data structure states). One
+                        exception is <code>hash(None)</code>. It changes between runs, but in this explanation{' '}
+                        <code>hash(None)</code> is always <code>-9223372036581563745</code>.
                     </p>
                     <p>
                         Why Python 3.2? Because dict implementation changed over time, but Python 3.2's dict implements
-                        all major ideas, and thus Python 3.2 is a perfect starting point for exploring implementations
-                        of Python dict. Later versions of Python extend (rather than completely replace) Python 3.2's
-                        implementation. Eventually, we will get to these implementations as well.
+                        most major ideas, and thus Python 3.2's dict is a good starting point. Later versions of Python
+                        extend (rather than completely replace) Python 3.2's implementation. Eventually, we will get to
+                        these implementations as well.
                     </p>
                     <h5> Unhashable types </h5>
                     <p>
@@ -843,11 +843,11 @@ EMPTY = EmptyValueClass()
                     </p>
                     <p>
                         In this chapter, let's allow duplicates. Remember how search works in chapter 1? We retrace the
-                        steps necessary to insert the element, and check if any slot on the way contains it. We also
-                        retrace all the steps necessary to insert the element when we are actually inserting it. This
-                        means that handling duplicates is straightforward &mdash; we can terminate the insertion process
-                        if we find the element. And if we hit an empty slot without finding the element, then it is not
-                        in the table, and it means that we can safely insert it.
+                        steps necessary to insert the element, and check if any slot on the way contains it. We also do
+                        all the steps when we are actually inserting it. This means that we're effectively also doing a
+                        search while insering an element, and handling duplicates is straightforward &mdash; we can
+                        terminate the insertion process if we find the element. And if we hit an empty slot without
+                        finding the element, then it is not in the table, and it means that we can safely insert it.
                     </p>
                     <p>
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}
@@ -873,11 +873,10 @@ EMPTY = EmptyValueClass()
                     />
                     <h5> Searching </h5>
                     <p>
-                        The search algorithm isn't changed much. We just get the <code>hash()</code> function value for
-                        the object, and just like with the inserting algorithm, during linear probing we compare actual
-                        objects only when hashes are equal. Just like in the first chapter, we have essentially a bunch
-                        of "islands", interspersed by holes. Each island contains few enough elements that a linear
-                        search is possible.
+                        The search algorithm hasn't changed much. We get the <code>hash()</code> function value for the
+                        object, and do linear probing. Just like in the first chapter, we have essentially a bunch of
+                        "islands", separated by empty slots. Each island usually contains only a few elements, and a
+                        linear scan over a small "island" isn't expensive.
                     </p>
                     <div className="div-p">
                         For instance, let's search for
@@ -887,8 +886,8 @@ EMPTY = EmptyValueClass()
                             onChange={this.setter('searchedObj')}
                             anotherValue={() => anotherValue(this.state.array)}
                         />
+                        and see what happens:
                     </div>
-                    <p className="inline-block">and see what happens:</p>
                     <VisualizedCode
                         code={HASH_SEARCH_CODE}
                         breakpoints={searchRes.bp}
@@ -908,7 +907,7 @@ EMPTY = EmptyValueClass()
                         a search.
                     </p>
                     <p>
-                        We can create this placeholder object just like we created <code>EMPTY</code>:
+                        In code, we can create this placeholder object just like we created <code>EMPTY</code>:
                     </p>
                     <SimpleCodeBlock>{`
 class DummyValueClass(object):
@@ -954,10 +953,16 @@ DUMMY = DummyValueClass()
                     </p>
                     <HashResizeInPlaceAnimation breakpoints={resizeRes.bp} />
                     <p className="mt-2">
-                        Since we're re-building the table, the code is fairly similar to building it from scratch.
-                        However, the hash codes are already there, so we don't need to compute them the second time. We
-                        also don't have to check for duplicates, because we know that there are no duplicates in the
-                        original table. And, of course, we can skip empty and dummy slots.
+                        Since we're re-building the table, the code is fairly similar to the code for building it from
+                        scratch. The differences are:
+                        <ul>
+                            <li>the hash codes are already there, so we don't need to compute them the second time;</li>
+                            <li>
+                                we don't have to check for duplicates, because we know that each object is present only
+                                once in the original table;
+                            </li>
+                            <li>we skip empty and dummy slots.</li>
+                        </ul>
                     </p>
                     <VisualizedCode
                         code={HASH_RESIZE_CODE}

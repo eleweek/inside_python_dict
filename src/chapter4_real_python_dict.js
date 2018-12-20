@@ -353,9 +353,9 @@ function DynamicPartResize({extraPairs, resize}) {
         p = (
             <p className="dynamic-p" key={`extra-pairs-${JSON.stringify(extraPairs)}`}>
                 While building the dict from the original pairs, no resize operation was run, because Python correctly
-                guessed the number of slots needed. To see resize in action, let's insert{' '}
-                {extraPairs.length === 1 ? 'an' : ''} additional {singularOrPlural(extraPairs.length, 'pair', 'pairs')}:{' '}
-                <code>{formatExtraPairs(extraPairs)}</code>
+                guessed the number of slots needed. To see a resize in action, let's insert{' '}
+                {extraPairs.length === 1 ? 'an' : 'some'} additional{' '}
+                {singularOrPlural(extraPairs.length, 'pair', 'pairs')}: <code>{formatExtraPairs(extraPairs)}</code>
             </p>
         );
     }
@@ -461,18 +461,22 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <p>Now it is (finally!) time to explore how the dict works in Python!</p>
                     <p>
                         This explanation is about the dict in CPython (the most popular, "default", implementation of
-                        Python). CPython is written in C, and so is its dict implementation. This explanation has
-                        everything reimplemented in Python, because the primary goal of it is to show algorithms and
-                        data structures and not the small details of implementation. But the state of hash tables on
-                        this page matches the state of hash tables inside an actual CPython 3.2 interpreter (running on
-                        a x86_64 system). Why CPython 3.2? It's a good starting point, later versions expand the
-                        implementation (rather than replace it), so this chapter focuses on CPython 3.2's dict, and
-                        future chapters will discuss changes in the later versions.
+                        Python). Most of CPython is implemented in C, inluding the internal implementation on dict. This
+                        explanations reimplements everything in Python, because the main focus of this explanation is
+                        algorithms. Nevertheless, the state of dicts on this page should match the state of dicts inside
+                        CPython 3.2. I.e. the hash() codes of keys should match, the probing result should match, and as
+                        a result the slots match as well. In other words, this is an actual reimplementation of Python
+                        dict in Python that mirrors all of the aspects of the underlying data structure.
                     </p>
                     <p>
-                        CPython evolved over time, from version to version, and so did its dictionary implementation.
+                        Why CPython 3.2? It's a good starting point, later versions expand the implementation (rather
+                        than replace it), so this chapter focuses on CPython 3.2's dict, and future chapters will
+                        discuss changes in the later versions.
+                    </p>
+                    <p>
                         The central difference between almost-python-dict from the chapter 3 and the real Python dicts
-                        is the probing algorithm.
+                        is the probing algorithm. This probing algorithm stayed the same in all versions (at least up
+                        until 3.7, which is the latest version at the time of writing)
                     </p>
                     <h5>The probing algorithm</h5>
                     <p>
@@ -604,10 +608,14 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     </p>
                     <p>
                         So in <code>__init__</code> we use the familiar <code>find_closest_size()</code> function to
-                        find the power of two greater than the items count. This guarantees that there will be at most
-                        one resize. The resize is a bit different, it can increase the size of the hashtable by 4x. The{' '}
-                        <code>__setitem__</code> is the same, except for the probing algorithm, and it also tries to
-                        recycle slots containing tombstones (<code>DUMMY</code> placeholders). Though in case of
+                        find the power of two greater than the number of items. This guarantees that there will be no
+                        more than one resize.
+                    </p>
+                    <p>
+                        The code for the resize is a bit different, because a resize operation can increase the size of
+                        the hashtable by as much as 4x. The <code>__setitem__</code> is the same, except for the probing
+                        algorithm, and it also tries to recycle slots containing tombstones (<code>DUMMY</code>{' '}
+                        placeholders), just like the insert operation in the previous chapter did. Although, in case of
                         <code>__init__</code> recycling is not going to happen, as we start with an empty table
                         containing no dummy slots.
                     </p>
@@ -620,7 +628,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <p>
                         How much difference the probing algorithm make? How different is the resulting dict compared to
-                        almost-python-dict from chapter 3? Here are the two versions side-by-side:{' '}
+                        almost-python-dict from chapter 3? Here are the two versions side-by-side:
                     </p>
                     <SideBySideDicts
                         bp={{
@@ -631,9 +639,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         windowHeight={this.props.windowHeight}
                     />
                     <p>
-                        Removing a key remains the same. Again, a different probing algoithm is used, but conceptually
-                        it is the same: try to find a key, and if it is there, put a <code>DUMMY</code> placeholder in
-                        the slot.
+                        The code for removing a key stays the same. Again, a different probing algoithm is used, but
+                        conceptually it is the same: try to find a key, and if it is there, overwrite the item with a{' '}
+                        <code>DUMMY</code> placeholder.
                     </p>
                     <div className="div-p">
                         Deleting
