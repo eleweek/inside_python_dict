@@ -1665,9 +1665,9 @@ class TimeSliderWithControls extends React.Component {
                             max={this.props.maxTime}
                             value={time}
                             dotStyle={{
-                                top: -2,
-                                height: 14,
-                                width: 14,
+                                top: -1,
+                                height: 12,
+                                width: 12,
                             }}
                             handleStyle={{
                                 height: 20,
