@@ -646,7 +646,7 @@ class HashResizeInPlaceAnimation extends React.PureComponent {
             buttonIcon = <FontAwesomeIcon icon="redo-alt" />;
         }
         return (
-            <div>
+            <div className="hl-left">
                 <button
                     type="button"
                     className="btn btn-primary btn-sm"

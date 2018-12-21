@@ -280,8 +280,11 @@ pre.code-line-container {
 
 div.visualized-code {
     margin-bottom: 35px;
-    padding-left: 15px;
-    border-left: solid 3px #999999;
+    padding-left: 18px;
+}
+
+.hl-left {
+    border-left: solid 4px #999999;
 }
 
 div.slider-row {

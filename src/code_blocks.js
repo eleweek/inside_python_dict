@@ -1772,7 +1772,7 @@ export class VisualizedCode extends React.Component {
 
         return (
             <MyErrorBoundary>
-                <div className="visualized-code">
+                <div className="visualized-code hl-left">
                     <TimeSliderWithControls
                         handleTimeChange={this.handleTimeChangeThrottled}
                         time={time}
