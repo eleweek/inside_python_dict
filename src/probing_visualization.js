@@ -23,7 +23,7 @@ class ProbingVisualizationImpl extends React.Component {
     TRANSITION_TIME = 500;
     TOP_SPACE = 66;
     BOTTOM_SPACE = 66;
-    BOX_SIZE = 35;
+    BOX_SIZE = 40;
     BOX_SPACING = 8;
 
     transitionId = null;
@@ -67,19 +67,21 @@ class ProbingVisualizationImpl extends React.Component {
     }
 
     render() {
+        const computedHeight =
+            this.BOX_SIZE +
+            this.TOP_SPACE +
+            this.BOTTOM_SPACE +
+            10 +
+            30 +
+            25; /* TODO FIXME: this is all a bunch of hacks because repeatedAdj can make patterns overlap TOP_SPACE / BOTTOM_SPACE */
+
+        let {fixedHeight, adjustTop} = this.props;
+        const height = fixedHeight ? fixedHeight : computedHeight;
+        adjustTop = adjustTop || 0;
+
         return (
             <div className="col" ref={this.props.innerRef}>
-                <svg
-                    width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)}
-                    height={
-                        this.BOX_SIZE +
-                        this.TOP_SPACE +
-                        this.BOTTOM_SPACE +
-                        10 +
-                        30 +
-                        25 /* TODO FIXME: this is all a bunch of hacks because repeatedAdj can make patterns overlap TOP_SPACE / BOTTOM_SPACE */
-                    }
-                >
+                <svg width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)} height={height}>
                     <defs>
                         {['blue', 'green'].map(color => (
                             <marker
@@ -97,7 +99,7 @@ class ProbingVisualizationImpl extends React.Component {
                             </marker>
                         ))}
                     </defs>
-                    <g ref={this.setRef} transform={'translate(0, 30)'} />
+                    <g ref={this.setRef} transform={`translate(0, ${adjustTop + 30})`} />
                 </svg>
             </div>
         );
@@ -337,7 +339,14 @@ export class ProbingVisualization extends React.PureComponent {
 
     render() {
         // Pretty hacky passing links like this
-        return <ProbingVisualizationImpl slotsCount={8} breakpoints={[{links: this.props.links}]} bpIdx={0} />;
+        return (
+            <ProbingVisualizationImpl
+                slotsCount={8}
+                breakpoints={[{links: this.props.links}]}
+                bpIdx={0}
+                {...this.props}
+            />
+        );
     }
 }
 

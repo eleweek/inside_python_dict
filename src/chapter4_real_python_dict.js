@@ -506,14 +506,24 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         <code className="text-nowrap">idx = (idx + 1) % size</code>) until we end up hitting a slot
                         twice, we get the following picture:
                     </p>
-                    <ProbingVisualization slotsCount={slotsCount} links={probingSimple.links} />
+                    <ProbingVisualization
+                        slotsCount={slotsCount}
+                        links={probingSimple.links}
+                        adjustTop={-70}
+                        fixedHeight={170}
+                    />
                     <p>
                         It does not matter what slot we start from, the picture will look exactly the same. Linear
                         probing is very regular and predictable. Now, let's change the recurrence to{' '}
                         <code className="text-nowrap">idx = (5 * idx + 1) % size</code> (note the <code>5</code>
                         ):
                     </p>
-                    <ProbingVisualization slotsCount={slotsCount} links={probing5iPlus1.links} />
+                    <ProbingVisualization
+                        slotsCount={slotsCount}
+                        links={probing5iPlus1.links}
+                        adjustTop={-40}
+                        fixedHeight={170}
+                    />
                     <p>
                         <code className="text-nowrap">idx = (5 * idx + 1) % size</code> still guarantees to eventually
                         hit every possible slot if <code>size</code> is a power of two (the proof of this fact is

@@ -634,7 +634,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         <code className="text-nowrap">(idx + 1) % len(simple_list)</code>, so it wraps around back to
                         the beginning at the last index:
                     </p>
-                    <ProbingVisualization slotsCount={probingVisSlotsCount} links={probingSimple.links} />
+                    <ProbingVisualization
+                        slotsCount={probingVisSlotsCount}
+                        links={probingSimple.links}
+                        adjustTop={-70}
+                        fixedHeight={170}
+                    />
                     <p>
                         If we make the new list the same size as the original list, we'll have too many collisions. If
                         we make it 10x larger, we'll have very few collisions, but we'll waste a lot of memory. So what
