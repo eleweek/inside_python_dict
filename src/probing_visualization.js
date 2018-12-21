@@ -184,7 +184,7 @@ class ProbingVisualizationImpl extends React.Component {
         rects
             .enter()
             .append('rect')
-            .style('fill', '#ededed')
+            .style('fill', '#bdbdbd')
             .attr('x', (d, i) => (this.BOX_SIZE + this.BOX_SPACING) * i)
             .attr('y', this.TOP_SPACE)
             .attr('width', this.BOX_SIZE)
