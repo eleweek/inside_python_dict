@@ -1250,6 +1250,18 @@ export class Tetris extends React.PureComponent {
             </SmoothScrollbar>
         );
     }
+
+    logScrollbarStuff = () => {
+        console.log('Tetris scrollbar', this.scrollbarRef.current.scrollbar);
+    };
+
+    componentDidUpdate() {
+        this.logScrollbarStuff();
+    }
+
+    componentDidMount() {
+        this.logScrollbarStuff();
+    }
 }
 
 class CodeBlockWithActiveLineAndAnnotations extends React.Component {
