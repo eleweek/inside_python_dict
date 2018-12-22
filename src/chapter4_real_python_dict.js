@@ -61,13 +61,20 @@ class SideBySideDicts extends React.Component {
     static EXTRA_ERROR_BOUNDARY = true;
 
     render() {
-        const {windowHeight, ...restProps} = this.props;
+        const {windowHeight, windowWidth, ...restProps} = this.props;
 
         return (
             <DebounceWhenOutOfView
                 windowHeight={windowHeight}
                 childProps={restProps}
-                childFunc={(props, innerRef) => <SideBySideDictsImpl {...props} innerRef={innerRef} />}
+                childFunc={(props, innerRef) => (
+                    <SideBySideDictsImpl
+                        {...props}
+                        innerRef={innerRef}
+                        windowWidth={windowHeight}
+                        windowHeight={windowHeight}
+                    />
+                )}
             />
         );
     }

@@ -1201,6 +1201,7 @@ export class Tetris extends React.PureComponent {
         const transformedBp = props.bp;
         let labelsEnabled = false;
         const {boxGeometry, labelFontSize} = selectGeometry(props.windowWidth, props.windowHeight);
+        console.log('selectBoxGeometry', boxGeometry, props.windowWidth, props.windowHeight);
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component

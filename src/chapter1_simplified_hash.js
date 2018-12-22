@@ -549,7 +549,12 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         misleading to people who know about double-linked lists but are unfamiliar with Python. You can
                         picture a Python list as a contiguous row of slots, where each slot can hold a Python object:
                     </p>
-                    <UnnamedListVisualization bp={{data: this.state.numbers}} compensateTopPadding={25} />
+                    <UnnamedListVisualization
+                        bp={{data: this.state.numbers}}
+                        compensateTopPadding={25}
+                        windowWidth={this.props.windowWidth}
+                        windowHeight={this.props.windowHeight}
+                    />
                     <p>
                         To check if an element is present in a list, we can use the <code>in</code> operator like this:{' '}
                         <code className="text-nowrap">number in simple_list</code>, which returns either{' '}
