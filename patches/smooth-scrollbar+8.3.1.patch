@@ -1,0 +1,32 @@
+patch-package
+--- a/node_modules/smooth-scrollbar/geometry/update.js
++++ b/node_modules/smooth-scrollbar/geometry/update.js
+@@ -4,6 +4,9 @@ export function update(scrollbar) {
+         x: Math.max(newSize.content.width - newSize.container.width, 0),
+         y: Math.max(newSize.content.height - newSize.container.height, 0),
+     };
++    // hack for a weird chrome on windows bug
++    if (limit.x <= 2) limit.x = 0;
++    if (limit.y <= 2) limit.y = 0;
+     // metrics
+     var containerBounding = scrollbar.containerEl.getBoundingClientRect();
+     var bounding = {
+--- a/node_modules/smooth-scrollbar/track/track.js
++++ b/node_modules/smooth-scrollbar/track/track.js
+@@ -41,8 +41,9 @@ var ScrollbarTrack = /** @class */ (function () {
+         this.element.classList.remove('show');
+     };
+     ScrollbarTrack.prototype.update = function (scrollOffset, containerSize, pageSize) {
++        // -2 is a hack for a weird chrome on windows bug
+         setStyle(this.element, {
+-            display: pageSize <= containerSize ? 'none' : 'block',
++            display: pageSize - 2 <= containerSize ? 'none' : 'block',
+         });
+         this.thumb.update(scrollOffset, containerSize, pageSize);
+     };
+deleted file mode 100644
+--- a/node_modules/smooth-scrollbar/track/track.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"track.js","sourceRoot":"","sources":["../src/track/track.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,cAAc,EAAE,MAAM,SAAS,CAAC;AAEzC,OAAO,EACL,QAAQ,GACT,MAAM,WAAW,CAAC;AAEnB;IAUE,wBACE,SAAyB,EACzB,YAAwB;QAAxB,6BAAA,EAAA,gBAAwB;QAT1B;;WAEG;QACM,YAAO,GAAG,QAAQ,CAAC,aAAa,CAAC,KAAK,CAAC,CAAC;QAEzC,aAAQ,GAAG,KAAK,CAAC;QAMvB,IAAI,CAAC,OAAO,CAAC,SAAS,GAAG,qCAAmC,SAAW,CAAC;QAExE,IAAI,CAAC,KAAK,GAAG,IAAI,cAAc,CAC7B,SAAS,EACT,YAAY,CACb,CAAC;QAEF,IAAI,CAAC,KAAK,CAAC,QAAQ,CAAC,IAAI,CAAC,OAAO,CAAC,CAAC;IACpC,CAAC;IAED;;;;OAIG;IACH,iCAAQ,GAAR,UAAS,kBAA+B;QACtC,kBAAkB,CAAC,WAAW,CAAC,IAAI,CAAC,OAAO,CAAC,CAAC;IAC/C,CAAC;IAED;;OAEG;IACH,6BAAI,GAAJ;QACE,EAAE,CAAC,CAAC,IAAI,CAAC,QAAQ,CAAC,CAAC,CAAC;YAClB,MAAM,CAAC;QACT,CAAC;QAED,IAAI,CAAC,QAAQ,GAAG,IAAI,CAAC;QACrB,IAAI,CAAC,OAAO,CAAC,SAAS,CAAC,GAAG,CAAC,MAAM,CAAC,CAAC;IACrC,CAAC;IAED;;OAEG;IACH,6BAAI,GAAJ;QACE,EAAE,CAAC,CAAC,CAAC,IAAI,CAAC,QAAQ,CAAC,CAAC,CAAC;YACnB,MAAM,CAAC;QACT,CAAC;QAED,IAAI,CAAC,QAAQ,GAAG,KAAK,CAAC;QACtB,IAAI,CAAC,OAAO,CAAC,SAAS,CAAC,MAAM,CAAC,MAAM,CAAC,CAAC;IACxC,CAAC;IAED,+BAAM,GAAN,UACE,YAAoB,EACpB,aAAqB,EACrB,QAAgB;QAEhB,QAAQ,CAAC,IAAI,CAAC,OAAO,EAAE;YACrB,OAAO,EAAE,QAAQ,IAAI,aAAa,CAAC,CAAC,CAAC,MAAM,CAAC,CAAC,CAAC,OAAO;SACtD,CAAC,CAAC;QAEH,IAAI,CAAC,KAAK,CAAC,MAAM,CAAC,YAAY,EAAE,aAAa,EAAE,QAAQ,CAAC,CAAC;IAC3D,CAAC;IACH,qBAAC;AAAD,CAAC,AApED,IAoEC"}
+\ No newline at end of file
