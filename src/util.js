@@ -7,7 +7,7 @@ import {win} from './store';
 import classNames from 'classnames';
 
 import {ErrorBoundary} from 'react-error-boundary';
-import * as browserDetect from 'browser-detect';
+import bowser from 'bowser';
 import ReactCSSTransitionReplace from 'react-css-transition-replace';
 
 export const OLIVE = '#3D9970';
@@ -380,63 +380,91 @@ const defaultUxSettings = {
     MAX_CODE_PLAY_SPEED: 8,
 };
 
+let insidePythonDictUxSettings;
+
 export function initUxSettings() {
-    const browser = browserDetect.default();
+    const browser = bowser.getParser(window.navigator.userAgent).parse().parsedResult;
     console.log('Detected browser', browser);
 
-    if (!browser || !browser.name) return;
-    const browserName = browser.name;
-
+    const engine = browser.engine.name;
+    const osName = browser.os.name;
+    console.log('Detected engine', engine, 'on', osName);
     let settings = {...defaultUxSettings};
 
     // 'Throttling' transitions for selection is important because they can be buggy as heck
     // The problem is jumpiness (if transform: translate(...) is changed while transition is running, it resets)
     // This works fine in Chrome/Blink-based browsers
     // (I think there is a similar problem for boxes, but it is less acute, because boxes transitions are longer)
-    if (browserName === 'chrome') {
-        settings.THROTTLE_SELECTION_TRANSITIONS = false;
-    } else {
-        settings.THROTTLE_SELECTION_TRANSITIONS = true;
-        if (browser.os.match(/(OS X)|(macOS)/i)) {
-            // For firefox & safari on OS X, it is necessary to wait for transition to end
-            settings.THROTTLE_SELECTION_TIMEOUT = 'transitionend';
-        } else {
-            // Firefox is almost ok on linux, but a bit buggy
-            // Midori (webkit-based) seemed to be slow in general, but no visible issues with jumpiness
-            // still, it is better to fall on the safe side even for webkit-based browsers
-            settings.THROTTLE_SELECTION_TIMEOUT = 125;
+    switch (engine) {
+        case 'Blink':
+            settings.THROTTLE_SELECTION_TRANSITIONS = false;
+            settings.THROTTLE_SELECTION_TIMEOUT = 0;
+            break;
+        case 'Gecko': {
+            settings.THROTTLE_SELECTION_TRANSITIONS = true;
+            switch (osName) {
+                // Somehow Firefox doesn't do this stuff nearly as bad on Linux
+                case 'Linux':
+                    settings.THROTTLE_SELECTION_TIMEOUT = 125;
+                    break;
+                // It seems to be as bad on macOS as on Windows (maybe somewhat worse on macOS)
+                // It's pretty bad on mobile too
+                case 'macOS':
+                    settings.THROTTLE_SELECTION_TIMEOUT = 'transitionend';
+                    break;
+                default:
+                    settings.THROTTLE_SELECTION_TIMEOUT = 275; // almost 'transitionend'
+                    break;
+            }
+            break;
+        }
+        case 'EdgeHTML':
+            settings.THROTTLE_SELECTION_TRANSITIONS = true;
+            // 150 is kind of ok, but 225-275 seems better
+            settings.THROTTLE_SELECTION_TIMEOUT = 250;
+            break;
+        case 'WebKit': {
+            settings.THROTTLE_SELECTION_TRANSITIONS = true;
+            switch (osName) {
+                case 'Linux':
+                    settings.THROTTLE_SELECTION_TIMEOUT = 150;
+                    break;
+                case 'macOS':
+                    settings.THROTTLE_SELECTION_TIMEOUT = 'transitionend';
+                    break;
+                default:
+                    settings.THROTTLE_SELECTION_TIMEOUT = 275;
+                    break;
+            }
+            break;
         }
     }
 
-    switch (browserName) {
-        case 'chrome':
-        case 'yandexbrowser':
-        case 'safari':
+    switch (engine) {
+        case 'Blink':
+        case 'WebKit':
             // kind of ended up optimizing for chrome
             settings.TIME_SLIDER_THROTTLE_TIME = null;
             settings.CODE_SCROLL_DEBOUNCE_TIME = 150;
             settings.MAX_CODE_PLAY_SPEED = 16;
             break;
-        case 'firefox':
+        case 'Gecko':
             settings.TIME_SLIDER_THROTTLE_TIME = null;
             // Firefox doesn't seems to tolerate auto-scrolling
             settings.CODE_SCROLL_DEBOUNCE_TIME = 200;
             break;
-        default:
-            settings.TIME_SLIDER_THROTTLE_TIME = defaultUxSettings.TIME_SLIDER_THROTTLE_TIME;
-            settings.CODE_SCROLL_DEBOUNCE_TIME = defaultUxSettings.CODE_SCROLL_DEBOUNCE_TIME;
     }
 
-    window.insidePythonDictUxSettings = settings;
+    insidePythonDictUxSettings = settings;
     window.insidePythonDictBrowser = browser;
     console.log('UX settings', getUxSettings());
 }
 
 export function getUxSettings() {
-    if (typeof window === 'undefined' || !window.insidePythonDictUxSettings) {
+    if (typeof window === 'undefined' || !insidePythonDictUxSettings) {
         return defaultUxSettings;
     }
-    return window.insidePythonDictUxSettings;
+    return insidePythonDictUxSettings;
 }
 
 export function singularOrPlural(num, singular, plural) {
