@@ -279,6 +279,7 @@ pre.code-line-container {
 }
 
 div.visualized-code {
+    margin-top: 25px;
     margin-bottom: 35px;
     padding-left: 18px;
 }
