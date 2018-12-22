@@ -7,49 +7,6 @@ const {RawSource} = require('webpack-sources');
 const {exec} = require('child_process');
 const fs = require('fs');
 
-class HackySSR {
-    constructor(options) {
-        this.options = options;
-    }
-    apply(compiler) {
-        // TODO: this duplicates mustache jsons. There should probably be a single source of truth
-        const files = {
-            'chapter1.html': '["chapter1"]',
-            'chapter2.html': '["chapter2"]',
-            'chapter3.html': '["chapter3"]',
-            'chapter4.html': '["chapter4"]',
-        };
-
-        for (let [name, chapters] of Object.entries(files)) {
-            const origName = name.replace('.html', '.before-hwp.html');
-            if (compiler.options.mode === 'development') {
-                console.log('emit', origName);
-                compiler.plugin('emit', (compilation, cb) => {
-                    fs.readFile(`build/${origName}`, 'utf8', function(err, file) {
-                        fs.writeFileSync(`build/${name}`, file);
-                        // compilation.assets[name] = new RawSource(file);
-                        cb();
-                    });
-                });
-            } else {
-                compiler.plugin('emit', (compilation, cb) => {
-                    exec(
-                        `npm run --silent babel-node scripts/ssr.js build/${origName} '${chapters}'`,
-                        {maxBuffer: 10 * 1024 * 1024},
-                        function(error, stdout, stderr) {
-                            error && console.error(error);
-                            stderr && console.error(stderr);
-                            fs.writeFileSync(`build/${name}`, stdout);
-                            // compilation.assets[name] = new RawSource(stdout);
-                            cb();
-                        }
-                    );
-                });
-            }
-        }
-    }
-}
-
 module.exports = {
     entry: './src/index.js',
     output: {
@@ -76,7 +33,6 @@ module.exports = {
     },
     plugins: [
         new CleanWebpackPlugin(['dist']),
-        new HackySSR(),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
         }),
