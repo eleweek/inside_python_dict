@@ -377,7 +377,7 @@ export class App extends React.Component {
                     <MyErrorBoundary>
                         <GithubForkMe windowWidth={windowWidth} />
                     </MyErrorBoundary>
-                    <h1 className> Inside python dict &mdash; an explorable explanation</h1>
+                    <h1> Inside python dict &mdash; an explorable explanation</h1>
                     <MyErrorBoundary>
                         <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                     </MyErrorBoundary>

@@ -84,7 +84,8 @@ export function SimpleCodeInline(props) {
     return <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />;
 }
 
-const DEFAULT_BOX_GEOMETRY = {boxSize: 40, spacingX: 2, spacingY: 7};
+const DEFAULT_BOX_GEOMETRY = {boxSize: 40, spacingX: 2, spacingY: 7, fontSize: 12, borderRadius: 4};
+const SMALLER_BOX_GEOMETRY = {boxSize: 30, spacingX: 2, spacingY: 4, fontSize: 9, borderRadius: 3};
 
 function computeBoxTransformProperty(idx, y, boxSize, spacingX) {
     let x = (spacingX + boxSize) * idx;
@@ -97,8 +98,9 @@ function pyObjToReactKey(obj) {
 
 class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
-        let {extraClassName, idx, status, transitionDuration, color, boxSize, spacingX} = this.props;
+        let {extraClassName, idx, status, transitionDuration, color, boxSize, spacingX, borderRadius} = this.props;
         let yOffset = this.props.yOffset || 0;
+        console.log('selection', boxSize, yOffset, spacingX);
 
         const animatedClass = 'active-box-selection-animated';
         let classes = ['active-box-selection', extraClassName, animatedClass];
@@ -119,6 +121,9 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
             opacity: opacity,
             transitionDuration: `${transitionDuration}ms`,
             borderColor: color,
+            width: boxSize,
+            height: boxSize,
+            borderRadius,
             // TODO: the part after : is weird/wrong
             transform: idx != null ? computeBoxTransformProperty(idx, yOffset, boxSize, spacingX) : undefined,
         };
@@ -132,7 +137,7 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
     };
 
     render() {
-        let {idx, status, extraClassName, yOffset, color, boxSize, spacingX} = this.props;
+        let {idx, status, extraClassName, yOffset, color, boxSize, spacingX, borderRadius} = this.props;
         return (
             <ActiveBoxSelectionUnthrottled
                 setInnerRef={this.handleRef}
@@ -143,6 +148,7 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
                 color={color}
                 boxSize={boxSize}
                 spacingX={spacingX}
+                borderRadius={borderRadius}
                 transitionDuration={this.props.transitionDuration}
             />
         );
@@ -162,13 +168,14 @@ class ActiveBoxSelectionThrottledHelper extends React.Component {
     }
 }
 
-function SingleBoxSelection({idx, status, boxSize, spacingX, spacingY, ...restProps}) {
+function SingleBoxSelection({idx, status, boxSize, spacingX, spacingY, borderRadius, ...restProps}) {
     return (
         <SelectionGroup
             idx={idx}
             status={status}
             individualSelectionsProps={[{key: 0, ...restProps}]}
             boxSize={boxSize}
+            borderRadius={borderRadius}
             spacingX={spacingX}
             spacingY={spacingY}
         />
@@ -316,7 +323,9 @@ class Box extends React.PureComponent {
             createdOffset,
             boxSize,
             spacingX,
+            fontSize,
             spacingY,
+            borderRadius,
         } = this.props;
         const yOffset = (this.props.yRel || 0) * (boxSize + spacingY);
 
@@ -371,6 +380,11 @@ class Box extends React.PureComponent {
                         status !== 'removed'
                             ? computeBoxTransformProperty(idx, y, boxSize, spacingX)
                             : 'translate(0px, 0px)',
+                    width: boxSize,
+                    height: boxSize,
+                    fontSize: fontSize,
+                    lineHeight: `${fontSize}px`,
+                    borderRadius,
                     ...extraStyle,
                 }}
                 className={classNames(classes)}
@@ -383,7 +397,7 @@ class Box extends React.PureComponent {
 
 class SlotSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, color, boxSize, spacingX, spacingY} = this.props;
+        const {extraClassName, idx, status, color, boxSize, spacingX, spacingY, borderRadius} = this.props;
 
         const individualSelectionsProps = [
             {
@@ -408,6 +422,8 @@ class SlotSelection extends React.PureComponent {
                 status={status}
                 boxSize={boxSize}
                 spacingX={spacingX}
+                spacingY={spacingY}
+                borderRadius={borderRadius}
             />
         );
     }
@@ -415,7 +431,7 @@ class SlotSelection extends React.PureComponent {
 
 class LineOfBoxesSelection extends React.PureComponent {
     render() {
-        const {extraClassName, idx, status, count, color, boxSize, spacingX, spacingY} = this.props;
+        const {extraClassName, idx, status, count, color, boxSize, spacingX, spacingY, borderRadius} = this.props;
 
         let individualSelectionsProps = [];
         for (let i = 0; i < this.props.count; ++i) {
@@ -434,6 +450,9 @@ class LineOfBoxesSelection extends React.PureComponent {
                 status={status}
                 boxSize={boxSize}
                 spacingX={spacingX}
+                spacingY={spacingY}
+                spacingY={spacingY}
+                borderRadius={borderRadius}
             />
         );
     }
@@ -524,7 +543,17 @@ class BaseBoxesComponent extends React.PureComponent {
         const gcModId = state.gcModId;
         const Selection = nextProps.selectionClass;
         const boxFactory = nextProps.boxFactory;
-        const {boxSize, spacingY, spacingX} = nextProps;
+        const boxGeometry = nextProps.boxGeometry;
+
+        const geometryChanged = !state.firstRender && boxGeometry !== state.boxGeometry;
+        if (geometryChanged) {
+            const toMerge = {};
+            for (const [key, data] of state.keyData.entries()) {
+                toMerge[key] = {box: React.cloneElement(data.box, {...boxGeometry})};
+            }
+            state = {...state, keyData: state.keyData.mergeDeep(toMerge), boxGeometry};
+        }
+
         let nextArray = nextProps.array;
         let nextArrayPreConversion = nextArray;
         const convertNextArray = () => {
@@ -580,17 +609,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     needProcessCreatedAfterRender = true;
                     needReflow = true;
                     const id = (++lastBoxId).toString();
-                    const box = (
-                        <Box
-                            idx={idx}
-                            status="created"
-                            key={id}
-                            boxSize={boxSize}
-                            spacingY={spacingY}
-                            spacingX={spacingX}
-                            {...someProps}
-                        />
-                    );
+                    const box = <Box idx={idx} status="created" key={id} {...boxGeometry} {...someProps} />;
                     toMerge[key] = new BBRecord({
                         status: 'created',
                         id,
@@ -785,6 +804,7 @@ class BaseBoxesComponent extends React.PureComponent {
                     lastBoxId: lastBoxId,
                     lastNextArrayPreConversion: nextArrayPreConversion,
                     epoch: nextProps.epoch,
+                    boxGeometry: boxGeometry,
                 };
             }
         } else {
@@ -797,17 +817,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 for (const [group, [key, someProps]] of idxBoxesProps.entries()) {
                     const value = someProps.value;
                     const id = (++lastBoxId).toString();
-                    const box = (
-                        <Box
-                            idx={idx}
-                            key={id}
-                            status="adding"
-                            boxSize={boxSize}
-                            spacingY={spacingY}
-                            spacingX={spacingX}
-                            {...someProps}
-                        />
-                    );
+                    const box = <Box idx={idx} key={id} status="adding" {...boxGeometry} {...someProps} />;
                     keyData[key] = new BBRecord({
                         status: 'adding',
                         modId: modificationId,
@@ -831,6 +841,7 @@ class BaseBoxesComponent extends React.PureComponent {
                 lastBoxId: lastBoxId,
                 lastNextArray: nextArray,
                 epoch: nextProps.epoch,
+                boxGeometry: boxGeometry,
             };
         }
 
@@ -880,14 +891,12 @@ class BaseBoxesComponent extends React.PureComponent {
                         idx={idx}
                         status={status}
                         color={color}
-                        boxSize={boxSize}
-                        spacingY={spacingY}
-                        spacingX={spacingX}
+                        {...boxGeometry}
                     />,
                     status,
                 ];
             } else {
-                return [React.cloneElement(selection, {idx, status}), status];
+                return [React.cloneElement(selection, {idx, status, ...boxGeometry}), status];
             }
         };
 
@@ -1141,8 +1150,8 @@ export function TetrisFactory(lines) {
         static FULL_WIDTH = true;
         static EXTRA_ERROR_BOUNDARY = true;
 
-        static getExpectedHeight() {
-            return Tetris.getExpectedHeight(lines);
+        static getExpectedHeight(windowWidth, windowHeight) {
+            return Tetris.getExpectedHeight(windowWidth, windowHeight, lines);
         }
 
         render() {
@@ -1151,17 +1160,26 @@ export function TetrisFactory(lines) {
     };
 }
 
+function selectGeometry(windowWidth, windowHeight) {
+    if (windowWidth && windowHeight && (windowWidth < 950 || windowHeight < 520)) {
+        return {boxGeometry: SMALLER_BOX_GEOMETRY, labelFontSize: 12};
+    } else {
+        return {boxGeometry: DEFAULT_BOX_GEOMETRY, labelFontSize: 16};
+    }
+}
+
 export class Tetris extends React.PureComponent {
     static VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
 
-    static getExpectedHeight(lines) {
+    static getExpectedHeight(windowWidth, windowHeight, lines) {
         // TODO: use linesData.marginBottom in computation
+        const {boxGeometry} = selectGeometry(windowWidth, windowHeight);
         return (
             this.VIS_MARGIN * (lines.length - 1) +
             _.sum(
                 lines.map(
                     ([Component, [ld, d, i, i2, subProps]]) =>
-                        Component.getExpectedGeometry({...DEFAULT_BOX_GEOMETRY, ...subProps}).height
+                        Component.getExpectedGeometry({boxGeometry, ...subProps}).height
                 )
             )
         );
@@ -1182,6 +1200,7 @@ export class Tetris extends React.PureComponent {
         let labels = [];
         const transformedBp = props.bp;
         let labelsEnabled = false;
+        const {boxGeometry, labelFontSize} = selectGeometry(props.windowWidth, props.windowHeight);
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
@@ -1190,14 +1209,14 @@ export class Tetris extends React.PureComponent {
                     idx={props.bp[idxName]}
                     idx2={props.bp[idx2Name]}
                     epoch={props.epoch}
-                    {...DEFAULT_BOX_GEOMETRY}
+                    boxGeometry={boxGeometry}
                     {...subProps}
                 />
             );
 
             const tetrisRowMarginBottom = linesData.marginBottom || Tetris.VIS_MARGIN;
             const {rowMarginBottom, rowHeight, height, rowsNumber} = Component.getExpectedGeometry({
-                ...DEFAULT_BOX_GEOMETRY,
+                boxGeometry,
                 ...subProps,
             });
             labelsEnabled = labelsEnabled || !linesData.labels.every(label => label == null);
@@ -1215,6 +1234,7 @@ export class Tetris extends React.PureComponent {
                             className="tetris-label-div"
                             key={label}
                             style={{
+                                fontSize: labelFontSize,
                                 height: actualNumLabels === expectedNumLabels ? rowHeight : height,
                                 marginBottom: marginBottom,
                             }}
@@ -1241,7 +1261,7 @@ export class Tetris extends React.PureComponent {
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
                 <div className="fix-animation" ref={this.props.innerRef}>
-                    <div className="some-hacky-padding" style={{height: DEFAULT_BOX_GEOMETRY.boxSize}} />
+                    <div className="some-hacky-padding" style={{height: boxGeometry.boxSize}} />
                     <div className="tetris">
                         {labelsEnabled && <div className="tetris-labels">{labels}</div>}
                         <div className="tetris-rows">{elems}</div>
@@ -1256,10 +1276,12 @@ export class Tetris extends React.PureComponent {
     };
 
     componentDidUpdate() {
+        this.updateScrollbar();
         this.logScrollbarStuff();
     }
 
     componentDidMount() {
+        this.updateScrollbar();
         this.logScrollbarStuff();
     }
 }
@@ -1760,14 +1782,16 @@ export class VisualizedCode extends React.Component {
         let bp = this.props.breakpoints[this.state.time];
         const StateVisualization = this.props.stateVisualization;
         let codeHeight;
-        if (this.props.windowHeight) {
+        const windowWidth = this.props.windowWidth;
+        const windowHeight = this.props.windowHeight;
+        if (windowHeight) {
             const approximateSliderAndControlsHeight = 100;
             // Hacky extraspace. Usually 135, but add some more
             // when play+speed controls and input toolbar get bigger height on narrower screen
             const extraSpace = 135 + (this.props.windowHeight < 850 ? 50 : 0);
             codeHeight =
                 this.props.windowHeight -
-                StateVisualization.getExpectedHeight() -
+                StateVisualization.getExpectedHeight(windowWidth, windowHeight) -
                 approximateSliderAndControlsHeight -
                 extraSpace;
             if (codeHeight < 225) {
@@ -1812,8 +1836,15 @@ export class VisualizedCode extends React.Component {
                             bpIdx: time,
                             epoch: this.state.breakpointsUpdatedCounter,
                         }}
-                        windowHeight={this.props.windowHeight}
-                        childFunc={(props, innerRef) => <StateVisualization {...props} innerRef={innerRef} />}
+                        windowHeight={windowHeight}
+                        childFunc={(props, innerRef) => (
+                            <StateVisualization
+                                {...props}
+                                innerRef={innerRef}
+                                windowWidth={windowWidth}
+                                windowHeight={windowHeight}
+                            />
+                        )}
                     />
                     {this.props.comment}
                 </div>
@@ -1823,7 +1854,7 @@ export class VisualizedCode extends React.Component {
 }
 
 export class HashBoxesComponent extends React.PureComponent {
-    static getExpectedGeometry({boxSize, spacingY}) {
+    static getExpectedGeometry({boxGeometry: {boxSize, spacingY}}) {
         return {height: boxSize, rowHeight: boxSize, rowMarginBottom: spacingY, rowsNumber: 1};
     }
 
@@ -1862,7 +1893,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
         return (HashBoxesBrokenComponent.MAX_BOXES - 0.5) * boxSize;
     }
 
-    static getExpectedGeometry({boxSize, spacingY}) {
+    static getExpectedGeometry({boxGeometry: {boxSize, spacingY}}) {
         return {
             height: HashBoxesBrokenComponent.height(boxSize),
             rowHeight: boxSize,
@@ -1916,7 +1947,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
 }
 
 export class HashSlotsComponent extends React.PureComponent {
-    static getExpectedGeometry({boxSize, spacingY}) {
+    static getExpectedGeometry({boxGeometry: {boxSize, spacingY}}) {
         return {height: 3 * boxSize + 2 * spacingY, rowHeight: boxSize, rowMarginBottom: spacingY, rowsNumber: 3};
     }
 
@@ -2033,7 +2064,7 @@ export class LineOfBoxesComponent extends React.PureComponent {
 
     static getExpectedGeometry(props) {
         const linesCount = props.linesCount || 1;
-        const {boxSize, spacingY} = props;
+        const {boxSize, spacingY} = props.boxGeometry;
         return {
             height: linesCount * boxSize + (linesCount - 1) * spacingY,
             rowHeight: boxSize,

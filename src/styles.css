@@ -128,11 +128,6 @@ div.hash-example-instance {
     display: flex;
     font-family: 'Roboto Mono', monospace;
     position: absolute;
-    width: 40px;
-    height: 40px;
-    border-radius: 4px;
-    font-size: 12px;
-    line-height: 12px;
     opacity: 1;
 
     justify-content: center;
@@ -167,7 +162,6 @@ div.hash-example-instance {
 }
 
 .active-box-selection {
-    border-radius: 4px;
     background: rgba(0, 0, 0, 0);
     width: 40px;
     height: 40px;

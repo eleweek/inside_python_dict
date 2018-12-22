@@ -107,7 +107,7 @@ export class DebounceWhenOutOfView extends React.Component {
 }
 
 const LEEWAY_Y = 100;
-class DebounceWhenOutOfViewImpl extends React.PureComponent {
+class DebounceWhenOutOfViewImpl extends React.Component {
     DEBOUNCE_TIMEOUT = 500;
 
     constructor() {
@@ -156,6 +156,7 @@ class DebounceWhenOutOfViewImpl extends React.PureComponent {
     }
 
     updateGeometry() {
+        console.log('DebounceWhenOutOfView updateGeometry');
         const node = this.ref.current;
         const rect = node.getBoundingClientRect();
         const {height} = rect;
@@ -188,25 +189,6 @@ class DebounceWhenOutOfViewImpl extends React.PureComponent {
         }
         this.timeoutId = setTimeout(this.updateChildProps, this.DEBOUNCE_TIMEOUT);
     }
-
-    /*updateVisibility() {
-        const windowHeight = this.props.windowHeight;
-        if (!windowHeight) {
-            return;
-        }
-
-        const rect = this.innerRef.current.getBoundingClientRect();
-        const yTop = rect.y;
-        const yBottom = rect.y + react.height;
-        const isVisible = (yTop >= 0 && yTop <= windowHeight) || (yBottom >= 0 && yBottom <= windowHeight);
-        this.state.setState(state => {
-            if (isVisible !== state.isVisible) {
-                return {isVisible};
-            } else {
-                return null;
-            }
-        });
-    }*/
 }
 
 function linebreaks(s) {
