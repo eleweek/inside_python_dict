@@ -173,7 +173,7 @@ class DebounceWhenOutOfViewImpl extends React.Component {
     updateChildProps = () => {
         const childProps = this.props.childProps;
         this.setState(state => {
-            if (childProps !== this.state.childProps) {
+            if (childProps !== state.childProps) {
                 return {
                     childProps,
                 };
@@ -187,7 +187,9 @@ class DebounceWhenOutOfViewImpl extends React.Component {
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);
         }
-        this.timeoutId = setTimeout(this.updateChildProps, this.DEBOUNCE_TIMEOUT);
+        if (this.props.childProps !== this.state.childProps) {
+            this.timeoutId = setTimeout(this.updateChildProps, this.DEBOUNCE_TIMEOUT);
+        }
     }
 }
 

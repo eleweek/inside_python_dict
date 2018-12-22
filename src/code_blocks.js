@@ -1205,7 +1205,7 @@ export class Tetris extends React.PureComponent {
     }
 
     updateScrollbar = () => {
-        this.scrollbarRef.current.scrollbar.update(false);
+        this.scrollbarRef.current.scrollbar.update();
     };
 
     render() {
@@ -1948,7 +1948,7 @@ export class HashBoxesBrokenComponent extends React.PureComponent {
     }
 
     render() {
-        const {boxSize} = this.props;
+        const {boxSize} = this.props.boxGeometry;
         const height = HashBoxesBrokenComponent.height(boxSize);
         return (
             <BaseBoxesComponent
