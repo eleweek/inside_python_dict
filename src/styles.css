@@ -332,14 +332,7 @@ blockquote.blockquote {
     width: 40px;
 }
 
-.my-sticky-outer-wrapper {
-    margin-bottom: 30px;
-    position: absolute;
-    left: 0;
-    right: 0;
-}
-
-.my-sticky-outer-outer-wrapper-this-time-really {
+.my-sticky-outer-outer-wrapper {
     margin-bottom: 12px;
 }
 
@@ -355,13 +348,41 @@ blockquote.blockquote {
 }
 
 .sticky-outer-wrapper.active .my-sticky-wrapper {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.19), 0 3px 3px rgba(0, 0, 0, 0.23);
+    animation: 0.5s stickied-animation 0s ease;
+    box-shadow: 0 5px 7px rgba(0, 0, 0, 0.19), 0 3px 3px rgba(0, 0, 0, 0.23);
     background: white;
 }
 
 .sticky-outer-wrapper:not(.active) .my-sticky-wrapper {
     border-top: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
+}
+
+@keyframes stickied-animation {
+    0% {
+        transform: translateX(0px);
+    }
+    14% {
+        transform: translateX(10px);
+    }
+    28% {
+        transform: translateX(-10px);
+    }
+    42% {
+        transform: translateX(-5px);
+    }
+    56% {
+        transform: translateX(5px);
+    }
+    70% {
+        transform: translateX(-2px);
+    }
+    85% {
+        transform: translateX(2px);
+    }
+    100% {
+        transform: translateX(0px);
+    }
 }
 
 .row-block-input-toolbar {
