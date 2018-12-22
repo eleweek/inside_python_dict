@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const {RawSource} = require('webpack-sources');
 const {exec} = require('child_process');
 const fs = require('fs');
@@ -13,7 +14,6 @@ class HackySSR {
     apply(compiler) {
         // TODO: this duplicates mustache jsons. There should probably be a single source of truth
         const files = {
-            'all.html': '["chapter1", "chapter2", "chapter3", "chapter4"]',
             'chapter1.html': '["chapter1"]',
             'chapter2.html': '["chapter2"]',
             'chapter3.html': '["chapter3"]',
@@ -75,10 +75,11 @@ module.exports = {
         ],
     },
     plugins: [
+        new CleanWebpackPlugin(['dist']),
+        new HackySSR(),
         new MiniCssExtractPlugin({
             filename: '[name].[contenthash].css',
         }),
-        new HackySSR(),
         new HtmlWebpackPlugin({
             template: 'build/chapter1.html',
             filename: 'chapter1.html',
@@ -94,10 +95,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: 'build/chapter4.html',
             filename: 'chapter4.html',
-        }),
-        new HtmlWebpackPlugin({
-            template: 'build/all.html',
-            filename: 'all.html',
         }),
     ],
     watchOptions: {
