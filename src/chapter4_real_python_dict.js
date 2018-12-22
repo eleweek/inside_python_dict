@@ -83,7 +83,10 @@ class SideBySideDicts extends React.Component {
 export {hashClassConstructor, HashClassGetItem, HashClassDelItem};
 export class Dict32SetItem extends chapter4Extend(HashClassSetItemBase) {}
 export class Dict32Lookdict extends chapter4Extend(HashClassLookdictBase) {}
-export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {}
+export class Dict32Resize extends chapter4Extend(HashClassResizeBase) {
+    // TODO FIXME: this hack is here because I don't want to figure out how to do things properly with HashResizeBase
+    COMPUTE_MINUSED_HACKY_FLAG = true;
+}
 
 function formatDict32IdxRelatedBp(bp, prevBp) {
     switch (bp.point) {
@@ -94,9 +97,7 @@ function formatDict32IdxRelatedBp(bp, prevBp) {
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'compute-perturb':
-            return `Compute the initial <code>perturb</code> by converting the hash code to unsigned: <code>${
-                bp.perturb
-            }</code>`;
+            return `Compute <code>perturb</code> by converting the hash code to unsigned: <code>${bp.perturb}</code>`;
         case 'next-idx':
             return `Keep probing, the next slot will be <code>(${prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
                 bp.self.get('slots').size
@@ -118,10 +119,15 @@ function formatPythonProbing(bp, prevBp) {
             return `Compute the starting slot index: <code>${bp.hashCode} % ${bp.slotsCount}</code> == <code>${
                 bp.idx
             }</code>`;
-        case 'compute-perturb':
-            return `Compute <code>perturb</code> by converting the hash <code>${
-                bp.hashCode
-            }</code> to unsigned: <code>${bp.perturb}</code>`;
+        case 'compute-perturb': {
+            if (bp.perturb.eq(bp.hashCode)) {
+                return `<code>perturb</code> is <code>${bp.perturb}</code>, the same as hash (because it is positive)`;
+            } else {
+                return `Compute <code>perturb</code> is <code>${
+                    bp.perturb
+                }</code>, converted from the negative hash <code>${bp.hashCode}</code>`;
+            }
+        }
         case 'next-idx':
             return `The next slot will be <code>${bp.idx}</code> == <code>(${prevBp.idx} * 5 + ${bp.perturb} + 1) % ${
                 bp.slotsCount
@@ -199,7 +205,8 @@ const DICT32_SETITEM_WITH_INIT = [...STATICMETHOD_SIGNED_TO_UNSIGNED, ...DICT32_
 export const DICT32_RESIZE_CODE = [
     ['def resize(self):', 'start-execution', 0],
     ['    old_slots = self.slots', 'assign-old-slots', 1],
-    ['    new_size = self.find_closest_size(self.used * (4 if self.used <= 50000 else 2))', 'compute-new-size', 1],
+    ['    minused = self.used * (4 if self.used <= 50000 else 2)', 'compute-minused-32', 1],
+    ['    new_size = self.find_closest_size(minused)', 'compute-new-size', 1],
     ['    self.slots = [Slot() for _ in range(new_size)]', 'new-empty-slots', 1],
     ['    self.fill = self.used', 'assign-fill', 1],
     ['    for slot in old_slots:', 'for-loop', 2],

@@ -210,10 +210,13 @@ export function formatHashClassResize(bp) {
             return `Set fill to <code>${bp.self.get(
                 'used'
             )}</code>, since we will skip all slots with the <code>DUMMY</code> placeholder`;
-        case 'compute-new-size':
-            return `Find the smallest power of two greater than <code>${bp.self.get('used')} * 2</code>. It is <code>${
-                bp.newSize
-            }</code>`;
+        case 'compute-minused-32':
+            // TODO FIXME: doesn't take in account 50k limit, also this is supposed to be the common code
+            return `${bp.minused} == ${bp.self.get('used')}`;
+        case 'compute-new-size': {
+            const arg = bp.minused != null ? `${bp.minused}` : `${bp.self.get('used')} * 2`;
+            return `Find the smallest power of two greater than <code>${arg}</code>. It is <code>${bp.newSize}</code>`;
+        }
         case 'new-empty-slots':
             return `Create a new list of empty slots of size <code>${bp.self.get('slots').size}</code>`;
         case 'for-loop': {
@@ -247,11 +250,13 @@ export function formatHashClassResize(bp) {
 export function formatHashClassInit(bp) {
     switch (bp.point) {
         case 'init-start-size':
-            return `Find the smallest power of two greater than <code>${bp.pairsLength} * 2</code>. It is <code>${
+            return `Find the power of two > 8 and > <code>${bp.pairsLength}</code> . It is <code>${
                 bp.startSize
             }</code>`;
         case 'init-slots':
-            return `Start by creating a list of empty slots of size <code>8</code>`;
+            return `Start by creating a list of empty slots of size <code>${
+                bp.startSize != null ? bp.startSize : 8
+            }</code>`;
         case 'init-fill':
             return `Set <code>fill</code> to <code>0</code>, because there are no items (yet)`;
         case 'init-used':
@@ -604,6 +609,9 @@ export class HashClassResizeBase extends HashBreakpointFunction {
         this.addBP('start-execution');
         this.oldSlots = this.self.get('slots');
         this.addBP('assign-old-slots');
+        if (this.COMPUTE_MINUSED_HACKY_FLAG) {
+            this.minused = this.self.get('used') * optimalSizeQuot;
+        }
         this.newSize = findClosestSize(this.self.get('used') * optimalSizeQuot);
         this.addBP('compute-new-size');
 
