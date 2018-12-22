@@ -84,8 +84,14 @@ export function SimpleCodeInline(props) {
     return <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />;
 }
 
-const DEFAULT_BOX_GEOMETRY = {boxSize: 40, spacingX: 2, spacingY: 7, fontSize: 12, borderRadius: 4};
-const SMALLER_BOX_GEOMETRY = {boxSize: 30, spacingX: 2, spacingY: 4, fontSize: 9, borderRadius: 3};
+export const DEFAULT_BOX_GEOMETRY = {
+    boxGeometry: {boxSize: 40, spacingX: 2, spacingY: 7, fontSize: 12, borderRadius: 4},
+    labelFontSize: 16,
+};
+export const SMALLER_BOX_GEOMETRY = {
+    boxGeometry: {boxSize: 30, spacingX: 2, spacingY: 4, fontSize: 9, borderRadius: 3},
+    labelFontSize: 12,
+};
 
 function computeBoxTransformProperty(idx, y, boxSize, spacingX) {
     let x = (spacingX + boxSize) * idx;
@@ -1145,35 +1151,43 @@ function deepGet(obj, path) {
     return node;
 }
 
-export function TetrisFactory(lines) {
+export function TetrisFactory(lines, opts) {
+    const fixedGeometry = opts?.fixedGeometry;
+
     return class extends React.PureComponent {
         static FULL_WIDTH = true;
         static EXTRA_ERROR_BOUNDARY = true;
 
         static getExpectedHeight(windowWidth, windowHeight) {
-            return Tetris.getExpectedHeight(windowWidth, windowHeight, lines);
+            return Tetris._getExpectedHeight(windowWidth, windowHeight, lines, fixedGeometry);
         }
 
         render() {
-            return <Tetris lines={lines} {...this.props} innerRef={this.props.innerRef} />;
+            return (
+                <Tetris lines={lines} {...this.props} innerRef={this.props.innerRef} fixedGeometry={fixedGeometry} />
+            );
         }
     };
 }
 
+function isSmallBoxScreen(windowWidth, windowHeight) {
+    return windowWidth && windowHeight && (windowWidth < 950 || windowHeight < 520);
+}
+
 function selectGeometry(windowWidth, windowHeight) {
-    if (windowWidth && windowHeight && (windowWidth < 950 || windowHeight < 520)) {
-        return {boxGeometry: SMALLER_BOX_GEOMETRY, labelFontSize: 12};
+    if (isSmallBoxScreen(windowWidth, windowHeight)) {
+        return SMALLER_BOX_GEOMETRY;
     } else {
-        return {boxGeometry: DEFAULT_BOX_GEOMETRY, labelFontSize: 16};
+        return DEFAULT_BOX_GEOMETRY;
     }
 }
 
 export class Tetris extends React.PureComponent {
     static VIS_MARGIN = 10; // should match .hash-vis-wrapper margin
 
-    static getExpectedHeight(windowWidth, windowHeight, lines) {
+    static _getExpectedHeight(windowWidth, windowHeight, lines, fixedGeometry) {
         // TODO: use linesData.marginBottom in computation
-        const {boxGeometry} = selectGeometry(windowWidth, windowHeight);
+        const {boxGeometry} = fixedGeometry || selectGeometry(windowWidth, windowHeight);
         return (
             this.VIS_MARGIN * (lines.length - 1) +
             _.sum(
@@ -1200,7 +1214,8 @@ export class Tetris extends React.PureComponent {
         let labels = [];
         const transformedBp = props.bp;
         let labelsEnabled = false;
-        const {boxGeometry, labelFontSize} = selectGeometry(props.windowWidth, props.windowHeight);
+        const {boxGeometry, labelFontSize} =
+            this.props.fixedGeometry || selectGeometry(props.windowWidth, props.windowHeight);
         console.log('selectBoxGeometry', boxGeometry, props.windowWidth, props.windowHeight);
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (

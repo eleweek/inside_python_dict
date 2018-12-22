@@ -4,7 +4,14 @@ import {BigNumber} from 'bignumber.js';
 
 import {List} from 'immutable';
 import {pyHash, pyHashUnicode, pyHashLong, HashBreakpointFunction, DUMMY, EQ, displayStr} from './hash_impl_common';
-import {HashBoxesComponent, LineOfBoxesComponent, TetrisFactory, SimpleCodeBlock, VisualizedCode} from './code_blocks';
+import {
+    HashBoxesComponent,
+    LineOfBoxesComponent,
+    TetrisFactory,
+    SimpleCodeBlock,
+    VisualizedCode,
+    SMALLER_BOX_GEOMETRY,
+} from './code_blocks';
 import {PyStringInput, PyNumberInput, PyListInput, PySNNInput, BlockInputToolbar} from './inputs';
 import {
     ChapterComponent,
@@ -255,6 +262,14 @@ const HashNormalStateVisualization = TetrisFactory([
     [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
     [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
 ]);
+
+const HashNormalStateVisualizationSmallBoxes = TetrisFactory(
+    [
+        [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
+        [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
+    ],
+    {fixedGeometry: SMALLER_BOX_GEOMETRY}
+);
 
 export const HASH_REMOVE_CODE = [
     ['def remove(hash_codes, keys, key):', 'start-execution', 0],
@@ -638,7 +653,7 @@ class HashResizeInPlaceAnimation extends React.PureComponent {
         let buttonIcon, buttonLabel;
         if (this.state.isStart) {
             ({hashCodes, keys} = this.state.breakpoints[0]);
-            buttonLabel = 'Throw away old table';
+            buttonLabel = 'Throw away the old table';
             buttonIcon = <FontAwesomeIcon icon="trash-alt" />;
         } else {
             ({newHashCodes: hashCodes, newKeys: keys} = this.state.breakpoints[this.state.breakpoints.length - 1]);
@@ -646,7 +661,7 @@ class HashResizeInPlaceAnimation extends React.PureComponent {
             buttonIcon = <FontAwesomeIcon icon="redo-alt" />;
         }
         return (
-            <div className="hl-left">
+            <div className="hl-left" style={{paddingLeft: 20}}>
                 <button
                     type="button"
                     className="btn btn-primary btn-sm"
@@ -655,7 +670,11 @@ class HashResizeInPlaceAnimation extends React.PureComponent {
                 >
                     {buttonIcon} {buttonLabel}
                 </button>
-                <HashNormalStateVisualization bp={{hashCodes, keys}} epoch={this.state.breakpointsUpdatedCounter} />
+                <HashNormalStateVisualizationSmallBoxes
+                    bp={{hashCodes, keys}}
+                    epoch={this.state.breakpointsUpdatedCounter}
+                    fixedGeometry={SMALLER_BOX_GEOMETRY}
+                />
             </div>
         );
     }
