@@ -333,20 +333,20 @@ export class BootstrapAlert extends React.Component {
 
         this.state = {
             dismissed: false,
-            visible: true,
+            dismissedDone: false,
         };
     }
 
-    dimiss = () => {
+    dismiss = () => {
         this.setState({dismissed: true});
-        setTimeout(() => this.setState({visible: false}), this.ALERT_REMOVAL_TIMEOUT);
+        setTimeout(() => this.setState({dismissedDone: false}), this.ALERT_REMOVAL_TIMEOUT);
     };
 
     render() {
         let {sticky, alertType, boldText, regularText} = this.props;
         alertType = alertType || 'warning';
 
-        if (this.state.visible && !this.props.forceDisappear) {
+        if (!this.state.dismissedDone) {
             return (
                 <div
                     className={classNames(
@@ -355,12 +355,13 @@ export class BootstrapAlert extends React.Component {
                         {'alert-dismissible': !this.props.nondismissible},
                         'fade',
                         {'force-stick-to-top': sticky},
-                        {show: !this.state.dismissed}
+                        {show: !this.state.dismissed && !this.props.hide},
+                        this.props.extraclassName
                     )}
                 >
                     {this.props.children}
                     {!this.props.nondismissible ? (
-                        <button type="button" className="close" onClick={this.dimiss}>
+                        <button type="button" className="close" onClick={this.dismiss}>
                             <span>&times;</span>
                         </button>
                     ) : null}

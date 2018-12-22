@@ -201,7 +201,8 @@ class LoadingAlert extends React.PureComponent {
                 sticky={true}
                 alertType="info"
                 key="js-loading"
-                forceDisappear={this.state.loaded && this.props.isRunningInBrowser}
+                hide={this.state.loaded && this.props.isRunningInBrowser}
+                extraclassName="mb-0"
             >
                 <FontAwesomeIcon key="js-loading-spinner" icon="spinner" spin /> JavaScript code is loading...
             </BootstrapAlert>
@@ -230,7 +231,7 @@ class Alerts extends React.Component {
         if (this.state.mounted) {
             const {browser, windowWidth, windowHeight} = this.props;
             if (browser) {
-                if (browser.mobile) {
+                if (browser.platform.mobile) {
                     alerts.push(
                         <BootstrapAlert key="mobile-device-warning">
                             <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best
@@ -245,7 +246,7 @@ class Alerts extends React.Component {
                             </BootstrapAlert>
                         );
                     }
-                } else if (browser.name === 'firefox') {
+                } else if (browser.browser.name === 'firefox' && browser.os.name !== 'Linux') {
                     alerts.push(
                         <BootstrapAlert key="ff-warning">
                             <FontAwesomeIcon icon={['fab', 'firefox']} /> <strong>Firefox detected.</strong> Heavy
@@ -376,11 +377,11 @@ export class App extends React.Component {
                     <MyErrorBoundary>
                         <GithubForkMe windowWidth={windowWidth} />
                     </MyErrorBoundary>
-                    <h1> Inside python dict &mdash; an explorable explanation</h1>
-                    {!independentContents && <MyErrorBoundary>{contents}</MyErrorBoundary>}
+                    <h1 className> Inside python dict &mdash; an explorable explanation</h1>
                     <MyErrorBoundary>
                         <Alerts browser={this.props.browser} windowWidth={windowWidth} windowHeight={windowHeight} />
                     </MyErrorBoundary>
+                    {!independentContents && <MyErrorBoundary>{contents}</MyErrorBoundary>}
                     {chapters}
                     <MyErrorBoundary>
                         <NextPrev selectedChapterId={this.props.selectedChapterId} />
