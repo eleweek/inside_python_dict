@@ -11,9 +11,11 @@ import {win, globalSettings} from './store';
 import {faDesktop} from '@fortawesome/free-solid-svg-icons/faDesktop';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
 import {faSyncAlt} from '@fortawesome/free-solid-svg-icons/faSyncAlt';
+import {faEnvelope} from '@fortawesome/free-solid-svg-icons/faEnvelope';
 import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight';
 import {faFirefox} from '@fortawesome/free-brands-svg-icons/faFirefox';
 import {faGithub} from '@fortawesome/free-brands-svg-icons/faGithub';
+import {faTwitter} from '@fortawesome/free-brands-svg-icons/faTwitter';
 import {faMailchimp} from '@fortawesome/free-brands-svg-icons/faMailchimp';
 
 import {library, config as fontAwesomeConfig} from '@fortawesome/fontawesome-svg-core';
@@ -23,9 +25,12 @@ library.add(faDesktop);
 library.add(faFirefox);
 library.add(faSpinner);
 library.add(faSyncAlt);
+library.add(faEnvelope);
 library.add(faChevronRight);
 library.add(faGithub);
 library.add(faMailchimp);
+library.add(faTwitter);
+
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import '@fortawesome/fontawesome-svg-core/styles.css';
@@ -42,6 +47,8 @@ function logViewportStats() {
 
 const GITHUB_REPO_URL = 'https://github.com/eleweek/inside_python_dict';
 const MAILCHIMP_URL = 'http://eepurl.com/gbzhvn';
+const TWITTER_LINK = 'https://twitter.com/SashaPutilin';
+const EMAIL = 'avp-13@yandex.ru';
 
 function GithubRibbon() {
     return (
@@ -271,6 +278,20 @@ function Footer() {
                     <div className="footer-list-item">
                         <a className="text-muted" href={MAILCHIMP_URL} target="_blank">
                             <FontAwesomeIcon icon={['fab', 'mailchimp']} /> Get notified about new chapters
+                        </a>
+                    </div>
+                    <div className="footer-list-item">
+                        <a className="text-muted" href={TWITTER_LINK} target="_blank">
+                            <FontAwesomeIcon icon={['fab', 'twitter']} /> My Twitter
+                        </a>
+                    </div>
+                    <div className="footer-list-item">
+                        <a
+                            className="text-muted"
+                            href={`mailto:${EMAIL}?subject=Inside Python Dict feedback`}
+                            target="_blank"
+                        >
+                            <FontAwesomeIcon icon="envelope" /> My Email
                         </a>
                     </div>
                 </div>
