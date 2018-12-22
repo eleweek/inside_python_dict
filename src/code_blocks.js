@@ -1206,6 +1206,10 @@ export class Tetris extends React.PureComponent {
 
     updateScrollbar = () => {
         this.scrollbarRef.current.scrollbar.update();
+        // TODO FIXME XXX this is a temporary workaround for some testing
+        setTimeout(() => {
+            this.scrollbarRef.current.scrollbar.update();
+        }, 2000);
     };
 
     render() {
