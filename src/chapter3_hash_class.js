@@ -349,6 +349,7 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
 }
 
 class FindClosestSizeExample extends React.PureComponent {
+    MAX_MEM = BigNumber(2).pow(64);
     constructor() {
         super();
         this.state = {
@@ -374,7 +375,9 @@ class FindClosestSizeExample extends React.PureComponent {
                 <code className="text-nowrap">find_closest_size(2 * </code>
                 <PyNumberInput inline={true} value={this.state.used} onChange={this.handleInputChange} />
                 <code>)</code> == <code>find_closest_size({displayStr(this.state.usedDouble)})</code> =={' '}
-                <code>{displayStr(this.state.res)}</code>
+                <code>
+                    {this.state.res.lt(this.MAX_MEM) ? displayStr(this.state.res) : 'no way you have that much memory'}
+                </code>
             </div>
         );
     }
