@@ -181,7 +181,7 @@ class ParsableInputInline extends ParsableInputBase {
     static getDerivedStateFromProps(props, state) {
         // TODO: this is a hack
         // TODO: also if the user changes both inputs fast enough, there may be some issues
-        if (props.valueId != null && state.valueId < props.valueId) {
+        if (props.valueId != null && (state.valueId == null || state.valueId < props.valueId)) {
             return {
                 ...state,
                 valueId: props.valueId,

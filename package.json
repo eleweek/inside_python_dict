@@ -14,7 +14,7 @@
     "serve": "http-server -p 9090 dist/",
     "build": "npm run build:ssr && webpack --config webpack.prod.js",
     "babel-node": "npx babel-node --presets '@babel/env'",
-    "extractcode": "npm run babel-node scripts/extractPythonCode.js",
+    "extractcode": "mkdir -p build && npm run babel-node scripts/extractPythonCode.js",
     "dictserver": "rm pynode.sock ; npm run babel-node scripts/pyReimplWrapper.js; rm pynode.sock",
     "postinstall": "patch-package"
   },

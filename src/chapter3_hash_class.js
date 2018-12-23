@@ -394,7 +394,9 @@ export class Chapter3_HashClass extends ChapterComponent {
             keyToDelIdHack: 1, // this is to connect (mirror) two inputs together
             keyToGet: 'uniq',
             keyToSetRecycling: 'recycling',
+            keyToSetRecyclingIdHack: 1,
             valueToSetRecycling: 499,
+            valueToSetRecyclingIdHack: 1,
         };
     }
 
@@ -552,13 +554,17 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         if (inserted) {
             newState.keyToSetRecycling = inserted.key;
+            newState.keyToSetRecyclingIdHack = this.state.keyToSetRecyclingIdHack + 1;
             newState.valueToSetRecycling = inserted.value;
+            newState.valueToSetRecyclingIdHack = this.state.valueToSetRecyclingIdHack + 1;
         }
 
         if (removed) {
             newState.keyToDel = removed.key;
+            newState.keyToDelIdHack = this.state.keyToDelIdHack + 1;
         }
 
+        console.log('handleUpdateRemovedAndInsert', newState);
         this.setState(newState);
     };
 
@@ -577,10 +583,12 @@ export class Chapter3_HashClass extends ChapterComponent {
         let recyclingRes = this.runSetItemRecyclingAndGetVariations(
             pySelf,
             this.state.keyToSetRecycling,
+            this.state.keyToSetRecycling,
             this.state.valueToSetRecycling
         );
         pySelf = recyclingRes.pySelf;
         console.log('Chapter3 render timing', performance.now() - t1);
+        console.log(this.state);
 
         return (
             <div className="chapter chapter3">
@@ -825,14 +833,16 @@ export class Chapter3_HashClass extends ChapterComponent {
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToSetRecycling}
-                            onChange={this.setter('keyToSetRecycling')}
+                            valueId={this.state.keyToSetRecyclingIdHack}
+                            onChange={this.setter('keyToSetRecycling', false, true)}
                             anotherValue={() => anotherKey(this.state.pairs, 0.2, 0.5, 0.2)}
                         />{' '}
                         with a value
                         <PySNNInput
                             inline={true}
                             value={this.state.valueToSetRecycling}
-                            onChange={this.setter('valueToSetRecycling')}
+                            valueId={this.state.valueToSetRecyclingIdHack}
+                            onChange={this.setter('valueToSetRecycling', false, true)}
                         />{' '}
                         to the modified hash table?
                     </div>
