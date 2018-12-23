@@ -301,6 +301,8 @@ function Footer() {
     );
 }
 
+// mainly to prevent addressbar stuff on mobile changing things excessively
+const SIGNIFICANT_HEIGHT_CHANGE = 80;
 export class App extends React.Component {
     constructor() {
         super();
@@ -315,16 +317,23 @@ export class App extends React.Component {
         logViewportStats();
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        if (this.state.windowWidth !== window.innerWidth || this.state.windowHeight !== window.innerHeight) {
-            console.log('App size changed from', this.state);
-            this.setState({
-                windowWidth,
-                windowHeight,
-            });
-            fixStickyResize();
-        }
-        if (win.width !== windowWidth || win.height !== windowHeight) {
-            win.setWH(windowWidth, windowHeight);
+        if (this.state.windowWidth !== windowWidth || this.state.windowHeight !== windowHeight) {
+            console.log('Processing window size change', windowWidth, windowHeight);
+            if (
+                this.state.windowWidth != windowWidth ||
+                this.state.windowHeight > windowHeight ||
+                windowHeight - this.state.windowHeight > SIGNIFICANT_HEIGHT_CHANGE
+            ) {
+                console.log('App size changed from', this.state);
+                this.setState({
+                    windowWidth,
+                    windowHeight,
+                });
+                if (win.width !== windowWidth || win.height !== windowHeight) {
+                    win.setWH(windowWidth, windowHeight);
+                }
+            }
+            fixStickyResize(windowWidth, windowHeight);
         }
     };
 
@@ -396,9 +405,14 @@ export class App extends React.Component {
     }
 }
 
-function fixStickyResize() {
-    // Generates a fake resize event that react-stickynode seems to listen to
-    setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+let _fsrW, _fsrH;
+function fixStickyResize(windowWidth, windowHeight) {
+    // FIXME: this is a hack. This generates a fake resize event that react-stickynode seems to listen to
+    if (_fsrW !== windowWidth || _fsrH !== windowHeight) {
+        _fsrW = windowWidth;
+        _fsrH = windowHeight;
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+    }
 }
 
 function fixSticky() {
