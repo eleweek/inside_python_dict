@@ -974,15 +974,15 @@ DUMMY = DummyValueClass()
                     <p className="mt-2">
                         Since we're re-building the table, the code is fairly similar to the code for building it from
                         scratch. The differences are:
-                        <ul>
-                            <li>the hash codes are already there, so we don't need to compute them the second time;</li>
-                            <li>
-                                we don't have to check for duplicates, because we know that each object is present only
-                                once in the original table;
-                            </li>
-                            <li>we skip empty and dummy slots.</li>
-                        </ul>
                     </p>
+                    <ul>
+                        <li>the hash codes are already there, so we don't need to compute them the second time;</li>
+                        <li>
+                            we don't have to check for duplicates, because we know that each object is present only once
+                            in the original table;
+                        </li>
+                        <li>we skip empty and dummy slots.</li>
+                    </ul>
                     <VisualizedCode
                         code={HASH_RESIZE_CODE}
                         breakpoints={resizeRes.bp}

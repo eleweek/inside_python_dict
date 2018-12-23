@@ -1280,7 +1280,11 @@ export class Tetris extends React.PureComponent {
         }
         return (
             <SmoothScrollbar alwaysShowTracks={true} style={style} ref={this.scrollbarRef}>
-                <div className="fix-animation" ref={this.props.innerRef}>
+                <div
+                    className="fix-animation"
+                    ref={this.props.innerRef}
+                    style={{overflowX: this.props.overflow && 'scroll'}}
+                >
                     <div className="some-hacky-padding" style={{height: boxGeometry.boxSize}} />
                     <div className="tetris">
                         {labelsEnabled && <div className="tetris-labels">{labels}</div>}
@@ -1445,7 +1449,11 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 className="code-block-with-annotations-scrollbar-container"
             >
                 <div
-                    style={{maxHeight: this.props.height, lineHeight: this.props.lineHeight}}
+                    style={{
+                        maxHeight: this.props.height,
+                        lineHeight: this.props.lineHeight,
+                        overflowX: this.props.overflow && 'scroll',
+                    }}
                     className="code-block-with-annotations fix-animation"
                 >
                     {lines}
@@ -1656,18 +1664,18 @@ class TimeSliderWithControls extends React.Component {
             if (iconId) {
                 elems.push(<FontAwesomeIcon key={`font-awesome-${iconId}`} icon={iconId} />);
             }
-            let hasLabel = false;
-            if (!this.props.shortenedLabels || forceLabel) {
-                elems.push(label);
-                hasLabel = true;
-            }
+            elems.push(
+                <span key="span-label" className={!forceLabel ? 'scbl-hideable' : undefined}>
+                    {label}
+                </span>
+            );
             return (
                 <button
                     key={label}
                     type="button"
-                    className={classNames('btn', 'btn-outline-dark', {
-                        'slider-controls-button': hasLabel,
-                        'slider-controls-button-short': !hasLabel,
+                    className={classNames('btn', 'btn-outline-dark', 'slider-controls-button', {
+                        'button-with-scbl-hideable': !forceLabel,
+                        'button-without-scbl-hideable': forceLabel,
                     })}
                     onClick={onClick}
                 >
@@ -1754,7 +1762,6 @@ export class VisualizedCode extends React.Component {
         this.state = {
             time: props.breakpoints.length - 1,
             userAdjustedToMax: true,
-            mounted: false,
             breakpointsUpdatedCounter: 0,
         };
         const throttleTime = getUxSettings().TIME_SLIDER_THROTTLE_TIME;
@@ -1797,19 +1804,18 @@ export class VisualizedCode extends React.Component {
         }
     }
 
-    componentDidMount() {
-        this.setState({
-            mounted: true,
-        });
-    }
-
     render() {
-        let bp = this.props.breakpoints[this.state.time];
-        const StateVisualization = this.props.stateVisualization;
-        let codeHeight;
         const windowWidth = this.props.windowWidth;
         const windowHeight = this.props.windowHeight;
+
         const tallScreen = windowHeight && windowHeight > 450;
+        const serverSide = windowHeight == null;
+        const smallerFont = tallScreen || serverSide;
+
+        let bp = this.props.breakpoints[this.state.time];
+        const StateVisualization = this.props.stateVisualization;
+
+        let codeHeight;
         if (windowHeight) {
             const approximateSliderAndControlsHeight = 100;
             // Hacky extraspace. Usually 135, but add some more
@@ -1823,7 +1829,7 @@ export class VisualizedCode extends React.Component {
             if (codeHeight < 225) {
                 codeHeight += 50;
             }
-            codeHeight = Math.max(codeHeight, tallScreen ? 125 : 90);
+            codeHeight = Math.max(codeHeight, smallerFont ? 125 : 90);
         }
 
         let time = this.props.keepTimeOnNewBreakpoints
@@ -1838,7 +1844,6 @@ export class VisualizedCode extends React.Component {
                     <TimeSliderWithControls
                         handleTimeChange={this.handleTimeChangeThrottled}
                         time={time}
-                        shortenedLabels={this.props.windowWidth && this.props.windowWidth < 600}
                         maxTime={this.props.breakpoints.length - 1}
                         autoplayByDefault={this.props.autoplayByDefault}
                     />
@@ -1848,8 +1853,9 @@ export class VisualizedCode extends React.Component {
                                 height={codeHeight}
                                 time={time}
                                 code={this.props.code}
-                                fontSize={tallScreen ? 12 : 9}
-                                lineHeight={tallScreen ? 1.15 : 0.8}
+                                overflow={serverSide}
+                                fontSize={smallerFont ? 12 : 9}
+                                lineHeight={smallerFont ? 1.15 : 0.8}
                                 breakpoints={this.props.breakpoints}
                                 formatBpDesc={this.props.formatBpDesc}
                             />
@@ -1871,6 +1877,7 @@ export class VisualizedCode extends React.Component {
                                 innerRef={innerRef}
                                 windowWidth={windowWidth}
                                 windowHeight={windowHeight}
+                                overflow={serverSide}
                             />
                         )}
                     />

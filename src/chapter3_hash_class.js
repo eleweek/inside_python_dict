@@ -695,21 +695,19 @@ export class Chapter3_HashClass extends ChapterComponent {
                         The code in <code>__init__</code> also assumes that the dict contents are passed as a list of
                         pairs (not an actual dict &mdash; which we are reimplementing).
                     </p>
-                    <p>
-                        Compared to the previous chapter, the differences in building hash tables are:
-                        <ul>
-                            <li>
-                                inserting an individual item is now in a dedicated <code>__setitem__</code> method;
-                            </li>
-                            <li>
-                                The <code>fill</code> and <code>used</code> counters are incremented if necessary;
-                            </li>
-                            <li>
-                                most importantly, <code>resize()</code> gets called after inserting an element if the
-                                fill factor gets too high.
-                            </li>
-                        </ul>
-                    </p>
+                    <p>Compared to the previous chapter, the differences in building hash tables are:</p>
+                    <ul>
+                        <li>
+                            inserting an individual item is now in a dedicated <code>__setitem__</code> method;
+                        </li>
+                        <li>
+                            The <code>fill</code> and <code>used</code> counters are incremented if necessary;
+                        </li>
+                        <li>
+                            most importantly, <code>resize()</code> gets called after inserting an element if the fill
+                            factor gets too high.
+                        </li>
+                    </ul>
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_SIMPLIFIED_WITH_INIT_CODE}
                         breakpoints={newRes.bp}

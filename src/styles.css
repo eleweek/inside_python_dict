@@ -318,12 +318,31 @@ blockquote.blockquote {
     margin-bottom: 10px;
 }
 
-.slider-controls-button {
+.slider-controls-button-short {
+    width: 40px;
+}
+
+.button-without-scbl-hideable {
     width: 100px;
 }
 
-.slider-controls-button-short {
-    width: 40px;
+@media (max-width: 600px) {
+    .button-with-scbl-hideable {
+        width: 40px;
+    }
+
+    .scbl-hideable {
+        display: none;
+    }
+}
+
+@media (min-width: 601px) {
+    .button-with-scbl-hideable {
+        width: 100px;
+    }
+
+    .scbl-hideable {
+    }
 }
 
 .my-sticky-outer-outer-wrapper {
