@@ -1,4 +1,15 @@
 patch-package
+--- a/node_modules/smooth-scrollbar/events/touch.js
++++ b/node_modules/smooth-scrollbar/events/touch.js
+@@ -1,7 +1,7 @@
+ import { eventScope, TouchRecord, } from '../utils/';
+ var activeScrollbar;
+ export function touchHandler(scrollbar) {
+-    var MIN_EAING_MOMENTUM = 50;
++    var MIN_EAING_MOMENTUM = 3;
+     var EASING_MULTIPLIER = /Android/.test(navigator.userAgent) ? 3 : 2;
+     var target = scrollbar.options.delegateTo || scrollbar.containerEl;
+     var touchRecord = new TouchRecord();
 --- a/node_modules/smooth-scrollbar/geometry/update.js
 +++ b/node_modules/smooth-scrollbar/geometry/update.js
 @@ -4,6 +4,9 @@ export function update(scrollbar) {
@@ -11,6 +22,19 @@ patch-package
      // metrics
      var containerBounding = scrollbar.containerEl.getBoundingClientRect();
      var bounding = {
+--- a/node_modules/smooth-scrollbar/scrollbar.js
++++ b/node_modules/smooth-scrollbar/scrollbar.js
+@@ -322,6 +322,10 @@ var Scrollbar = /** @class */ (function () {
+         if (limit.x === 0 && limit.y === 0) {
+             this._updateDebounced();
+         }
++        if (Math.abs(deltaY) > Math.abs(deltaX)) {
++            if (deltaY > 0 && offset.y === limit.y) return true;
++            if (deltaY < 0 && offset.y === 0) return true;
++        }
+         var destX = clamp(deltaX + offset.x, 0, limit.x);
+         var destY = clamp(deltaY + offset.y, 0, limit.y);
+         var res = true;
 --- a/node_modules/smooth-scrollbar/track/track.js
 +++ b/node_modules/smooth-scrollbar/track/track.js
 @@ -41,8 +41,9 @@ var ScrollbarTrack = /** @class */ (function () {
