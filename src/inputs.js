@@ -426,11 +426,14 @@ export class BlockInputToolbar extends React.Component {
         const {bottomBoundary, ...restProps} = this.props;
         const wideScreen = this.props.windowWidth && this.props.windowWidth > 600;
         const tallScreen = this.props.windowHeight && this.props.windowHeight > 450;
+        // XXX: kind of a hack for mobiles when there is a keyboard. Maybe it is better here to check for browser platfrom
+        const squareishScreen =
+            this.props.windowWidth && this.props.windowHeight && 1.7 * this.props.windowHeight > this.props.windowWidth;
         // TODO: 50, 10 are hardcoded and I am not sure why
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
                 <div style={{height: (this.state.height || 50) + 10}}>
-                    <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen}>
+                    <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen || squareishScreen}>
                         <div className="my-sticky-wrapper" ref={this.wrapperRef}>
                             <BlockInputToolbarImpl {...restProps} shortenedLabels={!wideScreen} />
                         </div>
