@@ -16,10 +16,17 @@ globalSettings.setMaxCodePlaySpeed = action(function setCodePlaySpeed(maxSpeed) 
 });
 
 export let win = observable({
-    scrollY: 0,
-    height: null,
     width: null,
+    height: null,
+    scrollY: 0,
     jsLoaded: false,
+});
+
+win.setAll = action(function(width, height, scrollY, jsLoaded) {
+    win.width = width;
+    win.height = height;
+    win.scrollY = scrollY;
+    win.jsLoaded = jsLoaded;
 });
 
 win.setScrollY = action(function setScrollY(scrollY) {

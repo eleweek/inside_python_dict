@@ -161,6 +161,7 @@ class DebounceWhenOutOfViewImpl extends React.Component {
         const rect = node.getBoundingClientRect();
         const {height} = rect;
         const top = window.scrollY + rect.top;
+        console.log('DebounceWhenOutOfView updateGeometry top', top);
         this.setState(state => {
             if (state.height !== height || state.top !== top) {
                 return {height, top};

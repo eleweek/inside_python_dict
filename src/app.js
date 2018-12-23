@@ -312,29 +312,23 @@ export class App extends React.Component {
     }
 
     windowSizeChangeHandle = () => {
-        console.log('App size changed from', this.state);
         logViewportStats();
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         if (this.state.windowWidth !== window.innerWidth || this.state.windowHeight !== window.innerHeight) {
+            console.log('App size changed from', this.state);
             this.setState({
                 windowWidth,
                 windowHeight,
             });
             fixStickyResize();
         }
-        win.setWH(windowWidth, windowHeight);
+        if (win.width !== windowWidth || win.height !== windowHeight) {
+            win.setWH(windowWidth, windowHeight);
+        }
     };
 
     componentDidMount() {
-        window.addEventListener('resize', _.throttle(this.windowSizeChangeHandle, 500));
-        this.setState({
-            windowWidth: window.innerWidth,
-            windowHeight: window.innerHeight,
-            mounted: true,
-        });
-        globalSettings.maxCodePlaySpeed = getUxSettings().MAX_CODE_PLAY_SPEED;
-
         const MEANINGFUL_Y_DIFF = 50; // components that depend on scroll should allow some leeway
         let lastScrollY = null;
         const onScroll = _.throttle(() => {
@@ -345,11 +339,20 @@ export class App extends React.Component {
             }
         }, 100);
         window.addEventListener('scroll', onScroll);
-        // doubleRAF is probably not needed here, adding just in case
-        doubleRAF(() => {
-            win.setScrollY(window.scrollY);
-            win.jsLoaded = true;
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        console.log('componentDidMount() window geometry', windowWidth, windowHeight);
+
+        window.addEventListener('resize', _.throttle(this.windowSizeChangeHandle, 500));
+        globalSettings.maxCodePlaySpeed = getUxSettings().MAX_CODE_PLAY_SPEED;
+
+        this.setState({
+            windowWidth,
+            windowHeight,
+            mounted: true,
         });
+        win.setAll(windowWidth, windowHeight, window.scrollY, true);
     }
 
     componentWillUnmount() {
@@ -412,7 +415,7 @@ export function initAndRender(chapters, chapterIds) {
     if (typeof window !== 'undefined') {
         initUxSettings();
 
-        document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('load', () => {
             logViewportStats();
             const root = document.getElementById('root');
             const isSSR = root.hasChildNodes();
