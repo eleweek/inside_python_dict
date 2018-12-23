@@ -71,7 +71,7 @@ class SideBySideDicts extends React.Component {
                     <SideBySideDictsImpl
                         {...props}
                         innerRef={innerRef}
-                        windowWidth={windowHeight}
+                        windowWidth={windowWidth}
                         windowHeight={windowHeight}
                     />
                 )}
@@ -152,13 +152,19 @@ function formatPythonProbing(bp, prevBp) {
 export const STATICMETHOD_SIGNED_TO_UNSIGNED = [
     ['@staticmethod', ''],
     ['def signed_to_unsigned(hash_code):', ''],
-    ['    return 2**64 + hash_code if hash_code < 0 else hash_code', ''],
+    ['    if hash_code < 0:', ''],
+    ['        return 2**64 + hash_code', ''],
+    ['    else:', ''],
+    ['        return hash_code', ''],
     ['', ''],
 ];
 
 export const DICT32_INIT = [
     ['def __init__(self, pairs=None):', 'start-execution', 0],
-    ['    start_size = self.find_closest_size(len(pairs)) if pairs else 8', 'init-start-size', 0],
+    ['    if pairs:', 'check-pairs-start-size', 0],
+    ['        start_size = self.find_closest_size(len(pairs))', 'init-start-size-pairs', 0],
+    ['    else:', '', 0],
+    ['        start_size = 8', 'init-start-size-8', 0],
     ['    self.slots = [Slot() for _ in range(start_size)]', 'init-slots', 0],
     ['    self.fill = 0', 'init-fill', 0],
     ['    self.used = 0', 'init-used', 0],
@@ -181,7 +187,8 @@ export const DICT32_SETITEM = [
     ['           self.slots[idx].key == key:', 'check-dup-key', 2],
     ['            target_idx = idx', 'set-target-idx-found', 2],
     ['            break', 'check-dup-break', 2],
-    ['        if target_idx is None and self.slots[idx].key is DUMMY:', 'check-should-recycle', 2],
+    ['        if target_idx is None and \\', 'check-should-recycle-target-idx', 2],
+    ['           self.slots[idx].key is DUMMY:', 'check-should-recycle-dummy', 2],
     ['            target_idx = idx', 'set-target-idx-recycle', 2],
     ['        idx = (idx * 5 + perturb + 1) % len(self.slots)', 'next-idx', 2],
     ['        perturb >>= self.PERTURB_SHIFT', 'perturb-shift', 2],

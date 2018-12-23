@@ -118,22 +118,25 @@ export function formatHashClassSetItemAndCreate(bp) {
                 return `<code>${displayStr(slotKey)} != ${displayStr(bp.key)}</code>, so there is a collision`;
             }
         }
-        case 'check-should-recycle': {
-            const slotKey = bp.self.get('slots').get(bp.idx).key;
+        case 'check-should-recycle-target-idx':
             if (bp.targetIdx !== null) {
                 return `<code>target_idx == ${
                     bp.targetIdx
-                }</code> - we have already found a dummy slot that we may replace`;
-            } else if (slotKey !== DUMMY) {
-                return `<code>target_idx is None</code> - we haven't found a dummy slot, but the current slot's key is <code>${displayStr(
-                    slotKey
-                )}, i.e. not dummy</code>`;
+                }</code> - we have already found a <code>DUMMY</code> slot that we can recycle`;
             } else {
-                return `We found the first dummy slot,`;
+                return `<code>target_idx</code> is currently <code>None</code> - we are still looking for a <code>DUMMY</code> slot to recycle`;
+            }
+            break;
+        case 'check-should-recycle-dummy': {
+            const slotKey = bp.self.get('slots').get(bp.idx).key;
+            if (slotKey !== DUMMY) {
+                return `but the current slot's key is <code>${displayStr(slotKey)}</code>, i.e. not dummy</code>`;
+            } else {
+                return `also the current slot's key is <code>DUMMY</code>`;
             }
         }
         case 'set-target-idx-recycle':
-            return `So save its index`;
+            return `this means we found a recyclable slot, so save its index`;
         case 'set-target-idx-found':
             return `We will put the value in slot <code>${bp.targetIdx}</code>`;
         case 'check-dup-break':
@@ -156,7 +159,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'inc-used':
         case 'inc-used-2': {
             const isOnly = bp.point === 'inc-used-2';
-            return `Then we ${
+            return `then we ${
                 isOnly ? 'only' : ''
             } need to increment <code>self.used</code>, which makes it <code>${bp.self.get('used')}</code>`;
         }
@@ -164,7 +167,7 @@ export function formatHashClassSetItemAndCreate(bp) {
             return `and increment <code>fill</code>, which makes it <code>${bp.self.get('fill')}</code>`;
         case 'check-recycle-used-increased':
             return (
-                `If we're putting the item in a slot with <code>DUMMY</code>` +
+                `If we're putting the item in a slot with <code>DUMMY</code> ` +
                 (bp.self.get('slots').get(bp.targetIdx).key === DUMMY ? '(and we are)' : "(and we aren't)")
             );
         case 'assign-slot': {
@@ -249,10 +252,14 @@ export function formatHashClassResize(bp) {
 
 export function formatHashClassInit(bp) {
     switch (bp.point) {
-        case 'init-start-size':
+        case 'init-start-size-pairs':
             return `Find the power of two > 8 and > <code>${bp.pairsLength}</code> . It is <code>${
                 bp.startSize
             }</code>`;
+        case 'init-start-size':
+            return `Start with a minimum hash table size, which is 8`;
+        case 'check-pairs-start-size':
+            return `If there are any pairs (and there are <code>${bp.pairsLength}</code> pairs)`;
         case 'init-slots':
             return `Start by creating a list of empty slots of size <code>${
                 bp.startSize != null ? bp.startSize : 8
@@ -303,7 +310,12 @@ export class HashClassInitEmpty extends BreakpointFunction {
         if (initStartSize != null) {
             startSize = initStartSize;
             this.startSize = startSize;
-            this.addBP('init-start-size');
+            this.addBP('check-pairs-start-size');
+            if (initStartSize === 8) {
+                this.addBP('init-start-size-8');
+            } else {
+                this.addBP('init-start-size-pairs');
+            }
         } else {
             startSize = 8;
         }
@@ -386,10 +398,13 @@ export class HashClassSetItemBase extends HashBreakpointFunction {
             }
 
             if (useRecycling) {
-                this.addBP('check-should-recycle');
-                if (this.targetIdx === null && this.self.get('slots').get(this.idx).key === DUMMY) {
-                    this.targetIdx = this.idx;
-                    this.addBP('set-target-idx-recycle');
+                this.addBP('check-should-recycle-target-idx');
+                if (this.targetIdx == null) {
+                    this.addBP('check-should-recycle-dummy');
+                    if (this.self.get('slots').get(this.idx).key === DUMMY) {
+                        this.targetIdx = this.idx;
+                        this.addBP('set-target-idx-recycle');
+                    }
                 }
             }
 
