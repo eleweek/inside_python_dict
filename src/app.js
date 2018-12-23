@@ -53,6 +53,11 @@ function logViewportStats() {
 
     const {width, height} = getWindowDimensions();
     console.log(`DIMENSIONS: used: ${width}x${height}`);
+    // TODO FIXME: this is for debugging only
+    /*const url = `/viewports?wi=${window.innerWidth}x${window.innerHeight}&de=${document.documentElement.clientWidth}x${document.documentElement.clientHeight}&vv=${vv.width}x${vv.height}`;
+    const Http = new XMLHttpRequest();
+    Http.open("GET", url);
+    Http.send();*/
 }
 
 const GITHUB_REPO_URL = 'https://github.com/eleweek/inside_python_dict';
@@ -312,7 +317,7 @@ function Footer() {
 }
 
 // mainly to prevent addressbar stuff on mobile changing things excessively
-const SIGNIFICANT_HEIGHT_CHANGE = 80;
+const SIGNIFICANT_HEIGHT_CHANGE = 100;
 export class App extends React.Component {
     constructor() {
         super();
