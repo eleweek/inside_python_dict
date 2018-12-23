@@ -35,14 +35,24 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import '@fortawesome/fontawesome-svg-core/styles.css';
 
+function getWindowDimensions() {
+    const width = document.documentElement.clientWidth;
+    const height = document.documentElement.clientHeight;
+    return {width, height};
+}
+
 function logViewportStats() {
-    console.log('window: ' + window.innerWidth + 'x' + window.innerHeight);
+    console.log(`DIMENSIONS: window inner: ${window.innerWidth}x${window.innerHeight}`);
     console.log(
-        'document.documentElement: ' +
-            document.documentElement.clientWidth +
-            'x' +
+        `DIMENSIONS: document.documentElement: ${document.documentElement.clientWidth}x${
             document.documentElement.clientHeight
+        }`
     );
+    const vv = window.visualViewport;
+    console.log(`DIMENSIONS: visualViewport: ${vv != null ? vv.width + 'x' + vv.height : vv}`);
+
+    const {width, height} = getWindowDimensions();
+    console.log(`DIMENSIONS: used: ${width}x${height}`);
 }
 
 const GITHUB_REPO_URL = 'https://github.com/eleweek/inside_python_dict';
@@ -315,8 +325,9 @@ export class App extends React.Component {
 
     windowSizeChangeHandle = () => {
         logViewportStats();
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const dimensions = getWindowDimensions();
+        const windowWidth = dimensions.width;
+        const windowHeight = dimensions.height;
         if (this.state.windowWidth !== windowWidth || this.state.windowHeight !== windowHeight) {
             console.log('Processing window size change', windowWidth, windowHeight);
             if (
@@ -349,8 +360,9 @@ export class App extends React.Component {
         }, 100);
         window.addEventListener('scroll', onScroll);
 
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+        const dimensions = getWindowDimensions();
+        const windowWidth = dimensions.width;
+        const windowHeight = dimensions.height;
         console.log('componentDidMount() window geometry', windowWidth, windowHeight);
 
         window.addEventListener('resize', _.throttle(this.windowSizeChangeHandle, 500));
