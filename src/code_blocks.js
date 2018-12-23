@@ -1358,9 +1358,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 if (desc) {
                     explanation = (
                         <span
+                            style={{fontSize: this.props.fontSize}}
                             key="explanation"
                             className="code-explanation"
-                            dangerouslySetInnerHTML={{__html: `\u00A0\u00A0\u00A0\u00A0~ ${desc}`}}
+                            dangerouslySetInnerHTML={{__html: `\u00A0\u00A0\u00A0~ ${desc}`}}
                         />
                     );
                 }
@@ -1372,7 +1373,8 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 <pre className="code-line-container" key="pre">
                     <code>
                         <span
-                            className={classNames({'code-highlight': isCurrentLineHighlighted})}
+                            style={{fontSize: this.props.fontSize}}
+                            className={isCurrentLineHighlighted ? 'code-highlight' : undefined}
                             dangerouslySetInnerHTML={{__html: hlCodeHtml}}
                         />
                     </code>
@@ -1442,7 +1444,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
                 alwaysShowTracks={true}
                 className="code-block-with-annotations-scrollbar-container"
             >
-                <div style={{maxHeight: this.props.height}} className="code-block-with-annotations fix-animation">
+                <div
+                    style={{maxHeight: this.props.height, lineHeight: this.props.lineHeight}}
+                    className="code-block-with-annotations fix-animation"
+                >
                     {lines}
                 </div>
             </SmoothScrollbar>
@@ -1467,14 +1472,14 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         const scrollHeight = scrollbar.size.content.height;
         const scrollTop = scrollbar.scrollTop;
         const containerHeight = scrollbar.getSize().container.height;
+        const estimatedLineHeight = scrollHeight / totalLines;
 
         const scrollBottom = scrollTop + containerHeight;
 
         const activeLinePos = (activeLine / totalLines) * scrollHeight;
-        // TODO: use actual height
-        const kindOfLineHeight = 25;
         const needsUpdating =
-            activeLinePos < scrollTop + 2 * kindOfLineHeight || activeLinePos > scrollBottom - 2 * kindOfLineHeight;
+            activeLinePos < scrollTop + 1.2 * estimatedLineHeight ||
+            activeLinePos > scrollBottom - 2.0 * estimatedLineHeight;
 
         let scrollTopTarget = activeLinePos - containerHeight / 2;
         if (scrollTopTarget < 0) {
@@ -1804,6 +1809,7 @@ export class VisualizedCode extends React.Component {
         let codeHeight;
         const windowWidth = this.props.windowWidth;
         const windowHeight = this.props.windowHeight;
+        const tallScreen = windowHeight && windowHeight > 450;
         if (windowHeight) {
             const approximateSliderAndControlsHeight = 100;
             // Hacky extraspace. Usually 135, but add some more
@@ -1817,7 +1823,7 @@ export class VisualizedCode extends React.Component {
             if (codeHeight < 225) {
                 codeHeight += 50;
             }
-            codeHeight = Math.max(codeHeight, 125);
+            codeHeight = Math.max(codeHeight, tallScreen ? 125 : 90);
         }
 
         let time = this.props.keepTimeOnNewBreakpoints
@@ -1842,6 +1848,8 @@ export class VisualizedCode extends React.Component {
                                 height={codeHeight}
                                 time={time}
                                 code={this.props.code}
+                                fontSize={tallScreen ? 12 : 9}
+                                lineHeight={tallScreen ? 1.15 : 0.8}
                                 breakpoints={this.props.breakpoints}
                                 formatBpDesc={this.props.formatBpDesc}
                             />
