@@ -132,14 +132,12 @@ div.hash-example-instance {
 }
 
 .box-content {
-    padding: 2px;
     word-wrap: break-word;
     min-width: 0;
 }
 
 .box-content-extra-type {
     color: grey;
-    font-size: 9px;
 }
 
 .box-empty {

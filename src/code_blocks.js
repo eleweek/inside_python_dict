@@ -85,11 +85,11 @@ export function SimpleCodeInline(props) {
 }
 
 export const DEFAULT_BOX_GEOMETRY = {
-    boxGeometry: {boxSize: 40, spacingX: 2, spacingY: 7, fontSize: 12, borderRadius: 4},
+    boxGeometry: {boxSize: 40, boxPadding: 2, spacingX: 2, spacingY: 7, fontSize: 12, borderRadius: 4},
     labelFontSize: 16,
 };
 export const SMALLER_BOX_GEOMETRY = {
-    boxGeometry: {boxSize: 30, spacingX: 2, spacingY: 4, fontSize: 9, borderRadius: 3},
+    boxGeometry: {boxSize: 30, boxPadding: 1, spacingX: 2, spacingY: 4, fontSize: 9, borderRadius: 3},
     labelFontSize: 12,
 };
 
@@ -332,6 +332,7 @@ class Box extends React.PureComponent {
             fontSize,
             spacingY,
             borderRadius,
+            boxPadding,
         } = this.props;
         const yOffset = (this.props.yRel || 0) * (boxSize + spacingY);
 
@@ -340,13 +341,22 @@ class Box extends React.PureComponent {
         if (value != null) {
             const {shortenedValue, extraType} = this.shortDisplayedString(value);
             let extraTypeSpan;
+            let style = {fontSize: this.props.fontSize * 0.75};
             if (
                 shortenedValue.length === 1 &&
                 shortenedValue[0] === '' /* TODO FIXME: this check is kidna ugly & is a leaky abstraction */
             ) {
-                extraTypeSpan = <span className="box-content-extra-type">(empty str)</span>;
+                extraTypeSpan = (
+                    <span className="box-content-extra-type" style={style}>
+                        (empty str)
+                    </span>
+                );
             } else {
-                extraTypeSpan = extraType ? <span className="box-content-extra-type">(str)</span> : null;
+                extraTypeSpan = extraType ? (
+                    <span className="box-content-extra-type" style={style}>
+                        (str)
+                    </span>
+                ) : null;
             }
             classes.push('box-full');
             content = (
@@ -391,6 +401,7 @@ class Box extends React.PureComponent {
                     fontSize: fontSize,
                     lineHeight: `${fontSize}px`,
                     borderRadius,
+                    padding: boxPadding,
                     ...extraStyle,
                 }}
                 className={classNames(classes)}
