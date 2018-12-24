@@ -25,6 +25,21 @@ fs.readFile(filename, 'utf8', function(err, file) {
     const renderedComponent = ReactDOMServer.renderToString(
         <App chapters={chapters} selectedChapterId={selectedChapterId} />
     );
-    const fullHtml = file.replace(/<div id="root"><\/div>/, `<div id="root">${renderedComponent}</div>`);
+    let fullHtml = file.replace(/<div id="root"><\/div>/, `<div id="root">${renderedComponent}</div>`);
+    const gaId = process.env.GA_ID;
+    console.warn('Google analytics ID is', gaId);
+    if (gaId) {
+        let GA_SCRIPT = `<!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=__GA_CODE_HERE__"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '__GA_CODE_HERE__');
+        </script>`;
+        GA_SCRIPT = GA_SCRIPT.replace(/__GA_CODE_HERE__/g, gaId);
+        fullHtml = fullHtml.replace('</head>', `${GA_SCRIPT}</head>`);
+    }
     process.stdout.write(fullHtml);
 });
