@@ -1901,13 +1901,20 @@ export class HashBoxesComponent extends React.PureComponent {
     }
 
     static getKeys(array) {
-        return array.map((value, idx) => {
+        let res = [];
+        let counterList = new CounterList();
+        for (let i = 0; i < array.length; ++i) {
+            const value = array[i];
             if (value != null) {
-                return [pyObjToReactKey(value)];
+                const keyPart = pyObjToReactKey(value);
+                let cnt = counterList.inc(0, keyPart);
+                const key = `${keyPart}-${cnt}`;
+                res.push([key]);
             } else {
-                return [`empty-${idx}`];
+                res.push([`empty-${i}`]);
             }
-        });
+        }
+        return res;
     }
 
     static boxFactory(keys, value) {
@@ -2002,6 +2009,7 @@ export class HashSlotsComponent extends React.PureComponent {
         ];
     }
 
+    // Relies on the fact that keys are unique
     static getKeys(array) {
         const emptyOrKey = (v, idx, name, keyKey) => {
             if (v != null) {
@@ -2035,6 +2043,34 @@ export class HashSlotsComponent extends React.PureComponent {
     }
 }
 
+class CounterList {
+    constructor() {
+        this.counters = [];
+    }
+
+    inc(group, value) {
+        // TODO: this is all ugly
+        // TODO: refactor into a proper defaultdict/defaultlist kind of data structure
+        if (group === this.counters.length) {
+            this.counters.push(new Map());
+        }
+
+        let counter = this.counters[group];
+        console.log(counter);
+        let cnt;
+        if (!counter.has(value)) {
+            cnt = 0;
+            counter.set(value, 0);
+        } else {
+            cnt = counter.get(value);
+            cnt++;
+            counter.set(value, cnt + 1);
+        }
+
+        return cnt;
+    }
+}
+
 export class LineOfBoxesComponent extends React.PureComponent {
     static getKeys(array) {
         let counters = [];
@@ -2046,24 +2082,13 @@ export class LineOfBoxesComponent extends React.PureComponent {
             }
 
             let currentKeys = [];
+            let counterList = new CounterList();
 
             for (let [j, value] of values.entries()) {
                 const keyPart = pyObjToReactKey(value);
 
-                // TODO: this is all ugly
-                // TODO: refactor into defaultdict/defaultlist kind of data structure
-                if (j == counters.length) {
-                    counters.push({});
-                }
-
-                let counter = counters[j];
-                if (!(value in counter)) {
-                    counter[value] = 0;
-                } else {
-                    counter[value]++;
-                }
-
-                const key = `${keyPart}-${j}-${counter[value]}`;
+                let cnt = counterList.inc(j, keyPart);
+                const key = `${keyPart}-${j}-${cnt}`;
                 currentKeys.push(key);
             }
             keys.push(currentKeys);
@@ -2074,21 +2099,22 @@ export class LineOfBoxesComponent extends React.PureComponent {
 
     // TODO: This is a bit of a specific hack for key-value pairs
     // TODO: maybe it should be refactored out elsewhere
+    //
+    // FIXME: also I forgot why I added it. I think it might be not useful
+    // FIXME: Or it might make better rearranging key-value pairs?
+    // FIXME: Yep, I think rearranging key-value pairs would be easier with this thing
+    // FIXME: ...I think...
     static getKeysForKVPairs(array) {
         let keys = [];
-        let counter = {};
+        let counterList = new CounterList();
         // Does not support nulls/"empty"
         for (let i = 0; i < array.length; ++i) {
             const [k, v] = array[i];
 
             const keyPart = pyObjToReactKey(k);
-            if (!(k in counter)) {
-                counter[k] = 0;
-            } else {
-                counter[k]++;
-            }
+            const cnt = counterList.inc(0, keyPart);
             const valuePart = pyObjToReactKey(v);
-            keys.push([`${keyPart}-${counter[k]}-key`, `${keyPart}-${counter[k]}-${valuePart}-value`]);
+            keys.push([`${keyPart}-${cnt}-key`, `${keyPart}-${cnt}-${valuePart}-value`]);
         }
 
         return keys;
