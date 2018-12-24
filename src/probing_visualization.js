@@ -415,11 +415,11 @@ export class GenerateProbingLinks extends BreakpointFunction {
         }
         this.slotsCount = _slotsCount;
         this.key = _key;
-        this.addBP('def-probe-all');
         this.links = new ImmutableList();
         for (let i = 0; i < this.slotsCount; ++i) {
             this.links = this.links.set(i, new ImmutableList());
         }
+        this.addBP('def-probe-all');
 
         this.hashCode = pyHash(this.key);
         this.addBP('compute-hash');
