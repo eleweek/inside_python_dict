@@ -106,7 +106,6 @@ class ActiveBoxSelectionUnthrottled extends React.PureComponent {
     render() {
         let {extraClassName, idx, status, transitionDuration, color, boxSize, spacingX, borderRadius} = this.props;
         let yOffset = this.props.yOffset || 0;
-        console.log('selection', boxSize, yOffset, spacingX);
 
         const animatedClass = 'active-box-selection-animated';
         let classes = ['active-box-selection', extraClassName, animatedClass];
@@ -576,12 +575,12 @@ class BaseBoxesComponent extends React.PureComponent {
         const convertNextArray = () => {
             if (isImmutableListOrMap(nextArray)) {
                 // TODO: use Immutable.js api?
-                console.log('immutable.js next provided');
+                // console.log('immutable.js next provided');
                 const _tna = performance.now();
                 nextArray = nextArray.toJS();
-                console.log('toJS() timing', performance.now() - _tna);
+                // console.log('toJS() timing', performance.now() - _tna);
             } else {
-                console.warn('nextArray non-immutable');
+                // console.warn('nextArray non-immutable');
             }
         };
         let lastBoxId = state.lastBoxId;
@@ -642,8 +641,8 @@ class BaseBoxesComponent extends React.PureComponent {
                 let needProcessCreatedAfterRender = false;
                 let needReflow = false;
 
-                const t3 = performance.now();
-                console.log('BaseBoxesComponent::gdsp before processing adding stage1', t3 - t2);
+                // const t3 = performance.now();
+                // console.log('BaseBoxesComponent::gdsp before processing adding stage1', t3 - t2);
                 let notExistingKeyToData = {};
                 for (let idx = 0; idx < nextArray.length; ++idx) {
                     const keys = nextArrayKeys[idx];
@@ -731,8 +730,8 @@ class BaseBoxesComponent extends React.PureComponent {
                     instaRemovedKeys.push(keyWithRecycledId);
                 };
 
-                const t4 = performance.now();
-                console.log('BaseBoxesComponent::gdsp before processing recycling 1', t4 - t3);
+                // const t4 = performance.now();
+                // console.log('BaseBoxesComponent::gdsp before processing recycling 1', t4 - t3);
                 // Do a first pass and attempt to recycle boxes in the same row
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
@@ -745,8 +744,8 @@ class BaseBoxesComponent extends React.PureComponent {
                     }
                 }
 
-                const t5 = performance.now();
-                console.log('BaseBoxesComponent::gdsp before processing recycling 2', t5 - t4);
+                // const t5 = performance.now();
+                // console.log('BaseBoxesComponent::gdsp before processing recycling 2', t5 - t4);
                 // Do a second pass and attempt to recycle boxes in other rows
                 for (let key in notExistingKeyToData) {
                     if (key in keyToRecycledBox) {
@@ -762,8 +761,8 @@ class BaseBoxesComponent extends React.PureComponent {
                         recycleId(key, data.idx, data.value, firstGroup, keyToId);
                     }
                 }
-                const t6 = performance.now();
-                console.log('BaseBoxesComponent::gdsp before processing recycling 3', t6 - t5);
+                // const t6 = performance.now();
+                // console.log('BaseBoxesComponent::gdsp before processing recycling 3', t6 - t5);
 
                 for (let key in notExistingKeyToData) {
                     const data = notExistingKeyToData[key];
@@ -801,13 +800,13 @@ class BaseBoxesComponent extends React.PureComponent {
                         newBox(key, data.idx, data.someProps, data.group, data.value);
                     }
                 }
-                const t7 = performance.now();
-                console.log('BaseBoxesComponent::gdsp before merging', t7 - t6);
+                //const t7 = performance.now();
+                //console.log('BaseBoxesComponent::gdsp before merging', t7 - t6);
 
                 let newKeyData = state.keyData.mergeDeep(toMerge);
                 newKeyData = newKeyData.deleteAll(instaRemovedKeys);
-                const t8 = performance.now();
-                console.log('BaseBoxesComponent::gdsp after merging', t8 - t7);
+                // const t8 = performance.now();
+                // console.log('BaseBoxesComponent::gdsp after merging', t8 - t7);
 
                 newState = {
                     keyData: newKeyData,
@@ -1043,7 +1042,7 @@ class BaseBoxesComponent extends React.PureComponent {
     updateModIdForGC = modId => {
         this.setState(state => {
             const gcModId = Math.max(state.gcModId, modId);
-            if (gcModId != state.gcModId) {
+            if (gcModId > state.gcModId) {
                 return {gcModId};
             } else {
                 return null;
@@ -1227,7 +1226,7 @@ export class Tetris extends React.PureComponent {
         let labelsEnabled = false;
         const {boxGeometry, labelFontSize} =
             this.props.fixedGeometry || selectGeometry(props.windowWidth, props.windowHeight);
-        console.log('selectBoxGeometry', boxGeometry, props.windowWidth, props.windowHeight);
+        // console.log('selectBoxGeometry', boxGeometry, props.windowWidth, props.windowHeight);
         for (let [i, [Component, [linesData, dataName, idxName, idx2Name, subProps]]] of props.lines.entries()) {
             const component = (
                 <Component
@@ -1302,18 +1301,12 @@ export class Tetris extends React.PureComponent {
         );
     }
 
-    logScrollbarStuff = () => {
-        console.log('Tetris scrollbar', this.scrollbarRef.current.scrollbar);
-    };
-
     componentDidUpdate() {
         this.updateScrollbar();
-        this.logScrollbarStuff();
     }
 
     componentDidMount() {
         this.updateScrollbar();
-        this.logScrollbarStuff();
     }
 }
 
@@ -2056,7 +2049,6 @@ class CounterList {
         }
 
         let counter = this.counters[group];
-        console.log(counter);
         let cnt;
         if (!counter.has(value)) {
             cnt = 0;

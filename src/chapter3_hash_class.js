@@ -581,7 +581,6 @@ export class Chapter3_HashClass extends ChapterComponent {
         );
         pySelf = recyclingRes.pySelf;
         console.log('Chapter3 render timing', performance.now() - t1);
-        console.log(this.state);
 
         return (
             <div className="chapter chapter3">

@@ -255,7 +255,6 @@ class Alerts extends React.Component {
 
         if (this.state.mounted) {
             const {browser, windowWidth, windowHeight} = this.props;
-            console.log('Alerts browser', browser);
             if (browser) {
                 if (browser.platform.type === 'mobile') {
                     alerts.push(

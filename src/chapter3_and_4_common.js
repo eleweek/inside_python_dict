@@ -259,6 +259,7 @@ export function formatHashClassInit(bp) {
                 bp.startSize
             }</code>`;
         case 'init-start-size':
+        case 'init-start-size-8':
             return `Start with a minimum hash table size, which is 8`;
         case 'check-pairs-start-size':
             return `If there are any pairs (and there are <code>${bp.pairsLength}</code> pairs)`;

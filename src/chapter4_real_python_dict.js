@@ -105,7 +105,7 @@ function formatDict32IdxRelatedBp(bp, prevBp) {
                 bp.self.get('slots').size
             }</code> == <code>${bp.idx}</code>`;
         case 'perturb-shift':
-            return `Shifting <code>perturb</code> : <code>${prevBp.perturb} >> 5</code> == <code>${bp.perturb}</code>`;
+            return `Shifting <code>perturb</code>: <code>${bp.perturb}</code> == <code>${prevBp.perturb} >> 5</code> `;
     }
 }
 
@@ -490,31 +490,38 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     <p>Now it is (finally!) time to explore how the dict works in Python!</p>
                     <p>
                         This explanation is about the dict in CPython (the most popular, "default", implementation of
-                        Python). Most of CPython is implemented in C, inluding the internal implementation on dict. This
-                        explanations reimplements everything in Python, because the main focus of this explanation is
-                        algorithms. Nevertheless, the state of dicts on this page should match the state of dicts inside
-                        CPython 3.2. I.e. the hash() codes of keys should match, the probing result should match, and as
-                        a result the slots match as well. In other words, this is an actual reimplementation of Python
-                        dict in Python that mirrors all of the aspects of the underlying data structure.
+                        Python). Most of CPython is implemented in C, and the dict implementation is written in C too.
+                        This explanations reimplements everything in Python, because the main focus of this explanation
+                        is algorithms. Nevertheless, the state of dicts on this page should match the state of dicts
+                        inside CPython 3.2. I.e. the hash() codes of keys should match, the probing result should match,
+                        and as a result the slots match as well.
+                    </p>
+                    <p>
+                        In other words, this is an actual reimplementation of Python dict in Python that mirrors all of
+                        the aspects of the underlying data structure. And the visualization might as well be the
+                        visualization of the state produced from the C code.
                     </p>
                     <p>
                         Why CPython 3.2? It's a good starting point, later versions expand the implementation (rather
                         than replace it), so this chapter focuses on CPython 3.2's dict, and future chapters will
-                        discuss changes in the later versions.
+                        discuss changes in the later versions (3.3 - 3.7).
                     </p>
                     <p>
-                        The central difference between almost-python-dict from the chapter 3 and the real Python dicts
+                        The central difference between almost-Python-dict from the third chapter and real Python dicts
                         is the probing algorithm. This probing algorithm stayed the same in all versions (at least up
                         until 3.7, which is the latest version at the time of writing)
                     </p>
                     <h5>The probing algorithm</h5>
                     <p>
-                        The problem with simple linear probing is that it doesn't mix up the keys well in many
+                        The problem with the simple linear probing is that it doesn't mix up the keys well in many
                         real-world data patterns. Real world data patterns tend to be regular, and a pattern like{' '}
                         <code>16</code>, <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>
-                        <code>...</code> would lead to many collisions. Linear probing is prone to clustering: once you
-                        get a "clump" of keys, the clump tends to grow, which causes more collisions, which cause the
-                        clump to grow further, which causes even more collisions. This is detrimental to performance.
+                        <code>...</code> would lead to many collisions.
+                    </p>
+                    <p>
+                        Linear probing is prone to clustering: once you get a "clump" of keys, the clump tends to grow,
+                        which causes more collisions, which cause the clump to grow further, which causes even more
+                        collisions. This is detrimental to performance.
                     </p>
                     <p>
                         One way to address this problem by using a better hash function, in particular when it comes to
@@ -558,7 +565,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         hit every possible slot if <code>size</code> is a power of two (the proof of this fact is
                         outside the scope of this page). Also, the algorithm is obviously deterministic. So, both
                         requirements for a probing algorithm are satisfied. This algorithm scrambles the order of
-                        indexes a bit. However, it is still regular and and it is still prone to clustering.
+                        indexes a bit. It certainly less regular but it is still prone to clustering.
                     </p>
                     <p>
                         The probing algorithm in CPython takes this recurrence and adds a ton of scrambling to it:{' '}
@@ -666,8 +673,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         {...this.props}
                     />
                     <p>
-                        How much difference the probing algorithm make? How different is the resulting dict compared to
-                        almost-python-dict from chapter 3? Here are the two versions side-by-side:
+                        How much difference the probing algorithm and the other changes make? How different is the
+                        resulting dict compared to almost-python-dict from chapter 3? Here are the two versions side by
+                        side:
                     </p>
                     <SideBySideDicts
                         bp={{
@@ -678,9 +686,9 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         windowHeight={this.props.windowHeight}
                     />
                     <p>
-                        The code for removing a key stays the same. Again, a different probing algoithm is used, but
-                        conceptually it is the same: try to find a key, and if it is there, overwrite the item with a{' '}
-                        <code>DUMMY</code> placeholder.
+                        The code for removing an item stays mostly the same. Again, a different probing algoithm is
+                        used, but conceptually it is the same exact algoirthm: try to find a key, and if it is there,
+                        overwrite the item with a <code>DUMMY</code> placeholder.
                     </p>
                     <div className="div-p">
                         Deleting
@@ -718,12 +726,12 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                     />
                     <h5> Resize </h5>
                     <p>
-                        Resizes are expensive, so it is better to have less of them. So instead merely doubling the hash
-                        table size, Python 3.2 aims for quadrupling it. This is more reasonable for smaller hash tables.
-                        So when the number of items is greater than 50000, Python doubles the table, otherwise it tries
-                        to quadruple it. (Although, just like in previous chapter, a resize operation can decrease the
-                        size of a table or keep it the same while dropping all dummy placeholders, if too many slots are
-                        wasted by <code>DUMMY</code> placeholders).
+                        Resizes are expensive, so it is better to have less of them. So Python sometimes quadruples the
+                        size of a table. This is more reasonable for smaller hash tables, when the number of items is
+                        smaller than 50000. When the number of items is greater than 50 thousand, Python 3.2 aims to
+                        double the size. Although, just like in previous chapter, a resize operation can shrink the
+                        table or keep the size the same (while dropping the unnecessary dummy slots), if too many slots
+                        are wasted by <code>DUMMY</code> placeholders.
                     </p>
                     <DynamicPartResize {...resizeRes} />
                     <p>
@@ -783,6 +791,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         </a>
                         .
                     </p>
+                    <h5>Contents</h5>
                     {this.props.contents}
                 </Subcontainerize>
             </div>

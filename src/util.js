@@ -156,7 +156,6 @@ class DebounceWhenOutOfViewImpl extends React.Component {
     }
 
     updateGeometry() {
-        console.log('DebounceWhenOutOfView updateGeometry');
         const node = this.ref.current;
         const rect = node.getBoundingClientRect();
         const {height} = rect;
@@ -259,7 +258,6 @@ export class ChapterComponent extends React.Component {
                         const idKey = `${name}IdHack`;
                         let id = state[idKey];
                         id++;
-                        console.log('incId', state);
                         return {[name]: value, [idKey]: id};
                     });
             }
