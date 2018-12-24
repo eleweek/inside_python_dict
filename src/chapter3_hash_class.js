@@ -294,9 +294,9 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                     className="dynamic-p"
                     key={`has-dummy-recycled-${displayStr(inserted.key)}-${displayStr(inserted.value)}}`}
                 >
-                    After we inserted it, a <code>DUMMY</code> slot got recycled. However, as it was mentioned, this
-                    version of <code>__setitem__</code> works just like the previous one, when there no{' '}
-                    <code>DUMMY</code> slot is encountered. For example, if we instead tried to remove{' '}
+                    After we inserted it, a <code>DUMMY</code> slot got recycled &mdash; as expected. However, when
+                    there is no <code>DUMMY</code> slot encountered, this version of <code>__setitem__</code> would work
+                    exactly like the previous one. For example, if we instead tried to insert an item with a key{' '}
                     <code>{displayStr(inserted.key)}</code>, no dummy slot would get recycled, and the item would be
                     inserted in an empty slot. {tryIt(() => handleUpdateRemovedAndInsert(inserted))}
                 </p>
@@ -309,7 +309,7 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                 >
                     While it was being inserted, no <code>DUMMY</code> slot was encountered, so, consequently, no{' '}
                     <code>DUMMY</code> slot got recycled. So this version of <code>__setitem__</code> worked just like
-                    the previous one. But, if we instead tried to insert an item with the key{' '}
+                    the previous one. But if we instead tried to insert an item with the key{' '}
                     <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would get recycled.
                     {tryIt(() => handleUpdateRemovedAndInsert(inserted))}
                 </p>
@@ -325,11 +325,11 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
                         inserted.value
                     )}`}
                 >
-                    No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
-                    So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
-                    tried to remove the key <code>{displayStr(removed.key)}</code> and then insert an item with the key{' '}
-                    <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would appear and then get
-                    recycled.
+                    No <code>DUMMY</code> slot was originally removed, so, consequently, no <code>DUMMY</code> slot
+                    could get recycled. This version of <code>__setitem__</code> worked just like the previous one. But
+                    if we instead tried to remove the key <code>{displayStr(removed.key)}</code> and then insert an item
+                    with the key <code>{displayStr(inserted.key)}</code>, a <code>DUMMY</code> slot would appear and
+                    then get recycled.
                     {tryIt(() => handleUpdateRemovedAndInsert(inserted, removed))}
                 </p>
             );
@@ -337,9 +337,9 @@ function DynamicPartSetItemRecycling({hasDummy, outcome, otherOutcomes, handleUp
             p = (
                 <p className="dynamic-p" key={`no-dummy-only-remove-${displayStr(removed.key)}}`}>
                     No <code>DUMMY</code> slot got removed, so, consequently, no <code>DUMMY</code> slot got recycled.
-                    So this version of <code>__setitem__</code> worked just like the previous one. But, if we instead
-                    tried to remove the key {displayStr(removed.key)} a <code>DUMMY</code> slot would appear and then
-                    get recycled.
+                    This version of <code>__setitem__</code> worked just like the previous one. But if we instead tried
+                    to remove the key <code>{displayStr(removed.key)}</code> a recyclable <code>DUMMY</code> slot would
+                    appear.
                     {tryIt(() => handleUpdateRemovedAndInsert(null, removed))}
                 </p>
             );
@@ -487,18 +487,14 @@ export class Chapter3_HashClass extends ChapterComponent {
         } else {
             outcome = resize ? 'missed_resized' : 'missed';
             const originalKeyIdx = computeIdx(pyHash(originalKey), slots.size);
-            console.log('originalKeyIdx', originalKeyIdx);
             const hasOriginalCollision = slots.get(originalKeyIdx).key != null;
             let clusterStart = slots.get(0).key == null ? null : 0;
             let bestClusterStart = null;
             let bestClusterEnd = null;
             let isCluster = false;
             let idxToRemove = null;
-            console.log('hasOriginalCollision', hasOriginalCollision);
-            console.log('slots', slots.toJS());
             for (let i = 0; i < slots.size; ++i) {
                 const curKey = slots.get(i).key;
-                console.log('curKey', curKey);
                 if (curKey == null) {
                     if (!hasOriginalCollision) {
                         if (
@@ -511,7 +507,6 @@ export class Chapter3_HashClass extends ChapterComponent {
                             idxToRemove = clusterStart === i - 1 ? clusterStart : i - 2;
                         }
                     } else {
-                        console.log('clusterStart', clusterStart, originalKeyIdx, i);
                         if (clusterStart != null && clusterStart <= originalKeyIdx && originalKeyIdx < i) {
                             // Try to introduce some collisions
                             idxToRemove = originalKeyIdx === i - 1 ? originalKeyIdx : i - 2;
@@ -525,12 +520,10 @@ export class Chapter3_HashClass extends ChapterComponent {
                     }
                     isCluster = true;
                 }
-                console.log('for', i, idxToRemove);
             }
 
             if (hasOriginalCollision) {
                 const singleOtherOutcome = 'recycled';
-                console.log('hasOriginalCollision, removing', idxToRemove);
                 otherOutcomes[singleOtherOutcome] = {removed: {key: slots.get(idxToRemove).key}};
             } else {
                 const singleOtherOutcome = 'recycled';
@@ -582,7 +575,6 @@ export class Chapter3_HashClass extends ChapterComponent {
 
         let recyclingRes = this.runSetItemRecyclingAndGetVariations(
             pySelf,
-            this.state.keyToSetRecycling,
             this.state.keyToSetRecycling,
             this.state.valueToSetRecycling
         );

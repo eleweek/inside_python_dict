@@ -497,7 +497,7 @@ export function fixFirstValues(func, values) {
         if (calledCounter < values.length) {
             res = values[calledCounter];
         } else {
-            res = func(arguments);
+            res = func.apply(null, arguments);
         }
 
         calledCounter++;
