@@ -460,17 +460,17 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
 
         this.state = {
             numbers: [
-                BigNumber(14),
-                BigNumber(147),
-                BigNumber(21),
-                BigNumber(13),
-                BigNumber(174),
-                BigNumber(46),
-                BigNumber(27),
-                BigNumber(15),
+                BigNumber(1),
+                BigNumber(56),
+                BigNumber(50),
+                BigNumber(2),
+                BigNumber(44),
+                BigNumber(25),
+                BigNumber(17),
+                BigNumber(4),
             ],
-            simpleSearchNumber: 46,
-            simplifiedHashSearchNumber: 46,
+            simpleSearchNumber: 25,
+            simplifiedHashSearchNumber: 2,
         };
     }
 
