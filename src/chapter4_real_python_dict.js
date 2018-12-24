@@ -547,6 +547,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         links={probingSimple.links}
                         adjustTop={-70}
                         fixedHeight={170}
+                        {...this.props}
                     />
                     <p>
                         It does not matter what slot we start from, the picture will look exactly the same. Linear
@@ -559,6 +560,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                         links={probing5iPlus1.links}
                         adjustTop={-40}
                         fixedHeight={170}
+                        {...this.props}
                     />
                     <p>
                         <code className="text-nowrap">idx = (5 * idx + 1) % size</code> still guarantees to eventually

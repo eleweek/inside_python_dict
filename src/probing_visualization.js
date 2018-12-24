@@ -31,7 +31,7 @@ const SMALLER_PROBING_BOX_GEOMETRY = {
     boxSpacing: 6,
 };
 
-class ProbingVisualizationImpl extends React.PureComponent {
+class ProbingVisualizationImpl extends React.Component {
     TRANSITION_TIME = 500;
     TOP_SPACE = 66;
     BOTTOM_SPACE = 66;
@@ -48,6 +48,8 @@ class ProbingVisualizationImpl extends React.PureComponent {
             breakpoints: props.breakpoints,
             transitionRunning: false,
             transitionToBpIdx: null,
+            boxSize: null,
+            boxSpacing: null,
         };
     }
 
@@ -58,11 +60,14 @@ class ProbingVisualizationImpl extends React.PureComponent {
     shouldComponentUpdate(nextProps, nextState) {
         let waitForTransition = false;
         let shouldUpdate = false;
+        if (this.state.boxSize !== nextState.boxSize || this.state.boxSize == null || nextState.boxSize == null)
+            return true;
 
-        if (nextProps.boxSize !== this.props.boxSize) {
+        /*if (nextProps.boxSize !== this.props.boxSize) {
             shouldUpdate = true;
             waitForTransition = true;
-        } else if (nextProps.breakpoints !== nextState.breakpoints) {
+        } else */
+        if (nextProps.breakpoints !== nextState.breakpoints) {
             waitForTransition = true;
             shouldUpdate = true;
         } else if (
@@ -81,7 +86,7 @@ class ProbingVisualizationImpl extends React.PureComponent {
 
     render() {
         const computedHeight =
-            this.props.boxSize +
+            this.state.boxSize +
             this.TOP_SPACE +
             this.BOTTOM_SPACE +
             10 +
@@ -94,7 +99,7 @@ class ProbingVisualizationImpl extends React.PureComponent {
 
         return (
             <div ref={this.props.innerRef}>
-                <svg width={10 + this.props.slotsCount * (this.props.boxSize + this.props.boxSpacing)} height={height}>
+                <svg width={10 + this.props.slotsCount * (this.state.boxSize + this.state.boxSpacing)} height={height}>
                     <defs>
                         {['blue', 'green'].map(color => (
                             <marker
@@ -197,15 +202,15 @@ class ProbingVisualizationImpl extends React.PureComponent {
             })
             .curve(d3.curveMonotoneX);
 
-        const {boxSize, boxSpacing} = this.props;
+        const {boxSize, boxSpacing} = this.state;
         // FIXME: this is more of hack to force re-rendering of links
         const boxSizeChanged = boxSize !== oldBoxSize;
         let rects = g.selectAll('rect').data(d3.range(slotsCount));
         rects
-            .attr('x', (d, i) => (boxSize + boxSpacing) * i)
+            /*.attr('x', (d, i) => (boxSize + boxSpacing) * i)
             .attr('y', this.TOP_SPACE)
             .attr('width', boxSize)
-            .attr('height', boxSize)
+            .attr('height', boxSize)*/
             .enter()
             .append('rect')
             .style('fill', '#dadada')
@@ -338,18 +343,29 @@ class ProbingVisualizationImpl extends React.PureComponent {
         this.setState(newState);
     }
 
+    _initOrUpd() {
+        if (this.state.boxSize == null && this.props.boxSize != null) {
+            this.setState({
+                boxSize: this.props.boxSize,
+                boxSpacing: this.props.boxSpacing,
+            });
+        } else if (this.state.boxSize != null) {
+            this.d3render();
+        }
+    }
+
     componentDidUpdate() {
-        this.d3render();
+        this._initOrUpd();
     }
 
     componentDidMount() {
-        this.d3render();
+        this._initOrUpd();
     }
 }
 
 function selectProbingGeometry(windowWidth, windowHeight) {
-    const smallBoxScreen =
-        windowWidth == null || windowHeight == null || isDefinedSmallBoxScreen(windowWidth, windowHeight);
+    if (windowWidth == null) return null;
+    const smallBoxScreen = windowWidth == null || windowHeight == null || Math.min(windowWidth, windowHeight) < 550;
     console.log('selectProbingGeometry()', windowWidth, windowHeight, smallBoxScreen);
 
     return smallBoxScreen ? SMALLER_PROBING_BOX_GEOMETRY : DEFAULT_PROBING_BOX_GEOMETRY;
@@ -380,6 +396,7 @@ export class ProbingVisualization extends React.Component {
 
     render() {
         // Pretty hacky passing links like this
+        console.log('ARGH', this.props);
         return (
             <ProbingVisualizationImpl
                 slotsCount={this.props.slotsCount || 8}

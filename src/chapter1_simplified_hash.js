@@ -657,6 +657,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         links={probingSimple.links}
                         adjustTop={-70}
                         fixedHeight={170}
+                        {...this.props}
                     />
                     <p>
                         If we make the new list the same size as the original list, we'll have too many collisions. If
