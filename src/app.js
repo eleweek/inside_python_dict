@@ -155,6 +155,7 @@ class Contents extends React.PureComponent {
     render() {
         const {selectedChapterId} = this.props;
         const selectedChapter = chapterIdDotHtml(selectedChapterId);
+        const CIRCLE_SIZE = 30;
         return (
             <div className="mb-3">
                 <div className="d-inline-flex flex-column">
@@ -164,7 +165,16 @@ class Contents extends React.PureComponent {
                                 <div
                                     key="circle-number"
                                     className="rounded-circle d-flex align-items-center justify-content-center mr-2 toc-number"
-                                    style={{width: 30, height: 30, backgroundColor: '#7FDBFF', color: 'white'}}
+                                    style={{
+                                        width: CIRCLE_SIZE,
+                                        height: CIRCLE_SIZE,
+                                        minWidth: CIRCLE_SIZE,
+                                        maxWidth: CIRCLE_SIZE,
+                                        minHeight: CIRCLE_SIZE,
+                                        maxHeight: CIRCLE_SIZE,
+                                        backgroundColor: '#7FDBFF',
+                                        color: 'white',
+                                    }}
                                 >
                                     {i}
                                 </div>
@@ -176,7 +186,7 @@ class Contents extends React.PureComponent {
                         return (
                             <div
                                 key={`toc-row-${i}`}
-                                className="d-flex p-1"
+                                className="d-flex p-1 align-items-center"
                                 style={{backgroundColor: href === selectedChapter ? 'rgba(0,0,0,.05)' : undefined}}
                             >
                                 {selectedChapter === href ? (
