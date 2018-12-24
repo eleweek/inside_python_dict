@@ -20,7 +20,7 @@ export function chapter1_2_FormatCheckCollision(l, idx, fmtCollisionCount) {
     if (l.get(idx) == null) {
         return commonFormatCheckCollisionLoopEndedPart(idx, fmtCollisionCount);
     } else {
-        return `Slot <code>${idx}</code> is occupied by <code>${l.get(idx)}</code>: a collision occurred`;
+        return `[Try #${fmtCollisionCount + 1}] Slot <code>${idx}</code> is occupied: a collision occurred`;
     }
 }
 

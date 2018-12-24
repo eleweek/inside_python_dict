@@ -24,7 +24,7 @@ import {
     formatExtraPairs,
     DEFAULT_STATE,
 } from './chapter3_and_4_common';
-import {computePerturb, perturbShift, nextIdxPerturb} from './hash_impl_common';
+import {computePerturb, perturbShift, nextIdxPerturb, displayStr} from './hash_impl_common';
 import {AlmostPythonDict} from './chapter3_hash_class';
 import {ProbingVisualization, ProbingStateVisualization, GenerateProbingLinks} from './probing_visualization';
 
@@ -115,6 +115,8 @@ function formatPythonProbing(bp, prevBp) {
             return `<code>PERTURB_SHIFT</code> needs to be greater than 0, set it to <code>${
                 this.PERTURB_SHIFT
             }</code> `;
+        case 'def-probe-all':
+            return `Called with the key <code>${displayStr(bp.key)}</code>`;
         case 'compute-hash':
             return `Compute the hash code: <code>${bp.hashCode}</code>`;
         case 'compute-idx':
@@ -144,9 +146,13 @@ function formatPythonProbing(bp, prevBp) {
             return `Add slot <code>${bp.idx}</code> to the set of visited slots`;
         case 'while-loop':
             if (bp.visitedIdx.size === bp.slotsCount) {
-                return `all ${bp.visitedIdx.size} / ${bp.slotsCount} slots are visited &mdash; stop`;
+                return `all <code>${bp.visitedIdx.size}</code> / <code>${
+                    bp.slotsCount
+                }</code> slots are visited &mdash; stop`;
             } else {
-                return `Visited ${bp.visitedIdx.size} / ${bp.slotsCount} slots, keep looping until all are visited`;
+                return `Visited <code>${bp.visitedIdx.size}</code> / <code>${
+                    bp.slotsCount
+                }</code> slots, keep looping until all are visited`;
             }
     }
 }

@@ -35,9 +35,7 @@ export function singleFormatCheckCollision(slots, idx, fmtCollisionCount) {
     if (slots.get(idx).key == null) {
         return commonFormatCheckCollisionLoopEndedPart(idx, fmtCollisionCount);
     } else {
-        return `Slot <code>${idx}</code> is occupied (the item key is <code>${
-            slots.get(idx).key
-        }</code>): a collision occurred`;
+        return `[Try #${fmtCollisionCount + 1}] Slot <code>${idx}</code> is occupied: a collision occurred`;
     }
 }
 

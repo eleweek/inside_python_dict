@@ -130,6 +130,7 @@ class ProbingVisualizationImpl extends React.PureComponent {
         }
     }
 
+    // TODO: hacky handling of boxSize changing (also if only boxSpacing changes, this may not work properly (noticeable on the initial render)
     d3render() {
         const slotsCount = this.props.slotsCount;
 
@@ -155,6 +156,7 @@ class ProbingVisualizationImpl extends React.PureComponent {
         }
 
         const oldLinks = this.oldLinks;
+        const oldBoxSize = this.oldBoxSize;
         const oldNextIdxRepeatedAdjustment = this.oldNextIdxRepeatedAdjustment;
 
         let transitionTime;
@@ -195,19 +197,22 @@ class ProbingVisualizationImpl extends React.PureComponent {
             })
             .curve(d3.curveMonotoneX);
 
+        const {boxSize, boxSpacing} = this.props;
+        // FIXME: this is more of hack to force re-rendering of links
+        const boxSizeChanged = boxSize !== oldBoxSize;
         let rects = g.selectAll('rect').data(d3.range(slotsCount));
         rects
-            .attr('x', (d, i) => (this.props.boxSize + this.props.boxSpacing) * i)
+            .attr('x', (d, i) => (boxSize + boxSpacing) * i)
             .attr('y', this.TOP_SPACE)
-            .attr('width', this.props.boxSize)
-            .attr('height', this.props.boxSize)
+            .attr('width', boxSize)
+            .attr('height', boxSize)
             .enter()
             .append('rect')
             .style('fill', '#dadada')
-            .attr('x', (d, i) => (this.props.boxSize + this.props.boxSpacing) * i)
+            .attr('x', (d, i) => (boxSize + boxSpacing) * i)
             .attr('y', this.TOP_SPACE)
-            .attr('width', this.props.boxSize)
-            .attr('height', this.props.boxSize)
+            .attr('width', boxSize)
+            .attr('height', boxSize)
             .merge(rects)
             .style('stroke', (d, i) => (i === startBoxIdx ? 'green' : 'none'))
             .style('stroke-width', 1);
@@ -220,24 +225,24 @@ class ProbingVisualizationImpl extends React.PureComponent {
                 ystart = this.TOP_SPACE;
                 yend = this.TOP_SPACE;
                 ymid = this.TOP_SPACE * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = this.props.boxSize * 0.66;
-                xendAdjust = this.props.boxSize * 0.33;
+                xstartAdjust = boxSize * 0.66;
+                xendAdjust = boxSize * 0.33;
             } else if (i1 == i2) {
                 ystart = this.TOP_SPACE;
                 yend = this.TOP_SPACE;
                 ymid = this.TOP_SPACE * (1 - (1 + repeatedAdj) / slotsCount);
-                xstartAdjust = this.props.boxSize * 0.33;
-                xendAdjust = this.props.boxSize * 0.66;
+                xstartAdjust = boxSize * 0.33;
+                xendAdjust = boxSize * 0.66;
             } else {
-                const yOffset = this.TOP_SPACE + this.props.boxSize;
+                const yOffset = this.TOP_SPACE + boxSize;
                 ystart = yOffset;
                 yend = yOffset;
                 ymid = yOffset + this.BOTTOM_SPACE * ((Math.max(i1 - i2, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = this.props.boxSize * 0.33;
-                xendAdjust = this.props.boxSize * 0.66;
+                xstartAdjust = boxSize * 0.33;
+                xendAdjust = boxSize * 0.66;
             }
-            const xstart = (this.props.boxSize + this.props.boxSpacing) * i1 + xstartAdjust;
-            const xend = (this.props.boxSize + this.props.boxSpacing) * i2 + xendAdjust;
+            const xstart = (boxSize + boxSpacing) * i1 + xstartAdjust;
+            const xend = (boxSize + boxSpacing) * i2 + xendAdjust;
             const xmid = (xstart + xend) / 2;
 
             return [[xstart, ystart], [xmid, ymid], [xend, yend]];
@@ -288,7 +293,9 @@ class ProbingVisualizationImpl extends React.PureComponent {
             .filter(function(d, i) {
                 const [start, idx] = d;
                 return (
-                    !d3.select(this).classed('entering') || oldLinks[start][idx].nextIdx != links[start][idx].nextIdx
+                    !d3.select(this).classed('entering') ||
+                    boxSizeChanged ||
+                    oldLinks[start][idx].nextIdx != links[start][idx].nextIdx
                 );
             })
             .style('stroke', getLinkColor)
@@ -326,6 +333,7 @@ class ProbingVisualizationImpl extends React.PureComponent {
             });
 
         this.oldLinks = links;
+        this.oldBoxSize = boxSize;
         this.oldNextIdxRepeatedAdjustment = nextIdxRepeatedAdjustment;
         this.setState(newState);
     }
@@ -391,6 +399,7 @@ export class GenerateProbingLinks extends BreakpointFunction {
         }
         this.slotsCount = _slotsCount;
         this.key = _key;
+        this.addBP('def-probe-all');
         this.links = new ImmutableList();
         for (let i = 0; i < this.slotsCount; ++i) {
             this.links = this.links.set(i, new ImmutableList());
