@@ -62,6 +62,7 @@ class SideBySideDicts extends React.Component {
 
     render() {
         const {windowHeight, windowWidth, ...restProps} = this.props;
+        const serverSide = windowHeight == null;
 
         return (
             <DebounceWhenOutOfView
@@ -73,6 +74,7 @@ class SideBySideDicts extends React.Component {
                         innerRef={innerRef}
                         windowWidth={windowWidth}
                         windowHeight={windowHeight}
+                        overflow={serverSide}
                     />
                 )}
             />

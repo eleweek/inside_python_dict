@@ -435,7 +435,7 @@ export class BlockInputToolbar extends React.Component {
                 <div style={{height: (this.state.height || 50) + 10}}>
                     <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen || squareishScreen}>
                         <div className="my-sticky-wrapper" ref={this.wrapperRef}>
-                            <BlockInputToolbarImpl {...restProps} shortenedLabels={!wideScreen} />
+                            <BlockInputToolbarImpl {...restProps} />
                         </div>
                     </Sticky>
                 </div>
@@ -636,7 +636,7 @@ class BlockInputToolbarImpl extends React.Component {
                                 disabled={undoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'undo-alt'} />
-                                {this.props.shortenedLabels ? '' : ' Undo'}{' '}
+                                <span className="input-toolbar-button-label"> Undo</span>{' '}
                                 <span className="badge badge-light badge-undo-redo-count">{undoCount}</span>
                             </button>
                             <button
@@ -646,7 +646,7 @@ class BlockInputToolbarImpl extends React.Component {
                                 disabled={redoCount === 0}
                             >
                                 <FontAwesomeIcon icon={'redo-alt'} />
-                                {this.props.shortenedLabels ? '' : ' Redo'}{' '}
+                                <span className="input-toolbar-button-label"> Redo</span>{' '}
                                 <span className="badge badge-light badge-undo-redo-count">{redoCount}</span>
                             </button>
                         </div>

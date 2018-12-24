@@ -334,6 +334,10 @@ blockquote.blockquote {
     .scbl-hideable {
         display: none;
     }
+
+    .input-toolbar-button-label {
+        display: none;
+    }
 }
 
 @media (min-width: 601px) {
@@ -342,6 +346,9 @@ blockquote.blockquote {
     }
 
     .scbl-hideable {
+    }
+
+    .input-toolbar-button-label {
     }
 }
 

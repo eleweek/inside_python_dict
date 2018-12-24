@@ -136,7 +136,12 @@ const SimpleListSearchStateVisualization = TetrisFactory([
     [LineOfBoxesComponent, [{labels: ['simple_list']}, 'data', 'idx']],
 ]);
 
-const UnnamedListVisualization = TetrisFactory([[LineOfBoxesComponent, [{labels: [null]}, 'data']]]);
+const UnnamedListVisualizationImpl = TetrisFactory([[LineOfBoxesComponent, [{labels: [null]}, 'data']]]);
+
+function UnnamedListVisualization(props) {
+    const serverSide = props.windowHeight == null;
+    return <UnnamedListVisualizationImpl {...props} overflow={serverSide} />;
+}
 
 export const SIMPLIFIED_INSERT_ALL_BROKEN_CODE = [
     ['def build_not_quite_what_we_want(original_list):', 'start-execution', 0],
