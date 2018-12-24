@@ -685,7 +685,7 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             pythonDictSlots: newRes.pySelf.get('slots'),
                         }}
                         compensateTopPadding={30}
-                        windowHeight={this.props.windowHeight}
+                        {...this.props}
                     />
                     <p>
                         The code for removing an item stays mostly the same. Again, a different probing algoithm is
