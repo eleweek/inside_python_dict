@@ -816,7 +816,7 @@ export class Chapter3_HashClass extends ChapterComponent {
                         applying this optimization.
                     </p>
                     <div className="div-p">
-                        Remember that we removed
+                        Remember that we removed the key
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToDel}
@@ -827,33 +827,39 @@ export class Chapter3_HashClass extends ChapterComponent {
                         ?
                     </div>
                     <div className="div-p">
-                        What happens after we insert a key
+                        Now, what happens after if we insert another item to the modified hash table:
+                        <br />
+                        <div style={{minWidth: 65}} className="inline-block mb-3 mt-3">
+                            key =
+                        </div>
                         <PySNNInput
                             inline={true}
                             value={this.state.keyToSetRecycling}
                             valueId={this.state.keyToSetRecyclingIdHack}
                             onChange={this.setter('keyToSetRecycling', false, true)}
                             anotherValue={() => anotherKey(this.state.pairs, 0.2, 0.5, 0.2)}
-                        />{' '}
-                        with a value
+                        />
+                        <br />
+                        <div style={{minWidth: 65}} className="inline-block">
+                            value ={' '}
+                        </div>
                         <PySNNInput
                             inline={true}
                             value={this.state.valueToSetRecycling}
                             valueId={this.state.valueToSetRecyclingIdHack}
                             onChange={this.setter('valueToSetRecycling', false, true)}
-                        />{' '}
-                        to the modified hash table?
+                        />
                     </div>
-                    <DynamicPartSetItemRecycling
-                        {...recyclingRes}
-                        handleUpdateRemovedAndInsert={this.handleUpdateRemovedAndInsert}
-                    />
                     <VisualizedCode
                         code={HASH_CLASS_SETITEM_RECYCLING_CODE}
                         breakpoints={recyclingRes.bp}
                         formatBpDesc={[formatHashClassSetItemAndCreate, formatHashClassChapter3IdxRelatedBp]}
                         stateVisualization={HashClassNormalStateVisualization}
                         {...this.props}
+                    />
+                    <DynamicPartSetItemRecycling
+                        {...recyclingRes}
+                        handleUpdateRemovedAndInsert={this.handleUpdateRemovedAndInsert}
                     />
                 </Subcontainerize>
             </div>

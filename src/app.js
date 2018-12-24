@@ -136,7 +136,7 @@ function NextPrev({selectedChapterId}) {
 
     if (nextHref) {
         return (
-            <div className="next-prev">
+            <div className="next-prev mt-4">
                 <a href={nextHref} key={nextHref}>
                     <h6 key={nextHref}>
                         Next: {nextTitle} <FontAwesomeIcon key="chevron-right" icon="chevron-right" />{' '}

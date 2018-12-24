@@ -765,9 +765,8 @@ export class Chapter4_RealPythonDict extends ChapterComponent {
                             "Key-Sharing Dictionary"
                         </a>
                         ) that improved memory consumption in certain cases. 3.3 also randomizes seed for hash
-                        functions, so that
-                        <code>hash()</code> return values are less predictable from the outside. This is a
-                        security-related change, and object hashes are still stable within the same "run" of Python
+                        functions, so that <code>hash()</code> return values are less predictable from the outside. This
+                        is a security-related change, and object hashes are still stable within the same "run" of Python
                         interpreter.
                     </p>
                     <p>
