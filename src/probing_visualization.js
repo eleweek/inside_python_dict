@@ -396,7 +396,6 @@ export class ProbingVisualization extends React.Component {
 
     render() {
         // Pretty hacky passing links like this
-        console.log('ARGH', this.props);
         return (
             <ProbingVisualizationImpl
                 slotsCount={this.props.slotsCount || 8}
