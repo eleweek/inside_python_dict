@@ -2,7 +2,7 @@ import {observable, action} from 'mobx';
 
 export let globalSettings = observable({
     codePlaySpeed: 1,
-    maxCodePlaySpeed: 16,
+    maxCodePlaySpeed: 8,
 });
 
 globalSettings.setCodePlaySpeed = action(function setCodePlaySpeed(speed) {

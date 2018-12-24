@@ -20,7 +20,7 @@ import 'rc-slider/assets/index.css';
 
 import SmoothScrollbar from 'react-smooth-scrollbar';
 
-import {MyErrorBoundary, getUxSettings, DebounceWhenOutOfView, RED, BLUE} from './util';
+import {MyErrorBoundary, getUxSettings, DebounceWhenOutOfView, RED, BLUE, isDefinedSmallBoxScreen} from './util';
 import {isNone, isDummy, repr, displayStr} from './hash_impl_common';
 import {globalSettings} from './store';
 import {observer} from 'mobx-react';
@@ -1170,12 +1170,8 @@ export function TetrisFactory(lines, opts) {
     };
 }
 
-function isSmallBoxScreen(windowWidth, windowHeight) {
-    return windowWidth && windowHeight && (windowWidth < 950 || windowHeight < 520);
-}
-
 function selectGeometry(windowWidth, windowHeight) {
-    if (isSmallBoxScreen(windowWidth, windowHeight)) {
+    if (isDefinedSmallBoxScreen(windowWidth, windowHeight)) {
         return SMALLER_BOX_GEOMETRY;
     } else {
         return DEFAULT_BOX_GEOMETRY;

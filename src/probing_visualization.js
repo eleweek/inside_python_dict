@@ -10,6 +10,8 @@ import {
     displayStr,
 } from './hash_impl_common';
 
+import {isDefinedSmallBoxScreen} from './util';
+
 const d3 = Object.assign(
     {},
     require('d3-selection'),
@@ -19,12 +21,20 @@ const d3 = Object.assign(
     require('d3-array')
 );
 
-class ProbingVisualizationImpl extends React.Component {
+const DEFAULT_PROBING_BOX_GEOMETRY = {
+    boxSize: 40,
+    boxSpacing: 8,
+};
+
+const SMALLER_PROBING_BOX_GEOMETRY = {
+    boxSize: 30,
+    boxSpacing: 6,
+};
+
+class ProbingVisualizationImpl extends React.PureComponent {
     TRANSITION_TIME = 500;
     TOP_SPACE = 66;
     BOTTOM_SPACE = 66;
-    BOX_SIZE = 40;
-    BOX_SPACING = 8;
 
     transitionId = null;
     lastTransitionId = 0;
@@ -49,7 +59,10 @@ class ProbingVisualizationImpl extends React.Component {
         let waitForTransition = false;
         let shouldUpdate = false;
 
-        if (nextProps.breakpoints !== nextState.breakpoints) {
+        if (nextProps.boxSize !== this.props.boxSize) {
+            shouldUpdate = true;
+            waitForTransition = true;
+        } else if (nextProps.breakpoints !== nextState.breakpoints) {
             waitForTransition = true;
             shouldUpdate = true;
         } else if (
@@ -68,7 +81,7 @@ class ProbingVisualizationImpl extends React.Component {
 
     render() {
         const computedHeight =
-            this.BOX_SIZE +
+            this.props.boxSize +
             this.TOP_SPACE +
             this.BOTTOM_SPACE +
             10 +
@@ -80,8 +93,8 @@ class ProbingVisualizationImpl extends React.Component {
         adjustTop = adjustTop || 0;
 
         return (
-            <div className="col" ref={this.props.innerRef}>
-                <svg width={10 + this.props.slotsCount * (this.BOX_SIZE + this.BOX_SPACING)} height={height}>
+            <div ref={this.props.innerRef}>
+                <svg width={10 + this.props.slotsCount * (this.props.boxSize + this.props.boxSpacing)} height={height}>
                     <defs>
                         {['blue', 'green'].map(color => (
                             <marker
@@ -184,13 +197,17 @@ class ProbingVisualizationImpl extends React.Component {
 
         let rects = g.selectAll('rect').data(d3.range(slotsCount));
         rects
+            .attr('x', (d, i) => (this.props.boxSize + this.props.boxSpacing) * i)
+            .attr('y', this.TOP_SPACE)
+            .attr('width', this.props.boxSize)
+            .attr('height', this.props.boxSize)
             .enter()
             .append('rect')
             .style('fill', '#dadada')
-            .attr('x', (d, i) => (this.BOX_SIZE + this.BOX_SPACING) * i)
+            .attr('x', (d, i) => (this.props.boxSize + this.props.boxSpacing) * i)
             .attr('y', this.TOP_SPACE)
-            .attr('width', this.BOX_SIZE)
-            .attr('height', this.BOX_SIZE)
+            .attr('width', this.props.boxSize)
+            .attr('height', this.props.boxSize)
             .merge(rects)
             .style('stroke', (d, i) => (i === startBoxIdx ? 'green' : 'none'))
             .style('stroke-width', 1);
@@ -203,24 +220,24 @@ class ProbingVisualizationImpl extends React.Component {
                 ystart = this.TOP_SPACE;
                 yend = this.TOP_SPACE;
                 ymid = this.TOP_SPACE * (1 - (Math.max(i2 - i1, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = this.BOX_SIZE * 0.66;
-                xendAdjust = this.BOX_SIZE * 0.33;
+                xstartAdjust = this.props.boxSize * 0.66;
+                xendAdjust = this.props.boxSize * 0.33;
             } else if (i1 == i2) {
                 ystart = this.TOP_SPACE;
                 yend = this.TOP_SPACE;
                 ymid = this.TOP_SPACE * (1 - (1 + repeatedAdj) / slotsCount);
-                xstartAdjust = this.BOX_SIZE * 0.33;
-                xendAdjust = this.BOX_SIZE * 0.66;
+                xstartAdjust = this.props.boxSize * 0.33;
+                xendAdjust = this.props.boxSize * 0.66;
             } else {
-                const yOffset = this.TOP_SPACE + this.BOX_SIZE;
+                const yOffset = this.TOP_SPACE + this.props.boxSize;
                 ystart = yOffset;
                 yend = yOffset;
                 ymid = yOffset + this.BOTTOM_SPACE * ((Math.max(i1 - i2, 1) + repeatedAdj) / slotsCount);
-                xstartAdjust = this.BOX_SIZE * 0.33;
-                xendAdjust = this.BOX_SIZE * 0.66;
+                xstartAdjust = this.props.boxSize * 0.33;
+                xendAdjust = this.props.boxSize * 0.66;
             }
-            const xstart = (this.BOX_SIZE + this.BOX_SPACING) * i1 + xstartAdjust;
-            const xend = (this.BOX_SIZE + this.BOX_SPACING) * i2 + xendAdjust;
+            const xstart = (this.props.boxSize + this.props.boxSpacing) * i1 + xstartAdjust;
+            const xend = (this.props.boxSize + this.props.boxSpacing) * i2 + xendAdjust;
             const xmid = (xstart + xend) / 2;
 
             return [[xstart, ystart], [xmid, ymid], [xend, yend]];
@@ -322,18 +339,34 @@ class ProbingVisualizationImpl extends React.Component {
     }
 }
 
+function selectProbingGeometry(windowWidth, windowHeight) {
+    const smallBoxScreen =
+        windowWidth == null || windowHeight == null || isDefinedSmallBoxScreen(windowWidth, windowHeight);
+    console.log('selectProbingGeometry()', windowWidth, windowHeight, smallBoxScreen);
+
+    return smallBoxScreen ? SMALLER_PROBING_BOX_GEOMETRY : DEFAULT_PROBING_BOX_GEOMETRY;
+}
+
 export class ProbingStateVisualization extends React.Component {
     static getExpectedHeight() {
         return 270; // TODO: compute?
     }
 
     render() {
-        const {breakpoints, bpIdx, innerRef} = this.props;
-        return <ProbingVisualizationImpl slotsCount={8} breakpoints={breakpoints} bpIdx={bpIdx} innerRef={innerRef} />;
+        const {breakpoints, bpIdx, innerRef, windowWidth, windowHeight} = this.props;
+        return (
+            <ProbingVisualizationImpl
+                slotsCount={this.props.slotsCount || 8}
+                breakpoints={breakpoints}
+                bpIdx={bpIdx}
+                innerRef={innerRef}
+                {...selectProbingGeometry(windowWidth, windowHeight)}
+            />
+        );
     }
 }
 
-export class ProbingVisualization extends React.PureComponent {
+export class ProbingVisualization extends React.Component {
     static FULL_WIDTH = true;
     static EXTRA_ERROR_BOUNDARY = true;
 
@@ -341,10 +374,11 @@ export class ProbingVisualization extends React.PureComponent {
         // Pretty hacky passing links like this
         return (
             <ProbingVisualizationImpl
-                slotsCount={8}
+                slotsCount={this.props.slotsCount || 8}
                 breakpoints={[{links: this.props.links}]}
                 bpIdx={0}
                 {...this.props}
+                {...selectProbingGeometry(this.props.windowWidth, this.props.windowHeight)}
             />
         );
     }

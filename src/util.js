@@ -374,6 +374,7 @@ export function initUxSettings() {
 
     const engine = browser.engine.name;
     const osName = browser.os.name;
+    const platformType = browser.platform.type;
     console.log('Detected engine', engine, 'on', osName);
     let settings = {...defaultUxSettings};
 
@@ -439,6 +440,10 @@ export function initUxSettings() {
             // Firefox doesn't seems to tolerate auto-scrolling
             settings.CODE_SCROLL_DEBOUNCE_TIME = 200;
             break;
+    }
+
+    if (platformType === 'mobile') {
+        settings.MAX_CODE_PLAY_SPEED = Math.min(settings.MAX_CODE_PLAY_SPEED, 8);
     }
 
     insidePythonDictUxSettings = settings;
@@ -531,4 +536,8 @@ export function fixFirstValues(func, values) {
 
         return res;
     };
+}
+
+export function isDefinedSmallBoxScreen(windowWidth, windowHeight) {
+    return windowWidth && windowHeight && (windowWidth < 950 || windowHeight < 520);
 }
