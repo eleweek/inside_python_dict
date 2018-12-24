@@ -786,10 +786,10 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         <code>hash(None)</code> is always <code>-9223372036581563745</code>.
                     </p>
                     <p>
-                        Why Python 3.2? Because dict implementation changed over time, but Python 3.2's dict implements
-                        most major ideas, and thus Python 3.2's dict is a good starting point. Later versions of Python
-                        extend (rather than completely replace) Python 3.2's implementation. Eventually, we will get to
-                        these implementations as well.
+                        Why Python 3.2? Because dict implementation has changed over time but Python 3.2's dict
+                        implements most major ideas, and, thus, Python 3.2's dict is a good starting point. Later
+                        versions of Python extend (rather than completely replace) Python 3.2's implementation.
+                        Eventually, we will get to these implementations as well.
                     </p>
                     <h5> Unhashable types </h5>
                     <p>
@@ -862,11 +862,11 @@ EMPTY = EmptyValueClass()
                     </p>
                     <p>
                         In this chapter, let's allow duplicates. Remember how search works in chapter 1? We retrace the
-                        steps necessary to insert the element, and check if any slot on the way contains it. We also do
-                        all the steps when we are actually inserting it. This means that we're effectively also doing a
-                        search while insering an element, and handling duplicates is straightforward &mdash; we can
+                        steps necessary to insert the element and check if any slot along the way contains it. We also
+                        do all the steps when we are actually inserting it. This means that we're effectively doing a
+                        search while inserting an element. Also, handling duplicates is straightforward &mdash; we can
                         terminate the insertion process if we find the element. And if we hit an empty slot without
-                        finding the element, then it is not in the table, and it means that we can safely insert it.
+                        finding the element, then it is not in the table and it means that we can safely insert it.
                     </p>
                     <p>
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}
@@ -893,7 +893,7 @@ EMPTY = EmptyValueClass()
                     <h5> Searching </h5>
                     <p>
                         The search algorithm hasn't changed much. We get the <code>hash()</code> function value for the
-                        object, and do linear probing. Just like in the first chapter, we have essentially a bunch of
+                        object, and do linear probing. Just like in the first chapter, we essentially have a bunch of
                         "islands", separated by empty slots. Each island usually contains only a few elements, and a
                         linear scan over a small "island" isn't expensive.
                     </p>
