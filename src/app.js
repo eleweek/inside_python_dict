@@ -89,11 +89,11 @@ function GithubCorner() {
 }
 
 function GithubForkMe({windowWidth}) {
-    if (windowWidth != null && windowWidth > 1150) {
+    /*if (windowWidth != null && windowWidth > 1150) {
         return <GithubRibbon />;
-    } else {
-        return <GithubCorner />;
-    }
+    } else {*/
+    return <GithubCorner />;
+    /*}*/
 }
 
 const CONTENTS_DATA = [
