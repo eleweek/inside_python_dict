@@ -124,7 +124,7 @@ let formatSimpleListSearchBreakpointDescription = function(bp) {
                 ? `<code>${bp.atIdx} == ${bp.arg}</code> &mdash; the wanted number is found`
                 : `<code>${bp.atIdx} != ${bp.arg}</code> &mdash; the wanted number has not been found so far`;
         case 'found-key':
-            return `The wanted number <code>${bp.arg}</code> was found, so return <code>True</code>`;
+            return `so return <code>True</code>`;
         case 'found-nothing':
             return `The wanted number <code>${bp.arg}</code> was not found, so return <code>False</code>`;
         case 'next-idx':
@@ -239,7 +239,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
 let formatSimplifiedInsertAllDescription = function(bp, prevBp) {
     switch (bp.point) {
         case 'create-new-list':
-            return `Create a new list of size <code>${bp.newList.size}</code>`;
+            return `Create a new list of <code>${bp.newList.size}</code> empty slots`;
         case 'for-loop':
             return `[${bp.originalListIdx + 1}/${bp.originalList.size}] The number to insert is <code>${
                 bp.number
@@ -391,7 +391,7 @@ function DynamicSimplifiedInsertAllBrokenOverwrittenExample({originalNumbers, ad
         exampleOverwrite = (
             <React.Fragment>
                 For example, <code>{n1}</code> will get the same slot index (<code>{idx}</code>) as <code>{n2}</code>,
-                and thus it will be overwritten.
+                and it will be overwritten.
             </React.Fragment>
         );
     } else {
@@ -552,7 +552,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     <p className="mb-0">
                         Python lists are actually arrays &mdash; contiguous chunks of memory. The name "list" may be
                         misleading to people who know about double-linked lists but are unfamiliar with Python. You can
-                        picture a Python list as a contiguous row of slots, where each slot can hold a Python object:
+                        picture a Python list as a row of slots, where each slot can hold a Python object:
                     </p>
                     <UnnamedListVisualization
                         bp={{data: this.state.numbers}}
@@ -603,11 +603,14 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
-                        Python dict is a collection of key-value pairs. And, the most important part of it is handling
+                        A Python dict is a collection of key-value pairs. And, the most important part of it is handling
                         keys. Keys need to be organized in such a way that efficient searching, inserting and deleting
-                        is possible. In this chapter, to keep things simple, we won't have any values, and "keys" will
-                        just be plain integers. So, the simplified problem is to check if a number is present in a list,
-                        but we have to do this{' '}
+                        is possible.
+                    </p>
+                    <p>
+                        In this chapter, to keep things simple, we won't have any values, and "keys" will just be plain
+                        integers. So, the simplified problem is to check if a number is present in a list, but we have
+                        to do this{' '}
                         <em>
                             <strong>fast</strong>
                         </em>
@@ -615,13 +618,18 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
-                        too. What we need to do is organize our data in a clever way. Here's how. Let's begin by
-                        creating a new list of slots. Each slot will either hold a number from the original list or be
-                        empty (empty slots will hold <code>None</code>). We'll use the number itself to compute an index
-                        of a slot. The simplest way to do this is to take the remainder of <code>number</code> divided
-                        by <code>len(the_list)</code>: <code className="text-nowrap">number % len(the_list)</code> and
-                        put our number in there. To check if the number is there we could compute the slot index again
-                        and see if it is empty.
+                        too. We don't want to doing a linear scan over the whole list every time we look up a number, so
+                        we need to organize our data in a clever way.
+                    </p>
+                    <p> Here's how. </p>
+                    <p>
+                        Let's begin by creating a new list of slots. Each slot will either hold a number from the
+                        original list or be empty (empty slots will hold <code>None</code>). We'll use the number itself
+                        to compute an index of a slot. The simplest way to do this is to take the remainder of{' '}
+                        <code>number</code> divided by <code>len(the_list)</code>:{' '}
+                        <code className="text-nowrap">number % len(the_list)</code> and put our number in slot with this
+                        index. To check if the number is there we could compute the slot index again and see if it is
+                        empty.
                     </p>
                     <DynamicSimplifiedInsertAllBrokenOverwrittenExample
                         key="overwritten-example-component"
@@ -692,9 +700,9 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     />
                     <p>
                         Calculating an index based on the value of the number and resolving collisions by linear probing
-                        is incredibly powerful. This idea is a major one behind Python dict. What we've just implemented
-                        is a simple <em>hash table</em> (more about the term in the next chapter). Python dict uses a
-                        hash table internally, albeit a more complex variant.
+                        is an incredibly powerful idea. What we've just implemented is a simple <em>hash table</em>{' '}
+                        (more about the term in the next chapter). Python dict uses a hash table internally, albeit a
+                        more complex variant.
                     </p>
                     <p>
                         We still haven't discussed adding more elements (what happens if a table overflows?), removing
@@ -708,8 +716,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         <a href="https://en.wikipedia.org/wiki/Hash_table#Separate_chaining" target="_blank">
                             separate chaining
                         </a>
-                        . It is also a powerful method which is commonly used. But that's not how Python resolves
-                        collision in dicts, so this method is beyond the scope of this explanation.{' '}
+                        . It is also a good strategy which is commonly used. But that's not how Python resolves
+                        collision in dicts, so it is beyond the scope of this explanation.{' '}
                     </p>
                     <h6>A couple of the notes about the explanation</h6>
                     <p>
@@ -730,14 +738,14 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         <a href="http://ironpython.net/" target="_blank">
                             IronPython
                         </a>
-                        . The way dict works in each of these implementations may be similar to CPython (in the case of
+                        . The way dicts works in each of these implementations may be similar to CPython (in the case of
                         PyPy) or very different from CPython (in the case of Jython).
                     </p>
                     <p>
                         Second, even though dict in CPython is implemented in C, this explanation uses Python for code
-                        snippets. The goal of this page is to help you understand{' '}
-                        <em>the algorithms and the underlying data structure</em>, not the minutiae of the C code (these
-                        details are interesting too - they are just are beyond the scope of this explanation).
+                        snippets. The goal of this page is to help you understand the algorithms and the underlying data
+                        structures, not the minutiae of the C code (these details are interesting too - they are just
+                        are beyond the scope of this explanation).
                     </p>
                 </Subcontainerize>
             </div>

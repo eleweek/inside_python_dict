@@ -252,9 +252,9 @@ function formatHashRemoveSearch(bp, prevBp) {
             return `Throw an exception, because no key was found`;
         /* search */
         case 'return-true':
-            return `So return <code>True</code>`;
+            return `so return <code>True</code>`;
         case 'return-false':
-            return `So return <code>False</code>`;
+            return `We hit an empty slot, so the key is not there. Return <code>False</code>`;
     }
 }
 
@@ -525,10 +525,16 @@ class HashExamples extends React.Component {
     }
 
     render() {
+        const COMMON_WIDTH = 72;
+        const style = {
+            minWidth: COMMON_WIDTH,
+            widdth: COMMON_WIDTH,
+            display: 'inline-block',
+        };
         return (
             <div>
                 <div className="div-p">
-                    <span>Strings: </span>
+                    <span style={style}>Strings:</span>
                     <code>hash(</code>
                     <PyStringInput
                         inline={true}
@@ -538,7 +544,7 @@ class HashExamples extends React.Component {
                     <code>)</code> = <code>{pyHashUnicode(this.state.string)}</code>
                 </div>
                 <div className="div-p">
-                    <span>Integers: </span>
+                    <span style={style}>Integers:</span>
                     <code>hash(</code>
                     <PyNumberInput
                         inline={true}
@@ -548,15 +554,15 @@ class HashExamples extends React.Component {
                     <code>)</code> = <code>{pyHashLong(BigNumber(this.state.integer)).toFixed()}</code>
                 </div>
                 <p>
-                    <span>Floats: </span>
+                    <span style={style}>Floats:</span>
                     <code>hash(42.5)</code> = <code>1426259968</code>
                 </p>
                 <p>
-                    <span>Tuples: </span>
+                    <span style={style}>Tuples: </span>
                     <code>hash(("Hi", 11))</code> = <code>4421265786515608844</code>
                 </p>
                 <p>
-                    <span>None: </span>
+                    <span style={style}>None: </span>
                     <code>hash(None)</code> = <code>-9223372036581563745</code>
                 </p>
             </div>
@@ -735,10 +741,13 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                 <Subcontainerize>
                     <p>
                         Now that we have the solution for searching in a list of numbers, can we use it for non-integer
-                        objects? We can if we find a way to turn objects into numbers for indexing. We don't need a
-                        perfect one-to-one correspondence between objects and integers. In fact, it is totally fine if
-                        two unrelated objects are turned into the same number &mdash; we can use linear probing to
-                        resolve this collision anyway!
+                        objects? We can if we find a way to turn objects into numbers for indexing.
+                    </p>
+                    <p>
+                        {' '}
+                        We don't need a perfect one-to-one correspondence between objects and integers. In fact, it is
+                        totally fine if two unrelated objects are turned into the same number &mdash; we can use linear
+                        probing to resolve this collision anyway!
                     </p>
                     <p>
                         However, if we turn all objects into the same number, for example, <code>42</code>, our hash
@@ -766,8 +775,8 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <p>
                         In the case of strings, <code>hash()</code> returns fairly unpredictable results, as it should.
                         However, for small integers <code className="text-nowrap">hash(x) == x</code>. This fact may
-                        seem surprising to people familiar with hash functions, however it is a deliberate design
-                        decision by Python core developers.
+                        seem surprising to people familiar with hash functions, but it is a deliberate design decision
+                        by Python core developers.
                     </p>
                     <p>
                         For "long" integers Python uses a different algorithm. Try typing a relatively big number, for
@@ -795,28 +804,30 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                     <p>
                         Not all types are hashable. For example, lists aren't and if you call{' '}
                         <code className="text-nowrap">hash(["some", "values"])</code> you will get{' '}
-                        <code>TypeError: unhashable type: 'list'</code>. Why can't we use the same hash function as for
-                        tuples? The answer is because lists are mutable and tuples are not. We could still define a hash
-                        function for lists and other mutable objects. However changing a list would change the value of
-                        the hash function as well, and therefore we will not be able to find the mutated list! Hashing
-                        and using lists as keys in dicts would lead to many accidental bugs, so core developers of
-                        Python chose not to allow this.
+                        <code>TypeError: unhashable type: 'list'</code>. Why can't we use the same hash function for
+                        lists as for tuples? The answer is because lists are mutable and tuples are not.
+                    </p>
+                    <p>
+                        We could still define a hash function for lists and other mutable objects. However changing a
+                        list would change the value of the hash function as well, and therefore we will not be able to
+                        locate the mutated list! Hashing and using lists as keys in dicts would lead to many accidental
+                        bugs, so core developers of Python chose not to allow this.
                     </p>
                     <h5>A note on the word "hash"</h5>
                     <p>
                         Because hash tables use hash functions and because hash tables mix up inserted elements, they
-                        are called hash tables. Sometimes people shorten "hash table" to simply "hash". The output of a
-                        hash function is sometimes called "hash value" or "hash code", but very often it is shortened to
-                        simple "hash". Also, Python's built-in hash function is called <code>hash()</code>.
+                        are called hash tables. Sometimes people shorten "hash table" to just "hash". The output of a
+                        hash function is sometimes called "hash value" or "hash code", but very often it is also
+                        shortened to just "hash". Also, Python's built-in hash function is called <code>hash()</code>.
                     </p>
                     <p>
-                        Because people like to shorten things, three different (but related) concepts end up having the
-                        same shortened name. This can get a bit confusing sometimes.
+                        Because people like to shorten things, several different (but related) concepts end up having
+                        the same shortened name. This can get a bit confusing sometimes.
                     </p>
                     <h5> Using hash functions for hash tables </h5>
                     <p>
                         Recall that we started with a simple problem: searching efficiently in a list of distinct
-                        numbers. Now, let's make this problem harder: our hash table needs to handle duplicate, support
+                        numbers. Now, let's make this problem harder: our hash table needs to handle duplicates, support
                         types other than integers, support removing and adding keys (and therefore resizing). We will
                         see how to handle values in the next chapter, but for now let's assume we only need to search
                         for keys.
@@ -831,21 +842,23 @@ export class Chapter2_HashTableFunctions extends ChapterComponent {
                         for an empty slot. The cleanest way to do this is to create a new type and use a value of this
                         type. In Python, this is quite simple:
                     </p>
-                    <SimpleCodeBlock>{`
+                    <SimpleCodeBlock>
+                        {`
 class EmptyValueClass(object):
     pass
 
 EMPTY = EmptyValueClass()
-              `}</SimpleCodeBlock>
+              `.trim()}
+                    </SimpleCodeBlock>
                     <p>
                         We will now use <code>EMPTY</code> to denote an empty slot. After we do this, we will be able to
                         insert <code>None</code> in the hash table safely.
                     </p>
                     <p>
-                        But here is one critical and subtle thing: checking for equality of objects can be expensive.
-                        For example, comparing strings of length 10000 may require up to 10000 comparison operations -
-                        one per each pair of corresponding characters. And, we may end up doing several equality checks
-                        when doing linear probing.
+                        But here is one critical thing: checking for equality of objects can be expensive. For example,
+                        comparing strings of length 10000 may require up to 10000 comparison operations - one per each
+                        pair of corresponding characters. And, we may end up doing several equality checks when doing
+                        linear probing.
                     </p>
                     <p>
                         When we only had integers, we didn't have this problem, because comparing integers is cheap. But
@@ -861,12 +874,13 @@ EMPTY = EmptyValueClass()
                         This optimization is a space-time tradeoff. We spend extra memory to make the algorithm faster.
                     </p>
                     <p>
-                        In this chapter, let's allow duplicates. Remember how search works in chapter 1? We retrace the
-                        steps necessary to insert the element and check if any slot along the way contains it. We also
-                        do all the steps when we are actually inserting it. This means that we're effectively doing a
-                        search while inserting an element. Also, handling duplicates is straightforward &mdash; we can
-                        terminate the insertion process if we find the element. And if we hit an empty slot without
-                        finding the element, then it is not in the table and it means that we can safely insert it.
+                        In this chapter, we'll allow duplicates. Remember how search works in the previous chapter? We
+                        retrace the steps necessary to insert the element and check if any slot along the way contains
+                        it. We also do all these steps when we are actually inserting an element. This means that we're
+                        effectively doing a search while inserting an element. So, handling duplicates is
+                        straightforward &mdash; we can terminate the insertion process if we find the element. And if we
+                        hit an empty slot without finding the element, then the element is not in the table and it means
+                        that we can safely insert it.
                     </p>
                     <p>
                         Now, let's see this algorithm in action. We'll use a separate list called{' '}
@@ -883,6 +897,7 @@ EMPTY = EmptyValueClass()
                         bottomBoundary=".chapter2"
                         {...this.props}
                     />
+                    <p>Let's build a hash table from it:</p>
                     <VisualizedCode
                         code={HASH_CREATE_NEW_CODE}
                         breakpoints={newRes.bp}
@@ -928,12 +943,14 @@ EMPTY = EmptyValueClass()
                     <p>
                         In code, we can create this placeholder object just like we created <code>EMPTY</code>:
                     </p>
-                    <SimpleCodeBlock>{`
+                    <SimpleCodeBlock>
+                        {`
 class DummyValueClass(object):
     pass
 
 DUMMY = DummyValueClass()
-              `}</SimpleCodeBlock>
+              `.trim()}
+                    </SimpleCodeBlock>
                     <div className="div-p">
                         Let's see removing in action. Let's say we want to remove:
                         <PySNNInput
@@ -967,8 +984,8 @@ DUMMY = DummyValueClass()
                         re-insert all the elements from the smaller table (skipping dummy placeholders). This may sound
                         expensive. And, it <em>is</em> expensive. But, the thing is, we don't have to resize the table
                         after every operation. If we make the new table size 1.5x, 2x or even 4x the size of the old
-                        table, we will do the resize operation rarely enough that the heavy cost of it will amortize
-                        (spread out) over many insertions/deletions.
+                        table, it'll take a while until it fills up again. We will do resizes rarely enough that the
+                        heavy cost of it will amortize (spread out) over many insertions/deletions.
                     </p>
                     <HashResizeInPlaceAnimation breakpoints={resizeRes.bp} />
                     <p className="mt-2">

@@ -54,12 +54,12 @@ export function formatHashClassLookdictRelated(bp) {
         }
         case 'check-key': {
             const slotKey = bp.self.get('slots').get(bp.idx).key;
-            if (slotKey == bp.key) {
+            if (EQ(slotKey, bp.key)) {
                 return `<code>${displayStr(slotKey)} == ${displayStr(bp.key)}</code>, so the key is found`;
             } else {
                 return `<code>${displayStr(slotKey)} != ${displayStr(
                     bp.key
-                )}</code>, so there is a different key with the same hash`;
+                )}</code>, so the slot contains a different key but with the same hash`;
             }
         }
         case 'return-idx':
@@ -118,9 +118,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         }
         case 'check-should-recycle-target-idx':
             if (bp.targetIdx !== null) {
-                return `<code>target_idx == ${
-                    bp.targetIdx
-                }</code> - we have already found a <code>DUMMY</code> slot that we can recycle`;
+                return `<code>target_idx</code> isn't <code>None</code> &mdash; we've already found a <code>DUMMY</code> slot that we can recycle`;
             } else {
                 return `<code>target_idx</code> is currently <code>None</code> - we are still looking for a <code>DUMMY</code> slot to recycle`;
             }
@@ -165,7 +163,7 @@ export function formatHashClassSetItemAndCreate(bp) {
             return `and increment <code>fill</code>, which makes it <code>${bp.self.get('fill')}</code>`;
         case 'check-recycle-used-increased':
             return (
-                `If we're putting the item in a slot with <code>DUMMY</code> ` +
+                `If we're putting the item in a <code>DUMMY</code> slot ` +
                 (bp.self.get('slots').get(bp.targetIdx).key === DUMMY ? '(and we are)' : "(and we aren't)")
             );
         case 'assign-slot': {
@@ -173,31 +171,37 @@ export function formatHashClassSetItemAndCreate(bp) {
             return `Put the item in slot <code>${_idxOrTargetIdx}</code>`;
         }
         case 'check-resize': {
-            const fillQ = bp.self.get('fill') * 3;
-            const sizeQ = bp.self.get('slots').size * 2;
-            let compStr;
+            const _fill = bp.self.get('fill');
+            const _size = bp.self.get('slots').size;
+            const fillQ = _fill * 3;
+            const sizeQ = _size * 2;
+            let compStr, compStrShort;
             let extraResizeStr = '';
             if (fillQ >= sizeQ) {
                 if (fillQ > sizeQ) {
                     compStr = 'is greater than';
+                    compStrShort = '>';
                 } else {
-                    // FIXME: I think this this branch can't happen because math
+                    // FIXME: I think this branch can't happen because math
                     compStr = 'is equals to';
                 }
             } else {
                 compStr = 'is less than';
+                compStrShort = '<';
                 extraResizeStr = ', so no need to run <code>resize()</code>';
             }
 
             return (
-                `<code> ${bp.self.get('fill')} * 3</code> (== <code>${fillQ}</code>) ` +
-                compStr +
+                `fill factor (<code>${((100 * _fill) / _size).toFixed(
+                    0
+                )}%</code>) ${compStrShort} 2/3: <code> ${bp.self.get('fill')} * 3</code> (== <code>${fillQ}</code>) ` +
+                compStrShort +
                 ` <code>${bp.self.get('slots').size} * 2</code> (== <code>${sizeQ}</code>)` +
                 extraResizeStr
             );
         }
         case 'resize':
-            return 'So it is time to do a resize';
+            return 'so it is time to do a resize';
         case 'done-no-return':
             return '';
     }
@@ -222,7 +226,7 @@ export function formatHashClassResize(bp) {
             return `Create a new list of empty slots of size <code>${bp.self.get('slots').size}</code>`;
         case 'for-loop': {
             const {key, pyHashCode: hashCode} = bp.oldSlots.get(bp.oldIdx);
-            return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current key is <code>${
+            return `[${bp.oldIdx + 1}/${bp.oldSlots.size}] The current slot's key is <code>${
                 key === null ? 'EMPTY' : displayStr(key)
             }</code> and its hash is <code>${hashCode === null ? 'EMPTY' : hashCode}</code>`;
         }
@@ -233,7 +237,7 @@ export function formatHashClassResize(bp) {
             } else if (slotKey === DUMMY) {
                 return `The current slot contains the <code>DUMMY</code> placeholder, skipping it`;
             } else {
-                return `The current slot contains a normal item (key is <code>${displayStr(slotKey)}</code>)`;
+                return `The current slot contains a normal item</code>`;
             }
         }
         case 'continue' /* FIXME not currently used */:
@@ -651,6 +655,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
                 continue;
             }
             this.computeIdxAndSave(this.slot.pyHashCode, this.self.get('slots').size);
+            this.fmtCollisionCount = 0;
 
             while (true) {
                 this.addBP('check-collision');
@@ -658,6 +663,7 @@ export class HashClassResizeBase extends HashBreakpointFunction {
                     break;
                 }
 
+                this.fmtCollisionCount += 1;
                 this.nextIdxAndSave();
             }
 

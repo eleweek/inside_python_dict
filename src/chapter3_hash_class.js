@@ -353,9 +353,10 @@ class FindClosestSizeExample extends React.PureComponent {
     MAX_MEM = BigNumber(2).pow(64);
     constructor() {
         super();
+        const used = BigNumber(11);
         this.state = {
-            used: BigNumber(14),
-            usedDouble: BigNumber(28),
+            used: used,
+            usedDouble: used.times(2),
             res: BigNumber(32),
         };
     }
@@ -589,8 +590,8 @@ export class Chapter3_HashClass extends ChapterComponent {
                     <p>
                         In this chapter, we'll make a class that supports the basic interface of a Python dict. The
                         class will keep track of the counters necessary for computing the load factor and auto-resize
-                        the hash table when necessary. On the inside, it'll work differently from Python dict, and we'll
-                        discuss these differences in the next chapter.
+                        the hash table. On the inside, it'll work differently from Python dict, and we'll discuss these
+                        differences in the next chapter.
                     </p>
                     <p>
                         The almost-Python-dict class needs to support values. To handle values we could add another list
@@ -662,12 +663,11 @@ export class Chapter3_HashClass extends ChapterComponent {
                         they are normal methods.{' '}
                     </p>
                     <p>
-                        Each method is going to keep track of <code>self.fill</code> (the number of non-empty slots
-                        including dummy slots) and <code>self.used</code> (the number of normal items in the dictionary,
-                        same as the dictionary size). Fill factor is the ratio between <code>self.fill</code> and{' '}
-                        <code>len(slots)</code>. When it reaches 2/3, the table gets resized. The new size is based on
-                        the number of noraml items of the table, which is <code>self.used</code>, and typically it is 2x
-                        of original size.
+                        Some methods are going to update <code>fill</code> (the number of non-empty slots including
+                        dummy slots) and <code>used</code> (the number of normal items in the dictionary, same as the
+                        dictionary size). Fill factor is the ratio between <code>fill</code> and <code>len(slots)</code>
+                        . When it reaches 2/3, the table gets resized. The new size is based on the number of normal
+                        items in the table, which is <code>self.used</code>, and typically it is 2x of original size.
                     </p>
                     <p>
                         Let's take a look at the code, starting with the <code>__init__</code> method. We're creating

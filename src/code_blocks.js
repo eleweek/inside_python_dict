@@ -74,7 +74,7 @@ export function dummyFormat(bp) {
 
 export function SimpleCodeBlock(props) {
     return (
-        <pre>
+        <pre className="simple-code-block hl-left pl-2">
             <code dangerouslySetInnerHTML={{__html: renderPythonCode(props.children)}} />
         </pre>
     );
