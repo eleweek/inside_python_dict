@@ -255,27 +255,28 @@ class Alerts extends React.Component {
 
         if (this.state.mounted) {
             const {browser, windowWidth, windowHeight} = this.props;
+            console.log('Alerts browser', browser);
             if (browser) {
-                if (browser.platform.mobile) {
+                if (browser.platform.type === 'mobile') {
                     alerts.push(
                         <BootstrapAlert key="mobile-device-warning">
-                            <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For best
-                            experience desktop Chrome or Safari is recommended
+                            <FontAwesomeIcon icon="desktop" /> <strong>Mobile device detected.</strong> For the best
+                            experience use a desktop browser
                         </BootstrapAlert>
                     );
                     if (windowWidth < windowHeight) {
                         alerts.push(
                             <BootstrapAlert key="mobile-device-rotate-warning">
                                 <FontAwesomeIcon icon="sync-alt" /> <strong>Rotating your device is recommended</strong>{' '}
-                                - wider viewport is better
+                                - animations are better with a wider viewport
                             </BootstrapAlert>
                         );
                     }
-                } else if (browser.browser.name === 'firefox' && browser.os.name !== 'Linux') {
+                } else if (browser.browser.name === 'Firefox' && browser.os.name !== 'Linux') {
                     alerts.push(
                         <BootstrapAlert key="ff-warning">
                             <FontAwesomeIcon icon={['fab', 'firefox']} /> <strong>Firefox detected.</strong> Heavy
-                            animations may lag at times. If this happens, Chrome or Safari is recommended.
+                            animations may lag sometimes. If this happens, Chrome or Safari is recommended.
                         </BootstrapAlert>
                     );
                 }

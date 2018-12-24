@@ -324,7 +324,7 @@ export class BootstrapAlert extends React.Component {
 
     dismiss = () => {
         this.setState({dismissed: true});
-        setTimeout(() => this.setState({dismissedDone: false}), this.ALERT_REMOVAL_TIMEOUT);
+        setTimeout(() => this.setState({dismissedDone: true}), this.ALERT_REMOVAL_TIMEOUT);
     };
 
     render() {
