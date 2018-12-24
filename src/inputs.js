@@ -432,7 +432,12 @@ export class BlockInputToolbar extends React.Component {
         // TODO: 50, 10 are hardcoded and I am not sure why
         return (
             <div className="my-sticky-outer-outer-wrapper-this-time-really">
-                <div style={{height: (this.state.height || 50) + 10}}>
+                <div
+                    style={{
+                        height: this.state.height ? this.state.height + 10 : undefined,
+                        paddingBottom: this.state.height ? undefined : 10,
+                    }}
+                >
                     <Sticky innerZ={10} bottomBoundary={bottomBoundary} enabled={tallScreen || squareishScreen}>
                         <div className="my-sticky-wrapper" ref={this.wrapperRef}>
                             <BlockInputToolbarImpl {...restProps} />
