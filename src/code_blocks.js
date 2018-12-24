@@ -1652,7 +1652,7 @@ class TimeSliderWithControls extends React.Component {
 
     render() {
         let marks = {};
-        if (this.props.maxTime < 30) {
+        if (this.props.maxTime < 25) {
             for (let i = 0; i <= this.props.maxTime; ++i) {
                 marks[i] = '';
             }
