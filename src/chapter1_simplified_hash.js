@@ -526,6 +526,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
 
         return (
             <div className="chapter chapter1">
+                <h5>Contents</h5>
+                {this.props.contents}
                 <h2>Introduction</h2>
                 <Subcontainerize>
                     <p>
@@ -599,8 +601,6 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                         build the actual algorithm and data structure inside Python dictionary step by step, starting
                         with the code above, which is intentionally verbose.{' '}
                     </p>
-                    <h5>Contents</h5>
-                    {this.props.contents}
                     <h2>Chapter 1: searching efficiently in a list</h2>
                     <p>
                         A Python dict is a collection of key-value pairs. And, the most important part of it is handling
