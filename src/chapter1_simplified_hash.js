@@ -618,7 +618,7 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
-                        too. We don't want to doing a linear scan over the whole list every time we look up a number, so
+                        too. We don't want to be doing a linear scan over the whole list every time we look up a number, so
                         we need to organize our data in a clever way.
                     </p>
                     <p> Here's how. </p>
