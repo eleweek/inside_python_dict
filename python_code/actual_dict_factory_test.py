@@ -1,11 +1,11 @@
 import unittest
 
 from dict32_reimplementation_test_v2 import dict_factory
-from dictinfo32 import dictobject, dump_py_dict
+from dictinfo import dump_py_dict
 
 
 def table_size(d):
-    return len(dump_py_dict(dictobject(d))[0])
+    return len(dump_py_dict(d)[0])
 
 
 class TestDictFactory(unittest.TestCase):

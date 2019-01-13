@@ -3,7 +3,7 @@ import argparse
 import json
 
 from common import EMPTY, AllKeyValueFactory, IntKeyValueFactory
-from dictinfo32 import dictobject, dump_py_dict
+from dictinfo import dump_py_dict
 from dict32_reimplementation import PyDictReimplementation, dump_reimpl_dict
 from js_reimplementation_interface import Dict32JsImpl, AlmostPythonDictRecyclingJsImpl, AlmostPythonDictNoRecyclingJsImpl
 import hash_chapter3_class_impl
@@ -22,7 +22,7 @@ def dict_factory(pairs=None):
 
 
 IMPLEMENTATIONS = {
-    "dict32_actual": (dict_factory, lambda d: dump_py_dict(dictobject(d))),
+    "dict32_actual": (dict_factory, dump_py_dict),
     "dict32_reimpl_py": (PyDictReimplementation, dump_reimpl_dict),
     "dict32_reimpl_js": (Dict32JsImpl, dump_reimpl_dict),
 

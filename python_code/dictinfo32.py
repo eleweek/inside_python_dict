@@ -31,7 +31,9 @@ dummy_internal = dictobject(d).ma_table[0].me_key
 del d
 
 
-def dump_py_dict(do):
+def dump_py_dict(d):
+    do = dictobject(d)
+
     keys = []
     hashes = []
     values = []
