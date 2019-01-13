@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 process.env.NODE_ENV = 'ssr';
 
 console.log = () => {}; // Do not log to stdout
