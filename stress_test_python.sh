@@ -1,21 +1,23 @@
 #!/bin/bash
 set -e -o pipefail
-eval "`pyenv init -`"
-pyenv shell 3.2.6
+
 NUM_INSERTS=200
 NUM_INSERTS_SMALLER=100
+
+eval "`pyenv init -`"
+
+pyenv shell 3.2.6
 
 for kv in {numbers,all}; do
     echo "DICT 3.2: kv = ${kv}, num_inserts = $NUM_INSERTS"
     for is in {0,9,-1}; do
         echo "    initial size = ${is}"
-        for reimpl in {dict32_reimpl_py_extracted,dict32_actual,dict32_reimpl_py,dict32_reimpl_js}; do 
+        for reimpl in {dict32_reimpl_py_extracted,dict_actual,dict32_reimpl_py,dict32_reimpl_js}; do 
             echo "        Implementation: $reimpl"
-            python3 python_code/dict32_reimplementation_test_v2.py --reference-implementation dict32_actual --test-implementation $reimpl --no-extra-getitem-checks --num-inserts $NUM_INSERTS --kv all --initial-size $is
+            python3 python_code/dict32_reimplementation_test_v2.py --reference-implementation dict_actual --test-implementation $reimpl --no-extra-getitem-checks --num-inserts $NUM_INSERTS --kv all --initial-size $is
         done
     done
 done
-
 
 # TODO: merge with previous loop to remove copy&paste
 for kv in {numbers,all}; do

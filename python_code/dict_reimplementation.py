@@ -3,7 +3,7 @@ from dict_reimpl_common import BaseDictImpl, Slot
 from operator import attrgetter
 
 
-class PyDictReimplementation(BaseDictImpl):
+class PyDictReimplementationBase(BaseDictImpl):
     START_SIZE = 8
     PERTURB_SHIFT = 5
 
@@ -75,7 +75,7 @@ class PyDictReimplementation(BaseDictImpl):
 
     def resize(self):
         old_slots = self.slots
-        new_size = self.find_nearest_size(self.used * (4 if self.used <= 50000 else 2))
+        new_size = self.find_nearest_size(self._next_size())
         self.slots = [Slot() for _ in range(new_size)]
         self.fill = self.used
         for slot in old_slots:
@@ -87,6 +87,11 @@ class PyDictReimplementation(BaseDictImpl):
                     perturb >>= self.PERTURB_SHIFT
 
                 self.slots[idx] = Slot(slot.hash_code, slot.key, slot.value)
+
+
+class PyDictReimplementation32(PyDictReimplementationBase):
+    def _next_size(self):
+        return self.used * (4 if self.used <= 50000 else 2)
 
 
 def dump_reimpl_dict(d):
