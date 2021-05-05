@@ -1291,7 +1291,7 @@ export class Tetris extends React.PureComponent {
                     ref={this.props.innerRef}
                     style={{overflowX: this.props.overflow && 'scroll'}}
                 >
-                    <div className="some-hacky-padding" style={{height: boxGeometry.boxSize}} />
+                    <div className="some-hacky-padding" style={{height: boxGeometry.boxSize * 0.75}} />
                     <div className="tetris">
                         {labelsEnabled && <div className="tetris-labels">{labels}</div>}
                         <div className="tetris-rows">{elems}</div>
@@ -1847,20 +1847,6 @@ export class VisualizedCode extends React.Component {
                         maxTime={this.props.breakpoints.length - 1}
                         autoplayByDefault={this.props.autoplayByDefault}
                     />
-                    <div className="row code-block-row fix-animation">
-                        <div className="col">
-                            <CodeBlockWithActiveLineAndAnnotations
-                                height={codeHeight}
-                                time={time}
-                                code={this.props.code}
-                                overflow={serverSide}
-                                fontSize={smallerFont ? 12 : 9}
-                                lineHeight={smallerFont ? 1.15 : 0.8}
-                                breakpoints={this.props.breakpoints}
-                                formatBpDesc={this.props.formatBpDesc}
-                            />
-                        </div>
-                    </div>
                     <DebounceWhenOutOfView
                         childProps={{
                             /* TODO: probably better not figure out how to not construct this object every time */
@@ -1882,6 +1868,20 @@ export class VisualizedCode extends React.Component {
                         )}
                     />
                     {this.props.comment}
+                    <div className="row code-block-row fix-animation">
+                        <div className="col">
+                            <CodeBlockWithActiveLineAndAnnotations
+                                height={codeHeight}
+                                time={time}
+                                code={this.props.code}
+                                overflow={serverSide}
+                                fontSize={smallerFont ? 12 : 9}
+                                lineHeight={smallerFont ? 1.15 : 0.8}
+                                breakpoints={this.props.breakpoints}
+                                formatBpDesc={this.props.formatBpDesc}
+                            />
+                        </div>
+                    </div>
                 </div>
             </MyErrorBoundary>
         );

@@ -276,13 +276,9 @@ div.visualized-code {
     border-left: solid 4px #999999;
 }
 
-div.slider-row {
-    margin-bottom: 25px;
-}
-
 .tetris {
     display: flex;
-    padding-bottom: 7px;
+    padding-bottom: 20px;
 }
 
 /* supposedly creates another layer */
