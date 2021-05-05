@@ -215,9 +215,9 @@ div.hash-example-instance {
     right: none !important;
 }
 
-/*.visualized-code > .code-block-row {
-    margin-bottom: 20px;
-}*/
+.visualized-code > .code-block-row {
+    margin-top: 20px;
+}
 
 .code-block-with-annotations {
     line-height: 1.15;
@@ -278,7 +278,7 @@ div.visualized-code {
 
 .tetris {
     display: flex;
-    padding-bottom: 20px;
+    padding-bottom: 5px;
 }
 
 /* supposedly creates another layer */

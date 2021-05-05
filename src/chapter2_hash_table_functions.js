@@ -135,8 +135,8 @@ const HashCreateNewStateVisualization = TetrisFactory([
             {selection1color: COLOR_FOR_READ_OPS},
         ],
     ],
-    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
-    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 7}, 'keys', 'idx']],
+    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
 ]);
 
 function formatHashCreateNewAndInsert(bp, prevBp) {
@@ -251,14 +251,14 @@ function formatHashRemoveSearch(bp, prevBp) {
 }
 
 const HashNormalStateVisualization = TetrisFactory([
-    [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
-    [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
+    [HashBoxesComponent, [{labels: ['keys'], marginBottom: 7}, 'keys', 'idx']],
+    [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
 ]);
 
 const HashNormalStateVisualizationSmallBoxes = TetrisFactory(
     [
-        [HashBoxesComponent, [{labels: ['keys']}, 'keys', 'idx']],
-        [HashBoxesComponent, [{labels: ['hash_codes'], marginBottom: 7}, 'hashCodes', 'idx']],
+        [HashBoxesComponent, [{labels: ['keys'], marginBottom: 7}, 'keys', 'idx']],
+        [HashBoxesComponent, [{labels: ['hash_codes']}, 'hashCodes', 'idx']],
     ],
     {fixedGeometry: SMALLER_BOX_GEOMETRY}
 );
