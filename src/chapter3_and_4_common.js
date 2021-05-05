@@ -99,9 +99,7 @@ export function formatHashClassSetItemAndCreate(bp) {
         case 'check-dup-hash': {
             const slotHash = bp.self.get('slots').get(bp.idx).pyHashCode;
             if (slotHash.eq(bp.hashCode)) {
-                return `<code>${slotHash} == ${
-                    bp.hashCode
-                }</code>, we cannot rule out the slot being occupied by the same key`;
+                return `<code>${slotHash} == ${bp.hashCode}</code>, we cannot rule out the slot being occupied by the same key`;
             } else {
                 return `<code>${slotHash} != ${bp.hashCode}</code>, so there is a collision with a different key`;
             }
@@ -255,9 +253,7 @@ export function formatHashClassResize(bp) {
 export function formatHashClassInit(bp) {
     switch (bp.point) {
         case 'init-start-size-pairs':
-            return `Find the power of two > 8 and > <code>${bp.pairsLength}</code> . It is <code>${
-                bp.startSize
-            }</code>`;
+            return `Find the power of two > 8 and > <code>${bp.pairsLength}</code> . It is <code>${bp.startSize}</code>`;
         case 'init-start-size':
         case 'init-start-size-8':
             return `Start with a minimum hash table size, which is 8`;
@@ -587,7 +583,7 @@ export class HashClassInsertAll extends HashBreakpointFunction {
 export const HashClassNormalStateVisualization = TetrisFactory([
     [
         HashSlotsComponent,
-        [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx', 'targetIdx'],
+        [{labels: ['slots[*].key', 'slots[*].value', 'slots[*].hashCode']}, 'self.slots', 'idx', 'targetIdx'],
     ],
 ]);
 
@@ -602,21 +598,21 @@ export const HashClassInsertAllVisualization = TetrisFactory([
             {linesCount: 2, selection1color: COLOR_FOR_READ_OPS, kvHack: true},
         ],
     ],
-    [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],
+    [HashSlotsComponent, [{labels: ['slots[*].key', 'slots[*].value', 'slots[*].hashCode']}, 'self.slots', 'idx']],
 ]);
 
 export const HashClassResizeVisualization = TetrisFactory([
     [
         HashSlotsComponent,
         [
-            {labels: ['oldSlots[*].hashCode', 'oldSlots[*].key', 'oldSlots[*].value'], marginBottom: 20},
+            {labels: ['oldSlots[*].key', 'oldSlots[*].value', 'oldSlots[*].hashCode'], marginBottom: 20},
             'oldSlots',
             'oldIdx',
             undefined,
             {selection1color: COLOR_FOR_READ_OPS},
         ],
     ],
-    [HashSlotsComponent, [{labels: ['slots[*].hashCode', 'slots[*].key', 'slots[*].value']}, 'self.slots', 'idx']],
+    [HashSlotsComponent, [{labels: ['slots[*].key', 'slots[*].value', 'slots[*].hashCode']}, 'self.slots', 'idx']],
 ]);
 
 export class HashClassResizeBase extends HashBreakpointFunction {

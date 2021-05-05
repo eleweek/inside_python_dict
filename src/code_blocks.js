@@ -1984,9 +1984,9 @@ export class HashSlotsComponent extends React.PureComponent {
     static boxFactory(keys, value) {
         const slot = value;
         return [
-            [keys[0], {value: slot.pyHashCode, yOffset: 0}],
-            [keys[1], {value: slot.key, yRel: 1}],
-            [keys[2], {value: slot.value, yRel: 2}],
+            [keys[1], {value: slot.key, yOffset: 0}],
+            [keys[2], {value: slot.value, yRel: 1}],
+            [keys[0], {value: slot.pyHashCode, yRel: 2}],
         ];
     }
 
