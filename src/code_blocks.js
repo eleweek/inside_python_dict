@@ -1659,42 +1659,30 @@ class TimeSliderWithControls extends React.Component {
         }
         const time = this.props.time;
 
-        const button = (label, onClick, iconId, iconOnTheRight, forceLabel) => {
-            let elems = [];
-            if (iconId) {
-                elems.push(<FontAwesomeIcon key={`font-awesome-${iconId}`} icon={iconId} />);
-            }
-            elems.push(
-                <span key="span-label" className={!forceLabel ? 'scbl-hideable' : undefined}>
-                    {label}
-                </span>
-            );
+        const button = (onClick, iconId) => {
             return (
                 <button
-                    key={label}
+                    key={iconId}
                     type="button"
-                    className={classNames('btn', 'btn-outline-dark', 'slider-controls-button', {
-                        'button-with-scbl-hideable': !forceLabel,
-                        'button-without-scbl-hideable': forceLabel,
-                    })}
+                    className={classNames('btn', 'btn-outline-dark', 'slider-controls-button')}
                     onClick={onClick}
                 >
-                    {iconOnTheRight ? elems.reverse() : elems}
+                    <FontAwesomeIcon key={`font-awesome-${iconId}`} icon={iconId} />
                 </button>
             );
         };
 
         let timeControls = [];
-        timeControls.push(button(' First step', this.firstStep, 'fast-backward'));
-        timeControls.push(button(' Step', this.prevStep, 'step-backward'));
+        timeControls.push(button(this.firstStep, 'fast-backward'));
+        timeControls.push(button(this.prevStep, 'step-backward'));
         if (!this.state.autoPlaying) {
             const playIcon = this.props.time === this.props.maxTime ? 'redo-alt' : 'play';
-            timeControls.push(button(' Play', this.autoPlay, playIcon, false, true));
+            timeControls.push(button(this.autoPlay, playIcon));
         } else {
-            timeControls.push(button(' Pause', this.stop, 'pause', false, true));
+            timeControls.push(button(this.stop, 'pause'));
         }
-        timeControls.push(button('Step ', this.nextStep, 'step-forward', true));
-        timeControls.push(button('Last step ', this.lastStep, 'fast-forward', true));
+        timeControls.push(button(this.nextStep, 'step-forward'));
+        timeControls.push(button(this.lastStep, 'fast-forward'));
 
         let speedControls = [];
 
