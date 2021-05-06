@@ -448,3 +448,8 @@ blockquote.blockquote {
     transition-duration: 750ms;
     transition-function: ease;
 }
+
+.last-desc {
+    font-size: 18px;
+    margin-top: 10px;
+}

@@ -1310,6 +1310,55 @@ export class Tetris extends React.PureComponent {
     }
 }
 
+export function formatBp(bp, prevBp, formatBpDesc) {
+    let desc = null;
+    if (typeof formatBpDesc === 'function') {
+        desc = formatBpDesc(bp, prevBp);
+    } else {
+        for (const formatFunc of formatBpDesc) {
+            desc = formatFunc(bp, prevBp);
+            if (desc != null) break;
+        }
+    }
+    return desc;
+}
+
+export function getVisibleBreakpoints(code, breakpoints, time) {
+    let visibleBreakpoints = {};
+    let pointToLevel = {};
+    for (let [line, bpPoint, level] of code) {
+        if (line === '' || bpPoint === '') {
+            continue;
+        }
+        if (level === undefined) {
+            pointToLevel = null;
+            break;
+        }
+        pointToLevel[bpPoint] = level;
+    }
+
+    let prevBp = null;
+    for (let [t, bp] of breakpoints.entries()) {
+        if (t > time) {
+            break;
+        }
+
+        if (bp.point in visibleBreakpoints) {
+            let level = pointToLevel[bp.point];
+            for (let visibleBpPoint in visibleBreakpoints) {
+                if (pointToLevel[visibleBpPoint] >= level) {
+                    delete visibleBreakpoints[visibleBpPoint];
+                }
+            }
+        }
+
+        visibleBreakpoints[bp.point] = {bp, prevBp};
+        prevBp = bp;
+    }
+
+    return visibleBreakpoints;
+}
+
 class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     constructor() {
         super();
@@ -1330,7 +1379,6 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
     });
 
     getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp) {
-        const t1 = performance.now();
         const code = this.props.code;
         const hlLines = this._highlightLines(code);
         let lines = [];
@@ -1345,15 +1393,7 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
 
             if (bpPoint in visibleBreakpoints) {
                 const {bp, prevBp} = visibleBreakpoints[bpPoint];
-                let desc = null;
-                if (typeof this.props.formatBpDesc === 'function') {
-                    desc = this.props.formatBpDesc(bp, prevBp);
-                } else {
-                    for (const formatBpDesc of this.props.formatBpDesc) {
-                        desc = formatBpDesc(bp, prevBp);
-                        if (desc != null) break;
-                    }
-                }
+                const desc = formatBp(bp, prevBp, this.props.formatBpDesc);
 
                 if (desc == null) {
                     throw new Error('Unknown bp type: ' + bpPoint);
@@ -1399,47 +1439,10 @@ class CodeBlockWithActiveLineAndAnnotations extends React.Component {
         return lines;
     }
 
-    getVisibleBreakpoints(activeBp) {
-        const t1 = performance.now();
-        let visibleBreakpoints = {};
-        let pointToLevel = {};
-        for (let [line, bpPoint, level] of this.props.code) {
-            if (line === '' || bpPoint === '') {
-                continue;
-            }
-            if (level === undefined) {
-                pointToLevel = null;
-                break;
-            }
-            pointToLevel[bpPoint] = level;
-        }
-
-        let prevBp = null;
-        for (let [time, bp] of this.props.breakpoints.entries()) {
-            if (time > this.props.time) {
-                break;
-            }
-
-            if (bp.point in visibleBreakpoints) {
-                let level = pointToLevel[bp.point];
-                for (let visibleBpPoint in visibleBreakpoints) {
-                    if (pointToLevel[visibleBpPoint] >= level) {
-                        delete visibleBreakpoints[visibleBpPoint];
-                    }
-                }
-            }
-
-            visibleBreakpoints[bp.point] = {bp, prevBp};
-            prevBp = bp;
-        }
-
-        return visibleBreakpoints;
-    }
-
     render() {
         let activeBp = this.props.breakpoints[this.props.time];
 
-        const visibleBreakpoints = this.getVisibleBreakpoints(activeBp);
+        const visibleBreakpoints = getVisibleBreakpoints(this.props.code, this.props.breakpoints, this.props.time);
         const lines = this.getCodeWithExplanationHtmlLines(visibleBreakpoints, activeBp);
 
         return (
@@ -1792,6 +1795,18 @@ export class VisualizedCode extends React.Component {
         }
     }
 
+    getLastDesc() {
+        const currentBp = this.props.breakpoints[this.state.time];
+        // Pretty hacky as an experiment
+        const visibleBreakpoints = getVisibleBreakpoints(this.props.code, this.props.breakpoints, this.state.time);
+        if (visibleBreakpoints.length === 0) {
+            return null;
+        }
+        console.log('VB', visibleBreakpoints, currentBp.point);
+        const {bp, prevBp} = visibleBreakpoints[currentBp.point];
+        return formatBp(bp, prevBp, this.props.formatBpDesc);
+    }
+
     render() {
         const windowWidth = this.props.windowWidth;
         const windowHeight = this.props.windowHeight;
@@ -1801,6 +1816,9 @@ export class VisualizedCode extends React.Component {
         const smallerFont = tallScreen || serverSide;
 
         let bp = this.props.breakpoints[this.state.time];
+
+        const lastDesc = this.getLastDesc();
+
         const StateVisualization = this.props.stateVisualization;
 
         let codeHeight;
@@ -1835,6 +1853,14 @@ export class VisualizedCode extends React.Component {
                         maxTime={this.props.breakpoints.length - 1}
                         autoplayByDefault={this.props.autoplayByDefault}
                     />
+                    <div className="last-desc">
+                        <span
+                            style={{fontSize: this.props.fontSize}}
+                            key="explanation"
+                            className="code-explanation"
+                            dangerouslySetInnerHTML={{__html: `${lastDesc}`}}
+                        />
+                    </div>
                     <DebounceWhenOutOfView
                         childProps={{
                             /* TODO: probably better not figure out how to not construct this object every time */
