@@ -172,7 +172,7 @@ class SimplifiedInsertAll extends BreakpointFunction {
         this._overwritten = [];
     }
 
-    run(_originalList, isBroken = false) {
+    run(_originalList, isBroken = false, overrideSize = null) {
         this.fmtIsBroken = isBroken;
         this.originalList = new ImmutableList(_originalList);
         this.newList = new ImmutableList();
@@ -180,7 +180,13 @@ class SimplifiedInsertAll extends BreakpointFunction {
             this.fmtMissingNumbers = new ImmutableList();
             this.newListWithReplacements = new ImmutableList();
         }
-        const startSize = (isBroken ? 1 : 2) * this.originalList.size;
+        let startSize;
+
+        if (!overrideSize) {
+            startSize = (isBroken ? 1 : 2) * this.originalList.size;
+        } else {
+            overrideSize = startSize;
+        }
         for (let i = 0; i < startSize; ++i) {
             this.newList = this.newList.push(null);
             if (isBroken) {
@@ -245,21 +251,15 @@ let formatSimplifiedInsertAllDescription = function(bp, prevBp) {
                 bp.number
             }</code>`;
         case 'compute-idx':
-            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
-                bp.newList.size
-            }</code>`;
+            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${bp.newList.size}</code>`;
         case 'check-collision':
             return chapter1_2_FormatCheckCollision(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'next-idx':
-            return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${
-                prevBp.newListIdx
-            } + 1) % ${bp.newList.size}</code>`;
+            return `Keep probing, the next slot will be <code>${bp.newListIdx}</code> == <code>(${prevBp.newListIdx} + 1) % ${bp.newList.size}</code>`;
         case 'assign-elem': {
             const prevNumber = prevBp.newList.get(bp.newListIdx);
             if (prevNumber != null) {
-                return `Collision of <code>${bp.number}</code> with <code>${prevNumber}</code> in slot <code>${
-                    bp.newListIdx
-                }</code> - the number is overwritten`;
+                return `Collision of <code>${bp.number}</code> with <code>${prevNumber}</code> in slot <code>${bp.newListIdx}</code> - the number is overwritten`;
             } else {
                 return `Put <code>${bp.number}</code> in slot <code>${bp.newListIdx}</code>`;
             }
@@ -351,9 +351,7 @@ class SimplifiedSearch extends BreakpointFunction {
 let formatSimplifiedSearchDescription = function(bp) {
     switch (bp.point) {
         case 'compute-idx':
-            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${
-                bp.newList.size
-            }</code>`;
+            return `Compute the slot index: <code>${bp.newListIdx}</code> == <code>${bp.number} % ${bp.newList.size}</code>`;
         case 'check-not-found':
             return commonFormatCheckNotFound(bp.newList, bp.newListIdx, bp.fmtCollisionCount);
         case 'check-found':
@@ -618,8 +616,8 @@ export class Chapter1_SimplifiedHash extends ChapterComponent {
                     </p>
                     <p>
                         Accessing a single element by index is very fast. Accessing only a few elements would be fast
-                        too. We don't want to be doing a linear scan over the whole list every time we look up a number, so
-                        we need to organize our data in a clever way.
+                        too. We don't want to be doing a linear scan over the whole list every time we look up a number,
+                        so we need to organize our data in a clever way.
                     </p>
                     <p> Here's how. </p>
                     <p>

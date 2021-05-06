@@ -28,6 +28,10 @@ module.exports = merge(common, {
             template: 'build/chapter4.html',
             filename: 'chapter4.html',
         }),
+        new HtmlWebpackPlugin({
+            template: 'build/new_demos.html',
+            filename: 'new_demos.html',
+        }),
         new BundleAnalyzerPlugin(),
     ],
 });
