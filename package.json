@@ -108,7 +108,7 @@
     "unminified-webpack-plugin": "^2.0.0",
     "webpack": "^4.27.1",
     "webpack-bundle-analyzer": "^3.0.3",
-    "webpack-cli": "^3.1.2",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.1.10",
     "webpack-merge": "^4.1.5"
   },
