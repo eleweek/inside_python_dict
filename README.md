@@ -1,6 +1,6 @@
 # Inside Python Dict - an explorable explanation
 
-This repository contains the code for an explorable explanation of python dicts. 
+This repository contains the code for ["Inside Python Dict"](https://just-taking-a-ride.com/inside_python_dict/), a explorable explanation of python dicts. 
 
 ## Code
 
